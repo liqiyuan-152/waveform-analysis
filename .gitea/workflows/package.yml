@@ -1,0 +1,68 @@
+name: Package component
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Test with coverage
+        run: pnpm test:coverage
+
+      - name: Build component
+        run: pnpm build
+
+      - name: Pack component
+        run: pnpm pack --pack-destination artifacts
+
+      - name: Verify component package
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          test -n "$package_file"
+          package_contents="$(tar -tzf "$package_file")"
+          for required_file in \
+            package/dist/index.js \
+            package/dist/index.cjs \
+            package/dist/types/index.d.ts \
+            package/dist/style.css \
+            package/package.json \
+            package/README.md; do
+            grep -Fxq "$required_file" <<< "$package_contents"
+          done
+
+      - name: Upload component package
+        uses: actions/upload-artifact@v3
+        with:
+          name: waveform-analysis-${{ gitea.sha }}
+          path: artifacts/*.tgz
+          if-no-files-found: error
+          retention-days: 7
