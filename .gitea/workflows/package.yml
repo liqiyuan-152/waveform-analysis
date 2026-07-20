@@ -61,6 +61,19 @@ jobs:
             grep -Fxq "$required_file" <<< "$package_contents"
           done
 
+      - name: Publish component package
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          package_version="$(node -p "require('./package.json').version")"
+          short_sha="$(printf '%.12s' '${{ gitea.sha }}')"
+          published_name="waveform-analysis-${package_version}-${short_sha}.tgz"
+          install -m 644 "$package_file" "/downloads/$published_name"
+          sha256sum "/downloads/$published_name" > "/downloads/$published_name.sha256"
+          ln -sfn "$published_name" /downloads/waveform-analysis-latest.tgz
+          ln -sfn "$published_name.sha256" /downloads/waveform-analysis-latest.tgz.sha256
+
       - name: Upload component package
         uses: https://lqycustomsite.online/admin/actions-upload-artifact@v3
         with:
