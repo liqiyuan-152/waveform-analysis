@@ -14,10 +14,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          repository_url="${GITEA_SERVER_URL%/}/${GITEA_REPOSITORY}.git"
+          server_url="${{ gitea.server_url }}"
+          repository_url="${server_url%/}/${{ gitea.repository }}.git"
           git init .
           git remote add origin "$repository_url"
-          git fetch --depth 1 origin "$GITEA_SHA"
+          git fetch --depth 1 origin "${{ gitea.sha }}"
           git checkout --detach FETCH_HEAD
 
       - name: Set up pnpm
