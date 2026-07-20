@@ -1,0 +1,59 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  getBottomRowCellIndexes,
+  getPageCount,
+  normalizeGridOptions,
+  paginateSeries,
+  resolveGridCellGeometry,
+  X_AXIS_BAND,
+} from './grid'
+
+describe('waveform grid helpers', () => {
+  it('normalizes grid counts and uses a two by one default', () => {
+    expect(normalizeGridOptions()).toEqual({ rowCount: 2, columnCount: 1, showPagination: true })
+    expect(normalizeGridOptions({ rowCount: 0, columnCount: 99 })).toEqual({
+      rowCount: 1,
+      columnCount: 10,
+      showPagination: true,
+    })
+  })
+
+  it('paginates row-major slots and keeps at least one page for empty data', () => {
+    const options = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
+    expect(getPageCount([1, 2, 3, 4, 5].length, options)).toBe(2)
+    expect(paginateSeries([1, 2, 3, 4, 5], 2, options)).toEqual([5])
+    expect(getPageCount(0, options)).toBe(1)
+  })
+
+  it('resolves mode-specific gaps and bottom cells', () => {
+    const options = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
+    const separated = resolveGridCellGeometry(400, 200, options, 'separated', [true, true, true, true])
+    const compact = resolveGridCellGeometry(400, 200, options, 'compact', [true, true, true, true])
+    const independent = resolveGridCellGeometry(400, 200, options, 'independent', [true, true, false, false])
+    expect(separated[1].left).toBeGreaterThan(separated[0].left + separated[0].width)
+    expect(separated[2].top).toBe(separated[0].plotHeight + 16)
+    expect(separated[2].xAxisBand).toBe(X_AXIS_BAND)
+    expect(compact[2].top).toBe(compact[0].top + compact[0].plotHeight)
+    expect(compact[2].xAxisBand).toBe(X_AXIS_BAND)
+    expect(independent[2].top).toBe(
+      independent[0].top + independent[0].plotHeight + X_AXIS_BAND + 14,
+    )
+    expect(independent[0].cellHeight).toBe(independent[0].plotHeight + X_AXIS_BAND)
+    expect(
+      getBottomRowCellIndexes(
+        separated.map((cell, index) => ({ ...cell, hasSeries: index !== 3 })),
+        2,
+      ),
+    ).toEqual(new Set([2, 1]))
+  })
+
+  it('accepts an independent horizontal gap without changing vertical spacing', () => {
+    const options = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
+    const cells = resolveGridCellGeometry(400, 200, options, 'independent', [true, true, true, true], 64)
+
+    expect(cells[0].width).toBe(168)
+    expect(cells[1].left).toBe(232)
+    expect(cells[2].top).toBe(cells[0].plotHeight + X_AXIS_BAND + 14)
+  })
+})
