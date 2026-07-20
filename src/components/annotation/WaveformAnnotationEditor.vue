@@ -457,7 +457,7 @@ function handleSeriesChange(event: Event) {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  padding-top: 2px;
+  padding-top: 8px;
   border-top: 1px solid #eaecf0;
 }
 

@@ -6,6 +6,7 @@ import { paddedDomain } from '../../utils'
 
 export interface PreparedWaveformSeries {
   id: string
+  trackId?: string
   name: string
   unit?: string
   color?: string

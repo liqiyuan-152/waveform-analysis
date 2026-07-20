@@ -1,9 +1,15 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { axisBottom, axisLeft, select } from 'd3'
 import { formatAxisTime, formatScientificYAxisLabel } from '../../utils'
-import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
+import type { WaveformFrameStyle } from '../../types'
+import type {
+  WaveformDisplayMode,
+  WaveformInteractionMode,
+  WaveformLegendPosition,
+} from '../data/types'
 import type { DisplaySeries, HoveredSeriesPoint, TrackLayout } from '../core/types'
+import WaveformLegend from './WaveformLegend.vue'
 
 interface Props {
   /** 轨道布局信息 */
@@ -22,12 +28,20 @@ interface Props {
   interactionMode?: WaveformInteractionMode
   /** 帧编号 */
   frameNumber?: string | number
+  /** 图框样式 */
+  frameStyle?: WaveformFrameStyle
   /** 时间单位 */
   timeUnit: 's' | 'ms'
   /** 悬浮点（用于显示十字线） */
   hoveredPoint?: HoveredSeriesPoint
   /** Y 轴标签回退值 */
   yLabel?: string
+  /** 多曲线图例位置 */
+  legendPosition?: WaveformLegendPosition
+  /** 多曲线图例排列方向 */
+  legendOrientation?: 'horizontal' | 'vertical'
+  /** 多曲线图例背景颜色 */
+  legendBackgroundColor?: string
 }
 
 interface Emits {
@@ -39,11 +53,26 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
+  legendPosition: 'top-right',
+  legendOrientation: 'vertical',
+  legendBackgroundColor: 'rgba(255, 255, 255, 0.7)',
 })
 const emit = defineEmits<Emits>()
 
 const xAxisElement = ref<SVGGElement>()
 const yAxisElement = ref<SVGGElement>()
+const resolvedFrameStyle = computed(() => {
+  const borderWidth = props.frameStyle?.borderWidth
+  return {
+    borderColor: props.frameStyle?.borderColor || '#1f2937',
+    borderWidth:
+      typeof borderWidth === 'number' && Number.isFinite(borderWidth) && borderWidth >= 0
+        ? borderWidth
+        : 1,
+    borderStyle: props.frameStyle?.borderStyle === 'dashed' ? 'dashed' : 'solid',
+    backgroundColor: props.frameStyle?.backgroundColor || 'transparent',
+  }
+})
 
 function resolveYAxisLabel(series: DisplaySeries): string {
   return series.name.trim() || props.yLabel || ''
@@ -155,6 +184,15 @@ watch(
     :data-track-height="track.height"
     :transform="`translate(${track.left ?? 0}, ${track.top})`"
   >
+    <rect
+      v-if="!track.isEmpty"
+      class="waveform-track__plot-background waveform-chart__plot-background"
+      :width="track.width ?? innerWidth"
+      :height="track.height"
+      :fill="resolvedFrameStyle.backgroundColor"
+      aria-hidden="true"
+    />
+
     <!-- 网格和背景 -->
     <g v-if="!track.isEmpty" :clip-path="`url(#${clipPathId}-${track.index})`" aria-hidden="true">
       <g
@@ -259,6 +297,7 @@ watch(
     <g
       v-if="
         !track.isEmpty &&
+        track.seriesList.length === 1 &&
         track.showYAxisLabel &&
         resolveYAxisLabel(track.series) &&
         shouldShowYAxisLabel(track.height, track.index)
@@ -289,18 +328,35 @@ watch(
       class="waveform-track__plot-frame waveform-chart__plot-frame"
       :width="track.width ?? innerWidth"
       :height="track.height"
+      fill="none"
+      :stroke="resolvedFrameStyle.borderColor"
+      :stroke-width="resolvedFrameStyle.borderWidth"
+      :stroke-dasharray="resolvedFrameStyle.borderStyle === 'dashed' ? '6 4' : undefined"
       aria-hidden="true"
     />
 
     <!-- 波形线 -->
-    <path
-      v-if="!track.isEmpty"
-      class="waveform-track__line waveform-chart__line"
-      :data-series-id="track.series.id"
-      :data-series-name="track.series.name || undefined"
-      :d="track.path ?? undefined"
-      :stroke="track.series.color"
-      :clip-path="`url(#${clipPathId}-${track.index})`"
+    <g v-if="!track.isEmpty" class="waveform-track__lines">
+      <path
+        v-for="seriesPath in track.seriesPaths"
+        :key="seriesPath.series.id"
+        class="waveform-track__line waveform-chart__line"
+        :data-series-id="seriesPath.series.id"
+        :data-series-name="seriesPath.series.name || undefined"
+        :d="seriesPath.path ?? undefined"
+        :stroke="seriesPath.series.color"
+        :clip-path="`url(#${clipPathId}-${track.index})`"
+      />
+    </g>
+
+    <WaveformLegend
+      v-if="!track.isEmpty && track.seriesList.length > 1"
+      :series="track.seriesList"
+      :position="legendPosition"
+      :orientation="legendOrientation"
+      :background-color="legendBackgroundColor"
+      :width="track.width ?? innerWidth"
+      :height="track.height"
     />
 
     <!-- 十字线 -->
@@ -372,9 +428,10 @@ watch(
 }
 
 .waveform-track__plot-frame {
-  fill: none;
-  stroke: #1f2937;
-  stroke-width: 1;
+  pointer-events: none;
+}
+
+.waveform-track__plot-background {
   pointer-events: none;
 }
 

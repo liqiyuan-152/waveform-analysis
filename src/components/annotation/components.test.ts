@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
 
 import WaveformAnnotationContextMenu from './WaveformAnnotationContextMenu.vue'
@@ -77,8 +77,11 @@ describe('waveform annotation controls', () => {
     )
     expect(wrapper.get('.waveform-annotation-editor__coordinates').text()).toContain('Y2')
     expect(wrapper.get('button.is-primary').attributes('disabled')).toBeDefined()
+    await vi.waitFor(
+      () => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3),
+      { timeout: 5000 },
+    )
     const colorPickers = wrapper.findAllComponents(ColorPicker)
-    expect(colorPickers).toHaveLength(3)
     expect(wrapper.findAll('.waveform-annotation-editor__color-field')).toHaveLength(3)
     expect(colorPickers.map((picker) => picker.props('pureColor'))).toEqual([
       '#1677ff',
@@ -153,6 +156,10 @@ describe('waveform annotation controls', () => {
       },
     })
     await flushPromises()
+    await vi.waitFor(
+      () => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3),
+      { timeout: 5000 },
+    )
 
     expect(
       wrapper.findAllComponents(ColorPicker).map((picker) => picker.props('pureColor')),

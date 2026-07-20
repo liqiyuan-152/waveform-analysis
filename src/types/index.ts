@@ -10,6 +10,12 @@ export type {
   WaveformAnnotationStyle,
   WaveformAnnotation,
   WaveformRenderingOptions,
+  WaveformTitleTextStyle,
+  WaveformTitleOptions,
+  WaveformLegendPosition,
+  WaveformLegendOrientation,
+  WaveformLegendOptions,
+  WaveformFrameStyle,
 } from './chart'
 
 // 数据类型

@@ -56,6 +56,7 @@ describe('normalizeWaveformData', () => {
         kind: 'series',
         series: [
           {
+            trackId: 'comparison-track',
             name: 'BT2_2M',
             unit: 'T',
             data: { kind: 'points', points: [{ x: 1, y: 2 }] },
@@ -69,6 +70,7 @@ describe('normalizeWaveformData', () => {
     ).toEqual([
       {
         id: 'series-0',
+        trackId: 'comparison-track',
         name: 'BT2_2M',
         unit: 'T',
         color: undefined,
@@ -126,6 +128,217 @@ describe('WaveformChart', () => {
     ).toEqual(['channel-4'])
     expect(wrapper.get('.ant-pagination-item-3').classes()).toContain('ant-pagination-item-active')
     expect(wrapper.get('.ant-pagination-next').classes()).toContain('ant-pagination-disabled')
+  })
+
+  it('overlays series with the same track ID without changing the next frame', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'primary',
+            trackId: 'frame-1',
+            name: 'BT2_2M',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+              ],
+            },
+          },
+          {
+            id: 'second-frame',
+            name: 'BT1_2M',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 2 },
+                { x: 1, y: 3 },
+              ],
+            },
+          },
+          {
+            id: 'comparison',
+            trackId: 'frame-1',
+            name: 'TEST_CH_1',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0.5 },
+                { x: 1, y: 1.5 },
+              ],
+            },
+          },
+        ],
+      },
+      { frameNumber: 1, grid: { rowCount: 2, columnCount: 1 } },
+    )
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    expect(tracks).toHaveLength(2)
+    expect(
+      tracks[0].findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['primary', 'comparison'])
+    expect(
+      tracks[1].findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['second-frame'])
+    expect(tracks[0].find('.waveform-chart__y-axis-label').exists()).toBe(false)
+    expect(tracks[0].findAll('.waveform-chart__axis--y .tick').length).toBeGreaterThan(0)
+    expect(tracks[1].get('.waveform-chart__y-axis-label').text()).toBe('BT1_2M')
+    expect(tracks[1].find('.waveform-chart__legend').exists()).toBe(false)
+    const legend = tracks[0].get('.waveform-chart__legend')
+    expect(legend.attributes('data-position')).toBe('top-right')
+    expect(legend.attributes('data-orientation')).toBe('vertical')
+    expect(legend.get('.waveform-legend__panel').attributes('style')).toContain(
+      'background-color: rgba(255, 255, 255, 0.7)',
+    )
+    expect(legend.findAll('.waveform-chart__legend-item').map((item) => item.text())).toEqual([
+      'BT2_2M',
+      'TEST_CH_1',
+    ])
+    expect(
+      legend.findAll('.waveform-legend__swatch').map((swatch) => swatch.attributes('style')),
+    ).toEqual(['background-color: rgb(9, 96, 189);', 'background-color: rgb(56, 158, 13);'])
+    expect(wrapper.findAll('.waveform-chart__watermark').map((item) => item.text())).toEqual([
+      '1',
+      '2',
+    ])
+    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+
+    const firstTrackOverlay = tracks[0].get('.waveform-chart__overlay')
+    const overlayWidth = Number(firstTrackOverlay.attributes('width'))
+    const overlayHeight = Number(firstTrackOverlay.attributes('height'))
+    Object.defineProperty(firstTrackOverlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: overlayHeight }),
+    })
+    firstTrackOverlay.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        clientX: overlayWidth / 2,
+        clientY: overlayHeight / 2,
+        bubbles: true,
+      }),
+    )
+    await flushPromises()
+
+    const tooltipSeries = wrapper.findAll('.waveform-chart__tooltip-series')
+    expect(tooltipSeries).toHaveLength(2)
+    expect(tooltipSeries.map((item) => item.text())).toEqual([
+      expect.stringContaining('BT2_2M'),
+      expect.stringContaining('TEST_CH_1'),
+    ])
+  })
+
+  it('resolves automatic legend orientation and supports explicit overrides', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'first',
+            trackId: 'shared',
+            name: 'first',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+              ],
+            },
+          },
+          {
+            id: 'second',
+            trackId: 'shared',
+            name: 'second',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 1 },
+                { x: 1, y: 2 },
+              ],
+            },
+          },
+        ],
+      },
+      { grid: { rowCount: 1, columnCount: 1 } },
+    )
+    const positions = [
+      'top-left',
+      'top',
+      'top-right',
+      'right',
+      'bottom-right',
+      'bottom',
+      'bottom-left',
+      'left',
+    ] as const
+
+    for (const position of positions) {
+      await wrapper.setProps({ legend: { position, orientation: 'auto' } })
+      const legend = wrapper.get('.waveform-chart__legend')
+      const expectedOrientation =
+        position === 'top' || position === 'bottom' ? 'horizontal' : 'vertical'
+      expect(legend.attributes('data-position')).toBe(position)
+      expect(legend.attributes('data-orientation')).toBe(expectedOrientation)
+      expect(legend.get('.waveform-legend__viewport').classes()).toContain(
+        `waveform-legend__viewport--${position}`,
+      )
+      expect(
+        legend
+          .get('.waveform-legend__panel')
+          .classes()
+          .includes('waveform-legend__panel--vertical'),
+      ).toBe(expectedOrientation === 'vertical')
+    }
+
+    await wrapper.setProps({ legend: { position: 'top', orientation: 'vertical' } })
+    expect(wrapper.get('.waveform-chart__legend').attributes('data-orientation')).toBe('vertical')
+    expect(wrapper.get('.waveform-legend__panel').classes()).toContain(
+      'waveform-legend__panel--vertical',
+    )
+
+    await wrapper.setProps({ legend: { position: 'left', orientation: 'horizontal' } })
+    expect(wrapper.get('.waveform-chart__legend').attributes('data-orientation')).toBe('horizontal')
+    expect(wrapper.get('.waveform-legend__panel').classes()).toContain(
+      'waveform-legend__panel--horizontal',
+    )
+
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('64')
+  })
+
+  it('applies a configurable alpha background to every visible legend', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: Array.from({ length: 4 }, (_, index) => ({
+          id: `series-${index}`,
+          trackId: `frame-${Math.floor(index / 2)}`,
+          name: `series ${index}`,
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: index },
+              { x: 1, y: index + 1 },
+            ],
+          },
+        })),
+      },
+      {
+        grid: { rowCount: 2, columnCount: 1 },
+        legend: { backgroundColor: 'rgba(14, 165, 233, 0.25)' },
+      },
+    )
+
+    const legendPanels = wrapper.findAll('.waveform-legend__panel')
+    expect(legendPanels).toHaveLength(2)
+    legendPanels.forEach((panel) => {
+      expect(panel.attributes('style')).toContain('background-color: rgba(14, 165, 233, 0.25)')
+    })
+
+    await wrapper.setProps({ legend: { backgroundColor: '' } })
+    wrapper.findAll('.waveform-legend__panel').forEach((panel) => {
+      expect(panel.attributes('style')).toContain('background-color: rgba(255, 255, 255, 0.7)')
+    })
   })
 
   it('renders independent cells with separate x axes and overlays', async () => {
@@ -328,6 +541,7 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(3)
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(4)
     expect(emptyTracks[0].findAll('.waveform-chart__grid')).toHaveLength(0)
+    expect(emptyTracks[0].find('.waveform-chart__plot-background').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__plot-frame').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__axis--y').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__line').exists()).toBe(false)
@@ -487,6 +701,247 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('300')
   })
 
+  it('does not render or reserve space for missing, hidden, or blank titles', async () => {
+    for (const title of [undefined, { visible: false, text: '隐藏标题' }, { text: '   ' }]) {
+      const wrapper = await mountSizedChart(
+        { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        title ? { title } : {},
+      )
+
+      expect(wrapper.find('.waveform-chart__title-area').exists()).toBe(false)
+      expect(wrapper.attributes('data-title-area-height')).toBe('0')
+      expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('360')
+    }
+  })
+
+  it.each(['independent', 'separated', 'compact'] as const)(
+    'keeps the titled empty state inside the drawing area in %s mode',
+    async (displayMode) => {
+      const wrapper = await mountSizedChart(
+        { kind: 'samples', values: [1], sampleRate: -1 },
+        { displayMode, title: { text: '空数据标题' } },
+      )
+
+      expect(wrapper.get('.waveform-chart__title-text').text()).toBe('空数据标题')
+      expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('316')
+      expect(wrapper.get('.waveform-chart__empty').attributes('y')).toBe('158')
+    },
+  )
+
+  it('renders one chart title with alignment and all supported text styles', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      {
+        title: {
+          text: '  shot: #4712  ',
+          align: 'right',
+          textStyle: {
+            color: '#c026d3',
+            fontSize: 18,
+            fontFamily: 'Consolas',
+            rotation: 0,
+            fontWeight: 700,
+            fontStyle: 'italic',
+            textDecoration: 'underline',
+            letterSpacing: '2px',
+          },
+        },
+      },
+    )
+
+    const area = wrapper.get('.waveform-chart__title-area')
+    const visual = wrapper.get('.waveform-chart__title-visual')
+    const title = wrapper.get('.waveform-chart__title-text')
+    expect(area.attributes('role')).toBe('heading')
+    expect(area.attributes('style')).toContain('justify-content: flex-end')
+    expect(title.text()).toBe('shot: #4712')
+    expect(title.attributes('style')).toContain('color: rgb(192, 38, 211)')
+    expect(title.attributes('style')).toContain('font-size: 18px')
+    expect(title.attributes('style')).toContain('font-family: Consolas')
+    expect(title.attributes('style')).toContain('font-weight: 700')
+    expect(title.attributes('style')).toContain('font-style: italic')
+    expect(title.attributes('style')).toContain('text-decoration: underline')
+    expect(title.attributes('style')).toContain('letter-spacing: 2px')
+    expect(visual.attributes('style')).toContain('width: 752px')
+    expect(title.attributes('style')).toContain('width: 752px')
+    expect(title.attributes('style')).toContain('rotate(0deg)')
+    expect(wrapper.attributes('data-title-area-height')).toBe('44')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('316')
+  })
+
+  it('normalizes invalid title numbers and wraps long titles at narrow widths', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      {
+        title: {
+          text: '这是一个用于验证窄屏省略行为的很长波形分析标题',
+          textStyle: { fontSize: Number.NaN, rotation: Number.POSITIVE_INFINITY },
+        },
+      },
+    )
+    resizeObservers.at(-1)?.resize(160, 360)
+    await flushPromises()
+
+    const title = wrapper.get('.waveform-chart__title-text')
+    expect(title.attributes('style')).toContain('font-size: 14px')
+    expect(title.attributes('style')).toContain('Microsoft YaHei')
+    expect(title.attributes('style')).toContain('font-weight: 400')
+    expect(title.attributes('style')).toContain('rotate(0deg)')
+    expect(title.attributes('style')).toContain('white-space: normal')
+    expect(title.attributes('style')).toContain('overflow-wrap: anywhere')
+    expect(title.attributes('title')).toBeUndefined()
+    expect(title.attributes('data-title-wrapped')).toBe('true')
+    expect(Number(wrapper.attributes('data-title-area-height'))).toBeGreaterThan(44)
+  })
+
+  it.each([45, 90, -90, 180])(
+    'scales a complete long title into the rotated title area at %s degrees',
+    async (rotation) => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      {
+        title: {
+          text: '这是一个用于验证旋转缩放行为的完整波形分析标题',
+          textStyle: { rotation },
+        },
+      },
+    )
+    const titleHeight = Number(wrapper.attributes('data-title-area-height'))
+    const title = wrapper.get('.waveform-chart__title-text')
+
+    expect(titleHeight).toBeGreaterThanOrEqual(44)
+    expect(titleHeight).toBeLessThanOrEqual(160)
+    expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(360 - titleHeight)
+    expect(title.text()).toBe('这是一个用于验证旋转缩放行为的完整波形分析标题')
+    expect(title.attributes('style')).toContain(`rotate(${rotation}deg)`)
+    expect(title.attributes('style')).toContain('white-space: nowrap')
+    expect(Number(title.attributes('data-title-scale'))).toBeLessThanOrEqual(1)
+    expect(title.attributes('data-title-wrapped')).toBeUndefined()
+    },
+  )
+
+  it('updates fixed and adaptive drawing heights when the title changes', async () => {
+    const fixedWrapper = mount(WaveformChart, {
+      props: {
+        data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        height: 420,
+        title: { text: '固定高度标题' },
+      },
+    })
+    expect(fixedWrapper.get('.waveform-chart__svg').attributes('height')).toBe('376')
+
+    await fixedWrapper.setProps({ title: { visible: false, text: '固定高度标题' } })
+    expect(fixedWrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
+
+    const adaptiveWrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      { title: { text: '自适应高度标题' } },
+    )
+    expect(adaptiveWrapper.get('.waveform-chart__svg').attributes('height')).toBe('316')
+    resizeObservers.at(-1)?.resize(800, 500)
+    await flushPromises()
+    expect(adaptiveWrapper.get('.waveform-chart__svg').attributes('height')).toBe('456')
+  })
+
+  it('includes the title offset in root-relative tooltip positioning', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { title: { text: 'shot: #4712' }, grid: { rowCount: 1, columnCount: 1 } },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 246 }),
+    })
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth / 2, clientY: 100, bubbles: true }),
+    )
+    await flushPromises()
+
+    const tooltipTop = Number.parseFloat(
+      (wrapper.get('.waveform-chart__tooltip').element as HTMLElement).style.top,
+    )
+    expect(tooltipTop).toBeGreaterThanOrEqual(44)
+  })
+
+  it('includes the title offset in annotation editor anchors', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { title: { text: 'shot: #4712' }, grid: { rowCount: 1, columnCount: 1 } },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 246 }),
+    })
+    overlay.element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: overlayWidth / 2,
+        clientY: 100,
+        bubbles: true,
+      }),
+    )
+    await flushPromises()
+
+    const component = wrapper.vm as typeof wrapper.vm & {
+      annotationInteraction: {
+        editorDraft: {
+          value: { anchor: { x: number; y: number } } | null
+        }
+      }
+    }
+    expect(component.annotationInteraction.editorDraft.value?.anchor.y).toBe(162)
+  })
+
+  it('captures and suppresses descendant context menus across the waveform svg', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
+    })
+
+    for (const selector of ['.waveform-chart__grid', '.waveform-chart__overlay']) {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+      const dispatched = wrapper.get(selector).element.dispatchEvent(event)
+
+      expect(dispatched).toBe(false)
+      expect(event.defaultPrevented).toBe(true)
+    }
+
+    const sharedWrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ],
+      },
+      { displayMode: 'separated' },
+    )
+    const sharedEvent = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+    const sharedDispatched = sharedWrapper
+      .get('.waveform-chart__overlay--shared')
+      .element.dispatchEvent(sharedEvent)
+
+    expect(sharedDispatched).toBe(false)
+    expect(sharedEvent.defaultPrevented).toBe(true)
+  })
+
   it('applies size fallbacks for minimum, negative, and non-finite values', async () => {
     const minimumWrapper = mount(WaveformChart, {
       props: {
@@ -588,8 +1043,64 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__grid--major line').length).toBeGreaterThan(0)
     expect(wrapper.findAll('.waveform-chart__grid--minor line').length).toBeGreaterThan(0)
     expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(true)
+    expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
+      fill: 'none',
+      stroke: '#1f2937',
+      'stroke-width': '1',
+    })
+    expect(
+      wrapper.get('.waveform-chart__plot-frame').attributes('stroke-dasharray'),
+    ).toBeUndefined()
+    expect(wrapper.get('.waveform-chart__plot-background').attributes('fill')).toBe('transparent')
     expect(wrapper.get('.waveform-chart__watermark').text()).toBe('12')
     expect(wrapper.get('.waveform-chart__line').attributes('stroke')).toBe('#0960bd')
+  })
+
+  it('applies one custom frame style to every non-empty track', async () => {
+    const wrapper = await mountSizedChart(gridSeries(2), {
+      grid: { rowCount: 2, columnCount: 1 },
+      frameStyle: {
+        borderColor: 'rgba(255, 0, 0, 0.7)',
+        borderWidth: 2.5,
+        borderStyle: 'dashed',
+        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+      },
+    })
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    const frames = wrapper.findAll('.waveform-chart__plot-frame')
+    const backgrounds = wrapper.findAll('.waveform-chart__plot-background')
+
+    expect(frames).toHaveLength(2)
+    expect(backgrounds).toHaveLength(2)
+    frames.forEach((frame) => {
+      expect(frame.attributes()).toMatchObject({
+        stroke: 'rgba(255, 0, 0, 0.7)',
+        'stroke-width': '2.5',
+        'stroke-dasharray': '6 4',
+      })
+    })
+    backgrounds.forEach((background) => {
+      expect(background.attributes('fill')).toBe('rgba(16, 185, 129, 0.2)')
+    })
+
+    tracks.forEach((track) => {
+      const renderingLayers = track.findAll(
+        '.waveform-chart__plot-background, .waveform-chart__grid',
+      )
+      expect(renderingLayers[0].classes()).toContain('waveform-chart__plot-background')
+    })
+  })
+
+  it('falls back to the default width for invalid frame widths', async () => {
+    const wrapper = await mountSizedChart(gridSeries(1), {
+      frameStyle: { borderWidth: -1 },
+    })
+
+    expect(wrapper.get('.waveform-chart__plot-frame').attributes('stroke-width')).toBe('1')
+
+    await wrapper.setProps({ frameStyle: { borderWidth: Number.NaN } })
+    expect(wrapper.get('.waveform-chart__plot-frame').attributes('stroke-width')).toBe('1')
   })
 
   it('continues minor x-grid lines beyond the final major tick to the exact endpoint', async () => {
@@ -1467,7 +1978,14 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(true)
     expect(wrapper.get('.waveform-annotation-editor').attributes('aria-modal')).toBe('true')
     expect(wrapper.find('.waveform-annotation-editor__panel').exists()).toBe(true)
-    await wrapper.get('textarea[aria-label="标注文本"]').setValue('右键标注')
+    const textarea = wrapper.get('textarea[aria-label="标注文本"]')
+    const textareaContextMenu = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+    })
+    expect(textarea.element.dispatchEvent(textareaContextMenu)).toBe(true)
+    expect(textareaContextMenu.defaultPrevented).toBe(false)
+    await textarea.setValue('右键标注')
     await wrapper.get('.waveform-annotation-editor button.is-primary').trigger('click')
 
     expect(wrapper.emitted('update:annotations')?.at(-1)?.[0]).toMatchObject([

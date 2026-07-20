@@ -20,6 +20,8 @@ export type SingleWaveformData =
  */
 export interface WaveformSeries {
   id?: string
+  /** 相同 trackId 的系列叠加在同一图框中；默认每个系列独占一个图框。 */
+  trackId?: string
   name: string
   unit?: string
   color?: string
@@ -41,6 +43,7 @@ export type WaveformData =
  */
 export interface NormalizedWaveformSeries {
   id: string
+  trackId?: string
   name: string
   unit?: string
   color?: string

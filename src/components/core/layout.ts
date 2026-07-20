@@ -8,10 +8,10 @@ import {
   type GridCellGeometry,
   type NormalizedWaveformGridOptions,
 } from './grid'
-import type { DisplaySeries, TrackLayout } from './types'
+import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 
 interface SeriesGridCell extends GridCellGeometry {
-  series?: DisplaySeries
+  series?: DisplayTrack
 }
 
 export interface BuildTrackLayoutsOptions {
@@ -34,7 +34,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
   return visibleCells.flatMap((cell, index) => {
     const isEmpty = !cell.series
     if (isEmpty && (options.displayMode !== 'compact' || !options.showCompactEmptyTracks)) return []
-    const series: DisplaySeries = cell.series ?? {
+    const emptySeries: DisplaySeries = {
       id: `empty-grid-slot-${cell.slotIndex}`,
       name: '',
       color: 'transparent',
@@ -42,16 +42,23 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       xDomain: [0, 1],
       yDomain: [0, 1],
     }
+    const displayTrack: DisplayTrack = cell.series ?? {
+      id: emptySeries.id,
+      series: [emptySeries],
+      xDomain: emptySeries.xDomain,
+      yDomain: emptySeries.yDomain,
+    }
+    const series = displayTrack.series[0]
     const baseXScale =
       options.displayMode === 'independent'
-        ? scaleLinear(series.xDomain, [0, cell.width])
+        ? scaleLinear(displayTrack.xDomain, [0, cell.width])
         : scaleLinear(options.sharedZoomDomain, [0, cell.width])
     const transform =
       options.displayMode === 'independent'
         ? (options.independentTransforms[index] ?? zoomIdentity)
         : zoomIdentity
     const xScale = transform.rescaleX(baseXScale)
-    const yScale = scaleLinear(series.yDomain, [cell.plotHeight, 0]).nice()
+    const yScale = scaleLinear(displayTrack.yDomain, [cell.plotHeight, 0]).nice()
     const xMajorTicks = xScale.ticks(Math.max(2, Math.floor(cell.width / 100)))
     const yMajorTicks = yScale.ticks(Math.max(2, Math.floor(cell.plotHeight / 55)))
     const [yAxisStart, yAxisEnd] = yScale.domain()
@@ -73,16 +80,27 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const position = xScale(tick)
       return position > leftClearance && position < cell.width - rightClearance
     })
-    const renderPoints = selectRenderablePoints(
-      series.points,
-      domain,
-      cell.width,
-      options.rendering,
-    )
+    const seriesPaths = displayTrack.series.map((trackSeries) => {
+      const renderPoints = selectRenderablePoints(
+        trackSeries.points,
+        domain,
+        cell.width,
+        options.rendering,
+      )
+      return {
+        series: trackSeries,
+        path: isEmpty
+          ? null
+          : line<WaveformPoint>()
+              .x((point) => xScale(point.x))
+              .y((point) => yScale(point.y))(renderPoints),
+      }
+    })
 
     return {
       index,
       series,
+      seriesList: displayTrack.series,
       isEmpty,
       column: cell.column,
       showYAxisLabel: !options.hideSecondaryLabels || cell.column === 0,
@@ -100,11 +118,8 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       yAxisTickValues,
       xAxisTickValues,
       endpointLabels,
-      path: isEmpty
-        ? null
-        : line<WaveformPoint>()
-            .x((point) => xScale(point.x))
-            .y((point) => yScale(point.y))(renderPoints),
+      path: seriesPaths[0]?.path ?? null,
+      seriesPaths,
       showXAxis:
         options.displayMode === 'independent' ||
         (options.displayMode === 'compact'

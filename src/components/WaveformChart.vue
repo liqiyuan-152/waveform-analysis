@@ -13,15 +13,30 @@ import {
 } from 'd3'
 import { resolveWaveformRenderingOptions } from '../core'
 import { formatScientificYAxisLabel, paddedDomain } from '../utils'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, useId, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  useId,
+  watch,
+  type CSSProperties,
+} from 'vue'
 
 import {
   type WaveformAnnotation,
   type WaveformData,
   type WaveformDisplayMode,
+  type WaveformFrameStyle,
   type WaveformInteractionMode,
+  type WaveformLegendOptions,
+  type WaveformLegendOrientation,
+  type WaveformLegendPosition,
   type WaveformPoint,
   type WaveformRenderingOptions,
+  type WaveformTitleOptions,
 } from './data/types'
 import {
   ANNOTATION_AMBIGUITY_DISTANCE,
@@ -56,8 +71,9 @@ import {
   X_AXIS_BAND,
   type WaveformGridOptions,
 } from './core/grid'
-import type { DisplaySeries, HoveredSeriesPoint, TrackLayout } from './core/types'
+import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
 import { buildTrackLayouts } from './core/layout'
+import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
 
@@ -74,12 +90,15 @@ const props = withDefaults(
     zoomable?: boolean
     timeUnit?: 's' | 'ms'
     frameNumber?: string | number
+    frameStyle?: WaveformFrameStyle
     annotations?: WaveformAnnotation[]
     annotationsVisible?: boolean
     interactionMode?: WaveformInteractionMode
     showAnnotationToolbar?: boolean
     grid?: WaveformGridOptions
     rendering?: WaveformRenderingOptions
+    title?: WaveformTitleOptions
+    legend?: WaveformLegendOptions
   }>(),
   {
     displayMode: 'independent',
@@ -95,6 +114,7 @@ const props = withDefaults(
     showAnnotationToolbar: false,
     grid: () => ({ rowCount: 2, columnCount: 1, showPagination: true }),
     rendering: () => ({}),
+    legend: () => ({ position: 'top-right', orientation: 'auto' }),
   },
 )
 
@@ -114,9 +134,12 @@ const margin = chartMargin
 const minimumHeight = chartMinimumHeight
 const container = ref<HTMLDivElement>()
 const svgElement = ref<SVGSVGElement>()
+const titleMeasureElement = ref<HTMLSpanElement>()
 const sharedOverlayElement = ref<SVGRectElement>()
 const observedWidth = ref(0)
 const observedHeight = ref(0)
+const measuredTitleWidth = ref(0)
+const measuredTitleHeight = ref(0)
 const sharedTransform = shallowRef<ZoomTransform>(zoomIdentity)
 const independentTransforms = shallowRef<ZoomTransform[]>([])
 const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
@@ -158,7 +181,95 @@ const containerStyle = computed(() => ({
   width: fixedWidth.value === undefined ? '100%' : `${fixedWidth.value}px`,
   height: fixedHeight.value === undefined ? '100%' : `${fixedHeight.value}px`,
 }))
-const innerHeight = computed(() => Math.max(0, chartHeight.value - margin.top - margin.bottom))
+const legendPosition = computed<WaveformLegendPosition>(() => props.legend?.position ?? 'top-right')
+const legendBackgroundColor = computed(
+  () => props.legend?.backgroundColor || 'rgba(255, 255, 255, 0.7)',
+)
+const legendOrientation = computed<Exclude<WaveformLegendOrientation, 'auto'>>(() => {
+  const orientation = props.legend?.orientation ?? 'auto'
+  if (orientation !== 'auto') return orientation
+  return legendPosition.value === 'top' || legendPosition.value === 'bottom'
+    ? 'horizontal'
+    : 'vertical'
+})
+const resolvedTitleText = computed(() => props.title?.text.trim() ?? '')
+const titleVisible = computed(
+  () =>
+    Boolean(props.title) && props.title?.visible !== false && resolvedTitleText.value.length > 0,
+)
+const titleFontSize = computed(() => {
+  const fontSize = props.title?.textStyle?.fontSize
+  return Number.isFinite(fontSize) && (fontSize ?? 0) > 0 ? (fontSize as number) : 14
+})
+const titleRotation = computed(() => {
+  const rotation = props.title?.textStyle?.rotation
+  return Number.isFinite(rotation) ? (rotation as number) : 0
+})
+const titleIsRotated = computed(() => {
+  const normalizedRotation = ((titleRotation.value % 360) + 360) % 360
+  return normalizedRotation > 1e-6 && Math.abs(normalizedRotation - 360) > 1e-6
+})
+const titlePresentationStyle = computed<CSSProperties>(() => ({
+  color: props.title?.textStyle?.color ?? '#1f2937',
+  fontSize: `${titleFontSize.value}px`,
+  fontFamily: props.title?.textStyle?.fontFamily || '"Microsoft YaHei", "微软雅黑", sans-serif',
+  fontWeight: props.title?.textStyle?.fontWeight ?? 400,
+  fontStyle: props.title?.textStyle?.fontStyle ?? 'normal',
+  textDecoration: props.title?.textStyle?.textDecoration ?? 'none',
+  letterSpacing: props.title?.textStyle?.letterSpacing ?? 'normal',
+  lineHeight: '1.2',
+}))
+const estimatedTitleWidth = computed(() => {
+  const letterSpacing = Number.parseFloat(props.title?.textStyle?.letterSpacing ?? '')
+  const spacingWidth = Number.isFinite(letterSpacing)
+    ? Math.max(0, resolvedTitleText.value.length - 1) * letterSpacing
+    : 0
+  return Math.max(1, resolvedTitleText.value.length * titleFontSize.value * 0.62 + spacingWidth)
+})
+const titleAvailableWidth = computed(() => {
+  const measuredAvailableWidth = chartWidth.value - TITLE_AREA_HORIZONTAL_PADDING * 2
+  return measuredAvailableWidth > 0 ? measuredAvailableWidth : estimatedTitleWidth.value
+})
+const titleMeasureStyle = computed<CSSProperties>(() => ({
+  ...titlePresentationStyle.value,
+  width: 'max-content',
+  maxWidth: titleIsRotated.value ? 'none' : `${titleAvailableWidth.value}px`,
+  whiteSpace: titleIsRotated.value ? 'nowrap' : 'normal',
+  overflowWrap: titleIsRotated.value ? 'normal' : 'anywhere',
+}))
+const titleLayout = computed(() =>
+  calculateRotatedTitleLayout({
+    naturalWidth: measuredTitleWidth.value || estimatedTitleWidth.value,
+    naturalHeight: measuredTitleHeight.value || titleFontSize.value * 1.2,
+    availableWidth: titleAvailableWidth.value,
+    rotation: titleRotation.value,
+  }),
+)
+const titleAreaHeight = computed(() => (titleVisible.value ? titleLayout.value.areaHeight : 0))
+const drawingHeight = computed(() => Math.max(0, chartHeight.value - titleAreaHeight.value))
+const innerHeight = computed(() => Math.max(0, drawingHeight.value - margin.top - margin.bottom))
+const titleAreaStyle = computed<CSSProperties>(() => ({
+  height: `${titleAreaHeight.value}px`,
+  justifyContent:
+    props.title?.align === 'left'
+      ? 'flex-start'
+      : props.title?.align === 'right'
+        ? 'flex-end'
+        : 'center',
+}))
+const titleVisualStyle = computed<CSSProperties>(() => ({
+  width: `${titleLayout.value.visualWidth}px`,
+  height: `${titleLayout.value.visualHeight}px`,
+}))
+const titleTextStyle = computed<CSSProperties>(() => ({
+  ...titlePresentationStyle.value,
+  width: `${titleLayout.value.textWidth}px`,
+  minHeight: `${titleLayout.value.textHeight}px`,
+  textAlign: props.title?.align ?? 'center',
+  whiteSpace: titleIsRotated.value ? 'nowrap' : 'normal',
+  overflowWrap: titleIsRotated.value ? 'normal' : 'anywhere',
+  transform: `translate(-50%, -50%) rotate(${titleRotation.value}deg) scale(${titleLayout.value.scale})`,
+}))
 const chartSeries = computed<DisplaySeries[]>(() =>
   preparedSeries.value.map((series, index: number): DisplaySeries => ({
     ...series,
@@ -166,11 +277,26 @@ const chartSeries = computed<DisplaySeries[]>(() =>
       series.color ?? (index === 0 ? props.lineColor : channelColors[index % channelColors.length]),
   })),
 )
+const chartTracks = computed<DisplayTrack[]>(() => {
+  const groupedSeries = new Map<string, DisplaySeries[]>()
+  chartSeries.value.forEach((series) => {
+    const trackId = series.trackId || series.id
+    const trackSeries = groupedSeries.get(trackId)
+    if (trackSeries) trackSeries.push(series)
+    else groupedSeries.set(trackId, [series])
+  })
+  return Array.from(groupedSeries, ([id, series]) => ({
+    id,
+    series,
+    xDomain: paddedDomain(series.flatMap((item) => item.xDomain)),
+    yDomain: paddedDomain(series.flatMap((item) => item.yDomain)),
+  }))
+})
 const gridOptions = computed(() => normalizeGridOptions(props.grid))
 const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
-const pageCount = computed(() => getPageCount(chartSeries.value.length, gridOptions.value))
-const pagedSeries = computed(() =>
-  paginateSeries(chartSeries.value, currentPage.value, gridOptions.value),
+const pageCount = computed(() => getPageCount(chartTracks.value.length, gridOptions.value))
+const pagedTracks = computed(() =>
+  paginateSeries(chartTracks.value, currentPage.value, gridOptions.value),
 )
 
 const yAxisCharacterWidth = 7
@@ -181,8 +307,8 @@ const yAxisLabelBandWidth = 24
 const minimumPlotWidth = 120
 
 const yAxisMetrics = computed(() => {
-  const formattedTickLabels = chartSeries.value.flatMap((series) => {
-    const scale = scaleLinear(series.yDomain, [1, 0]).nice()
+  const formattedTickLabels = chartTracks.value.flatMap((track) => {
+    const scale = scaleLinear(track.yDomain, [1, 0]).nice()
     const [axisMin, axisMax] = scale.domain()
     const values = scale.ticks(10)
     const topTickValue = values.reduce<number | undefined>((closestTick, tickValue) => {
@@ -205,7 +331,9 @@ const yAxisMetrics = computed(() => {
   return { tickClearance, fullClearance, labelCenterX }
 })
 const hasYAxisLabels = computed(() =>
-  chartSeries.value.some((series) => Boolean(series.name.trim() || props.yLabel)),
+  chartTracks.value.some(
+    (track) => track.series.length === 1 && Boolean(track.series[0]?.name.trim() || props.yLabel),
+  ),
 )
 const chartLeftMargin = computed(() =>
   Math.max(
@@ -261,7 +389,7 @@ const tooltipSeriesPoints = computed<TooltipSeriesPoint[]>(() => {
 })
 
 const sharedXDomain = computed(() =>
-  paddedDomain(chartSeries.value.flatMap((series) => series.xDomain)),
+  paddedDomain(chartTracks.value.flatMap((track) => track.xDomain)),
 )
 const sharedZoomDomain = computed(
   () =>
@@ -276,10 +404,10 @@ const gridCells = computed(() => {
     innerHeight.value,
     gridOptions.value,
     props.displayMode,
-    pagedSeries.value.map(Boolean),
+    pagedTracks.value.map(Boolean),
     yAxisLayout.value.horizontalGap,
   )
-  return cells.map((cell, index) => ({ ...cell, series: pagedSeries.value[index] }))
+  return cells.map((cell, index) => ({ ...cell, series: pagedTracks.value[index] }))
 })
 
 const trackLayouts = computed<TrackLayout[]>(() =>
@@ -297,11 +425,19 @@ const trackLayouts = computed<TrackLayout[]>(() =>
   }),
 )
 
+function annotationLayoutsForTrack(track: TrackLayout): AnnotationTrackLayout[] {
+  return track.seriesList.map((series) => ({ ...track, series }))
+}
+
+const annotationTrackLayouts = computed<AnnotationTrackLayout[]>(() =>
+  trackLayouts.value.flatMap(annotationLayoutsForTrack),
+)
+
 const renderedAnnotations = computed(() =>
   props.annotationsVisible
     ? layoutAnnotations(
         props.annotations,
-        trackLayouts.value as AnnotationTrackLayout[],
+        annotationTrackLayouts.value,
         innerWidth.value,
         innerHeight.value,
       )
@@ -324,7 +460,7 @@ const editorSeries = computed<AnnotationSeriesInfo | undefined>(() => {
 
 function resolveFrameNumber(trackIndex: number): string | number | undefined {
   if (props.frameNumber === undefined || props.frameNumber === null) return undefined
-  if (chartSeries.value.length === 1) return props.frameNumber
+  if (chartTracks.value.length === 1) return props.frameNumber
   return typeof props.frameNumber === 'number'
     ? props.frameNumber + trackIndex
     : `${props.frameNumber}-${trackIndex + 1}`
@@ -467,17 +603,21 @@ function resolvePointerEditorAnchor(
   const track = trackIndex === undefined ? undefined : trackLayouts.value[trackIndex]
   return {
     x: chartLeftMargin.value + (track ? track.left + pointerX : pointerX),
-    y: margin.top + (track ? track.top + pointerY : pointerY),
+    y: titleAreaHeight.value + margin.top + (track ? track.top + pointerY : pointerY),
   }
 }
 
 function resolveAnnotationEditorAnchor(annotation: WaveformAnnotation): AnnotationEditorAnchor {
-  const track = trackLayouts.value.find((item) => item.series.id === annotation.seriesId)
+  const track = trackLayouts.value.find((item) =>
+    item.seriesList.some((series) => series.id === annotation.seriesId),
+  )
   return {
     x: track
       ? chartLeftMargin.value + track.left + track.xScale(annotation.x)
       : chartWidth.value / 2,
-    y: track ? margin.top + track.top + track.yScale(annotation.y) : chartHeight.value / 2,
+    y: track
+      ? titleAreaHeight.value + margin.top + track.top + track.yScale(annotation.y)
+      : chartHeight.value / 2,
   }
 }
 
@@ -490,9 +630,10 @@ function beginCreate(
   editorSeriesOptions.value = candidates
   const draft = annotationInteraction.editorDraft.value
   const track = trackLayouts.value.find((item) => item.index === hit.trackIndex)
+  const series = track?.seriesList.find((item) => item.id === hit.seriesId)
   if (draft?.mode === 'add') {
     draft.annotation.style = {
-      borderColor: track?.series.color || '#1677ff',
+      borderColor: series?.color || '#1677ff',
       textColor: '#333333',
       backgroundColor: 'rgba(255, 255, 255, 0.92)',
     }
@@ -502,9 +643,12 @@ function beginCreate(
 function changeDraftSeries(seriesId: string) {
   const draft = annotationInteraction.editorDraft.value
   const candidate = editorSeriesOptions.value.find((item) => item.seriesId === seriesId)
-  const track = trackLayouts.value.find((item) => item.series.id === seriesId)
+  const track = trackLayouts.value.find((item) =>
+    item.seriesList.some((series) => series.id === seriesId),
+  )
+  const series = track?.seriesList.find((item) => item.id === seriesId)
   const point =
-    track && draft ? interpolateAnnotationPoint(track.series.points, draft.annotation.x) : null
+    series && draft ? interpolateAnnotationPoint(series.points, draft.annotation.x) : null
   if (!draft || !candidate || !track || !point) return
   draft.annotation = {
     ...draft.annotation,
@@ -569,7 +713,7 @@ function resolveAnnotationCandidates(
   const xValue = referenceTrack.xScale.invert(localPointerX)
   return {
     candidates: findAnnotationSeriesCandidates(
-      [referenceTrack] as AnnotationTrackLayout[],
+      annotationLayoutsForTrack(referenceTrack),
       xValue,
       localPointerX,
       sharedPointerY,
@@ -635,10 +779,12 @@ function editContextAnnotation() {
   const annotationId = context?.annotationId
   const annotation = props.annotations.find((item) => item.id === annotationId)
   if (annotation) {
-    const track = trackLayouts.value.find((item) => item.series.id === annotation.seriesId)
+    const track = trackLayouts.value.find((item) =>
+      item.seriesList.some((series) => series.id === annotation.seriesId),
+    )
     editorSeriesOptions.value = track
       ? findAnnotationSeriesCandidates(
-          [track] as AnnotationTrackLayout[],
+          annotationLayoutsForTrack(track),
           annotation.x,
           track.xScale(annotation.x),
           track.top + track.yScale(annotation.y),
@@ -685,14 +831,16 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
   if (!overlay || !track) return
   const [pointerX, pointerY] = pointer(event, overlay)
   const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
-  const point = nearestPoint(track.series, xValue)
-  hoveredSeriesPoints.value = point ? [{ ...track.series, trackIndex, point }] : []
+  hoveredSeriesPoints.value = track.seriesList.flatMap((series) => {
+    const point = nearestPoint(series, xValue)
+    return point ? [{ ...series, trackIndex, point }] : []
+  })
   hoveredTrackIndex.value = trackIndex
   hoverPosition.value = {
     x: chartLeftMargin.value + track.left + pointerX,
-    y: margin.top + track.top + pointerY,
+    y: titleAreaHeight.value + margin.top + track.top + pointerY,
   }
-  emit('point-hover', point ?? null)
+  emit('point-hover', hoveredSeriesPoints.value[0]?.point ?? null)
 }
 
 function handleSharedPointerMove(event: PointerEvent) {
@@ -702,21 +850,23 @@ function handleSharedPointerMove(event: PointerEvent) {
   if (!referenceTrack) return
   const localPointerX = Math.max(0, Math.min(referenceTrack.width, pointerX - referenceTrack.left))
   const xValue = referenceTrack.xScale.invert(localPointerX)
-  hoveredSeriesPoints.value = trackLayouts.value.flatMap((track) => {
-    const point = nearestPoint(track.series, xValue)
-    return point ? [{ ...track.series, trackIndex: track.index, point }] : []
-  })
+  hoveredSeriesPoints.value = trackLayouts.value.flatMap((track) =>
+    track.seriesList.flatMap((series) => {
+      const point = nearestPoint(series, xValue)
+      return point ? [{ ...series, trackIndex: track.index, point }] : []
+    }),
+  )
   hoveredTrackIndex.value = null
   hoverPosition.value = {
     x: chartLeftMargin.value + pointerX,
-    y: margin.top + pointerY,
+    y: titleAreaHeight.value + margin.top + pointerY,
   }
   emit('point-hover', hoveredPoint.value)
 }
 
 function resetViewport() {
   sharedTransform.value = zoomIdentity
-  independentTransforms.value = chartSeries.value.map(() => zoomIdentity)
+  independentTransforms.value = chartTracks.value.map(() => zoomIdentity)
   clearHover()
   editorSeriesOptions.value = []
   void nextTick(configureZoom)
@@ -730,7 +880,7 @@ function goToPage(page: number) {
   annotationInteraction.closeContextMenu()
   cancelAnnotation()
   if (props.displayMode === 'independent') {
-    independentTransforms.value = pagedSeries.value.map(() => zoomIdentity)
+    independentTransforms.value = pagedTracks.value.map(() => zoomIdentity)
   }
   void nextTick(configureZoom)
   emit('page-change', nextPage, pageCount.value)
@@ -742,7 +892,7 @@ watch(
     innerHeight,
     () => props.zoomable,
     () => props.displayMode,
-    () => chartSeries.value.length,
+    () => chartTracks.value.length,
     () => currentPage.value,
     () => gridOptions.value.rowCount,
     () => gridOptions.value.columnCount,
@@ -815,11 +965,34 @@ watch(
   { deep: true },
 )
 
+function measureTitle() {
+  if (!titleVisible.value || !titleMeasureElement.value) {
+    measuredTitleWidth.value = 0
+    measuredTitleHeight.value = 0
+    return
+  }
+  const bounds = titleMeasureElement.value.getBoundingClientRect()
+  measuredTitleWidth.value = titleMeasureElement.value.scrollWidth || bounds.width
+  measuredTitleHeight.value = titleMeasureElement.value.scrollHeight || bounds.height
+}
+
+watch(
+  [resolvedTitleText, titleVisible, titleMeasureStyle],
+  async () => {
+    measuredTitleWidth.value = 0
+    measuredTitleHeight.value = 0
+    await nextTick()
+    measureTitle()
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   if (!container.value) return
   resizeObserver.value = new ResizeObserver(([entry]) => {
     observedWidth.value = Math.max(0, entry?.contentRect.width ?? 0)
     observedHeight.value = Math.max(0, entry?.contentRect.height ?? 0)
+    void nextTick(measureTitle)
   })
   resizeObserver.value.observe(container.value)
 })
@@ -843,14 +1016,43 @@ onBeforeUnmount(() => {
     :data-display-mode="displayMode"
     :data-interaction-mode="activeInteractionMode"
     :data-chart-left-margin="chartLeftMargin"
+    :data-title-area-height="titleAreaHeight"
   >
+    <div
+      v-if="titleVisible"
+      class="waveform-chart__title-area"
+      :style="titleAreaStyle"
+      role="heading"
+      aria-level="2"
+    >
+      <span
+        ref="titleMeasureElement"
+        class="waveform-chart__title-measure"
+        :style="titleMeasureStyle"
+        aria-hidden="true"
+      >
+        {{ resolvedTitleText }}
+      </span>
+      <span class="waveform-chart__title-visual" :style="titleVisualStyle">
+        <span
+          class="waveform-chart__title-text"
+          :style="titleTextStyle"
+          :data-title-scale="titleLayout.scale"
+          :data-title-wrapped="titleLayout.wrapped || undefined"
+        >
+          {{ resolvedTitleText }}
+        </span>
+      </span>
+    </div>
+
     <svg
       ref="svgElement"
       class="waveform-chart__svg"
       :width="chartWidth"
-      :height="chartHeight"
+      :height="drawingHeight"
       role="img"
       :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
+      @contextmenu.capture.prevent
     >
       <defs>
         <clipPath
@@ -890,8 +1092,12 @@ onBeforeUnmount(() => {
           :display-mode="displayMode"
           :interaction-mode="activeInteractionMode"
           :frame-number="resolveFrameNumber(track.index)"
+          :frame-style="frameStyle"
           :time-unit="timeUnit"
           :y-label="yLabel"
+          :legend-position="legendPosition"
+          :legend-orientation="legendOrientation"
+          :legend-background-color="legendBackgroundColor"
           :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
           @pointer-move="handleIndependentPointerMove($event, track.index)"
           @pointer-leave="clearHover"
@@ -936,7 +1142,7 @@ onBeforeUnmount(() => {
         v-if="hasChartArea && !hasWaveformData"
         class="waveform-chart__empty"
         :x="chartWidth / 2"
-        :y="chartHeight / 2"
+        :y="drawingHeight / 2"
         text-anchor="middle"
       >
         暂无有效波形数据
@@ -949,7 +1155,7 @@ onBeforeUnmount(() => {
       aria-label="波形分页"
       :current="currentPage"
       :page-size="getPageSize(gridOptions)"
-      :total="chartSeries.length"
+      :total="chartTracks.length"
       :show-size-changer="false"
       :show-quick-jumper="false"
       @change="goToPage"
@@ -1016,6 +1222,41 @@ onBeforeUnmount(() => {
   right: 10px;
   bottom: 6px;
   z-index: 2;
+}
+
+.waveform-chart__title-area {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  padding: 0 24px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.waveform-chart__title-measure {
+  position: absolute;
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.waveform-chart__title-visual {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow: visible;
+}
+
+.waveform-chart__title-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  overflow: visible;
+  line-height: 1.2;
+  transform-origin: center;
 }
 
 .waveform-chart__pagination :deep(.ant-pagination-item),

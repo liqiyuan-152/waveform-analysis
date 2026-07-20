@@ -70,6 +70,102 @@ import { WaveformChart } from './index'
 自适应高度要求父容器具有明确高度；父容器未定高时，组件使用最低 `180px` 高度。
 显式高度同样保留 `180px` 下限。非有限尺寸按未指定处理，负宽度归零。
 
+### 图表标题
+
+`title` 在整个波形网格上方渲染一次，支持显隐、对齐、字体样式和旋转：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :title="{
+    visible: true,
+    text: 'Shot:4712',
+    align: 'center',
+    textStyle: {
+      color: '#1f2937',
+      fontSize: 14,
+      fontFamily: '"Microsoft YaHei", "微软雅黑", sans-serif',
+      rotation: 0,
+      fontWeight: 400,
+      fontStyle: 'normal',
+      textDecoration: 'none',
+      letterSpacing: '1px',
+    },
+  }"
+/>
+```
+
+对应的公开类型为 `WaveformTitleOptions` 和 `WaveformTitleTextStyle`。未传 `title`、
+`visible` 为 `false`，或 `text` 去除首尾空格后为空时，标题不渲染且不占高度。标题默认
+居中、字号 `14px`、颜色 `#1f2937`、微软雅黑、常规字重且不旋转。标题区域高度按文字及旋转角度
+在 `44px` 至 `160px` 之间计算；超长文字会省略，悬浮可查看完整内容。
+
+`width` 和 `height` 始终表示组件总尺寸。标题显示后会从总高度中扣除标题区域，剩余高度
+用于 SVG 绘图区，因此启用标题不会扩大组件或破坏父容器布局。
+
+宿主已有全局标题配置时，可以在未来接入组件库绘图链路时按以下方式映射：
+
+```ts
+const waveformTitle = {
+  visible: hasQueried && !cleanViewEnabled && titleStyle.enabled,
+  text: titleStyle.titleName.trim() || defaultTitleText,
+  align: titleStyle.align,
+  textStyle: {
+    color: titleStyle.color,
+    fontSize: titleStyle.fontSize,
+    fontFamily: titleStyle.fontFamily,
+    rotation: titleStyle.rotation,
+    fontWeight: titleStyle.bold ? 700 : 400,
+    fontStyle: titleStyle.italic ? 'italic' : 'normal',
+    textDecoration: titleStyle.underline ? 'underline' : 'none',
+  },
+} satisfies WaveformTitleOptions
+```
+
+宿主的抽屉折叠状态不需要传给组件。替换绘图链路时应同步移除宿主外层标题，避免重复
+渲染；当前宿主实现无需修改。
+
+Demo 左侧控制面板提供标题实时预览，可配置标题名称、显隐、对齐、字体、字号、粗体、
+斜体、下划线、旋转和颜色。字号范围为 `8–72px`，旋转范围为 `-180–180°`；样式栏中的
+`A` 用于恢复常规字重、非斜体和无下划线，关闭标题不会清除已经填写的配置。
+
+### 图框样式
+
+`frameStyle` 统一设置所有非空图框的边框和背景，颜色支持带 alpha 的 CSS 颜色值：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :frame-style="{
+    borderColor: 'rgba(31, 41, 55, 0.8)',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    backgroundColor: 'rgba(14, 165, 233, 0.08)',
+  }"
+/>
+```
+
+对应的公开类型为 `WaveformFrameStyle`。默认边框颜色为 `#1f2937`、线宽为 `1`、线型为
+`solid`，背景透明。`borderWidth` 为 `0` 时隐藏边框；非有限值或负数会回退到默认线宽。
+
+### 图例样式
+
+`legend.backgroundColor` 设置多曲线图例的背景颜色。该字段接受任意有效 CSS 颜色值，
+可通过 `rgba(...)` 或 `hsla(...)` 中的 alpha 通道调整透明度：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :legend="{
+    position: 'top-right',
+    orientation: 'auto',
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+  }"
+/>
+```
+
+未配置或传入空字符串时，图例背景默认使用 `rgba(255, 255, 255, 0.7)`。
+
 ## 大数据渲染
 
 组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；
