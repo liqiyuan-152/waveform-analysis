@@ -117,11 +117,3 @@ jobs:
           sha256sum "$published_name" > "$published_name.sha256"
           ln -sfn "$published_name" waveform-analysis-latest.tgz
           ln -sfn "$published_name.sha256" waveform-analysis-latest.tgz.sha256
-
-      - name: Upload component package
-        uses: https://lqycustomsite.online/admin/actions-upload-artifact@v3
-        with:
-          name: waveform-analysis-${{ gitea.sha }}
-          path: artifacts/*.tgz
-          if-no-files-found: error
-          retention-days: 7
