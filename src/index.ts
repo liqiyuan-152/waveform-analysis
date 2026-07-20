@@ -15,6 +15,12 @@ export type {
   WaveformAnnotationStyle,
   WaveformAnnotation,
   WaveformRenderingOptions,
+  WaveformTitleTextStyle,
+  WaveformTitleOptions,
+  WaveformLegendPosition,
+  WaveformLegendOrientation,
+  WaveformLegendOptions,
+  WaveformFrameStyle,
   // 数据类型
   SingleWaveformData,
   WaveformSeries,

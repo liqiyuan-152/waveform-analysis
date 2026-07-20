@@ -44,3 +44,53 @@ export interface WaveformRenderingOptions {
   /** Upper bound for rendered points per horizontal CSS pixel. */
   maxPointsPerPixel?: number
 }
+
+/** Text styling for the chart-level title. */
+export interface WaveformTitleTextStyle {
+  color?: string
+  fontSize?: number
+  fontFamily?: string
+  rotation?: number
+  fontWeight?: number | string
+  fontStyle?: 'normal' | 'italic'
+  textDecoration?: 'none' | 'underline'
+  letterSpacing?: string
+}
+
+/** Options for the title rendered once above the complete waveform grid. */
+export interface WaveformTitleOptions {
+  visible?: boolean
+  text: string
+  align?: 'left' | 'center' | 'right'
+  textStyle?: WaveformTitleTextStyle
+}
+
+/** Preset positions for legends rendered inside multi-series tracks. */
+export type WaveformLegendPosition =
+  | 'top-left'
+  | 'top'
+  | 'top-right'
+  | 'right'
+  | 'bottom-right'
+  | 'bottom'
+  | 'bottom-left'
+  | 'left'
+
+/** Controls whether legend items follow the position default or a fixed direction. */
+export type WaveformLegendOrientation = 'auto' | 'horizontal' | 'vertical'
+
+/** Options shared by legends in every multi-series track. */
+export interface WaveformLegendOptions {
+  position?: WaveformLegendPosition
+  orientation?: WaveformLegendOrientation
+  /** CSS color used by the legend panel; alpha controls background transparency. */
+  backgroundColor?: string
+}
+
+/** Styling shared by every non-empty waveform frame. */
+export interface WaveformFrameStyle {
+  borderColor?: string
+  borderWidth?: number
+  borderStyle?: 'solid' | 'dashed'
+  backgroundColor?: string
+}

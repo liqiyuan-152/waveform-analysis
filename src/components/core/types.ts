@@ -6,12 +6,25 @@ import type { WaveformPoint } from '../../types'
  */
 export interface DisplaySeries {
   id: string
+  trackId?: string
   name: string
   unit?: string
   color: string
   points: WaveformPoint[]
   xDomain: [number, number]
   yDomain: [number, number]
+}
+
+export interface DisplayTrack {
+  id: string
+  series: DisplaySeries[]
+  xDomain: [number, number]
+  yDomain: [number, number]
+}
+
+export interface TrackSeriesPath {
+  series: DisplaySeries
+  path: string | null
 }
 
 /**
@@ -28,6 +41,7 @@ export interface HoveredSeriesPoint extends DisplaySeries {
 export interface TrackLayout {
   index: number
   series: DisplaySeries
+  seriesList: DisplaySeries[]
   isEmpty: boolean
   column: number
   showYAxisLabel: boolean
@@ -46,6 +60,7 @@ export interface TrackLayout {
   xAxisTickValues: number[]
   endpointLabels: { start: string; end: string }
   path: string | null
+  seriesPaths: TrackSeriesPath[]
   showXAxis: boolean
 }
 
