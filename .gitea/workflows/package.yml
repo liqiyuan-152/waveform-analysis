@@ -11,18 +11,19 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        shell: bash
+        run: |
+          set -euo pipefail
+          repository_url="${GITEA_SERVER_URL%/}/${GITEA_REPOSITORY}.git"
+          git init .
+          git remote add origin "$repository_url"
+          git fetch --depth 1 origin "$GITEA_SHA"
+          git checkout --detach FETCH_HEAD
 
       - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10.32.1
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -60,7 +61,7 @@ jobs:
           done
 
       - name: Upload component package
-        uses: actions/upload-artifact@v3
+        uses: https://lqycustomsite.online/admin/actions-upload-artifact@v3
         with:
           name: waveform-analysis-${{ gitea.sha }}
           path: artifacts/*.tgz
