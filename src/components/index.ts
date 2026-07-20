@@ -5,6 +5,7 @@ export type {
   SingleWaveformData,
   WaveformData,
   WaveformDisplayMode,
+  WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformAnnotationStyle,
   WaveformAnnotation,
@@ -17,6 +18,9 @@ export type {
   WaveformFrameStyle,
   WaveformPoint,
   WaveformSeries,
+  WaveformLineType,
+  WaveformPointType,
+  WaveformErrorBarOptions,
   WaveformGridOptions,
 } from './data/types'
 

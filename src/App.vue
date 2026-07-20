@@ -13,6 +13,7 @@ import {
   type WaveformInteractionMode,
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
+  type WaveformOverlayMode,
   type WaveformSeries,
   type WaveformTitleOptions,
 } from './components'
@@ -40,8 +41,29 @@ const testChannelRows: WaveformSourceRow[] = importedSourceRows.slice(0, 2).map(
       Math.sin(sampleIndex / (index === 0 ? 11 : 18)) * (index === 0 ? 0.015 : 0.01),
   ),
 }))
-const sourceRows = [...importedSourceRows, ...testChannelRows]
+const additionalFrameOneRows: WaveformSourceRow[] = [
+  importedSourceRows[0],
+  importedSourceRows[1],
+  importedSourceRows[0],
+].flatMap((row, index) =>
+  row
+    ? [
+        {
+          ...row,
+          chnl: `TEST_CH_${index + 3}`,
+          chnl_id: 9003 + index,
+          data: row.data.map(
+            (value, sampleIndex) =>
+              value * [0.9, 1.35, 0.55][index]! +
+              Math.sin(sampleIndex / [14, 22, 8][index]!) * [0.012, 0.008, 0.02][index]!,
+          ),
+        },
+      ]
+    : [],
+)
+const sourceRows = [...importedSourceRows, ...testChannelRows, ...additionalFrameOneRows]
 const displayMode = ref<WaveformDisplayMode>('independent')
+const overlayMode = ref<WaveformOverlayMode>('single-axis')
 const rowCount = ref(2)
 const columnCount = ref(1)
 const frameBorderColor = ref('#1f2937')
@@ -55,6 +77,7 @@ const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
 const legendOrientation = ref<WaveformLegendOrientation>('auto')
 const legendBackgroundColor = ref('rgba(255, 255, 255, 0.7)')
+const hiddenSeriesIds = ref<string[]>([])
 const titleVisible = ref(true)
 const titleText = ref(`Shot:${sourceRows[0]?.shot ?? 4712}`)
 const titleAlign = ref<NonNullable<WaveformTitleOptions['align']>>('center')
@@ -107,25 +130,129 @@ const frameStyle = computed<WaveformFrameStyle>(() => ({
   backgroundColor: frameBackgroundColor.value,
 }))
 
-const waveformSeries: WaveformSeries[] = sourceRows.map((row) => {
+const seriesStylePresets: Array<Pick<WaveformSeries, 'lineType' | 'pointType' | 'errorBar'>> = [
+  { lineType: 'none', pointType: 'triangle', errorBar: { visible: true } },
+  { lineType: 'linear', pointType: 'none' },
+  { lineType: 'step-after', pointType: 'circle', errorBar: { visible: true } },
+  { lineType: 'linear', pointType: 'diamond', errorBar: { visible: true } },
+]
+
+const waveformSeries: WaveformSeries[] = sourceRows.map((row, seriesIndex) => {
   const pointCount = Math.min(row.time.length, row.data.length)
+  const presetStyle = seriesStylePresets[seriesIndex % seriesStylePresets.length]!
+  const style: Pick<WaveformSeries, 'lineType' | 'pointType' | 'errorBar'> =
+    row.chnl === 'TEST_CH_4'
+      ? { lineType: 'linear', pointType: 'circle', errorBar: { visible: false } }
+      : presetStyle
   return {
     id: String(row.chnl_id),
     trackId:
-      row.chnl === 'TEST_CH_1' ? String(importedSourceRows[0]?.chnl_id ?? row.chnl_id) : undefined,
+      row.chnl.startsWith('TEST_CH_') && row.chnl !== 'TEST_CH_2'
+        ? String(importedSourceRows[0]?.chnl_id ?? row.chnl_id)
+        : undefined,
     name: row.chnl,
     unit: row.dat_unit,
+    ...style,
     data: {
       kind: 'points',
-      points: Array.from({ length: pointCount }, (_, index) => ({
-        x: row.time[index] / 1000,
-        y: row.data[index],
-      })),
+      points: Array.from({ length: pointCount }, (_, index) => {
+        const y = row.data[index]
+        const error = Math.max(Math.abs(y) * 0.08, 0.005)
+        return {
+          x: row.time[index] / 1000,
+          y,
+          ...(style.errorBar?.visible
+            ? seriesIndex % 2 === 0
+              ? { lowerError: error * 0.65, upperError: error }
+              : { error }
+            : {}),
+        }
+      }),
     },
   }
 })
 
-const chartData: WaveformData = { kind: 'series', series: waveformSeries }
+const stepDemoValues = [
+  {
+    id: 'step-demo-start',
+    name: 'Step Start',
+    color: '#5470c6',
+    lineType: 'step-start',
+    values: [120, 132, 101, 134, 90, 230, 210],
+  },
+  {
+    id: 'step-demo-middle',
+    name: 'Step Middle',
+    color: '#91cc75',
+    lineType: 'step-middle',
+    values: [220, 282, 201, 234, 290, 430, 410],
+  },
+  {
+    id: 'step-demo-end',
+    name: 'Step End',
+    color: '#505372',
+    lineType: 'step-end',
+    values: [450, 432, 401, 454, 590, 530, 510],
+  },
+] as const
+
+const stepDemoSeries: WaveformSeries[] = stepDemoValues.map((series) => ({
+  id: series.id,
+  trackId: 'step-demo',
+  name: series.name,
+  color: series.color,
+  lineType: series.lineType,
+  pointType: 'circle',
+  data: {
+    kind: 'points',
+    points: series.values.map((y, index) => ({ x: index / 1000, y })),
+  },
+}))
+
+const frameOneTrackId = String(importedSourceRows[0]?.chnl_id ?? 'frame-one')
+const frameOneDemoSource = importedSourceRows[0]
+const basicCurveDemoSeries: WaveformSeries[] = frameOneDemoSource
+  ? [
+      {
+        id: 'basic-points-only-demo',
+        trackId: frameOneTrackId,
+        name: '纯点无线',
+        color: '#d4380d',
+        lineType: 'none',
+        pointType: 'circle',
+        data: {
+          kind: 'points',
+          points: frameOneDemoSource.data.map((value, index) => ({
+            x: frameOneDemoSource.time[index]! / 1000,
+            y: value * 1.18 + Math.sin(index / 12) * 0.006,
+          })),
+        },
+      },
+      {
+        id: 'basic-line-only-demo',
+        trackId: frameOneTrackId,
+        name: '纯线无点',
+        color: '#00796b',
+        lineType: 'linear',
+        pointType: 'none',
+        data: {
+          kind: 'points',
+          points: frameOneDemoSource.data.map((value, index) => ({
+            x: frameOneDemoSource.time[index]! / 1000,
+            y: value * 0.82 - Math.sin(index / 16) * 0.006,
+          })),
+        },
+      },
+    ]
+  : []
+const frameOneSeries = waveformSeries.filter(
+  (series) => series.id === frameOneTrackId || series.trackId === frameOneTrackId,
+)
+const remainingSeries = waveformSeries.filter((series) => !frameOneSeries.includes(series))
+const chartData: WaveformData = {
+  kind: 'series',
+  series: [...frameOneSeries, ...basicCurveDemoSeries, ...stepDemoSeries, ...remainingSeries],
+}
 const titleOptions = computed<WaveformTitleOptions>(() => ({
   visible: titleVisible.value,
   text: titleText.value,
@@ -201,6 +328,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             <Radio.Button value="independent">单独坐标</Radio.Button>
             <Radio.Button value="separated">多道分离</Radio.Button>
             <Radio.Button value="compact">多道紧凑</Radio.Button>
+          </Radio.Group>
+        </section>
+
+        <section class="control-section">
+          <h2>叠加方式</h2>
+          <Radio.Group
+            v-model:value="overlayMode"
+            class="display-mode-control"
+            button-style="solid"
+            size="small"
+            aria-label="波形叠加方式"
+          >
+            <Radio.Button value="single-axis">单值轴</Radio.Button>
+            <Radio.Button value="multi-axis">多值轴</Radio.Button>
           </Radio.Group>
         </section>
 
@@ -423,18 +564,21 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
       <WaveformChart
         :data="chartData"
         :display-mode="displayMode"
+        :overlay-mode="overlayMode"
         :grid="{ rowCount, columnCount, showPagination: true }"
         :title="titleOptions"
         :legend="{
           position: legendPosition,
           orientation: legendOrientation,
           backgroundColor: legendBackgroundColor,
+          interactive: true,
         }"
         :frame-style="frameStyle"
         :frame-number="frameWatermarkVisible ? 1 : undefined"
         v-model:annotations="annotations"
         v-model:annotations-visible="annotationsVisible"
         v-model:interaction-mode="interactionMode"
+        v-model:hidden-series-ids="hiddenSeriesIds"
       />
     </section>
   </main>

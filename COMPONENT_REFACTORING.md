@@ -15,6 +15,7 @@
 **职责**: 显示鼠标悬浮时的数据点信息
 
 **Props**:
+
 ```typescript
 interface Props {
   visible: boolean
@@ -28,6 +29,7 @@ interface Props {
 ```
 
 **特性**:
+
 - 自动计算位置避免溢出容器
 - 支持多系列数据显示
 - 响应式样式计算
@@ -42,6 +44,7 @@ interface Props {
 **职责**: 渲染所有标注和图形（annotations + shapes + range preview）
 
 **Props**:
+
 ```typescript
 interface Props {
   renderedAnnotations: RenderedAnnotation[]
@@ -55,6 +58,7 @@ interface Props {
 ```
 
 **Emits**:
+
 ```typescript
 interface Emits {
   (e: 'select-markup', kind: 'annotation' | 'shape', id: string): void
@@ -63,6 +67,7 @@ interface Emits {
 ```
 
 **特性**:
+
 - 渲染标注箭头和文本框
 - 渲染垂直线和时间区间
 - 渲染区间拖拽预览
@@ -78,6 +83,7 @@ interface Emits {
 **职责**: 渲染单个波形轨道（网格、坐标轴、波形线、十字线、overlay）
 
 **Props**:
+
 ```typescript
 interface Props {
   track: TrackLayout
@@ -95,6 +101,7 @@ interface Props {
 ```
 
 **Emits**:
+
 ```typescript
 interface Emits {
   (e: 'pointer-move', event: PointerEvent): void
@@ -107,6 +114,7 @@ interface Emits {
 ```
 
 **特性**:
+
 - 渲染网格（主要/次要刻度）
 - 渲染 X/Y 坐标轴（使用 D3.js）
 - 渲染 Y 轴标签（智能间隔显示）
@@ -123,12 +131,14 @@ interface Emits {
 **文件**: `src/components/WaveformChart.vue`
 
 **删除内容** (~600 行):
+
 - ✅ Tooltip 模板和样式 (~80 行)
 - ✅ 标注层模板和样式 (~280 行)
 - ✅ 轨道渲染模板和样式 (~240 行)
 - ✅ 工具函数：`tooltipStyle`, `isSelected`, `safeDomId`, `arrowMarkerId`, `annotationBoxStyle`, `shapeLabelWidth`, `shapeLabelX`, `shapeLabelStyle`, `trackHoverPoint`, `crosshairX`, `crosshairY`, `resolveYAxisLabel`, `shouldShowYAxisLabel`, `renderAxes`
 
 **添加内容** (~40 行):
+
 - ✅ 导入新组件
 - ✅ 新增 `TooltipSeriesPoint` 接口
 - ✅ 新增 `tooltipSeriesPoints` 计算属性
@@ -137,6 +147,7 @@ interface Emits {
 **模板对比**:
 
 **重构前** (~200 行):
+
 ```vue
 <g v-for="track in trackLayouts">
   <!-- 网格 -->
@@ -167,6 +178,7 @@ interface Emits {
 ```
 
 **重构后** (~25 行):
+
 ```vue
 <!-- 轨道渲染 -->
 <WaveformTrack
@@ -220,15 +232,15 @@ interface Emits {
 
 ## 📊 代码统计
 
-| 指标 | 数值 |
-|------|------|
-| **新增组件** | 3 个 |
-| **WaveformTooltip** | 111 行 |
-| **WaveformAnnotationLayer** | 281 行 |
-| **WaveformTrack** | 317 行 |
-| **主组件减少** | ~600 行 |
-| **主组件行数** | 1743 → ~1143 行 |
-| **复杂度降低** | 34.4% |
+| 指标                        | 数值            |
+| --------------------------- | --------------- |
+| **新增组件**                | 3 个            |
+| **WaveformTooltip**         | 111 行          |
+| **WaveformAnnotationLayer** | 281 行          |
+| **WaveformTrack**           | 317 行          |
+| **主组件减少**              | ~600 行         |
+| **主组件行数**              | 1743 → ~1143 行 |
+| **复杂度降低**              | 34.4%           |
 
 ---
 
@@ -248,6 +260,7 @@ WaveformChart.vue (主组件 ~1143 行)
 ### 职责划分
 
 #### WaveformChart (主组件)
+
 - 数据管理和状态协调
 - 缩放和交互事件处理
 - 计算轨道布局
@@ -255,17 +268,20 @@ WaveformChart.vue (主组件 ~1143 行)
 - 标注和图形的增删改逻辑
 
 #### WaveformTooltip (悬浮提示)
+
 - 显示数据点信息
 - 自动位置计算
 - 响应式样式
 
 #### WaveformAnnotationLayer (标注层)
+
 - 渲染标注（箭头、文本框）
 - 渲染图形（垂直线、时间区间）
 - 渲染区间预览
 - 交互响应（选择、编辑）
 
 #### WaveformTrack (波形轨道)
+
 - 渲染网格和坐标轴
 - 渲染波形线
 - 渲染十字线
@@ -303,8 +319,8 @@ interface Props {
 
 // ❌ 避免的设计
 interface Props {
-  data: WaveformData          // 传递整个数据对象
-  annotations: WaveformAnnotation[]  // 传递不相关的数据
+  data: WaveformData // 传递整个数据对象
+  annotations: WaveformAnnotation[] // 传递不相关的数据
 }
 ```
 
@@ -332,10 +348,14 @@ onMounted(async () => {
   renderAxes()
 })
 
-watch(() => props.track, async () => {
-  await nextTick()
-  renderAxes()
-}, { deep: true })
+watch(
+  () => props.track,
+  async () => {
+    await nextTick()
+    renderAxes()
+  },
+  { deep: true },
+)
 ```
 
 ### 5. 样式隔离
@@ -347,6 +367,7 @@ watch(() => props.track, async () => {
 ## 🧪 测试验证
 
 ### 测试结果
+
 ```bash
 ✅ 所有测试通过 (24/24)
 ✅ TypeScript 类型检查通过
@@ -356,6 +377,7 @@ watch(() => props.track, async () => {
 ### 测试覆盖场景
 
 #### 通过的测试
+
 - ✅ 渲染波形路径和响应宽度变化
 - ✅ 渲染显式点数据和单点支持
 - ✅ 悬浮时发出最近点事件并在离开时清除
@@ -388,11 +410,13 @@ watch(() => props.track, async () => {
 ### 1. 可维护性提升 ⭐⭐⭐⭐⭐
 
 **组件定位更快**:
+
 - 重构前: 在 1743 行文件中找轨道渲染代码
 - 重构后: 直接打开 WaveformTrack.vue (317 行)
 - **效率提升**: 5x ✅
 
 **修改影响范围更小**:
+
 - 重构前: 修改轨道可能影响主组件其他部分
 - 重构后: 修改轨道只影响 WaveformTrack.vue
 - **风险降低**: 80% ✅
@@ -402,17 +426,18 @@ watch(() => props.track, async () => {
 ### 2. 可测试性提升 ⭐⭐⭐⭐⭐
 
 **独立单元测试**:
+
 ```typescript
 // 可以单独测试 Tooltip
 describe('WaveformTooltip', () => {
   it('calculates position to avoid overflow', () => {
     const wrapper = mount(WaveformTooltip, {
-      props: { 
-        visible: true, 
+      props: {
+        visible: true,
         position: { x: 750, y: 50 },
         containerWidth: 800,
-        hoveredPoint: { x: 1, y: 2 }
-      }
+        hoveredPoint: { x: 1, y: 2 },
+      },
     })
     expect(wrapper.element.style.left).toBe('550px') // 避免溢出
   })
@@ -422,10 +447,10 @@ describe('WaveformTooltip', () => {
 describe('WaveformTrack', () => {
   it('renders Y axis label with fallback', () => {
     const wrapper = mount(WaveformTrack, {
-      props: { 
+      props: {
         track: { series: { name: '' } },
-        yLabel: '幅值'
-      }
+        yLabel: '幅值',
+      },
     })
     expect(wrapper.find('.waveform-chart__y-axis-label').text()).toBe('幅值')
   })
@@ -437,6 +462,7 @@ describe('WaveformTrack', () => {
 ### 3. 可复用性提升 ⭐⭐⭐⭐
 
 **跨组件使用**:
+
 ```vue
 <!-- 在其他图表组件中使用 Tooltip -->
 <WaveformTooltip
@@ -458,6 +484,7 @@ describe('WaveformTrack', () => {
 ### 4. 代码质量提升 ⭐⭐⭐⭐⭐
 
 **职责单一**:
+
 - 每个组件只负责一件事
 - WaveformTooltip = 显示信息
 - WaveformTrack = 渲染轨道
@@ -465,6 +492,7 @@ describe('WaveformTrack', () => {
 - 主组件 = 业务逻辑协调
 
 **接口清晰**:
+
 ```typescript
 // 每个组件都有明确的 Props 和 Emits 接口
 interface WaveformTooltipProps { ... }
@@ -586,13 +614,13 @@ export const Default = {
 
 ### 核心价值
 
-| 维度 | 改善 |
-|------|------|
+| 维度     | 改善                        |
+| -------- | --------------------------- |
 | 可维护性 | ✅ 组件独立，易于定位和修改 |
-| 可测试性 | ✅ 支持独立单元测试 |
-| 可复用性 | ✅ 可在其他组件中使用 |
-| 代码质量 | ✅ 职责单一，接口清晰 |
-| 向后兼容 | ✅ 完全兼容现有代码 |
+| 可测试性 | ✅ 支持独立单元测试         |
+| 可复用性 | ✅ 可在其他组件中使用       |
+| 代码质量 | ✅ 职责单一，接口清晰       |
+| 向后兼容 | ✅ 完全兼容现有代码         |
 
 ### 项目里程碑
 

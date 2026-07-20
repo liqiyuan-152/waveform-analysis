@@ -32,11 +32,55 @@ const createTrack = (
 
 describe('waveform annotation markup', () => {
   it('interpolates a line value at the pointer X', () => {
-    expect(interpolateAnnotationPoint([{ x: 0, y: 0 }, { x: 2, y: 10 }], 1)).toEqual({
+    expect(
+      interpolateAnnotationPoint(
+        [
+          { x: 0, y: 0 },
+          { x: 2, y: 10 },
+        ],
+        1,
+      ),
+    ).toEqual({
       x: 1,
       y: 5,
     })
-    expect(interpolateAnnotationPoint([{ x: 0, y: 0 }, { x: 2, y: 10 }], 3)).toBeNull()
+    expect(
+      interpolateAnnotationPoint(
+        [
+          { x: 0, y: 0 },
+          { x: 2, y: 10 },
+        ],
+        3,
+      ),
+    ).toBeNull()
+  })
+
+  it('interpolates start, middle, and end step lines at their visual transitions', () => {
+    const points = [
+      { x: 0, y: 2 },
+      { x: 2, y: 10 },
+    ]
+
+    expect(interpolateAnnotationPoint(points, 0.5, 'step-start')).toEqual({ x: 0.5, y: 10 })
+    expect(interpolateAnnotationPoint(points, 0.5, 'step-middle')).toEqual({ x: 0.5, y: 2 })
+    expect(interpolateAnnotationPoint(points, 1, 'step-middle')).toEqual({ x: 1, y: 10 })
+    expect(interpolateAnnotationPoint(points, 1.5, 'step-middle')).toEqual({ x: 1.5, y: 10 })
+    expect(interpolateAnnotationPoint(points, 1, 'step-end')).toEqual({ x: 1, y: 2 })
+    expect(interpolateAnnotationPoint(points, 1, 'step-after')).toEqual({ x: 1, y: 2 })
+    expect(interpolateAnnotationPoint(points, 2, 'step-start')).toEqual({ x: 2, y: 10 })
+    expect(interpolateAnnotationPoint(points, 2, 'step-after')).toEqual({ x: 2, y: 10 })
+    expect(interpolateAnnotationPoint(points, 1, 'none')).toBeNull()
+    expect(interpolateAnnotationPoint(points, 2, 'none')).toEqual({ x: 2, y: 10 })
+  })
+
+  it('omits interpolated candidates for point-only series between samples', () => {
+    const pointOnly = createTrack(0, 'points', 0, [
+      { x: 0, y: 2 },
+      { x: 2, y: 10 },
+    ])
+    pointOnly.series.lineType = 'none'
+
+    expect(findAnnotationSeriesCandidates([pointOnly], 1, 100, 50)).toEqual([])
   })
 
   it('sorts line candidates by screen distance and keeps series metadata', () => {
@@ -106,10 +150,16 @@ describe('waveform annotation markup', () => {
   })
 
   it('filters invalid entries and separates nearby annotation boxes', () => {
-    const track = createTrack(0, 'a', 0, [
-      { x: 0, y: 1 },
-      { x: 1, y: 2 },
-    ], 300)
+    const track = createTrack(
+      0,
+      'a',
+      0,
+      [
+        { x: 0, y: 1 },
+        { x: 1, y: 2 },
+      ],
+      300,
+    )
     const annotations: WaveformAnnotation[] = [
       { id: 'first', seriesId: 'a', x: 1, y: 2, text: '第一个标注' },
       { id: 'second', seriesId: 'a', x: 1, y: 2, text: '第二个标注' },
@@ -136,10 +186,16 @@ describe('waveform annotation markup', () => {
   })
 
   it('prefers centered vertical placements and moves below a top boundary', () => {
-    const track = createTrack(0, 'a', 0, [
-      { x: 0, y: 0 },
-      { x: 1, y: 5 },
-    ], 200)
+    const track = createTrack(
+      0,
+      'a',
+      0,
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 5 },
+      ],
+      200,
+    )
 
     const centered = layoutAnnotations(
       [{ id: 'centered', seriesId: 'a', x: 1, y: 5, text: '居中' }],
@@ -166,10 +222,16 @@ describe('waveform annotation markup', () => {
   })
 
   it('reverses direction when the preferred placement is clipped by a boundary', () => {
-    const track = createTrack(0, 'a', 0, [
-      { x: 0, y: 0 },
-      { x: 1, y: 5 },
-    ], 200)
+    const track = createTrack(
+      0,
+      'a',
+      0,
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 5 },
+      ],
+      200,
+    )
 
     const nearTop = layoutAnnotations(
       [{ id: 'top-space', seriesId: 'a', x: 1, y: 7.5, text: '顶部空间不足' }],
@@ -207,10 +269,16 @@ describe('waveform annotation markup', () => {
   })
 
   it('uses later directional candidates when vertical candidates collide', () => {
-    const track = createTrack(0, 'a', 0, [
-      { x: 0, y: 0 },
-      { x: 1, y: 5 },
-    ], 200)
+    const track = createTrack(
+      0,
+      'a',
+      0,
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 5 },
+      ],
+      200,
+    )
     const rendered = layoutAnnotations(
       [
         { id: 'one', seriesId: 'a', x: 1, y: 5, text: '同一位置一' },
@@ -225,5 +293,4 @@ describe('waveform annotation markup', () => {
     expect(rendered[1].placement).not.toBe('top')
     expect(rendered[1].box).not.toMatchObject({ x: rendered[0].box.x, y: rendered[0].box.y })
   })
-
 })

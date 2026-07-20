@@ -28,9 +28,19 @@ describe('waveform grid helpers', () => {
 
   it('resolves mode-specific gaps and bottom cells', () => {
     const options = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
-    const separated = resolveGridCellGeometry(400, 200, options, 'separated', [true, true, true, true])
+    const separated = resolveGridCellGeometry(400, 200, options, 'separated', [
+      true,
+      true,
+      true,
+      true,
+    ])
     const compact = resolveGridCellGeometry(400, 200, options, 'compact', [true, true, true, true])
-    const independent = resolveGridCellGeometry(400, 200, options, 'independent', [true, true, false, false])
+    const independent = resolveGridCellGeometry(400, 200, options, 'independent', [
+      true,
+      true,
+      false,
+      false,
+    ])
     expect(separated[1].left).toBeGreaterThan(separated[0].left + separated[0].width)
     expect(separated[2].top).toBe(separated[0].plotHeight + 16)
     expect(separated[2].xAxisBand).toBe(X_AXIS_BAND)
@@ -50,7 +60,14 @@ describe('waveform grid helpers', () => {
 
   it('accepts an independent horizontal gap without changing vertical spacing', () => {
     const options = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
-    const cells = resolveGridCellGeometry(400, 200, options, 'independent', [true, true, true, true], 64)
+    const cells = resolveGridCellGeometry(
+      400,
+      200,
+      options,
+      'independent',
+      [true, true, true, true],
+      64,
+    )
 
     expect(cells[0].width).toBe(168)
     expect(cells[1].left).toBe(232)

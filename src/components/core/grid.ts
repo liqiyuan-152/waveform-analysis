@@ -2,7 +2,7 @@ import type { WaveformDisplayMode } from '../../types'
 
 export const GRID_MIN_COUNT = 1
 export const GRID_MAX_COUNT = 10
-export const X_AXIS_BAND = 16
+export const X_AXIS_BAND = 30
 
 export interface WaveformGridOptions {
   rowCount?: number
@@ -76,7 +76,9 @@ export function resolveGridCellGeometry(
   horizontalGap?: number,
 ): GridCellGeometry[] {
   const defaultGap = getGridGap(displayMode)
-  const columnGap = Number.isFinite(horizontalGap) ? Math.max(0, horizontalGap as number) : defaultGap
+  const columnGap = Number.isFinite(horizontalGap)
+    ? Math.max(0, horizontalGap as number)
+    : defaultGap
   const totalHorizontalGap = Math.max(0, options.columnCount - 1) * columnGap
   const axisRows = new Set<number>()
   if (displayMode === 'independent') {
@@ -99,7 +101,10 @@ export function resolveGridCellGeometry(
   const totalVerticalGap = Math.max(0, options.rowCount - 1) * defaultGap
   const totalAxisBand = axisRows.size * X_AXIS_BAND
   const width = Math.max(1, (innerWidth - totalHorizontalGap) / options.columnCount)
-  const plotHeight = Math.max(1, (innerHeight - totalVerticalGap - totalAxisBand) / options.rowCount)
+  const plotHeight = Math.max(
+    1,
+    (innerHeight - totalVerticalGap - totalAxisBand) / options.rowCount,
+  )
 
   return Array.from({ length: getPageSize(options) }, (_, slotIndex) => {
     const row = Math.floor(slotIndex / options.columnCount)

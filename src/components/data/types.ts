@@ -7,6 +7,7 @@
 export type {
   WaveformPoint,
   WaveformDisplayMode,
+  WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformAnnotationStyle,
   WaveformAnnotation,
@@ -18,6 +19,10 @@ export type {
   WaveformLegendOptions,
   WaveformFrameStyle,
   SingleWaveformData,
+  WaveformLineType,
+  WaveformPointType,
+  WaveformErrorBarOptions,
+  ResolvedWaveformErrorBarOptions,
   WaveformSeries,
   WaveformData,
   NormalizedWaveformSeries,

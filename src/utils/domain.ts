@@ -39,7 +39,10 @@ export function buildMinorTicks(
     const nextValue = intervalBoundaries[index + 1]
     if (nextValue === undefined) return []
     const step = (nextValue - value) / subdivisions
-    return Array.from({ length: subdivisions - 1 }, (_, minorIndex) => value + step * (minorIndex + 1))
+    return Array.from(
+      { length: subdivisions - 1 },
+      (_, minorIndex) => value + step * (minorIndex + 1),
+    )
   })
 
   if (!domain) return minorTicks

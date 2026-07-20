@@ -2,41 +2,64 @@ import { describe, expect, it } from 'vitest'
 
 import {
   formatAnnotationTime,
+  formatAxisTime,
+  formatAxisTimeExponent,
+  formatEndpointTime,
   formatPlainNumber,
-  formatScientificYAxisLabel,
+  formatScientificAxisExponent,
+  formatScientificAxisLabel,
   formatTooltipNumber,
-  shouldUseScientificYAxisLabel,
+  shouldUseScientificAxisLabel,
 } from './formatters'
 
 describe('waveform number formatters', () => {
   it('uses the reference Y-axis scientific notation boundaries', () => {
-    expect(shouldUseScientificYAxisLabel(0)).toBe(false)
-    expect(shouldUseScientificYAxisLabel(0.009)).toBe(true)
-    expect(shouldUseScientificYAxisLabel(0.01)).toBe(false)
-    expect(shouldUseScientificYAxisLabel(99.99)).toBe(false)
-    expect(shouldUseScientificYAxisLabel(100)).toBe(true)
+    expect(shouldUseScientificAxisLabel(0)).toBe(false)
+    expect(shouldUseScientificAxisLabel(0.009)).toBe(true)
+    expect(shouldUseScientificAxisLabel(0.01)).toBe(false)
+    expect(shouldUseScientificAxisLabel(99.99)).toBe(false)
+    expect(shouldUseScientificAxisLabel(100)).toBe(true)
   })
 
-  it('shares one exponent and prefixes only the top visible tick', () => {
-    const positiveAxis = { axisMin: 0, axisMax: 254, topTickValue: 254 }
-    expect(formatScientificYAxisLabel(127, positiveAxis)).toBe('1.27')
-    expect(formatScientificYAxisLabel(254, positiveAxis)).toBe('E+02 2.54')
+  it('shares one separate exponent across an axis', () => {
+    const positiveAxis = { axisMin: 0, axisMax: 254 }
+    expect(formatScientificAxisLabel(127, positiveAxis)).toBe('1.27')
+    expect(formatScientificAxisLabel(254, positiveAxis)).toBe('2.54')
+    expect(formatScientificAxisExponent(0, 254)).toBe('E+02')
+    expect(formatScientificAxisExponent(0, 1e120)).toBe('E+120')
 
-    const tinyAxis = { axisMin: 0, axisMax: 0.0002, topTickValue: 0.0002 }
-    expect(formatScientificYAxisLabel(0.0001, tinyAxis)).toBe('1.00')
-    expect(formatScientificYAxisLabel(0.0002, tinyAxis)).toBe('E-04 2.00')
+    const tinyAxis = { axisMin: 0, axisMax: 0.0002 }
+    expect(formatScientificAxisLabel(0.0001, tinyAxis)).toBe('1.00')
+    expect(formatScientificAxisLabel(0.0002, tinyAxis)).toBe('2.00')
+    expect(formatScientificAxisExponent(0, 0.0002)).toBe('E-04')
 
-    const negativeAxis = { axisMin: -254, axisMax: 0, topTickValue: 0 }
-    expect(formatScientificYAxisLabel(-254, negativeAxis)).toBe('-2.54')
-    expect(formatScientificYAxisLabel(0, negativeAxis)).toBe('E+02 0.00')
+    const negativeAxis = { axisMin: -254, axisMax: 0 }
+    expect(formatScientificAxisLabel(-254, negativeAxis)).toBe('-2.54')
+    expect(formatScientificAxisLabel(0, negativeAxis)).toBe('0.00')
+    expect(formatScientificAxisExponent(-254, 0)).toBe('E+02')
   })
 
   it('keeps plain axes at two decimals and removes negative zero', () => {
-    expect(formatScientificYAxisLabel(99.99, { axisMin: 0, axisMax: 99.99 })).toBe('99.99')
-    expect(formatScientificYAxisLabel(0.01, { axisMin: 0, axisMax: 0.01 })).toBe('0.01')
-    expect(formatScientificYAxisLabel(-0.001, { axisMin: -1, axisMax: 1 })).toBe('0.00')
-    expect(formatScientificYAxisLabel(Number.NaN)).toBe('NaN')
-    expect(formatScientificYAxisLabel(Number.POSITIVE_INFINITY)).toBe('Infinity')
+    expect(formatScientificAxisLabel(99.99, { axisMin: 0, axisMax: 99.99 })).toBe('99.99')
+    expect(formatScientificAxisLabel(0.01, { axisMin: 0, axisMax: 0.01 })).toBe('0.01')
+    expect(formatScientificAxisLabel(-0.001, { axisMin: -1, axisMax: 1 })).toBe('0.00')
+    expect(formatScientificAxisLabel(Number.NaN)).toBe('NaN')
+    expect(formatScientificAxisLabel(Number.POSITIVE_INFINITY)).toBe('Infinity')
+    expect(formatScientificAxisExponent(0, 0)).toBeNull()
+  })
+
+  it('formats X-axis ticks and endpoints from the selected display unit', () => {
+    const domain: [number, number] = [0, 1]
+    expect(formatAxisTime(0.5, 'ms', domain)).toBe('0.50')
+    expect(formatEndpointTime(1, domain, 'ms')).toBe('1.00')
+    expect(formatAxisTimeExponent(domain, 'ms')).toBe('E+03')
+    expect(formatAxisTime(0.5, 's', domain)).toBe('0.50')
+    expect(formatEndpointTime(1, domain, 's')).toBe('1.00')
+    expect(formatAxisTimeExponent(domain, 's')).toBeNull()
+
+    const tinyDomain: [number, number] = [0, 0.000001]
+    expect(formatEndpointTime(0.000001, tinyDomain, 's')).toBe('1.00')
+    expect(formatAxisTimeExponent(tinyDomain, 's')).toBe('E-06')
   })
 
   it('formats tooltip and raw values for their display contexts', () => {

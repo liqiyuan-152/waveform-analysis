@@ -5,7 +5,7 @@ import { ColorPicker } from 'vue3-colorpicker'
 
 import App from './App.vue'
 
-describe('App workspace layout', () => {
+describe('App workspace layout', { timeout: 20_000 }, () => {
   it('places controls in the sidebar beside the chart', async () => {
     const wrapper = mount(App)
     await flushPromises()
@@ -14,6 +14,7 @@ describe('App workspace layout', () => {
     const frameControls = panel.get('.frame-style-controls')
     expect(panel.find('h1').exists()).toBe(false)
     expect(panel.find('[aria-label="波形展示方式"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="波形叠加方式"]').exists()).toBe(true)
     expect(panel.find('[aria-label="波形网格尺寸"]').exists()).toBe(true)
     expect(frameControls.findAllComponents(ColorPicker)).toHaveLength(2)
     expect(frameControls.text()).toContain('边框颜色')
@@ -41,6 +42,116 @@ describe('App workspace layout', () => {
     expect(legendColorPicker.props('disableAlpha')).toBe(false)
     expect(panel.text()).not.toContain('数据摘要')
     expect(wrapper.get('.chart-panel').find('.waveform-chart').exists()).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('switches overlaid tracks between single-axis and multi-axis rendering', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+
+    const overlayControl = wrapper.get('[aria-label="波形叠加方式"]')
+    expect(wrapper.get('.waveform-chart').attributes('data-overlay-mode')).toBe('single-axis')
+    expect(overlayControl.text()).toContain('单值轴')
+    expect(overlayControl.text()).toContain('多值轴')
+
+    await overlayControl.findAll('input[type="radio"]')[1]?.setValue(true)
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-chart').attributes('data-overlay-mode')).toBe('multi-axis')
+    expect(wrapper.findAll('.waveform-chart__axis--y').length).toBeGreaterThan(1)
+
+    wrapper.unmount()
+  })
+
+  it('renders the requested point-only and line-only examples in the first frame', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+
+    const firstFrame = wrapper.get('.waveform-chart__track[data-track-index="0"]')
+    const firstFrameSeries = firstFrame.findAll('.waveform-chart__series')
+
+    expect(firstFrameSeries.map((series) => series.attributes('data-series-name'))).toEqual([
+      'BT2_2M',
+      'TEST_CH_1',
+      'TEST_CH_3',
+      'TEST_CH_4',
+      'TEST_CH_5',
+      '纯点无线',
+      '纯线无点',
+    ])
+
+    const pointsOnlySeries = firstFrame.get('.waveform-chart__series[data-series-name="纯点无线"]')
+    expect(pointsOnlySeries.find('.waveform-chart__line').exists()).toBe(false)
+    expect(pointsOnlySeries.get('.waveform-chart__points').attributes('data-point-type')).toBe(
+      'circle',
+    )
+
+    const testChannelFour = firstFrame.get('.waveform-chart__series[data-series-name="TEST_CH_4"]')
+    expect(testChannelFour.get('.waveform-chart__line').attributes('data-line-type')).toBe('linear')
+    expect(testChannelFour.get('.waveform-chart__points').attributes('data-point-type')).toBe(
+      'circle',
+    )
+    expect(testChannelFour.find('.waveform-chart__error-bars').exists()).toBe(false)
+
+    const lineOnlySeries = firstFrame.get('.waveform-chart__series[data-series-name="纯线无点"]')
+    expect(lineOnlySeries.get('.waveform-chart__line').attributes('data-line-type')).toBe('linear')
+    expect(lineOnlySeries.find('.waveform-chart__points').exists()).toBe(false)
+
+    const triangleSeries = firstFrame.get('.waveform-chart__series[data-series-name="BT2_2M"]')
+    expect(triangleSeries.find('.waveform-chart__line').exists()).toBe(false)
+    expect(triangleSeries.get('.waveform-chart__points').attributes('data-point-type')).toBe(
+      'triangle',
+    )
+    expect(triangleSeries.get('.waveform-chart__error-bar').attributes('stroke')).toBe('#0960bd')
+
+    const triangleLegendItem = firstFrame
+      .findAll('.waveform-chart__legend-item')
+      .find((item) => item.text().includes('BT2_2M'))
+    expect(triangleLegendItem).toBeDefined()
+    const triangleSwatch = triangleLegendItem!.get('.waveform-legend__swatch')
+    expect(triangleSwatch.find('.waveform-legend__line').exists()).toBe(false)
+    expect(triangleSwatch.get('.waveform-legend__error-bar').attributes()).toMatchObject({
+      d: 'M9 2H17M13 2V14M9 14H17',
+      stroke: '#0960bd',
+      'stroke-width': '1.5',
+    })
+    expect(triangleSwatch.get('.waveform-legend__point').attributes()).toMatchObject({
+      fill: '#0960bd',
+      transform: 'translate(13 8)',
+    })
+
+    wrapper.unmount()
+  })
+
+  it('renders the three ECharts-style step modes in frame two', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+
+    const secondFrame = wrapper.get('.waveform-chart__track[data-track-index="1"]')
+    const series = secondFrame.findAll('.waveform-chart__series')
+    expect(series.map((item) => item.attributes('data-series-name'))).toEqual([
+      'Step Start',
+      'Step Middle',
+      'Step End',
+    ])
+    expect(
+      secondFrame.findAll('.waveform-chart__line').map((line) => line.attributes('data-line-type')),
+    ).toEqual(['step-start', 'step-middle', 'step-end'])
+    expect(secondFrame.findAll('.waveform-chart__points')).toHaveLength(3)
+    const legendItems = secondFrame.findAll('.waveform-chart__legend-item')
+    expect(legendItems).toHaveLength(3)
+    expect(legendItems.map((item) => item.get('.waveform-legend__line').attributes('d'))).toEqual([
+      'M1 8H25',
+      'M1 8H25',
+      'M1 8H25',
+    ])
+    expect(
+      legendItems.map((item) => item.get('.waveform-legend__point').attributes('fill')),
+    ).toEqual(['#5470c6', '#91cc75', '#505372'])
+    expect(
+      legendItems.map((item) => item.get('.waveform-legend__point').attributes('transform')),
+    ).toEqual(['translate(13 8)', 'translate(13 8)', 'translate(13 8)'])
 
     wrapper.unmount()
   })

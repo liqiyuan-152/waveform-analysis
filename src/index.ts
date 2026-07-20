@@ -11,6 +11,7 @@ export type {
   // 图表类型
   WaveformPoint,
   WaveformDisplayMode,
+  WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformAnnotationStyle,
   WaveformAnnotation,
@@ -23,6 +24,10 @@ export type {
   WaveformFrameStyle,
   // 数据类型
   SingleWaveformData,
+  WaveformLineType,
+  WaveformPointType,
+  WaveformErrorBarOptions,
+  ResolvedWaveformErrorBarOptions,
   WaveformSeries,
   WaveformData,
   NormalizedWaveformSeries,

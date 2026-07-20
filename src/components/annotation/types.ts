@@ -1,6 +1,6 @@
 import type { ScaleLinear } from 'd3'
 
-import type { WaveformAnnotation, WaveformPoint } from '../../types'
+import type { WaveformAnnotation, WaveformLineType, WaveformPoint } from '../../types'
 
 export interface AnnotationTrackLayout {
   index: number
@@ -9,6 +9,7 @@ export interface AnnotationTrackLayout {
     name?: string
     color?: string
     unit?: string
+    lineType?: WaveformLineType
     points: WaveformPoint[]
   }
   left?: number
@@ -51,14 +52,7 @@ export interface AnnotationBoxLayout {
 }
 
 export type AnnotationPlacement =
-  | 'top'
-  | 'bottom'
-  | 'right'
-  | 'left'
-  | 'top-right'
-  | 'top-left'
-  | 'bottom-right'
-  | 'bottom-left'
+  'top' | 'bottom' | 'right' | 'left' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 
 export interface RenderedAnnotation {
   annotation: WaveformAnnotation

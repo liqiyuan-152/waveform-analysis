@@ -77,10 +77,9 @@ describe('waveform annotation controls', () => {
     )
     expect(wrapper.get('.waveform-annotation-editor__coordinates').text()).toContain('Y2')
     expect(wrapper.get('button.is-primary').attributes('disabled')).toBeDefined()
-    await vi.waitFor(
-      () => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3),
-      { timeout: 5000 },
-    )
+    await vi.waitFor(() => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3), {
+      timeout: 5000,
+    })
     const colorPickers = wrapper.findAllComponents(ColorPicker)
     expect(wrapper.findAll('.waveform-annotation-editor__color-field')).toHaveLength(3)
     expect(colorPickers.map((picker) => picker.props('pureColor'))).toEqual([
@@ -156,10 +155,9 @@ describe('waveform annotation controls', () => {
       },
     })
     await flushPromises()
-    await vi.waitFor(
-      () => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3),
-      { timeout: 5000 },
-    )
+    await vi.waitFor(() => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3), {
+      timeout: 5000,
+    })
 
     expect(
       wrapper.findAllComponents(ColorPicker).map((picker) => picker.props('pureColor')),

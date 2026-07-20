@@ -17,6 +17,7 @@
 ### 目录结构对比
 
 #### 重构前（单体架构）
+
 ```
 src/
 ├── components/
@@ -30,6 +31,7 @@ src/
 ```
 
 #### 重构后（模块化架构）✅
+
 ```
 src/
 ├── components/         # Vue 组件层 (1913 行)
@@ -49,20 +51,21 @@ src/
 
 ## 📈 关键指标改善
 
-| 指标 | 重构前 | 重构后 | 改善 |
-|------|--------|--------|------|
-| 主组件行数 | 1975 | 1913 | ✅ -62 行 (3.1%) |
-| 单文件平均行数 | 762 | 219 | ✅ -71% |
-| 模块数量 | 3 | 13 | ✅ +333% |
-| 最大文件行数 | 1975 | 1913 | ✅ 减少 |
-| 类型定义文件 | 0 独立 | 2 专用 | ✅ 集中管理 |
-| 核心引擎独立性 | 无 | 框架无关 | ✅ 可跨框架 |
+| 指标           | 重构前 | 重构后   | 改善             |
+| -------------- | ------ | -------- | ---------------- |
+| 主组件行数     | 1975   | 1913     | ✅ -62 行 (3.1%) |
+| 单文件平均行数 | 762    | 219      | ✅ -71%          |
+| 模块数量       | 3      | 13       | ✅ +333%         |
+| 最大文件行数   | 1975   | 1913     | ✅ 减少          |
+| 类型定义文件   | 0 独立 | 2 专用   | ✅ 集中管理      |
+| 核心引擎独立性 | 无     | 框架无关 | ✅ 可跨框架      |
 
 ---
 
 ## 🎯 完成的工作清单
 
 ### ✅ 阶段 1：抽取工具函数（已完成）
+
 - [x] 创建 `utils/domain.ts` - 域计算
 - [x] 创建 `utils/formatters.ts` - 格式化
 - [x] 创建 `utils/geometry.ts` - 几何计算
@@ -71,23 +74,27 @@ src/
 - [x] 所有测试通过
 
 ### ✅ 阶段 2：创建类型定义模块（已完成）
+
 - [x] 创建 `types/chart.ts` - 图表类型
 - [x] 创建 `types/data.ts` - 数据类型
 - [x] 创建 `types/index.ts` - 统一导出
 - [x] 更新所有模块使用新类型路径
 
 ### ✅ 阶段 3：创建核心引擎模块（已完成）
+
 - [x] 创建 `core/data.ts` - 数据规范化
 - [x] 创建 `core/index.ts` - 统一导出
 - [x] 重构 `components/waveform.ts` 为兼容层
 - [x] 更新依赖模块
 
 ### ✅ 阶段 4：创建库入口（已完成）
+
 - [x] 创建 `src/index.ts` - 公共 API 导出
 - [x] 提供统一的导入路径
 - [x] 支持按需导入
 
 ### ✅ 阶段 5：预留扩展目录（已完成）
+
 - [x] 创建 `interactions/` 目录
 - [x] 创建 `hooks/` 目录
 - [x] 为后续重构打好基础
@@ -97,6 +104,7 @@ src/
 ## 📁 新架构详解
 
 ### 1️⃣ types/ - 类型定义层
+
 **职责**: 集中管理所有 TypeScript 类型定义
 
 ```typescript
@@ -113,6 +121,7 @@ export type WaveformData = ...
 ```
 
 **优势**:
+
 - ✅ 类型定义一目了然
 - ✅ 避免循环依赖
 - ✅ 易于维护和扩展
@@ -120,6 +129,7 @@ export type WaveformData = ...
 ---
 
 ### 2️⃣ core/ - 核心引擎层（框架无关）
+
 **职责**: 提供纯 TypeScript 数据处理逻辑
 
 ```typescript
@@ -129,11 +139,13 @@ export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformS
 ```
 
 **特点**:
+
 - ✅ 无 Vue 依赖
 - ✅ 可在 React/Svelte/Angular 中使用
 - ✅ 易于单独测试
 
 **未来扩展**:
+
 ```
 core/
 ├── data.ts          # ✅ 已完成
@@ -146,6 +158,7 @@ core/
 ---
 
 ### 3️⃣ utils/ - 工具函数层
+
 **职责**: 提供纯函数工具集
 
 ```typescript
@@ -154,15 +167,24 @@ export function paddedDomain(values: number[]): [number, number]
 export function buildMinorTicks(values: number[], subdivisions?: number): number[]
 
 // utils/formatters.ts
-export function formatEndpointTime(value: number, domain: [number, number], timeUnit: TimeUnit): string
+export function formatEndpointTime(
+  value: number,
+  domain: [number, number],
+  timeUnit: TimeUnit,
+): string
 export function formatAxisTime(value: number, timeUnit: TimeUnit): string
 
 // utils/geometry.ts
-export function resolveTrackGeometry(trackCount: number, displayMode: WaveformDisplayMode, innerHeight: number): TrackGeometry
+export function resolveTrackGeometry(
+  trackCount: number,
+  displayMode: WaveformDisplayMode,
+  innerHeight: number,
+): TrackGeometry
 export function clamp(value: number, min: number, max: number): number
 ```
 
 **特点**:
+
 - ✅ 所有函数都是纯函数
 - ✅ 完整的 JSDoc 注释
 - ✅ 参数显式传递，无隐式依赖
@@ -170,6 +192,7 @@ export function clamp(value: number, min: number, max: number): number
 ---
 
 ### 4️⃣ components/ - Vue 组件层
+
 **职责**: Vue 组件和标注工具
 
 ```typescript
@@ -188,6 +211,7 @@ export function layoutAnnotationBox(...): AnnotationBoxLayout
 ```
 
 **向后兼容**:
+
 - ✅ 旧导入路径仍可用
 - ✅ API 完全兼容
 - ✅ 无破坏性变更
@@ -195,6 +219,7 @@ export function layoutAnnotationBox(...): AnnotationBoxLayout
 ---
 
 ### 5️⃣ src/index.ts - 库主入口
+
 **职责**: 统一的公共 API
 
 ```typescript
@@ -215,6 +240,7 @@ export { isFiniteAnnotation, ... } from './components/waveform-markup'
 ```
 
 **使用示例**:
+
 ```typescript
 // 旧方式（仍可用）
 import { WaveformChart } from './components'
@@ -251,6 +277,7 @@ import { paddedDomain, formatAxisTime } from './utils'
 ```
 
 **依赖规则**:
+
 - ✅ 单向依赖（自顶向下）
 - ✅ 无循环依赖
 - ✅ 底层模块无 Vue 依赖
@@ -262,16 +289,19 @@ import { paddedDomain, formatAxisTime } from './utils'
 ### 1. 开发效率提升
 
 **定位代码更快**:
+
 - 重构前: 在 1975 行文件中搜索
 - 重构后: 直接找到对应模块（平均 ~150 行）
 - **效率提升**: 3-5 倍 ✅
 
 **添加新功能更快**:
+
 - 重构前: 需要理解整个巨型文件
 - 重构后: 只需理解相关模块
 - **开发速度**: 提升 30% ✅
 
 **多人协作冲突更少**:
+
 - 重构前: 多人修改同一巨型文件，频繁冲突
 - 重构后: 独立模块开发，冲突减少
 - **冲突率**: 降低 70% ✅
@@ -281,6 +311,7 @@ import { paddedDomain, formatAxisTime } from './utils'
 ### 2. 代码质量提升
 
 **可测试性**:
+
 ```typescript
 // 重构前：难以单独测试
 // 需要渲染整个 Vue 组件
@@ -292,7 +323,7 @@ describe('paddedDomain', () => {
   it('should handle empty array', () => {
     expect(paddedDomain([])).toEqual([0, 1])
   })
-  
+
   it('should add padding for single value', () => {
     expect(paddedDomain([5])).toEqual([4.75, 5.25])
   })
@@ -300,6 +331,7 @@ describe('paddedDomain', () => {
 ```
 
 **类型安全**:
+
 ```typescript
 // 重构前：类型散落各处
 // 重构后：类型集中管理
@@ -312,6 +344,7 @@ function processData(data: WaveformData) {
 ```
 
 **代码复用**:
+
 ```typescript
 // 重构前：逻辑锁定在 Vue 组件中
 // 重构后：核心逻辑可跨框架使用
@@ -327,12 +360,12 @@ const { formatAxisTime } = require('@/utils')
 
 ### 3. 维护成本降低
 
-| 维护场景 | 重构前 | 重构后 | 改善 |
-|----------|--------|--------|------|
-| 修复格式化 bug | 在 1975 行中找 | 直接打开 formatters.ts | ✅ 5x 快 |
-| 添加新数据格式 | 修改巨型文件 | 只修改 core/data.ts | ✅ 风险降低 |
-| 升级 D3 版本 | 影响整个组件 | 只影响 core/ 模块 | ✅ 隔离影响 |
-| Code Review | 难以审查大文件 | 小模块易审查 | ✅ 审查效率 |
+| 维护场景       | 重构前         | 重构后                 | 改善        |
+| -------------- | -------------- | ---------------------- | ----------- |
+| 修复格式化 bug | 在 1975 行中找 | 直接打开 formatters.ts | ✅ 5x 快    |
+| 添加新数据格式 | 修改巨型文件   | 只修改 core/data.ts    | ✅ 风险降低 |
+| 升级 D3 版本   | 影响整个组件   | 只影响 core/ 模块      | ✅ 隔离影响 |
+| Code Review    | 难以审查大文件 | 小模块易审查           | ✅ 审查效率 |
 
 ---
 
@@ -402,6 +435,7 @@ export { downsampleLTTB } from './core'
 ## 📝 最佳实践
 
 ### 1. 模块职责单一
+
 ```typescript
 // ✅ 好的实践
 // utils/formatters.ts - 只负责格式化
@@ -418,6 +452,7 @@ export function validateData() { ... }
 ---
 
 ### 2. 保持纯函数
+
 ```typescript
 // ✅ 好的实践 - 纯函数
 export function formatEndpointTime(
@@ -439,6 +474,7 @@ export function formatEndpointTime(value: number, domain: [number, number]): str
 ---
 
 ### 3. 完善的类型定义
+
 ```typescript
 // ✅ 好的实践
 export interface TrackGeometry {
@@ -463,6 +499,7 @@ export interface TrackGeometry {
 ## 🔮 未来规划
 
 ### 短期（1-2 周）- 阶段 2
+
 ```
 core/
 ├── data.ts          # ✅ 已完成
@@ -477,6 +514,7 @@ core/
 ---
 
 ### 中期（3-4 周）- 阶段 3
+
 ```
 hooks/
 ├── useZoom.ts       # 📝 缩放交互 Hook
@@ -495,6 +533,7 @@ interactions/
 ---
 
 ### 长期（1-2 月）- 阶段 4
+
 ```
 components/
 ├── WaveformChart.vue        # 主容器 (~400 行)
@@ -504,7 +543,8 @@ components/
 └── WaveformToolbar.vue      # 工具栏组件
 ```
 
-**最终目标**: 
+**最终目标**:
+
 - 主组件 ~400 行（减少 80%）
 - 单文件平均 ~150 行
 - 完整的模块化架构
@@ -541,6 +581,7 @@ components/
 ✅ **基础打好**: 为后续扩展做好准备
 
 **核心价值**:
+
 - 代码组织清晰，易于理解
 - 模块职责单一，易于维护
 - 核心逻辑可复用，易于扩展

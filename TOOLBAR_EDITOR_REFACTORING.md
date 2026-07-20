@@ -13,11 +13,13 @@
 **文件**: `src/components/WaveformToolbar.vue` (174 行)
 
 **功能**:
+
 - 交互模式切换（缩放、选择、标注）
 - 标注工具按钮（文字标注、垂直线、时间区间）
 - 编辑和删除操作按钮
 
 **Props**:
+
 ```typescript
 interface Props {
   /** 当前激活的交互模式 */
@@ -28,6 +30,7 @@ interface Props {
 ```
 
 **Emits**:
+
 ```typescript
 interface Emits {
   /** 交互模式变更 */
@@ -40,6 +43,7 @@ interface Emits {
 ```
 
 **样式特点**:
+
 - 绝对定位在图表右上角
 - 半透明白色背景，带圆角和阴影
 - 按钮 hover 和 active 状态
@@ -53,12 +57,14 @@ interface Emits {
 **文件**: `src/components/WaveformEditor.vue` (143 行)
 
 **功能**:
+
 - 多行文本输入
 - 自动 focus 和 select
 - 键盘快捷键支持（Ctrl+Enter 确认，Escape 取消）
 - 确认和取消操作
 
 **Props**:
+
 ```typescript
 interface Props {
   /** 编辑模式类型 */
@@ -71,6 +77,7 @@ interface Props {
 ```
 
 **Emits**:
+
 ```typescript
 interface Emits {
   /** 确认编辑 */
@@ -81,6 +88,7 @@ interface Emits {
 ```
 
 **交互特性**:
+
 - 自动聚焦和全选文本
 - `Ctrl + Enter` 快速确认
 - `Escape` 快速取消
@@ -92,6 +100,7 @@ interface Emits {
 ### 3. 重构 `WaveformChart.vue` 主组件
 
 **删除内容** (~110 行):
+
 - ✅ 工具栏模板代码 (~70 行)
 - ✅ 编辑器模板代码 (~20 行)
 - ✅ 工具栏样式 (~50 行)
@@ -101,6 +110,7 @@ interface Emits {
 - ✅ `openEditor` 中的 focus/select 代码
 
 **添加内容** (~20 行):
+
 - ✅ 导入 `WaveformToolbar` 和 `WaveformEditor`
 - ✅ 简洁的组件使用语法
 - ✅ 更新 `confirmEditing` 接收文本参数
@@ -108,6 +118,7 @@ interface Emits {
 **模板对比**:
 
 **重构前** (70 行):
+
 ```vue
 <div v-if="showAnnotationToolbar" class="waveform-chart__toolbar" ...>
   <button type="button" :class="{ 'is-active': ... }" @click="...">
@@ -133,6 +144,7 @@ interface Emits {
 ```
 
 **重构后** (16 行):
+
 ```vue
 <!-- 工具栏 -->
 <WaveformToolbar
@@ -162,6 +174,7 @@ interface Emits {
 **文件**: `src/components/WaveformChart.test.ts`
 
 **修改内容**:
+
 - ✅ 更新类名 `.waveform-chart__editor` → `.waveform-editor`
 - ✅ 更新 aria-label `确认标注` → `确认`
 - ✅ 所有 4 处测试用例更新完成
@@ -170,16 +183,17 @@ interface Emits {
 
 ## 📊 代码统计
 
-| 指标 | 数值 |
-|------|------|
-| **新增组件** | 2 个 |
-| **WaveformToolbar** | 174 行 |
-| **WaveformEditor** | 143 行 |
-| **主组件减少** | ~90 行 |
-| **总代码量** | +227 行（含新组件） |
-| **主组件行数** | 1913 → ~1823 行 |
+| 指标                | 数值                |
+| ------------------- | ------------------- |
+| **新增组件**        | 2 个                |
+| **WaveformToolbar** | 174 行              |
+| **WaveformEditor**  | 143 行              |
+| **主组件减少**      | ~90 行              |
+| **总代码量**        | +227 行（含新组件） |
+| **主组件行数**      | 1913 → ~1823 行     |
 
 **实际效果**:
+
 - 主组件复杂度降低 **4.7%**
 - 工具栏和编辑器逻辑完全独立
 - 可复用性大幅提升
@@ -204,17 +218,20 @@ WaveformChart.vue (主组件)
 ### 职责划分
 
 #### WaveformChart (主组件)
+
 - 数据管理和状态协调
 - 渲染波形图、坐标轴、网格
 - 处理交互事件（缩放、悬浮、选择）
 - 标注和图形的增删改逻辑
 
 #### WaveformToolbar (工具栏)
+
 - 交互模式切换 UI
 - 按钮状态管理
 - 视觉样式（hover、active、disabled）
 
 #### WaveformEditor (编辑器)
+
 - 文本输入 UI
 - 键盘快捷键
 - 自动聚焦
@@ -225,7 +242,9 @@ WaveformChart.vue (主组件)
 ## 💡 设计亮点
 
 ### 1. Props 最小化
+
 工具栏和编辑器只接收必要的 props，避免过度耦合：
+
 ```typescript
 // ✅ 好的设计
 <WaveformToolbar :interaction-mode="..." :can-edit-selection="..." />
@@ -235,7 +254,9 @@ WaveformChart.vue (主组件)
 ```
 
 ### 2. 事件向上传递
+
 子组件不直接修改状态，通过事件通知父组件：
+
 ```typescript
 // 工具栏只负责通知模式变更
 emit('update:interaction-mode', mode)
@@ -245,7 +266,9 @@ emit('confirm', text.trim())
 ```
 
 ### 3. 样式隔离
+
 使用 `<style scoped>` 确保样式不污染全局：
+
 ```vue
 <style scoped>
 .waveform-toolbar { ... }
@@ -254,7 +277,9 @@ emit('confirm', text.trim())
 ```
 
 ### 4. 可复用性
+
 组件可以在其他场景中使用：
+
 ```vue
 <!-- 在其他图表组件中复用工具栏 -->
 <WaveformToolbar
@@ -277,6 +302,7 @@ emit('confirm', text.trim())
 ## 🧪 测试验证
 
 ### 测试结果
+
 ```bash
 ✅ 所有测试通过 (24/24)
 ✅ TypeScript 类型检查通过
@@ -286,6 +312,7 @@ emit('confirm', text.trim())
 ### 测试覆盖场景
 
 #### 工具栏测试
+
 - [x] 缩放模式切换
 - [x] 选择模式切换
 - [x] 标注工具按钮
@@ -293,6 +320,7 @@ emit('confirm', text.trim())
 - [x] 删除按钮禁用状态
 
 #### 编辑器测试
+
 - [x] 文本输入
 - [x] 确认按钮点击
 - [x] 取消按钮点击
@@ -300,6 +328,7 @@ emit('confirm', text.trim())
 - [x] Escape 快捷键（组件内部已实现）
 
 #### 集成测试
+
 - [x] 创建标注流程
 - [x] 编辑标注流程
 - [x] 删除标注流程
@@ -312,11 +341,13 @@ emit('confirm', text.trim())
 ### 1. 可维护性提升
 
 **组件定位更快**:
+
 - 重构前: 在 1913 行文件中找工具栏代码
 - 重构后: 直接打开 WaveformToolbar.vue (174 行)
 - **效率提升**: 10x ✅
 
 **修改影响范围更小**:
+
 - 重构前: 修改工具栏可能影响主组件其他部分
 - 重构后: 修改工具栏只影响 WaveformToolbar.vue
 - **风险降低**: 90% ✅
@@ -326,12 +357,13 @@ emit('confirm', text.trim())
 ### 2. 可测试性提升
 
 **独立单元测试**:
+
 ```typescript
 // 可以单独测试工具栏
 describe('WaveformToolbar', () => {
   it('emits update:interaction-mode when button clicked', async () => {
     const wrapper = mount(WaveformToolbar, {
-      props: { interactionMode: 'zoom', canEditSelection: false }
+      props: { interactionMode: 'zoom', canEditSelection: false },
     })
     await wrapper.find('[aria-label="选择标注"]').trigger('click')
     expect(wrapper.emitted('update:interaction-mode')).toBeTruthy()
@@ -342,7 +374,7 @@ describe('WaveformToolbar', () => {
 describe('WaveformEditor', () => {
   it('emits confirm with trimmed text', async () => {
     const wrapper = mount(WaveformEditor, {
-      props: { kind: 'annotation', initialText: '', style: {} }
+      props: { kind: 'annotation', initialText: '', style: {} },
     })
     await wrapper.find('textarea').setValue('  测试文本  ')
     await wrapper.find('.is-primary').trigger('click')
@@ -356,6 +388,7 @@ describe('WaveformEditor', () => {
 ### 3. 可复用性提升
 
 **跨组件使用**:
+
 ```vue
 <!-- 在时间序列图组件中使用 -->
 <TimeSeriesChart>
@@ -368,11 +401,7 @@ describe('WaveformEditor', () => {
 </SpectrumChart>
 
 <!-- 在任何需要文本输入的地方使用编辑器 -->
-<WaveformEditor
-  kind="annotation"
-  initial-text="初始内容"
-  @confirm="handleConfirm"
-/>
+<WaveformEditor kind="annotation" initial-text="初始内容" @confirm="handleConfirm" />
 ```
 
 ---
@@ -380,24 +409,26 @@ describe('WaveformEditor', () => {
 ### 4. 代码质量提升
 
 **职责单一**:
+
 - 每个组件只负责一件事
 - 工具栏 = UI 展示 + 事件分发
 - 编辑器 = 文本输入 + 快捷键
 - 主组件 = 业务逻辑协调
 
 **接口清晰**:
+
 ```typescript
 // 工具栏接口清晰
 interface WaveformToolbarProps {
-  interactionMode: WaveformInteractionMode  // 当前模式
-  canEditSelection: boolean                 // 是否可编辑
+  interactionMode: WaveformInteractionMode // 当前模式
+  canEditSelection: boolean // 是否可编辑
 }
 
 // 编辑器接口清晰
 interface WaveformEditorProps {
-  kind: 'annotation' | 'shape'  // 类型
-  initialText: string           // 初始文本
-  style: CSSProperties          // 位置样式
+  kind: 'annotation' | 'shape' // 类型
+  initialText: string // 初始文本
+  style: CSSProperties // 位置样式
 }
 ```
 
@@ -440,18 +471,18 @@ components/
 
 #### Props
 
-| 属性 | 类型 | 必填 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| `interactionMode` | `WaveformInteractionMode` | ✅ | - | 当前激活的交互模式 |
-| `canEditSelection` | `boolean` | ✅ | - | 是否可以编辑/删除选中项 |
+| 属性               | 类型                      | 必填 | 默认值 | 说明                    |
+| ------------------ | ------------------------- | ---- | ------ | ----------------------- |
+| `interactionMode`  | `WaveformInteractionMode` | ✅   | -      | 当前激活的交互模式      |
+| `canEditSelection` | `boolean`                 | ✅   | -      | 是否可以编辑/删除选中项 |
 
 #### Events
 
-| 事件名 | 参数 | 说明 |
-|--------|------|------|
+| 事件名                    | 参数                            | 说明               |
+| ------------------------- | ------------------------------- | ------------------ |
 | `update:interaction-mode` | `mode: WaveformInteractionMode` | 交互模式变更时触发 |
-| `edit` | - | 点击编辑按钮时触发 |
-| `delete` | - | 点击删除按钮时触发 |
+| `edit`                    | -                               | 点击编辑按钮时触发 |
+| `delete`                  | -                               | 点击删除按钮时触发 |
 
 #### 使用示例
 
@@ -471,18 +502,18 @@ components/
 
 #### Props
 
-| 属性 | 类型 | 必填 | 默认值 | 说明 |
-|------|------|------|--------|------|
-| `kind` | `'annotation' \| 'shape'` | ✅ | - | 编辑器类型 |
-| `initialText` | `string` | ✅ | - | 初始文本内容 |
-| `style` | `CSSProperties` | ✅ | - | 编辑器位置样式 |
+| 属性          | 类型                      | 必填 | 默认值 | 说明           |
+| ------------- | ------------------------- | ---- | ------ | -------------- |
+| `kind`        | `'annotation' \| 'shape'` | ✅   | -      | 编辑器类型     |
+| `initialText` | `string`                  | ✅   | -      | 初始文本内容   |
+| `style`       | `CSSProperties`           | ✅   | -      | 编辑器位置样式 |
 
 #### Events
 
-| 事件名 | 参数 | 说明 |
-|--------|------|------|
+| 事件名    | 参数           | 说明                               |
+| --------- | -------------- | ---------------------------------- |
 | `confirm` | `text: string` | 确认编辑时触发，返回 trim 后的文本 |
-| `cancel` | - | 取消编辑时触发 |
+| `cancel`  | -              | 取消编辑时触发                     |
 
 #### 使用示例
 
@@ -527,12 +558,12 @@ components/
 
 ### 核心价值
 
-| 维度 | 改善 |
-|------|------|
+| 维度     | 改善                        |
+| -------- | --------------------------- |
 | 可维护性 | ✅ 组件独立，易于定位和修改 |
-| 可测试性 | ✅ 支持独立单元测试 |
-| 可复用性 | ✅ 可在其他组件中使用 |
-| 代码质量 | ✅ 职责单一，接口清晰 |
+| 可测试性 | ✅ 支持独立单元测试         |
+| 可复用性 | ✅ 可在其他组件中使用       |
+| 代码质量 | ✅ 职责单一，接口清晰       |
 
 ### 后续建议
 

@@ -12,7 +12,7 @@ import {
   type ZoomTransform,
 } from 'd3'
 import { resolveWaveformRenderingOptions } from '../core'
-import { formatScientificYAxisLabel, paddedDomain } from '../utils'
+import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../utils'
 import {
   computed,
   nextTick,
@@ -31,6 +31,7 @@ import {
   type WaveformDisplayMode,
   type WaveformFrameStyle,
   type WaveformInteractionMode,
+  type WaveformOverlayMode,
   type WaveformLegendOptions,
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
@@ -72,7 +73,11 @@ import {
   type WaveformGridOptions,
 } from './core/grid'
 import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
-import { buildTrackLayouts } from './core/layout'
+import {
+  buildTrackLayouts,
+  measureTrackYAxisClearance,
+  Y_AXIS_EXPONENT_GAP,
+} from './core/layout'
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
@@ -81,6 +86,7 @@ const props = withDefaults(
   defineProps<{
     data: WaveformData
     displayMode?: WaveformDisplayMode
+    overlayMode?: WaveformOverlayMode
     width?: number
     height?: number
     xLabel?: string
@@ -99,9 +105,12 @@ const props = withDefaults(
     rendering?: WaveformRenderingOptions
     title?: WaveformTitleOptions
     legend?: WaveformLegendOptions
+    hiddenSeriesIds?: string[]
+    defaultHiddenSeriesIds?: string[]
   }>(),
   {
     displayMode: 'independent',
+    overlayMode: 'single-axis',
     yLabel: '幅值',
     lineColor: '#0960bd',
     showTooltip: true,
@@ -115,6 +124,7 @@ const props = withDefaults(
     grid: () => ({ rowCount: 2, columnCount: 1, showPagination: true }),
     rendering: () => ({}),
     legend: () => ({ position: 'top-right', orientation: 'auto' }),
+    defaultHiddenSeriesIds: () => [],
   },
 )
 
@@ -124,6 +134,14 @@ const emit = defineEmits<{
   'update:annotations': [annotations: WaveformAnnotation[]]
   'update:annotations-visible': [visible: boolean]
   'update:interaction-mode': [mode: WaveformInteractionMode]
+  'update:hidden-series-ids': [ids: string[]]
+  'series-visibility-change': [
+    payload: {
+      seriesId: string
+      visible: boolean
+      hiddenSeriesIds: string[]
+    },
+  ]
   'annotation-create': [annotation: WaveformAnnotation]
   'annotation-update': [annotation: WaveformAnnotation, previous: WaveformAnnotation]
   'annotation-delete': [annotation: WaveformAnnotation]
@@ -150,10 +168,16 @@ const resizeObserver = shallowRef<ResizeObserver>()
 const zoomBehaviors = new Map<number | 'shared', ZoomBehavior<SVGRectElement, unknown>>()
 const clipPathId = `${useId()}-waveform-clip`
 const internalInteractionMode = ref<WaveformInteractionMode | undefined>(undefined)
+const internalHiddenSeriesIds = ref(new Set(props.defaultHiddenSeriesIds))
 const annotationInteraction = useWaveformAnnotationInteraction()
 const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
 let generatedAnnotationId = 0
 let synchronizingZoomTransform = false
+let zoomAnimationFrame: number | null = null
+let pendingSharedZoomTransform: ZoomTransform | null = null
+const pendingIndependentZoomTransforms = new Map<number, ZoomTransform>()
+let hoverAnimationFrame: number | null = null
+let pendingHoverUpdate: (() => void) | null = null
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
 
 // 用于传递给 WaveformTooltip 的接口
@@ -185,6 +209,13 @@ const legendPosition = computed<WaveformLegendPosition>(() => props.legend?.posi
 const legendBackgroundColor = computed(
   () => props.legend?.backgroundColor || 'rgba(255, 255, 255, 0.7)',
 )
+const legendInteractive = computed(() => props.legend?.interactive === true)
+const hiddenSeriesIdSet = computed(() =>
+  props.hiddenSeriesIds === undefined
+    ? internalHiddenSeriesIds.value
+    : new Set(props.hiddenSeriesIds),
+)
+const resolvedHiddenSeriesIds = computed(() => Array.from(hiddenSeriesIdSet.value))
 const legendOrientation = computed<Exclude<WaveformLegendOrientation, 'auto'>>(() => {
   const orientation = props.legend?.orientation ?? 'auto'
   if (orientation !== 'auto') return orientation
@@ -285,12 +316,16 @@ const chartTracks = computed<DisplayTrack[]>(() => {
     if (trackSeries) trackSeries.push(series)
     else groupedSeries.set(trackId, [series])
   })
-  return Array.from(groupedSeries, ([id, series]) => ({
-    id,
-    series,
-    xDomain: paddedDomain(series.flatMap((item) => item.xDomain)),
-    yDomain: paddedDomain(series.flatMap((item) => item.yDomain)),
-  }))
+  return Array.from(groupedSeries, ([id, series]) => {
+    const visibleSeries = series.filter((item) => !hiddenSeriesIdSet.value.has(item.id))
+    return {
+      id,
+      series,
+      visibleSeries,
+      xDomain: paddedDomain(visibleSeries.flatMap((item) => item.xDomain)),
+      yDomain: paddedDomain(visibleSeries.flatMap((item) => item.yDomain)),
+    }
+  })
 })
 const gridOptions = computed(() => normalizeGridOptions(props.grid))
 const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
@@ -307,46 +342,89 @@ const yAxisLabelBandWidth = 24
 const minimumPlotWidth = 120
 
 const yAxisMetrics = computed(() => {
-  const formattedTickLabels = chartTracks.value.flatMap((track) => {
-    const scale = scaleLinear(track.yDomain, [1, 0]).nice()
-    const [axisMin, axisMax] = scale.domain()
-    const values = scale.ticks(10)
-    const topTickValue = values.reduce<number | undefined>((closestTick, tickValue) => {
-      if (closestTick === undefined) return tickValue
-      return Math.abs(tickValue - axisMax) < Math.abs(closestTick - axisMax)
-        ? tickValue
-        : closestTick
-    }, undefined)
-    return values.map((value) =>
-      formatScientificYAxisLabel(value, { axisMin, axisMax, topTickValue }),
-    )
-  })
+  const axisText = chartTracks.value
+    .filter((track) => track.visibleSeries.length > 0)
+    .map((track) => {
+      const scale = scaleLinear(track.yDomain, [1, 0]).nice()
+      const [axisMin, axisMax] = scale.domain()
+      const values = scale.ticks(10)
+      return {
+        exponentLabel: formatScientificAxisExponent(axisMin, axisMax),
+        tickLabels: values.map((value) => formatScientificAxisLabel(value, { axisMin, axisMax })),
+      }
+    })
+  const formattedTickLabels = axisText.flatMap(({ tickLabels }) => tickLabels)
   const maximumCharacterCount = Math.max(1, ...formattedTickLabels.map((label) => label.length))
   const tickTextWidth = maximumCharacterCount * yAxisCharacterWidth
-  const tickClearance = tickTextWidth + yAxisTickPadding + yAxisOuterPadding
-  const labelCenterX = -(yAxisTickPadding + tickTextWidth + yAxisLabelGap + yAxisLabelBandWidth / 2)
+  const maximumExponentWidth = Math.max(
+    0,
+    ...axisText.map(({ exponentLabel }) => (exponentLabel?.length ?? 0) * yAxisCharacterWidth),
+  )
+  const exponentClearance = maximumExponentWidth
+    ? maximumExponentWidth + Y_AXIS_EXPONENT_GAP
+    : 0
+  const tickClearance = tickTextWidth + yAxisTickPadding + exponentClearance + yAxisOuterPadding
+  const labelCenterX = -(
+    yAxisTickPadding +
+    tickTextWidth +
+    exponentClearance +
+    yAxisLabelGap +
+    yAxisLabelBandWidth / 2
+  )
   const fullClearance =
-    tickTextWidth + yAxisTickPadding + yAxisLabelGap + yAxisLabelBandWidth + yAxisOuterPadding
+    tickTextWidth +
+    yAxisTickPadding +
+    exponentClearance +
+    yAxisLabelGap +
+    yAxisLabelBandWidth +
+    yAxisOuterPadding
 
   return { tickClearance, fullClearance, labelCenterX }
 })
 const hasYAxisLabels = computed(() =>
   chartTracks.value.some(
-    (track) => track.series.length === 1 && Boolean(track.series[0]?.name.trim() || props.yLabel),
+    (track) =>
+      track.visibleSeries.length === 1 &&
+      Boolean(track.visibleSeries[0]?.name.trim() || props.yLabel),
   ),
+)
+const hasVisibleWaveformData = computed(() =>
+  chartTracks.value.some((track) => track.visibleSeries.length > 0),
 )
 const chartLeftMargin = computed(() =>
   Math.max(
     margin.left,
     hasYAxisLabels.value
       ? yAxisMetrics.value.fullClearance
-      : chartSeries.value.length
+      : hasVisibleWaveformData.value
         ? yAxisMetrics.value.tickClearance
         : 0,
   ),
 )
+const multiAxisClearance = computed(() =>
+  chartTracks.value.reduce(
+    (maximum, track) => {
+      const clearance = measureTrackYAxisClearance(track, props.overlayMode)
+      return {
+        left: Math.max(maximum.left, clearance.left),
+        right: Math.max(maximum.right, clearance.right),
+      }
+    },
+    { left: 0, right: 0 },
+  ),
+)
+const resolvedChartLeftMargin = computed(() =>
+  props.overlayMode === 'multi-axis'
+    ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
+    : chartLeftMargin.value,
+)
+const chartRightMargin = computed(() =>
+  props.overlayMode === 'multi-axis'
+    ? Math.max(margin.right, multiAxisClearance.value.right)
+    : margin.right,
+)
 const innerWidth = computed(() =>
-  Math.max(0, chartWidth.value - chartLeftMargin.value - margin.right),
+  Math.max(0, chartWidth.value - resolvedChartLeftMargin.value - chartRightMargin.value),
 )
 const yAxisLayout = computed(() => {
   const baseGap = getGridGap(props.displayMode)
@@ -359,12 +437,18 @@ const yAxisLayout = computed(() => {
 
   return {
     horizontalGap:
-      hasMultipleColumns && chartSeries.value.length
-        ? hasYAxisLabels.value && canReserveLabelClearance
-          ? fullGap
-          : tickGap
-        : baseGap,
-    hideSecondaryLabels: hasMultipleColumns && hasYAxisLabels.value && !canReserveLabelClearance,
+      props.overlayMode === 'multi-axis' && hasMultipleColumns && hasVisibleWaveformData.value
+        ? Math.max(baseGap, multiAxisClearance.value.left + multiAxisClearance.value.right)
+        : hasMultipleColumns && hasVisibleWaveformData.value
+          ? hasYAxisLabels.value && canReserveLabelClearance
+            ? fullGap
+            : tickGap
+          : baseGap,
+    hideSecondaryLabels:
+      props.overlayMode !== 'multi-axis' &&
+      hasMultipleColumns &&
+      hasYAxisLabels.value &&
+      !canReserveLabelClearance,
   }
 })
 const hasWaveformData = computed(() => chartSeries.value.length > 0)
@@ -389,7 +473,9 @@ const tooltipSeriesPoints = computed<TooltipSeriesPoint[]>(() => {
 })
 
 const sharedXDomain = computed(() =>
-  paddedDomain(chartTracks.value.flatMap((track) => track.xDomain)),
+  paddedDomain(
+    chartTracks.value.flatMap((track) => (track.visibleSeries.length ? track.xDomain : [])),
+  ),
 )
 const sharedZoomDomain = computed(
   () =>
@@ -415,6 +501,7 @@ const trackLayouts = computed<TrackLayout[]>(() =>
     cells: gridCells.value,
     grid: gridOptions.value,
     displayMode: props.displayMode,
+    overlayMode: props.overlayMode,
     independentTransforms: independentTransforms.value,
     sharedZoomDomain: sharedZoomDomain.value,
     timeUnit: props.timeUnit,
@@ -426,7 +513,20 @@ const trackLayouts = computed<TrackLayout[]>(() =>
 )
 
 function annotationLayoutsForTrack(track: TrackLayout): AnnotationTrackLayout[] {
-  return track.seriesList.map((series) => ({ ...track, series }))
+  return track.seriesList.map((series) => ({
+    ...track,
+    series,
+    yScale:
+      track.seriesPaths.find((seriesPath) => seriesPath.series.id === series.id)?.yScale ??
+      track.yScale,
+  }))
+}
+
+function resolveSeriesYScale(track: TrackLayout, seriesId: string) {
+  return (
+    track.seriesPaths.find((seriesPath) => seriesPath.series.id === seriesId)?.yScale ??
+    track.yScale
+  )
 }
 
 const annotationTrackLayouts = computed<AnnotationTrackLayout[]>(() =>
@@ -468,27 +568,71 @@ function resolveFrameNumber(trackIndex: number): string | number | undefined {
 
 function handleSharedZoom(event: D3ZoomEvent<SVGRectElement, unknown>) {
   if (synchronizingZoomTransform) return
-  const transform = event.transform
-  sharedTransform.value = transform
-  const domain = transform
-    .rescaleX(scaleLinear(sharedXDomain.value, [0, innerWidth.value]))
-    .domain()
-  emit('zoom-change', [domain[0], domain[1]])
+  cancelPendingHover()
+  pendingSharedZoomTransform = event.transform
+  scheduleZoomCommit()
 }
 
 function handleIndependentZoom(event: D3ZoomEvent<SVGRectElement, unknown>, trackIndex: number) {
   if (synchronizingZoomTransform) return
-  const transform = event.transform
+  cancelPendingHover()
+  pendingIndependentZoomTransforms.set(trackIndex, event.transform)
+  scheduleZoomCommit()
+}
+
+function commitPendingZoom() {
+  if (pendingSharedZoomTransform) {
+    const transform = pendingSharedZoomTransform
+    pendingSharedZoomTransform = null
+    sharedTransform.value = transform
+    const domain = transform
+      .rescaleX(scaleLinear(sharedXDomain.value, [0, innerWidth.value]))
+      .domain()
+    emit('zoom-change', [domain[0], domain[1]])
+  }
+
+  if (!pendingIndependentZoomTransforms.size) return
   const nextTransforms = [...independentTransforms.value]
-  nextTransforms[trackIndex] = transform
+  const changedTrackIndexes = Array.from(pendingIndependentZoomTransforms.keys())
+  pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
+    nextTransforms[trackIndex] = transform
+  })
+  pendingIndependentZoomTransforms.clear()
   independentTransforms.value = nextTransforms
-  const track = trackLayouts.value[trackIndex]
-  if (!track) return
-  const domain = track.xScale.domain()
-  emit('zoom-change', [domain[0], domain[1]])
+  changedTrackIndexes.forEach((trackIndex) => {
+    const track = trackLayouts.value.find((item) => item.index === trackIndex)
+    if (!track) return
+    const domain = track.xScale.domain()
+    emit('zoom-change', [domain[0], domain[1]])
+  })
+}
+
+function scheduleZoomCommit() {
+  if (zoomAnimationFrame !== null) return
+  zoomAnimationFrame = requestAnimationFrame(() => {
+    zoomAnimationFrame = null
+    commitPendingZoom()
+  })
+}
+
+function flushPendingZoom() {
+  if (zoomAnimationFrame !== null) {
+    cancelAnimationFrame(zoomAnimationFrame)
+    zoomAnimationFrame = null
+  }
+  commitPendingZoom()
+}
+
+function cancelPendingZoom() {
+  pendingSharedZoomTransform = null
+  pendingIndependentZoomTransforms.clear()
+  if (zoomAnimationFrame === null) return
+  cancelAnimationFrame(zoomAnimationFrame)
+  zoomAnimationFrame = null
 }
 
 function clearZoomBindings() {
+  cancelPendingZoom()
   const svg = svgElement.value
   if (svg) {
     const overlays = svg.querySelectorAll<SVGRectElement>('.waveform-chart__overlay')
@@ -521,6 +665,7 @@ function configureZoom() {
           [track.width, track.height],
         ])
         .on('zoom', (event) => handleIndependentZoom(event, track.index))
+        .on('end', flushPendingZoom)
       zoomBehaviors.set(track.index, behavior)
       synchronizingZoomTransform = true
       try {
@@ -546,6 +691,7 @@ function configureZoom() {
       [innerWidth.value, innerHeight.value],
     ])
     .on('zoom', handleSharedZoom)
+    .on('end', flushPendingZoom)
   zoomBehaviors.set('shared', behavior)
   const overlay = sharedOverlayElement.value
   if (overlay) {
@@ -558,7 +704,51 @@ function configureZoom() {
   }
 }
 
+function cancelPendingHover() {
+  pendingHoverUpdate = null
+  if (hoverAnimationFrame === null) return
+  cancelAnimationFrame(hoverAnimationFrame)
+  hoverAnimationFrame = null
+}
+
+function scheduleHover(update: () => void) {
+  pendingHoverUpdate = update
+  if (hoverAnimationFrame !== null) return
+  hoverAnimationFrame = requestAnimationFrame(() => {
+    hoverAnimationFrame = null
+    const nextUpdate = pendingHoverUpdate
+    pendingHoverUpdate = null
+    nextUpdate?.()
+  })
+}
+
+function hoveredPointsMatch(nextPoints: HoveredSeriesPoint[]): boolean {
+  return (
+    hoveredSeriesPoints.value.length === nextPoints.length &&
+    nextPoints.every((point, index) => {
+      const current = hoveredSeriesPoints.value[index]
+      return (
+        current?.id === point.id &&
+        current.trackIndex === point.trackIndex &&
+        current.point === point.point
+      )
+    })
+  )
+}
+
+function commitHover(
+  nextPoints: HoveredSeriesPoint[],
+  trackIndex: number | null,
+  position: { x: number; y: number },
+) {
+  if (!hoveredPointsMatch(nextPoints)) hoveredSeriesPoints.value = nextPoints
+  hoveredTrackIndex.value = trackIndex
+  hoverPosition.value = position
+  emit('point-hover', nextPoints[0]?.point ?? null)
+}
+
 function clearHover() {
+  cancelPendingHover()
   hoveredSeriesPoints.value = []
   hoveredTrackIndex.value = null
   emit('point-hover', null)
@@ -593,6 +783,18 @@ function setAnnotationsVisible(visible: boolean) {
   emit('update:annotations-visible', visible)
 }
 
+function toggleSeriesVisibility(seriesId: string) {
+  if (!chartSeries.value.some((series) => series.id === seriesId)) return
+  const nextHiddenSeriesIds = new Set(hiddenSeriesIdSet.value)
+  const visible = nextHiddenSeriesIds.has(seriesId)
+  if (visible) nextHiddenSeriesIds.delete(seriesId)
+  else nextHiddenSeriesIds.add(seriesId)
+  const ids = Array.from(nextHiddenSeriesIds)
+  if (props.hiddenSeriesIds === undefined) internalHiddenSeriesIds.value = nextHiddenSeriesIds
+  emit('update:hidden-series-ids', ids)
+  emit('series-visibility-change', { seriesId, visible, hiddenSeriesIds: ids })
+}
+
 function resolvePointerEditorAnchor(
   event: MouseEvent,
   trackIndex?: number,
@@ -602,7 +804,7 @@ function resolvePointerEditorAnchor(
   const [pointerX, pointerY] = pointer(event, overlay)
   const track = trackIndex === undefined ? undefined : trackLayouts.value[trackIndex]
   return {
-    x: chartLeftMargin.value + (track ? track.left + pointerX : pointerX),
+    x: resolvedChartLeftMargin.value + (track ? track.left + pointerX : pointerX),
     y: titleAreaHeight.value + margin.top + (track ? track.top + pointerY : pointerY),
   }
 }
@@ -613,10 +815,13 @@ function resolveAnnotationEditorAnchor(annotation: WaveformAnnotation): Annotati
   )
   return {
     x: track
-      ? chartLeftMargin.value + track.left + track.xScale(annotation.x)
+      ? resolvedChartLeftMargin.value + track.left + track.xScale(annotation.x)
       : chartWidth.value / 2,
     y: track
-      ? titleAreaHeight.value + margin.top + track.top + track.yScale(annotation.y)
+      ? titleAreaHeight.value +
+        margin.top +
+        track.top +
+        resolveSeriesYScale(track, annotation.seriesId)(annotation.y)
       : chartHeight.value / 2,
   }
 }
@@ -648,7 +853,9 @@ function changeDraftSeries(seriesId: string) {
   )
   const series = track?.seriesList.find((item) => item.id === seriesId)
   const point =
-    series && draft ? interpolateAnnotationPoint(series.points, draft.annotation.x) : null
+    series && draft
+      ? interpolateAnnotationPoint(series.points, draft.annotation.x, series.lineType)
+      : null
   if (!draft || !candidate || !track || !point) return
   draft.annotation = {
     ...draft.annotation,
@@ -673,8 +880,12 @@ function resolveTrackAtPointer(
   pointerY: number,
   trackIndex?: number,
 ): TrackLayout | undefined {
-  if (trackIndex !== undefined) return trackLayouts.value[trackIndex]
-  if (!trackLayouts.value.length) return undefined
+  if (trackIndex !== undefined) {
+    const track = trackLayouts.value[trackIndex]
+    return track?.hasVisibleSeries ? track : undefined
+  }
+  const visibleTracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
+  if (!visibleTracks.length) return undefined
 
   const distanceToTrack = (track: TrackLayout) => {
     const xDistance =
@@ -687,7 +898,7 @@ function resolveTrackAtPointer(
     if (pointerY > track.top + track.height) return pointerY - (track.top + track.height)
     return xDistance
   }
-  return trackLayouts.value.reduce((closest, candidate) => {
+  return visibleTracks.reduce((closest, candidate) => {
     const distance = distanceToTrack(candidate)
     const closestDistance = distanceToTrack(closest)
     if (distance !== closestDistance) return distance < closestDistance ? candidate : closest
@@ -743,6 +954,17 @@ function handleAnnotationClick(event: MouseEvent, trackIndex?: number) {
   beginCreate(nearby[0], context.editorAnchor, context.candidates)
 }
 
+function handleNativeContextMenu(event: MouseEvent) {
+  const target = event.target
+  if (
+    target instanceof Element &&
+    target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])')
+  ) {
+    return
+  }
+  event.preventDefault()
+}
+
 function handleAnnotationContextMenu(event: MouseEvent, trackIndex?: number) {
   if (!props.annotationsVisible) return
   event.preventDefault()
@@ -787,7 +1009,7 @@ function editContextAnnotation() {
           annotationLayoutsForTrack(track),
           annotation.x,
           track.xScale(annotation.x),
-          track.top + track.yScale(annotation.y),
+          track.top + resolveSeriesYScale(track, annotation.seriesId)(annotation.y),
         )
       : []
     annotationInteraction.openEdit(
@@ -827,44 +1049,49 @@ function confirmAnnotation(annotation: WaveformAnnotation) {
 
 function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
   const overlay = event.currentTarget as SVGRectElement | null
-  const track = trackLayouts.value[trackIndex]
-  if (!overlay || !track) return
+  if (!overlay) return
   const [pointerX, pointerY] = pointer(event, overlay)
-  const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
-  hoveredSeriesPoints.value = track.seriesList.flatMap((series) => {
-    const point = nearestPoint(series, xValue)
-    return point ? [{ ...series, trackIndex, point }] : []
+  scheduleHover(() => {
+    const track = trackLayouts.value[trackIndex]
+    if (!track) return
+    const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
+    const nextPoints = track.seriesList.flatMap((series) => {
+      const point = nearestPoint(series, xValue)
+      return point ? [{ ...series, trackIndex, point }] : []
+    })
+    commitHover(nextPoints, trackIndex, {
+      x: resolvedChartLeftMargin.value + track.left + pointerX,
+      y: titleAreaHeight.value + margin.top + track.top + pointerY,
+    })
   })
-  hoveredTrackIndex.value = trackIndex
-  hoverPosition.value = {
-    x: chartLeftMargin.value + track.left + pointerX,
-    y: titleAreaHeight.value + margin.top + track.top + pointerY,
-  }
-  emit('point-hover', hoveredSeriesPoints.value[0]?.point ?? null)
 }
 
 function handleSharedPointerMove(event: PointerEvent) {
   if (!sharedOverlayElement.value || !trackLayouts.value.length) return
   const [pointerX, pointerY] = pointer(event, sharedOverlayElement.value)
-  const referenceTrack = resolveTrackAtPointer(pointerX, pointerY) ?? trackLayouts.value[0]
-  if (!referenceTrack) return
-  const localPointerX = Math.max(0, Math.min(referenceTrack.width, pointerX - referenceTrack.left))
-  const xValue = referenceTrack.xScale.invert(localPointerX)
-  hoveredSeriesPoints.value = trackLayouts.value.flatMap((track) =>
-    track.seriesList.flatMap((series) => {
-      const point = nearestPoint(series, xValue)
-      return point ? [{ ...series, trackIndex: track.index, point }] : []
-    }),
-  )
-  hoveredTrackIndex.value = null
-  hoverPosition.value = {
-    x: chartLeftMargin.value + pointerX,
-    y: titleAreaHeight.value + margin.top + pointerY,
-  }
-  emit('point-hover', hoveredPoint.value)
+  scheduleHover(() => {
+    const referenceTrack = resolveTrackAtPointer(pointerX, pointerY) ?? trackLayouts.value[0]
+    if (!referenceTrack) return
+    const localPointerX = Math.max(
+      0,
+      Math.min(referenceTrack.width, pointerX - referenceTrack.left),
+    )
+    const xValue = referenceTrack.xScale.invert(localPointerX)
+    const nextPoints = trackLayouts.value.flatMap((track) =>
+      track.seriesList.flatMap((series) => {
+        const point = nearestPoint(series, xValue)
+        return point ? [{ ...series, trackIndex: track.index, point }] : []
+      }),
+    )
+    commitHover(nextPoints, null, {
+      x: resolvedChartLeftMargin.value + pointerX,
+      y: titleAreaHeight.value + margin.top + pointerY,
+    })
+  })
 }
 
 function resetViewport() {
+  cancelPendingZoom()
   sharedTransform.value = zoomIdentity
   independentTransforms.value = chartTracks.value.map(() => zoomIdentity)
   clearHover()
@@ -941,6 +1168,45 @@ watch(activeInteractionMode, () => {
 })
 
 watch(
+  () => chartSeries.value.map((series) => series.id).join('\u0000'),
+  () => {
+    if (props.hiddenSeriesIds !== undefined) return
+    const availableIds = new Set(chartSeries.value.map((series) => series.id))
+    const retainedIds = new Set(
+      Array.from(internalHiddenSeriesIds.value).filter((seriesId) => availableIds.has(seriesId)),
+    )
+    if (
+      retainedIds.size !== internalHiddenSeriesIds.value.size ||
+      Array.from(retainedIds).some((seriesId) => !internalHiddenSeriesIds.value.has(seriesId))
+    ) {
+      internalHiddenSeriesIds.value = retainedIds
+    }
+  },
+  { immediate: true },
+)
+
+watch(
+  () =>
+    chartTracks.value
+      .flatMap((track) => track.visibleSeries.map((series) => series.id))
+      .join('\u0000'),
+  () => {
+    clearHover()
+    editorSeriesOptions.value = []
+    const draftSeriesId = annotationInteraction.editorDraft.value?.annotation.seriesId
+    if (draftSeriesId && hiddenSeriesIdSet.value.has(draftSeriesId)) {
+      annotationInteraction.closeEditor()
+    }
+    const contextAnnotationId = annotationInteraction.contextMenu.value?.annotationId
+    const contextAnnotation = props.annotations.find((item) => item.id === contextAnnotationId)
+    if (contextAnnotation && hiddenSeriesIdSet.value.has(contextAnnotation.seriesId)) {
+      annotationInteraction.closeContextMenu()
+    }
+    void nextTick(configureZoom)
+  },
+)
+
+watch(
   () => props.annotationsVisible,
   (visible) => {
     if (!visible) {
@@ -998,6 +1264,7 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  cancelPendingHover()
   resizeObserver.value?.disconnect()
   clearZoomBindings()
   editorSeriesOptions.value = []
@@ -1015,8 +1282,10 @@ onBeforeUnmount(() => {
     :style="containerStyle"
     :data-display-mode="displayMode"
     :data-interaction-mode="activeInteractionMode"
-    :data-chart-left-margin="chartLeftMargin"
+    :data-overlay-mode="overlayMode"
+    :data-chart-left-margin="resolvedChartLeftMargin"
     :data-title-area-height="titleAreaHeight"
+    @contextmenu.capture="handleNativeContextMenu"
   >
     <div
       v-if="titleVisible"
@@ -1052,7 +1321,6 @@ onBeforeUnmount(() => {
       :height="drawingHeight"
       role="img"
       :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
-      @contextmenu.capture.prevent
     >
       <defs>
         <clipPath
@@ -1065,7 +1333,7 @@ onBeforeUnmount(() => {
         </clipPath>
       </defs>
 
-      <g :transform="`translate(${chartLeftMargin}, ${margin.top})`">
+      <g :transform="`translate(${resolvedChartLeftMargin}, ${margin.top})`">
         <g v-if="displayMode !== 'compact'" class="waveform-chart__grid-slots" aria-hidden="true">
           <g
             v-for="cell in gridCells"
@@ -1080,6 +1348,22 @@ onBeforeUnmount(() => {
             />
           </g>
         </g>
+        <rect
+          v-if="displayMode !== 'independent' && trackLayouts.length && hasVisibleWaveformData"
+          ref="sharedOverlayElement"
+          class="waveform-chart__overlay waveform-chart__overlay--shared"
+          :class="{
+            'is-zoomable': zoomable && isZoomMode,
+            'is-annotating': activeInteractionMode === 'annotation',
+          }"
+          :width="innerWidth"
+          :height="innerHeight"
+          @pointermove="handleSharedPointerMove"
+          @pointerleave="clearHover"
+          @click="handleAnnotationClick"
+          @contextmenu="handleAnnotationContextMenu"
+        />
+
         <!-- 轨道渲染 -->
         <WaveformTrack
           v-for="track in trackLayouts"
@@ -1098,27 +1382,14 @@ onBeforeUnmount(() => {
           :legend-position="legendPosition"
           :legend-orientation="legendOrientation"
           :legend-background-color="legendBackgroundColor"
+          :legend-interactive="legendInteractive"
+          :hidden-series-ids="resolvedHiddenSeriesIds"
           :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
           @pointer-move="handleIndependentPointerMove($event, track.index)"
           @pointer-leave="clearHover"
           @click="handleAnnotationClick($event, track.index)"
           @contextmenu="handleAnnotationContextMenu($event, track.index)"
-        />
-
-        <rect
-          v-if="displayMode !== 'independent' && trackLayouts.length"
-          ref="sharedOverlayElement"
-          class="waveform-chart__overlay waveform-chart__overlay--shared"
-          :class="{
-            'is-zoomable': zoomable && isZoomMode,
-            'is-annotating': activeInteractionMode === 'annotation',
-          }"
-          :width="innerWidth"
-          :height="innerHeight"
-          @pointermove="handleSharedPointerMove"
-          @pointerleave="clearHover"
-          @click="handleAnnotationClick"
-          @contextmenu="handleAnnotationContextMenu"
+          @series-visibility-toggle="toggleSeriesVisibility"
         />
 
         <WaveformAnnotationLayer

@@ -1,6 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+
 import type { WaveformLegendPosition } from '../../types'
 import type { DisplaySeries } from '../core/types'
+import {
+  waveformLegendErrorBarPath,
+  waveformLegendLinePath,
+  waveformPointSymbolPath,
+} from './seriesStyle'
 
 interface Props {
   series: DisplaySeries[]
@@ -9,9 +16,26 @@ interface Props {
   backgroundColor: string
   width: number
   height: number
+  interactive?: boolean
+  hiddenSeriesIds?: string[]
 }
 
-defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  interactive: false,
+  hiddenSeriesIds: () => [],
+})
+const emit = defineEmits<{
+  toggle: [seriesId: string]
+}>()
+const hiddenSeriesIdSet = computed(() => new Set(props.hiddenSeriesIds))
+
+function isHidden(seriesId: string): boolean {
+  return hiddenSeriesIdSet.value.has(seriesId)
+}
+
+function toggleSeries(seriesId: string) {
+  if (props.interactive) emit('toggle', seriesId)
+}
 </script>
 
 <template>
@@ -32,19 +56,62 @@ defineProps<Props>()
     >
       <div
         class="waveform-legend__panel"
-        :class="`waveform-legend__panel--${orientation}`"
+        :class="[
+          `waveform-legend__panel--${orientation}`,
+          { 'waveform-legend__panel--interactive': interactive },
+        ]"
         :style="{ backgroundColor }"
         role="list"
       >
-        <div
+        <button
           v-for="item in series"
           :key="item.id"
           class="waveform-legend__item waveform-chart__legend-item"
+          :class="{ 'is-hidden': isHidden(item.id) }"
+          type="button"
           role="listitem"
+          :disabled="!interactive"
+          :aria-pressed="interactive ? !isHidden(item.id) : undefined"
+          :aria-label="
+            interactive ? `${isHidden(item.id) ? '显示' : '隐藏'}曲线 ${item.name}` : undefined
+          "
+          @click.stop="toggleSeries(item.id)"
         >
-          <i class="waveform-legend__swatch" :style="{ backgroundColor: item.color }" />
+          <svg
+            class="waveform-legend__swatch"
+            viewBox="0 0 26 16"
+            aria-hidden="true"
+            :data-line-type="item.lineType"
+            :data-point-type="item.pointType"
+            :data-error-bar-visible="item.errorBar.visible || undefined"
+          >
+            <path
+              v-if="waveformLegendLinePath(item.lineType)"
+              class="waveform-legend__line"
+              :d="waveformLegendLinePath(item.lineType) ?? undefined"
+              :stroke="item.color"
+              stroke-width="1.5"
+              fill="none"
+            />
+            <path
+              v-if="item.errorBar.visible"
+              class="waveform-legend__error-bar"
+              :d="waveformLegendErrorBarPath(item.errorBar.capWidth)"
+              :stroke="item.errorBar.color || item.color"
+              :stroke-width="item.errorBar.width"
+              stroke-linecap="butt"
+              fill="none"
+            />
+            <path
+              v-if="item.pointType !== 'none'"
+              class="waveform-legend__point"
+              :d="waveformPointSymbolPath(item.pointType, 30) ?? undefined"
+              :fill="item.color"
+              transform="translate(13 8)"
+            />
+          </svg>
           <span class="waveform-legend__label" :title="item.name">{{ item.name }}</span>
-        </div>
+        </button>
       </div>
     </div>
   </foreignObject>
@@ -119,6 +186,10 @@ defineProps<Props>()
   border-radius: 4px;
 }
 
+.waveform-legend__panel--interactive {
+  pointer-events: auto;
+}
+
 .waveform-legend__panel--horizontal {
   flex-flow: row wrap;
   align-items: center;
@@ -135,13 +206,44 @@ defineProps<Props>()
   max-width: 160px;
   align-items: center;
   gap: 6px;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   white-space: nowrap;
+  appearance: none;
+  background: none;
+  border: 0;
+}
+
+.waveform-legend__item:disabled {
+  opacity: 1;
+}
+
+.waveform-legend__panel--interactive .waveform-legend__item {
+  cursor: pointer;
+}
+
+.waveform-legend__panel--interactive .waveform-legend__item:focus-visible {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}
+
+.waveform-legend__item.is-hidden {
+  opacity: 0.45;
+}
+
+.waveform-legend__item.is-hidden .waveform-legend__label {
+  text-decoration: line-through;
 }
 
 .waveform-legend__swatch {
-  flex: 0 0 18px;
-  width: 18px;
-  height: 2px;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 16px;
+  overflow: visible;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .waveform-legend__label {

@@ -4,6 +4,12 @@
 export interface WaveformPoint {
   x: number
   y: number
+  /** Symmetric Y error used when a side-specific value is not provided. */
+  error?: number
+  /** Error below Y; overrides `error` for the lower side. */
+  lowerError?: number
+  /** Error above Y; overrides `error` for the upper side. */
+  upperError?: number
 }
 
 /**
@@ -13,6 +19,9 @@ export interface WaveformPoint {
  * - compact: 波形叠加显示
  */
 export type WaveformDisplayMode = 'independent' | 'separated' | 'compact'
+
+/** Controls whether overlaid series share one Y axis or use up to four value axes. */
+export type WaveformOverlayMode = 'single-axis' | 'multi-axis'
 
 /** 标注工具模式 */
 export type WaveformInteractionMode = 'zoom' | 'annotation'
@@ -43,6 +52,10 @@ export interface WaveformRenderingOptions {
   downsampleThreshold?: number
   /** Upper bound for rendered points per horizontal CSS pixel. */
   maxPointsPerPixel?: number
+  /** Minimum horizontal CSS-pixel spacing between rendered point symbols. Use 0 to disable. */
+  pointMinSpacing?: number
+  /** Minimum horizontal CSS-pixel spacing between rendered error bars. Use 0 to disable. */
+  errorBarMinSpacing?: number
 }
 
 /** Text styling for the chart-level title. */
@@ -67,14 +80,7 @@ export interface WaveformTitleOptions {
 
 /** Preset positions for legends rendered inside multi-series tracks. */
 export type WaveformLegendPosition =
-  | 'top-left'
-  | 'top'
-  | 'top-right'
-  | 'right'
-  | 'bottom-right'
-  | 'bottom'
-  | 'bottom-left'
-  | 'left'
+  'top-left' | 'top' | 'top-right' | 'right' | 'bottom-right' | 'bottom' | 'bottom-left' | 'left'
 
 /** Controls whether legend items follow the position default or a fixed direction. */
 export type WaveformLegendOrientation = 'auto' | 'horizontal' | 'vertical'
@@ -85,6 +91,8 @@ export interface WaveformLegendOptions {
   orientation?: WaveformLegendOrientation
   /** CSS color used by the legend panel; alpha controls background transparency. */
   backgroundColor?: string
+  /** Allows legend items to toggle their corresponding series. Defaults to false. */
+  interactive?: boolean
 }
 
 /** Styling shared by every non-empty waveform frame. */

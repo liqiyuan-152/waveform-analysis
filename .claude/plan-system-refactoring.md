@@ -7,6 +7,7 @@
 ## 📊 当前结构分析
 
 ### 当前组件列表
+
 ```
 src/components/
 ├── WaveformChart.vue              # 主容器组件 (~1143 行)
@@ -105,7 +106,9 @@ src/components/
 **职责**：提供共享的类型、常量和工具
 
 **文件**：
+
 - `core/types.ts` - 基础类型定义
+
   ```typescript
   export interface DisplaySeries { ... }
   export interface TrackLayout { ... }
@@ -128,7 +131,9 @@ src/components/
 **职责**：数据规范化、轨道布局计算
 
 **文件**：
+
 - `data/types.ts` - 数据类型
+
   ```typescript
   export type WaveformData = ...
   export type WaveformDisplayMode = ...
@@ -136,6 +141,7 @@ src/components/
   ```
 
 - `data/normalize.ts` - 数据规范化
+
   ```typescript
   export function normalizeWaveformData(data: WaveformData): WaveformSeries[]
   export function normalizeWaveformSeries(data: WaveformData): DisplaySeries[]
@@ -153,6 +159,7 @@ src/components/
   ```
 
 **来源**：
+
 - `waveform.ts` → `data/types.ts` + `data/normalize.ts`
 - `WaveformChart.vue` 中的 `trackLayouts` 计算逻辑 → `data/layout.ts`
 
@@ -163,6 +170,7 @@ src/components/
 **职责**：渲染波形轨道、网格、坐标轴、波形线
 
 **文件**：
+
 - `rendering/WaveformTrack.vue` - 波形轨道组件（已存在）
 - `rendering/types.ts` - 渲染相关类型
   ```typescript
@@ -171,10 +179,12 @@ src/components/
   ```
 
 **可选优化**：
+
 - `rendering/Grid.vue` - 独立网格组件
 - `rendering/Axis.vue` - 独立坐标轴组件
 
 **来源**：
+
 - `WaveformTrack.vue` → `rendering/WaveformTrack.vue`
 
 ---
@@ -184,17 +194,19 @@ src/components/
 **职责**：管理缩放行为、变换状态
 
 **文件**：
+
 - `zoom/useZoom.ts` - 缩放组合式函数
+
   ```typescript
   export function useZoom(options: ZoomOptions) {
     const sharedTransform = shallowRef<ZoomTransform>(zoomIdentity)
     const independentTransforms = shallowRef<ZoomTransform[]>([])
-    
+
     function configureZoom() { ... }
     function resetViewport() { ... }
     function handleSharedZoom(event: D3ZoomEvent) { ... }
     function handleIndependentZoom(event: D3ZoomEvent, trackIndex: number) { ... }
-    
+
     return {
       sharedTransform,
       independentTransforms,
@@ -221,17 +233,19 @@ src/components/
 **职责**：处理用户交互（悬浮、点击、工具栏）
 
 **文件**：
+
 - `interaction/WaveformToolbar.vue` - 工具栏（已存在）
 - `interaction/WaveformTooltip.vue` - 悬浮提示（已存在）
 
 - `interaction/useInteraction.ts` - 交互管理
+
   ```typescript
   export function useInteraction(options: InteractionOptions) {
     const interactionMode = ref<WaveformInteractionMode>('zoom')
-    
+
     function setInteractionMode(mode: WaveformInteractionMode) { ... }
     function handleOverlayClick(event: PointerEvent, trackIndex?: number) { ... }
-    
+
     return {
       interactionMode,
       setInteractionMode,
@@ -241,16 +255,17 @@ src/components/
   ```
 
 - `interaction/useHover.ts` - 悬浮逻辑
+
   ```typescript
   export function useHover(options: HoverOptions) {
     const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
     const hoveredTrackIndex = ref<number | null>(null)
     const hoverPosition = ref({ x: 0, y: 0 })
-    
+
     function handlePointerMove(event: PointerEvent, trackIndex?: number) { ... }
     function clearHover() { ... }
     function nearestPoint(series: DisplaySeries, xValue: number) { ... }
-    
+
     return {
       hoveredSeriesPoints,
       hoveredTrackIndex,
@@ -270,6 +285,7 @@ src/components/
   ```
 
 **来源**：
+
 - `WaveformToolbar.vue` → `interaction/WaveformToolbar.vue`
 - `WaveformTooltip.vue` → `interaction/WaveformTooltip.vue`
 - `WaveformChart.vue` 中的交互逻辑 → `interaction/useInteraction.ts` + `interaction/useHover.ts`
@@ -281,21 +297,23 @@ src/components/
 **职责**：管理标注和图形（创建、编辑、删除、渲染）
 
 **文件**：
+
 - `annotation/WaveformAnnotationLayer.vue` - 标注渲染层（已存在）
 - `annotation/WaveformEditor.vue` - 标注编辑器（已存在）
 
 - `annotation/useAnnotation.ts` - 标注管理逻辑
+
   ```typescript
   export function useAnnotation(options: AnnotationOptions) {
     const selection = ref<WaveformMarkupSelection>(null)
     const editingDraft = ref<EditingDraft | null>(null)
     const rangeDraft = ref<RangeDraft | null>(null)
-    
+
     function createAnnotation(point: WaveformPoint, seriesId: string) { ... }
     function editAnnotation(id: string) { ... }
     function deleteAnnotation(id: string) { ... }
     function selectMarkup(kind: 'annotation' | 'shape', id: string) { ... }
-    
+
     return {
       selection,
       editingDraft,
@@ -309,6 +327,7 @@ src/components/
   ```
 
 - `annotation/markup.ts` - 标注工具函数
+
   ```typescript
   export function layoutAnnotationBox(...) { ... }
   export function resolveAnnotationStyle(...) { ... }
@@ -325,6 +344,7 @@ src/components/
   ```
 
 **来源**：
+
 - `WaveformAnnotationLayer.vue` → `annotation/WaveformAnnotationLayer.vue`
 - `WaveformEditor.vue` → `annotation/WaveformEditor.vue`
 - `waveform-markup.ts` → `annotation/markup.ts` + `annotation/types.ts`
@@ -464,26 +484,20 @@ watch(() => props.data, resetViewport)
         :track="track"
         @pointer-move="handlePointerMove($event, track.index)"
       />
-      
+
       <!-- 标注层 -->
-      <WaveformAnnotationLayer
-        :annotations="renderedAnnotations"
-        :shapes="renderedShapes"
-      />
+      <WaveformAnnotationLayer :annotations="renderedAnnotations" :shapes="renderedShapes" />
     </svg>
-    
+
     <!-- 工具栏 -->
     <WaveformToolbar
       :interaction-mode="interactionMode"
       @update:interaction-mode="setInteractionMode"
     />
-    
+
     <!-- 编辑器 -->
-    <WaveformEditor
-      v-if="editingDraft"
-      :draft="editingDraft"
-    />
-    
+    <WaveformEditor v-if="editingDraft" :draft="editingDraft" />
+
     <!-- Tooltip -->
     <WaveformTooltip
       :visible="hoveredSeriesPoints.length > 0"
@@ -539,6 +553,7 @@ describe('useZoom', () => {
 **风险**：移动文件可能导致测试失败、功能损坏
 
 **缓解措施**：
+
 - 分阶段重构，每个阶段运行测试
 - 保持向后兼容
 - 使用 Git 分支，可以随时回滚
@@ -548,6 +563,7 @@ describe('useZoom', () => {
 **风险**：大量文件的导入路径需要更新
 
 **缓解措施**：
+
 - 使用 IDE 的重构功能
 - 在新目录的 `index.ts` 中保持导出一致
 - 逐步迁移，保留旧路径的重导出
@@ -557,6 +573,7 @@ describe('useZoom', () => {
 **风险**：类型定义分散后可能产生循环依赖
 
 **缓解措施**：
+
 - 明确类型依赖关系
 - 共享类型放在 `core/types.ts`
 - 避免系统之间直接依赖类型
@@ -566,6 +583,7 @@ describe('useZoom', () => {
 **风险**：拆分可能影响打包体积和加载性能
 
 **缓解措施**：
+
 - 使用 Tree-shaking 优化
 - 合理使用动态导入
 - 监控打包体积变化

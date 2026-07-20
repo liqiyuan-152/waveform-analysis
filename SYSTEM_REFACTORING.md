@@ -9,6 +9,7 @@
 ## ✅ 完成情况
 
 ### 重构前的结构
+
 ```
 src/components/
 ├── WaveformChart.vue              # 主容器组件 (~1143 行)
@@ -23,6 +24,7 @@ src/components/
 ```
 
 ### 重构后的结构
+
 ```
 src/components/
 ├── WaveformChart.vue                          # 主容器组件（协调各系统）
@@ -68,6 +70,7 @@ src/components/
 **职责**: 提供共享的类型、常量
 
 **文件**:
+
 - `constants.ts` - 定义全局常量
   - `channelColors` - 通道颜色数组
   - `margin` - 图表边距
@@ -79,6 +82,7 @@ src/components/
   - `TrackLayout` - 轨道布局接口
 
 **导出**: `core/index.ts`
+
 ```typescript
 export * from './constants'
 export * from './types'
@@ -93,16 +97,18 @@ export * from './types'
 **职责**: 重导出数据相关类型和函数
 
 **文件**:
+
 - `types.ts` - 重导出 `src/types` 中的所有数据类型
   - `WaveformData`, `WaveformSeries`, `WaveformPoint` 等
   - `normalizeWaveformData`, `normalizeWaveformSeries` 函数
 
 **导出**: `data/index.ts`
+
 ```typescript
 export * from './types'
 ```
 
-**说明**: 
+**说明**:
 此系统作为桥接层，让组件内部可以通过相对路径 `../data/types` 导入类型，而不是 `../../types`，提高了代码的可读性。
 
 ---
@@ -114,6 +120,7 @@ export * from './types'
 **职责**: 渲染波形轨道（网格、坐标轴、波形线）
 
 **文件**:
+
 - `WaveformTrack.vue` - 波形轨道组件 (317 行)
   - 渲染网格（主要/次要刻度）
   - 渲染 X/Y 坐标轴（使用 D3.js）
@@ -124,6 +131,7 @@ export * from './types'
   - 独立模式下的交互覆盖层
 
 **导出**: `rendering/index.ts`
+
 ```typescript
 export { default as WaveformTrack } from './WaveformTrack.vue'
 ```
@@ -137,6 +145,7 @@ export { default as WaveformTrack } from './WaveformTrack.vue'
 **职责**: 处理用户交互（工具栏、悬浮提示）
 
 **文件**:
+
 - `WaveformToolbar.vue` - 工具栏组件 (174 行)
   - 交互模式切换（缩放、选择、标注等）
   - 编辑/删除按钮
@@ -148,6 +157,7 @@ export { default as WaveformTrack } from './WaveformTrack.vue'
   - 多系列数据展示
 
 **导出**: `interaction/index.ts`
+
 ```typescript
 export { default as WaveformToolbar } from './WaveformToolbar.vue'
 export { default as WaveformTooltip } from './WaveformTooltip.vue'
@@ -162,6 +172,7 @@ export { default as WaveformTooltip } from './WaveformTooltip.vue'
 **职责**: 管理标注和图形（创建、编辑、删除、渲染）
 
 **文件**:
+
 - `WaveformAnnotationLayer.vue` - 标注渲染层 (281 行)
   - 渲染标注（箭头、文本框）
   - 渲染图形（垂直线、时间区间）
@@ -184,6 +195,7 @@ export { default as WaveformTooltip } from './WaveformTooltip.vue'
   - `WaveformAnnotation`, `WaveformShape` 等
 
 **导出**: `annotation/index.ts`
+
 ```typescript
 export { default as WaveformAnnotationLayer } from './WaveformAnnotationLayer.vue'
 export { default as WaveformEditor } from './WaveformEditor.vue'
@@ -198,6 +210,7 @@ export * from './types'
 ### WaveformChart.vue 导入变化
 
 **重构前**:
+
 ```typescript
 import WaveformToolbar from './WaveformToolbar.vue'
 import WaveformEditor from './WaveformEditor.vue'
@@ -213,6 +226,7 @@ const minimumHeight = 180
 ```
 
 **重构后**:
+
 ```typescript
 // 从各系统导入
 import { WaveformToolbar, WaveformTooltip } from './interaction'
@@ -236,6 +250,7 @@ const minimumHeight = chartMinimumHeight
 为了确保不破坏现有代码，保留了原有的导入路径：
 
 **1. `waveform.ts` - 向后兼容文件**
+
 ```typescript
 // 重新导出所有类型和函数
 export type { ... } from '../types'
@@ -243,6 +258,7 @@ export { normalizeWaveformData, normalizeWaveformSeries } from '../core'
 ```
 
 **2. `waveform-markup.ts` - 向后兼容文件**
+
 ```typescript
 // 重新导出标注相关的所有内容
 export * from './annotation/markup'
@@ -250,6 +266,7 @@ export type * from './annotation/types'
 ```
 
 **3. `index.ts` - 更新公共导出**
+
 ```typescript
 export { default as WaveformChart } from './WaveformChart.vue'
 
@@ -265,6 +282,7 @@ export { WaveformTrack } from './rendering'
 ### 使用示例
 
 **外部使用者（完全兼容）**:
+
 ```typescript
 // 旧的导入方式仍然有效
 import { WaveformChart, type WaveformData } from '@/components'
@@ -285,11 +303,13 @@ import { WaveformAnnotationLayer } from '@/components/annotation'
 ### 1. 可维护性 ⭐⭐⭐⭐⭐
 
 **按系统定位代码**:
+
 - 需要修改工具栏？→ 直接到 `interaction/` 目录
 - 需要修改标注渲染？→ 直接到 `annotation/` 目录
 - 需要修改轨道渲染？→ 直接到 `rendering/` 目录
 
 **职责清晰**:
+
 - 每个系统有独立的目录和明确的职责
 - 减少了跨系统的耦合
 - 降低了修改的影响范围
@@ -297,6 +317,7 @@ import { WaveformAnnotationLayer } from '@/components/annotation'
 ### 2. 可理解性 ⭐⭐⭐⭐⭐
 
 **目录即文档**:
+
 ```
 interaction/     → 我是交互系统，负责用户交互
 annotation/      → 我是标注系统，负责标注管理
@@ -306,6 +327,7 @@ data/            → 我是数据系统，处理数据
 ```
 
 **新人友好**:
+
 - 从目录结构就能快速理解系统架构
 - 相关代码放在一起，容易理解上下文
 - 不需要在一个大文件中上下滚动
@@ -313,21 +335,25 @@ data/            → 我是数据系统，处理数据
 ### 3. 可扩展性 ⭐⭐⭐⭐⭐
 
 **添加新功能**:
+
 - 添加新的交互模式？→ 在 `interaction/` 下添加
 - 添加新的标注类型？→ 在 `annotation/` 下添加
 - 添加新的渲染效果？→ 在 `rendering/` 下添加
 
 **替换实现**:
+
 - 可以替换整个系统而不影响其他部分
 - 例如：用 Canvas 替换 SVG 渲染，只需修改 `rendering/` 目录
 
 **插件化潜力**:
+
 - 各系统可以作为独立插件使用
 - 方便构建自定义版本（例如：只要渲染，不要标注）
 
 ### 4. 可测试性 ⭐⭐⭐⭐⭐
 
 **独立测试**:
+
 ```typescript
 // 可以单独测试各系统的组件
 describe('WaveformToolbar', () => { ... })
@@ -336,6 +362,7 @@ describe('WaveformTrack', () => { ... })
 ```
 
 **未来可以添加**:
+
 - `interaction/useInteraction.test.ts` - 测试交互逻辑
 - `annotation/useAnnotation.test.ts` - 测试标注管理
 - `rendering/WaveformTrack.test.ts` - 测试轨道渲染
@@ -344,16 +371,16 @@ describe('WaveformTrack', () => { ... })
 
 ## 📈 代码统计
 
-| 指标 | 数值 |
-|------|------|
-| **系统数量** | 5 个 |
-| **Core System** | 3 个文件 |
-| **Data System** | 2 个文件 |
-| **Rendering System** | 2 个文件 (1 组件) |
-| **Interaction System** | 3 个文件 (2 组件) |
-| **Annotation System** | 5 个文件 (2 组件) |
-| **向后兼容文件** | 2 个 (waveform.ts, waveform-markup.ts) |
-| **总文件数** | 17 个 |
+| 指标                   | 数值                                   |
+| ---------------------- | -------------------------------------- |
+| **系统数量**           | 5 个                                   |
+| **Core System**        | 3 个文件                               |
+| **Data System**        | 2 个文件                               |
+| **Rendering System**   | 2 个文件 (1 组件)                      |
+| **Interaction System** | 3 个文件 (2 组件)                      |
+| **Annotation System**  | 5 个文件 (2 组件)                      |
+| **向后兼容文件**       | 2 个 (waveform.ts, waveform-markup.ts) |
+| **总文件数**           | 17 个                                  |
 
 ---
 
@@ -413,6 +440,7 @@ export function useAnnotation(options: AnnotationOptions) {
 ```
 
 然后在主组件中使用：
+
 ```typescript
 // WaveformChart.vue
 const { sharedTransform, independentTransforms, ... } = useZoom(...)
@@ -421,6 +449,7 @@ const { selection, editingDraft, ... } = useAnnotation(...)
 ```
 
 **收益**:
+
 - 逻辑更清晰，职责更单一
 - 易于测试（不需要挂载组件）
 - 可复用在其他组件中
@@ -462,6 +491,7 @@ annotation/
 ### 4. 进一步拆分大组件 ⭐⭐⭐
 
 **WaveformTrack.vue** (317 行) 可以拆分为：
+
 ```
 rendering/
 ├── WaveformTrack.vue       # 轨道容器
@@ -472,6 +502,7 @@ rendering/
 ```
 
 **WaveformAnnotationLayer.vue** (281 行) 可以拆分为：
+
 ```
 annotation/
 ├── WaveformAnnotationLayer.vue    # 标注层容器
@@ -485,6 +516,7 @@ annotation/
 ## 🎯 重构对比
 
 ### 重构前
+
 ```
 components/
 ├── [7 个组件文件平铺]
@@ -497,6 +529,7 @@ components/
 ```
 
 ### 重构后
+
 ```
 components/
 ├── core/          # 核心系统
@@ -565,13 +598,13 @@ import { channelColors } from './core/constants'
 
 ### 核心价值
 
-| 维度 | 改善 |
-|------|------|
+| 维度     | 改善                          |
+| -------- | ----------------------------- |
 | 可维护性 | ✅ 按系统组织，易于定位和修改 |
-| 可理解性 | ✅ 目录即文档，架构清晰 |
-| 可扩展性 | ✅ 易于添加新功能和替换实现 |
-| 可测试性 | ✅ 系统独立，支持单独测试 |
-| 向后兼容 | ✅ 完全兼容现有代码 |
+| 可理解性 | ✅ 目录即文档，架构清晰       |
+| 可扩展性 | ✅ 易于添加新功能和替换实现   |
+| 可测试性 | ✅ 系统独立，支持单独测试     |
+| 向后兼容 | ✅ 完全兼容现有代码           |
 
 ### 项目里程碑
 
