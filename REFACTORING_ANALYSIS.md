@@ -5,6 +5,7 @@
 ### 📊 现状分析
 
 **当前实现**（单体架构）:
+
 ```
 src/
 ├── components/
@@ -17,6 +18,7 @@ src/
 ```
 
 **规划架构**（模块化架构）:
+
 ```
 src/
 ├── components/              # Vue 组件层
@@ -56,12 +58,14 @@ src/
 **现象**: `WaveformChart.vue` 1975 行，包含所有逻辑
 
 **问题**:
+
 - ❌ 难以维护：任何改动都要在这个文件里找
 - ❌ 难以测试：无法独立测试渲染、缩放、标注等模块
 - ❌ 代码耦合：Vue 组件逻辑与 D3 渲染逻辑混在一起
 - ❌ 复用困难：无法在其他框架（React/Svelte）中复用核心逻辑
 
 **代码示例** (当前混在一起):
+
 ```typescript
 // WaveformChart.vue 内部同时包含:
 // 1. Vue 响应式逻辑
@@ -85,6 +89,7 @@ function formatTime(value) { ... }
 **现象**: 数据层、渲染层、交互层混杂
 
 **影响**:
+
 - 无法单独优化某一层
 - 无法单独测试某一层
 - 修改数据格式可能影响渲染逻辑
@@ -94,6 +99,7 @@ function formatTime(value) { ... }
 **现象**: 所有逻辑都在组件内部
 
 **问题**:
+
 - 无法在其他组件中复用缩放、悬浮等逻辑
 - 无法为不同场景定制组件
 
@@ -103,13 +109,13 @@ function formatTime(value) { ... }
 
 ### 判断标准
 
-| 指标 | 当前状态 | 建议阈值 | 是否需要重构 |
-|------|---------|---------|-------------|
-| 单文件行数 | 1975 | < 500 | ✅ **需要** |
-| 模块解耦度 | 低（单体） | 高（分层） | ✅ **需要** |
-| 可测试性 | 中等 | 高 | ⚠️ **建议** |
-| 跨框架复用 | 不支持 | 支持 | ⚠️ **建议** |
-| 团队协作 | 冲突风险高 | 低耦合 | ✅ **需要** |
+| 指标       | 当前状态   | 建议阈值   | 是否需要重构 |
+| ---------- | ---------- | ---------- | ------------ |
+| 单文件行数 | 1975       | < 500      | ✅ **需要**  |
+| 模块解耦度 | 低（单体） | 高（分层） | ✅ **需要**  |
+| 可测试性   | 中等       | 高         | ⚠️ **建议**  |
+| 跨框架复用 | 不支持     | 支持       | ⚠️ **建议**  |
+| 团队协作   | 冲突风险高 | 低耦合     | ✅ **需要**  |
 
 ### 结论
 
@@ -146,11 +152,13 @@ src/utils/
 ```
 
 **收益**:
+
 - ✅ 主组件减少 ~200 行
 - ✅ 工具函数可单独测试
 - ✅ 可在其他组件复用
 
 **示例**:
+
 ```typescript
 // src/utils/formatters.ts
 export function formatTime(value: number, unit: 'ms' | 's'): number {
@@ -185,17 +193,19 @@ src/core/
 ```
 
 **收益**:
+
 - ✅ 主组件减少 ~400 行
 - ✅ 核心逻辑可跨框架复用
 - ✅ 可独立测试渲染逻辑
 
 **示例**:
+
 ```typescript
 // src/core/scales.ts
 export function createXScale(
   domain: [number, number],
   range: [number, number],
-  transform?: ZoomTransform
+  transform?: ZoomTransform,
 ): ScaleLinear<number, number> {
   const base = scaleLinear(domain, range)
   return transform ? transform.rescaleX(base) : base
@@ -206,7 +216,7 @@ export function renderXAxis(
   selection: Selection<SVGGElement>,
   scale: ScaleLinear<number, number>,
   tickValues: number[],
-  formatter: (value: number) => string
+  formatter: (value: number) => string,
 ): void {
   selection.call(
     axisBottom(scale)
@@ -214,7 +224,7 @@ export function renderXAxis(
       .tickFormat(formatter)
       .tickSize(-4)
       .tickPadding(7)
-      .tickSizeOuter(0)
+      .tickSizeOuter(0),
   )
 }
 
@@ -243,11 +253,13 @@ src/hooks/
 ```
 
 **收益**:
+
 - ✅ 主组件减少 ~500 行
 - ✅ 交互逻辑可在其他组件复用
 - ✅ 单独测试交互逻辑
 
 **示例**:
+
 ```typescript
 // src/hooks/useZoom.ts
 export function useZoom(options: {
@@ -299,11 +311,13 @@ src/components/
 ```
 
 **收益**:
+
 - ✅ 主组件缩减到 ~400 行
 - ✅ 组件职责清晰
 - ✅ 更好的代码组织
 
 **示例**:
+
 ```vue
 <!-- WaveformChart.vue (简化后) -->
 <script setup lang="ts">
@@ -318,16 +332,8 @@ const { annotations, addAnnotation } = useAnnotations(...)
 
 <template>
   <svg ref="svgElement">
-    <WaveformTrack
-      v-for="track in trackLayouts"
-      :key="track.index"
-      :track="track"
-    />
-    <WaveformAnnotation
-      v-for="ann in annotations"
-      :key="ann.id"
-      :annotation="ann"
-    />
+    <WaveformTrack v-for="track in trackLayouts" :key="track.index" :track="track" />
+    <WaveformAnnotation v-for="ann in annotations" :key="ann.id" :annotation="ann" />
     <WaveformTooltip v-if="hoveredPoint" :point="hoveredPoint" />
   </svg>
 </template>
@@ -337,7 +343,8 @@ const { annotations, addAnnotation } = useAnnotations(...)
 
 ### 方案 B: 一次性重构（不推荐）
 
-**风险**: 
+**风险**:
+
 - 开发周期长（2-3 周）
 - 容易引入新 bug
 - 影响现有功能
@@ -387,6 +394,7 @@ src/
 ```
 
 **代码行数对比**:
+
 - 重构前: `WaveformChart.vue` (1975 行)
 - 重构后: 分散到 15+ 个模块，单文件平均 ~120 行
 
@@ -396,21 +404,21 @@ src/
 
 ### 代码质量
 
-| 指标 | 重构前 | 重构后 | 提升 |
-|------|--------|--------|------|
-| 单文件平均行数 | 1975 | ~120 | ✅ 94% ↓ |
-| 模块耦合度 | 高 | 低 | ✅ 显著改善 |
-| 可测试性 | 中 | 高 | ✅ 提升 40% |
-| 代码复用性 | 低 | 高 | ✅ 核心逻辑可跨框架 |
+| 指标           | 重构前 | 重构后 | 提升                |
+| -------------- | ------ | ------ | ------------------- |
+| 单文件平均行数 | 1975   | ~120   | ✅ 94% ↓            |
+| 模块耦合度     | 高     | 低     | ✅ 显著改善         |
+| 可测试性       | 中     | 高     | ✅ 提升 40%         |
+| 代码复用性     | 低     | 高     | ✅ 核心逻辑可跨框架 |
 
 ### 开发效率
 
-| 场景 | 重构前 | 重构后 | 提升 |
-|------|--------|--------|------|
-| 定位 bug | 需要搜索 1975 行 | 直接找到模块 | ✅ 快 3-5 倍 |
-| 添加新功能 | 风险高，易引入回归 | 独立模块，风险低 | ✅ 安全性提升 |
-| 多人协作 | 频繁冲突 | 独立模块开发 | ✅ 冲突减少 70% |
-| 代码审查 | 难以审查巨型文件 | 小模块易审查 | ✅ 审查效率提升 |
+| 场景       | 重构前             | 重构后           | 提升            |
+| ---------- | ------------------ | ---------------- | --------------- |
+| 定位 bug   | 需要搜索 1975 行   | 直接找到模块     | ✅ 快 3-5 倍    |
+| 添加新功能 | 风险高，易引入回归 | 独立模块，风险低 | ✅ 安全性提升   |
+| 多人协作   | 频繁冲突           | 独立模块开发     | ✅ 冲突减少 70% |
+| 代码审查   | 难以审查巨型文件   | 小模块易审查     | ✅ 审查效率提升 |
 
 ### 维护成本
 
@@ -457,6 +465,7 @@ src/
 ### 结论：**强烈建议进行渐进式重构** ⭐⭐⭐⭐⭐
 
 **理由**:
+
 1. ✅ 单文件 1975 行已严重超标（建议 < 500 行）
 2. ✅ 当前架构难以支撑后续功能扩展
 3. ✅ 渐进式重构风险可控，不影响现有功能
@@ -468,6 +477,7 @@ src/
 ### 下一步行动
 
 **本周内完成**:
+
 ```bash
 # 1. 创建目录结构
 mkdir -p src/utils src/core src/hooks
@@ -485,6 +495,7 @@ mkdir -p src/utils src/core src/hooks
 ```
 
 **预期结果**:
+
 - ✅ 主组件减少 ~200 行
 - ✅ 新增 3 个工具模块，每个 < 150 行
 - ✅ 单元测试覆盖率保持 > 80%

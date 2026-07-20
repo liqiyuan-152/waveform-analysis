@@ -96,6 +96,161 @@ describe('WaveformChart', () => {
     })),
   })
 
+  it('binds overlaid series to at most four value axes in multi-axis mode', async () => {
+    const data: WaveformData = {
+      kind: 'series',
+      series: Array.from({ length: 5 }, (_, index) => ({
+        id: `overlaid-${index}`,
+        trackId: 'shared-frame',
+        name: `叠加通道 ${index + 1}`,
+        data: {
+          kind: 'points',
+          points: [
+            { x: 0, y: index * 100 },
+            { x: 1, y: index * 100 + 10 },
+          ],
+        },
+      })),
+    }
+    const wrapper = await mountSizedChart(data, { overlayMode: 'multi-axis' })
+
+    expect(wrapper.attributes('data-overlay-mode')).toBe('multi-axis')
+    expect(
+      wrapper
+        .findAll('.waveform-chart__axis--y')
+        .map((axis) => axis.attributes('data-y-axis-side')),
+    ).toEqual(['left', 'left', 'right', 'right'])
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-y-axis-index')),
+    ).toEqual(['0', '1', '2', '3', '3'])
+    expect(wrapper.findAll('.waveform-track__multi-axis-title')).toHaveLength(4)
+
+    wrapper.unmount()
+  })
+
+  it('does not render empty multi-axis title backgrounds', async () => {
+    const data: WaveformData = {
+      kind: 'series',
+      series: [
+        {
+          id: 'empty-title-a',
+          trackId: 'shared-frame',
+          name: '',
+          data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        },
+        {
+          id: 'empty-title-b',
+          trackId: 'shared-frame',
+          name: '   ',
+          data: { kind: 'samples', values: [10, 20], sampleRate: 1 },
+        },
+      ],
+    }
+    const wrapper = await mountSizedChart(data, { overlayMode: 'multi-axis', yLabel: '' })
+
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-track__multi-axis-title')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__y-axis-label-bg')).toHaveLength(0)
+
+    wrapper.unmount()
+  })
+
+  it('resolves a separate scientific multiplier for every Y axis', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            trackId: 'shared-frame',
+            name: '普通量程',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 1, y: 1 },
+              ],
+            },
+          },
+          {
+            trackId: 'shared-frame',
+            name: '大量程',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 1, y: 254 },
+              ],
+            },
+          },
+          {
+            trackId: 'shared-frame',
+            name: '小量程',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 1, y: 0.0002 },
+              ],
+            },
+          },
+        ],
+      },
+      { overlayMode: 'multi-axis' },
+    )
+
+    expect(
+      wrapper
+        .findAll('.waveform-chart__axis-exponent--y')
+        .map((label) => [label.attributes('data-y-axis-index'), label.text()]),
+    ).toEqual([
+      ['1', 'E+02'],
+      ['2', 'E-04'],
+    ])
+  })
+
+  it('reprojects annotations with the Y axis assigned to their series', async () => {
+    const data: WaveformData = {
+      kind: 'series',
+      series: [
+        {
+          id: 'low',
+          trackId: 'shared-frame',
+          name: '低量程',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 0 },
+              { x: 1, y: 10 },
+            ],
+          },
+        },
+        {
+          id: 'high',
+          trackId: 'shared-frame',
+          name: '高量程',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 1000 },
+              { x: 1, y: 2000 },
+            ],
+          },
+        },
+      ],
+    }
+    const wrapper = await mountSizedChart(data, {
+      annotations: [{ id: 'high-note', seriesId: 'high', x: 0.5, y: 1500, text: '高值' }],
+    })
+    const singleAxisY = wrapper.get('.waveform-annotation__arrow').attributes('y2')
+
+    await wrapper.setProps({ overlayMode: 'multi-axis' })
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-annotation__arrow').attributes('y2')).not.toBe(singleAxisY)
+
+    wrapper.unmount()
+  })
+
   it('paginates channels into a row-major two by one grid', async () => {
     const wrapper = await mountSizedChart(gridSeries(5), {
       grid: { rowCount: 2, columnCount: 1 },
@@ -401,10 +556,10 @@ describe('WaveformChart', () => {
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
 
-    expect(labelX).toBe(-95)
+    expect(labelX).toBe(-99)
     expect(labelBackgroundX).toBe(labelX - 12)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(111)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(111)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(115)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(115)
   })
 
   it('keeps a tick-only gutter when channel labels are empty', async () => {
@@ -430,8 +585,8 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(81)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(81)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(85)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(85)
   })
 
   it('keeps the Y-axis label gutter stable while paging between value ranges', async () => {
@@ -797,26 +952,28 @@ describe('WaveformChart', () => {
   it.each([45, 90, -90, 180])(
     'scales a complete long title into the rotated title area at %s degrees',
     async (rotation) => {
-    const wrapper = await mountSizedChart(
-      { kind: 'samples', values: [0, 1], sampleRate: 1 },
-      {
-        title: {
-          text: '这是一个用于验证旋转缩放行为的完整波形分析标题',
-          textStyle: { rotation },
+      const wrapper = await mountSizedChart(
+        { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        {
+          title: {
+            text: '这是一个用于验证旋转缩放行为的完整波形分析标题',
+            textStyle: { rotation },
+          },
         },
-      },
-    )
-    const titleHeight = Number(wrapper.attributes('data-title-area-height'))
-    const title = wrapper.get('.waveform-chart__title-text')
+      )
+      const titleHeight = Number(wrapper.attributes('data-title-area-height'))
+      const title = wrapper.get('.waveform-chart__title-text')
 
-    expect(titleHeight).toBeGreaterThanOrEqual(44)
-    expect(titleHeight).toBeLessThanOrEqual(160)
-    expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(360 - titleHeight)
-    expect(title.text()).toBe('这是一个用于验证旋转缩放行为的完整波形分析标题')
-    expect(title.attributes('style')).toContain(`rotate(${rotation}deg)`)
-    expect(title.attributes('style')).toContain('white-space: nowrap')
-    expect(Number(title.attributes('data-title-scale'))).toBeLessThanOrEqual(1)
-    expect(title.attributes('data-title-wrapped')).toBeUndefined()
+      expect(titleHeight).toBeGreaterThanOrEqual(44)
+      expect(titleHeight).toBeLessThanOrEqual(160)
+      expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(
+        360 - titleHeight,
+      )
+      expect(title.text()).toBe('这是一个用于验证旋转缩放行为的完整波形分析标题')
+      expect(title.attributes('style')).toContain(`rotate(${rotation}deg)`)
+      expect(title.attributes('style')).toContain('white-space: nowrap')
+      expect(Number(title.attributes('data-title-scale'))).toBeLessThanOrEqual(1)
+      expect(title.attributes('data-title-wrapped')).toBeUndefined()
     },
   )
 
@@ -906,16 +1063,20 @@ describe('WaveformChart', () => {
     expect(component.annotationInteraction.editorDraft.value?.anchor.y).toBe(162)
   })
 
-  it('captures and suppresses descendant context menus across the waveform svg', async () => {
-    const wrapper = await mountSizedChart({
-      kind: 'points',
-      points: [
-        { x: 0, y: 0 },
-        { x: 1, y: 1 },
-      ],
+  it('suppresses native context menus across the waveform component', async () => {
+    const wrapper = await mountSizedChart(gridSeries(2), {
+      title: { text: '波形标题' },
+      grid: { rowCount: 1, columnCount: 1, showPagination: true },
+      showAnnotationToolbar: true,
     })
 
-    for (const selector of ['.waveform-chart__grid', '.waveform-chart__overlay']) {
+    for (const selector of [
+      '.waveform-chart__title-area',
+      '.waveform-chart__grid',
+      '.waveform-chart__overlay',
+      '.waveform-chart__pagination',
+      '.waveform-annotation-toolbar',
+    ]) {
       const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
       const dispatched = wrapper.get(selector).element.dispatchEvent(event)
 
@@ -940,6 +1101,25 @@ describe('WaveformChart', () => {
 
     expect(sharedDispatched).toBe(false)
     expect(sharedEvent.defaultPrevented).toBe(true)
+  })
+
+  it('preserves native context menus for editable controls', async () => {
+    const wrapper = await mountSizedChart({ kind: 'samples', values: [0, 1], sampleRate: 1 })
+    const editableElements = [
+      document.createElement('input'),
+      document.createElement('textarea'),
+      document.createElement('div'),
+    ]
+    editableElements[2]?.setAttribute('contenteditable', 'true')
+
+    for (const element of editableElements) {
+      wrapper.element.appendChild(element)
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
+      const dispatched = element.dispatchEvent(event)
+
+      expect(dispatched).toBe(true)
+      expect(event.defaultPrevented).toBe(false)
+    }
   })
 
   it('applies size fallbacks for minimum, negative, and non-finite values', async () => {
@@ -1126,7 +1306,8 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').attributes('x')).toBe(
       String(trackWidth),
     )
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4,990')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4.99')
+    expect(wrapper.get('.waveform-chart__axis-exponent--x').text()).toBe('E+03')
   })
 
   it('uses one shared scientific exponent only for large and tiny Y-axis domains', async () => {
@@ -1145,14 +1326,14 @@ describe('WaveformChart', () => {
         .get('.waveform-chart__axis--y')
         .findAll('.tick text')
         .map((tick) => tick.text())
-      const exponentLabels = labels.filter((label) => label.startsWith('E'))
+      const exponentLabel = wrapper.find('.waveform-chart__axis-exponent--y')
 
       if (exponent === null) {
-        expect(exponentLabels).toEqual([])
+        expect(exponentLabel.exists()).toBe(false)
       } else {
-        expect(exponentLabels).toHaveLength(1)
-        expect(exponentLabels[0]).toMatch(new RegExp(`^${exponent.replace('+', '\\+')} `))
-        expect(labels.at(-1)).toBe(exponentLabels[0])
+        expect(exponentLabel.text()).toBe(exponent)
+        expect(labels.every((label) => !label.startsWith('E'))).toBe(true)
+        expect(labels.every((label) => /^-?\d+\.\d{2}$/.test(label))).toBe(true)
       }
 
       wrapper.unmount()
@@ -1175,12 +1356,14 @@ describe('WaveformChart', () => {
 
     expect(millisecondsChart.text()).toContain('时间（ms）')
     expect(millisecondTicks.length).toBeGreaterThan(0)
-    expect(millisecondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1,000')
+    expect(millisecondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+    expect(millisecondsChart.get('.waveform-chart__axis-exponent--x').text()).toBe('E+03')
     expect(millisecondsChart.find('.waveform-chart__watermark').exists()).toBe(false)
 
     const secondsChart = await mountSizedChart(data, { timeUnit: 's', xLabel: 'Elapsed time' })
     expect(secondsChart.text()).toContain('Elapsed time')
-    expect(secondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1')
+    expect(secondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+    expect(secondsChart.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
   })
 
   it('pins the exact visible range values to both x-axis endpoints', async () => {
@@ -1198,14 +1381,15 @@ describe('WaveformChart', () => {
 
     expect(start.attributes('x')).toBe('0')
     expect(start.attributes('text-anchor')).toBe('start')
-    expect(start.text()).toBe('0')
+    expect(start.text()).toBe('0.00')
     expect(end.attributes('x')).toBe(
       wrapper.get('.waveform-chart__track').attributes('data-track-width'),
     )
     expect(end.attributes('text-anchor')).toBe('end')
-    expect(end.text()).toBe('1,999')
+    expect(end.text()).toBe('2.00')
     expect(middleTickLabels.length).toBeGreaterThan(0)
-    expect(middleTickLabels).not.toContain('0')
+    expect(middleTickLabels).not.toContain('0.00')
+    expect(wrapper.get('.waveform-chart__axis-exponent--x').text()).toBe('E+03')
     expect(wrapper.findAll('.waveform-chart__grid--major line').length).toBeGreaterThan(
       middleTickLabels.length,
     )
@@ -1303,15 +1487,15 @@ describe('WaveformChart', () => {
       ],
     }
     const wrapper = await mountSizedChart(firstData)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1,000')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
 
     firstData.points.push({ x: 2, y: 2 })
     await flushPromises()
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1,000')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
 
     await wrapper.setProps({ data: { ...firstData, points: [...firstData.points] } })
     await flushPromises()
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2,000')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
   })
 
   it('renders named multi-channel paths as independent tracks by default', async () => {
@@ -1366,7 +1550,7 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__track-label')).toHaveLength(0)
     expect(
       wrapper.findAll('.waveform-chart__axis-endpoint--end').map((item) => item.text()),
-    ).toEqual(['1,000', '2,000'])
+    ).toEqual(['1.00', '2.00'])
   })
 
   it('keeps the zero Y-axis label on upper compact tracks', async () => {
@@ -1566,7 +1750,7 @@ describe('WaveformChart', () => {
     expect(endTicks[3]).toHaveLength(0)
   })
 
-  it('keeps the shared exponent on the top visible tick in compact mode', async () => {
+  it('keeps one separate shared exponent for every compact Y axis', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -1597,11 +1781,13 @@ describe('WaveformChart', () => {
     )
 
     const axes = wrapper.findAll('.waveform-chart__axis--y')
+    const exponents = wrapper.findAll('.waveform-chart__axis-exponent--y')
     expect(axes).toHaveLength(2)
+    expect(exponents.map((label) => label.text())).toEqual(['E+02', 'E-04'])
     axes.forEach((axis) => {
       const labels = axis.findAll('.tick text').map((tick) => tick.text())
-      expect(labels.filter((label) => label.startsWith('E'))).toHaveLength(1)
-      expect(labels.at(-1)).toMatch(/^E[+-]\d{2} /)
+      expect(labels.every((label) => !label.startsWith('E'))).toBe(true)
+      expect(labels.every((label) => /^-?\d+\.\d{2}$/.test(label))).toBe(true)
     })
   })
 
@@ -1821,7 +2007,7 @@ describe('WaveformChart', () => {
     await flushPromises()
 
     expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2,000')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
   })
 
   it('updates rendering props and disables zoom interaction', async () => {

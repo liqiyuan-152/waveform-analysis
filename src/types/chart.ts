@@ -14,6 +14,9 @@ export interface WaveformPoint {
  */
 export type WaveformDisplayMode = 'independent' | 'separated' | 'compact'
 
+/** Controls whether overlaid series share one Y axis or use up to four value axes. */
+export type WaveformOverlayMode = 'single-axis' | 'multi-axis'
+
 /** 标注工具模式 */
 export type WaveformInteractionMode = 'zoom' | 'annotation'
 
@@ -67,14 +70,7 @@ export interface WaveformTitleOptions {
 
 /** Preset positions for legends rendered inside multi-series tracks. */
 export type WaveformLegendPosition =
-  | 'top-left'
-  | 'top'
-  | 'top-right'
-  | 'right'
-  | 'bottom-right'
-  | 'bottom'
-  | 'bottom-left'
-  | 'left'
+  'top-left' | 'top' | 'top-right' | 'right' | 'bottom-right' | 'bottom' | 'bottom-left' | 'left'
 
 /** Controls whether legend items follow the position default or a fixed direction. */
 export type WaveformLegendOrientation = 'auto' | 'horizontal' | 'vertical'

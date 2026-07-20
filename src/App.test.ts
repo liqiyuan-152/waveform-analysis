@@ -14,6 +14,7 @@ describe('App workspace layout', () => {
     const frameControls = panel.get('.frame-style-controls')
     expect(panel.find('h1').exists()).toBe(false)
     expect(panel.find('[aria-label="波形展示方式"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="波形叠加方式"]').exists()).toBe(true)
     expect(panel.find('[aria-label="波形网格尺寸"]').exists()).toBe(true)
     expect(frameControls.findAllComponents(ColorPicker)).toHaveLength(2)
     expect(frameControls.text()).toContain('边框颜色')
@@ -41,6 +42,43 @@ describe('App workspace layout', () => {
     expect(legendColorPicker.props('disableAlpha')).toBe(false)
     expect(panel.text()).not.toContain('数据摘要')
     expect(wrapper.get('.chart-panel').find('.waveform-chart').exists()).toBe(true)
+
+    wrapper.unmount()
+  })
+
+  it('switches overlaid tracks between single-axis and multi-axis rendering', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+
+    const overlayControl = wrapper.get('[aria-label="波形叠加方式"]')
+    expect(wrapper.get('.waveform-chart').attributes('data-overlay-mode')).toBe('single-axis')
+    expect(overlayControl.text()).toContain('单值轴')
+    expect(overlayControl.text()).toContain('多值轴')
+
+    await overlayControl.findAll('input[type="radio"]')[1]?.setValue(true)
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-chart').attributes('data-overlay-mode')).toBe('multi-axis')
+    expect(wrapper.findAll('.waveform-chart__axis--y').length).toBeGreaterThan(1)
+
+    wrapper.unmount()
+  })
+
+  it('renders three additional sample series in the first frame', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+
+    const firstFrameLines = wrapper
+      .get('.waveform-chart__track[data-track-index="0"]')
+      .findAll('.waveform-chart__line')
+
+    expect(firstFrameLines.map((line) => line.attributes('data-series-name'))).toEqual([
+      'BT2_2M',
+      'TEST_CH_1',
+      'TEST_CH_3',
+      'TEST_CH_4',
+      'TEST_CH_5',
+    ])
 
     wrapper.unmount()
   })

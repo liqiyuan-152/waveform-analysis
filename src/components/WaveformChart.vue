@@ -12,7 +12,7 @@ import {
   type ZoomTransform,
 } from 'd3'
 import { resolveWaveformRenderingOptions } from '../core'
-import { formatScientificYAxisLabel, paddedDomain } from '../utils'
+import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../utils'
 import {
   computed,
   nextTick,
@@ -31,6 +31,7 @@ import {
   type WaveformDisplayMode,
   type WaveformFrameStyle,
   type WaveformInteractionMode,
+  type WaveformOverlayMode,
   type WaveformLegendOptions,
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
@@ -72,7 +73,7 @@ import {
   type WaveformGridOptions,
 } from './core/grid'
 import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
-import { buildTrackLayouts } from './core/layout'
+import { buildTrackLayouts, measureTrackYAxisClearance } from './core/layout'
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
@@ -81,6 +82,7 @@ const props = withDefaults(
   defineProps<{
     data: WaveformData
     displayMode?: WaveformDisplayMode
+    overlayMode?: WaveformOverlayMode
     width?: number
     height?: number
     xLabel?: string
@@ -102,6 +104,7 @@ const props = withDefaults(
   }>(),
   {
     displayMode: 'independent',
+    overlayMode: 'single-axis',
     yLabel: '幅值',
     lineColor: '#0960bd',
     showTooltip: true,
@@ -304,29 +307,42 @@ const yAxisTickPadding = 7
 const yAxisOuterPadding = 4
 const yAxisLabelGap = 6
 const yAxisLabelBandWidth = 24
+const yAxisExponentGap = 4
 const minimumPlotWidth = 120
 
 const yAxisMetrics = computed(() => {
-  const formattedTickLabels = chartTracks.value.flatMap((track) => {
+  const axisText = chartTracks.value.map((track) => {
     const scale = scaleLinear(track.yDomain, [1, 0]).nice()
     const [axisMin, axisMax] = scale.domain()
     const values = scale.ticks(10)
-    const topTickValue = values.reduce<number | undefined>((closestTick, tickValue) => {
-      if (closestTick === undefined) return tickValue
-      return Math.abs(tickValue - axisMax) < Math.abs(closestTick - axisMax)
-        ? tickValue
-        : closestTick
-    }, undefined)
-    return values.map((value) =>
-      formatScientificYAxisLabel(value, { axisMin, axisMax, topTickValue }),
-    )
+    return {
+      exponentLabel: formatScientificAxisExponent(axisMin, axisMax),
+      tickLabels: values.map((value) => formatScientificAxisLabel(value, { axisMin, axisMax })),
+    }
   })
+  const formattedTickLabels = axisText.flatMap(({ tickLabels }) => tickLabels)
   const maximumCharacterCount = Math.max(1, ...formattedTickLabels.map((label) => label.length))
   const tickTextWidth = maximumCharacterCount * yAxisCharacterWidth
-  const tickClearance = tickTextWidth + yAxisTickPadding + yAxisOuterPadding
-  const labelCenterX = -(yAxisTickPadding + tickTextWidth + yAxisLabelGap + yAxisLabelBandWidth / 2)
+  const maximumExponentWidth = Math.max(
+    0,
+    ...axisText.map(({ exponentLabel }) => (exponentLabel?.length ?? 0) * yAxisCharacterWidth),
+  )
+  const exponentClearance = maximumExponentWidth ? maximumExponentWidth + yAxisExponentGap : 0
+  const tickClearance = tickTextWidth + yAxisTickPadding + exponentClearance + yAxisOuterPadding
+  const labelCenterX = -(
+    yAxisTickPadding +
+    tickTextWidth +
+    exponentClearance +
+    yAxisLabelGap +
+    yAxisLabelBandWidth / 2
+  )
   const fullClearance =
-    tickTextWidth + yAxisTickPadding + yAxisLabelGap + yAxisLabelBandWidth + yAxisOuterPadding
+    tickTextWidth +
+    yAxisTickPadding +
+    exponentClearance +
+    yAxisLabelGap +
+    yAxisLabelBandWidth +
+    yAxisOuterPadding
 
   return { tickClearance, fullClearance, labelCenterX }
 })
@@ -345,8 +361,30 @@ const chartLeftMargin = computed(() =>
         : 0,
   ),
 )
+const multiAxisClearance = computed(() =>
+  chartTracks.value.reduce(
+    (maximum, track) => {
+      const clearance = measureTrackYAxisClearance(track, props.overlayMode)
+      return {
+        left: Math.max(maximum.left, clearance.left),
+        right: Math.max(maximum.right, clearance.right),
+      }
+    },
+    { left: 0, right: 0 },
+  ),
+)
+const resolvedChartLeftMargin = computed(() =>
+  props.overlayMode === 'multi-axis'
+    ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
+    : chartLeftMargin.value,
+)
+const chartRightMargin = computed(() =>
+  props.overlayMode === 'multi-axis'
+    ? Math.max(margin.right, multiAxisClearance.value.right)
+    : margin.right,
+)
 const innerWidth = computed(() =>
-  Math.max(0, chartWidth.value - chartLeftMargin.value - margin.right),
+  Math.max(0, chartWidth.value - resolvedChartLeftMargin.value - chartRightMargin.value),
 )
 const yAxisLayout = computed(() => {
   const baseGap = getGridGap(props.displayMode)
@@ -359,12 +397,18 @@ const yAxisLayout = computed(() => {
 
   return {
     horizontalGap:
-      hasMultipleColumns && chartSeries.value.length
-        ? hasYAxisLabels.value && canReserveLabelClearance
-          ? fullGap
-          : tickGap
-        : baseGap,
-    hideSecondaryLabels: hasMultipleColumns && hasYAxisLabels.value && !canReserveLabelClearance,
+      props.overlayMode === 'multi-axis' && hasMultipleColumns && chartSeries.value.length
+        ? Math.max(baseGap, multiAxisClearance.value.left + multiAxisClearance.value.right)
+        : hasMultipleColumns && chartSeries.value.length
+          ? hasYAxisLabels.value && canReserveLabelClearance
+            ? fullGap
+            : tickGap
+          : baseGap,
+    hideSecondaryLabels:
+      props.overlayMode !== 'multi-axis' &&
+      hasMultipleColumns &&
+      hasYAxisLabels.value &&
+      !canReserveLabelClearance,
   }
 })
 const hasWaveformData = computed(() => chartSeries.value.length > 0)
@@ -415,6 +459,7 @@ const trackLayouts = computed<TrackLayout[]>(() =>
     cells: gridCells.value,
     grid: gridOptions.value,
     displayMode: props.displayMode,
+    overlayMode: props.overlayMode,
     independentTransforms: independentTransforms.value,
     sharedZoomDomain: sharedZoomDomain.value,
     timeUnit: props.timeUnit,
@@ -426,7 +471,20 @@ const trackLayouts = computed<TrackLayout[]>(() =>
 )
 
 function annotationLayoutsForTrack(track: TrackLayout): AnnotationTrackLayout[] {
-  return track.seriesList.map((series) => ({ ...track, series }))
+  return track.seriesList.map((series) => ({
+    ...track,
+    series,
+    yScale:
+      track.seriesPaths.find((seriesPath) => seriesPath.series.id === series.id)?.yScale ??
+      track.yScale,
+  }))
+}
+
+function resolveSeriesYScale(track: TrackLayout, seriesId: string) {
+  return (
+    track.seriesPaths.find((seriesPath) => seriesPath.series.id === seriesId)?.yScale ??
+    track.yScale
+  )
 }
 
 const annotationTrackLayouts = computed<AnnotationTrackLayout[]>(() =>
@@ -602,7 +660,7 @@ function resolvePointerEditorAnchor(
   const [pointerX, pointerY] = pointer(event, overlay)
   const track = trackIndex === undefined ? undefined : trackLayouts.value[trackIndex]
   return {
-    x: chartLeftMargin.value + (track ? track.left + pointerX : pointerX),
+    x: resolvedChartLeftMargin.value + (track ? track.left + pointerX : pointerX),
     y: titleAreaHeight.value + margin.top + (track ? track.top + pointerY : pointerY),
   }
 }
@@ -613,10 +671,13 @@ function resolveAnnotationEditorAnchor(annotation: WaveformAnnotation): Annotati
   )
   return {
     x: track
-      ? chartLeftMargin.value + track.left + track.xScale(annotation.x)
+      ? resolvedChartLeftMargin.value + track.left + track.xScale(annotation.x)
       : chartWidth.value / 2,
     y: track
-      ? titleAreaHeight.value + margin.top + track.top + track.yScale(annotation.y)
+      ? titleAreaHeight.value +
+        margin.top +
+        track.top +
+        resolveSeriesYScale(track, annotation.seriesId)(annotation.y)
       : chartHeight.value / 2,
   }
 }
@@ -743,6 +804,17 @@ function handleAnnotationClick(event: MouseEvent, trackIndex?: number) {
   beginCreate(nearby[0], context.editorAnchor, context.candidates)
 }
 
+function handleNativeContextMenu(event: MouseEvent) {
+  const target = event.target
+  if (
+    target instanceof Element &&
+    target.closest('input, textarea, [contenteditable]:not([contenteditable="false"])')
+  ) {
+    return
+  }
+  event.preventDefault()
+}
+
 function handleAnnotationContextMenu(event: MouseEvent, trackIndex?: number) {
   if (!props.annotationsVisible) return
   event.preventDefault()
@@ -787,7 +859,7 @@ function editContextAnnotation() {
           annotationLayoutsForTrack(track),
           annotation.x,
           track.xScale(annotation.x),
-          track.top + track.yScale(annotation.y),
+          track.top + resolveSeriesYScale(track, annotation.seriesId)(annotation.y),
         )
       : []
     annotationInteraction.openEdit(
@@ -837,7 +909,7 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
   })
   hoveredTrackIndex.value = trackIndex
   hoverPosition.value = {
-    x: chartLeftMargin.value + track.left + pointerX,
+    x: resolvedChartLeftMargin.value + track.left + pointerX,
     y: titleAreaHeight.value + margin.top + track.top + pointerY,
   }
   emit('point-hover', hoveredSeriesPoints.value[0]?.point ?? null)
@@ -858,7 +930,7 @@ function handleSharedPointerMove(event: PointerEvent) {
   )
   hoveredTrackIndex.value = null
   hoverPosition.value = {
-    x: chartLeftMargin.value + pointerX,
+    x: resolvedChartLeftMargin.value + pointerX,
     y: titleAreaHeight.value + margin.top + pointerY,
   }
   emit('point-hover', hoveredPoint.value)
@@ -1015,8 +1087,10 @@ onBeforeUnmount(() => {
     :style="containerStyle"
     :data-display-mode="displayMode"
     :data-interaction-mode="activeInteractionMode"
-    :data-chart-left-margin="chartLeftMargin"
+    :data-overlay-mode="overlayMode"
+    :data-chart-left-margin="resolvedChartLeftMargin"
     :data-title-area-height="titleAreaHeight"
+    @contextmenu.capture="handleNativeContextMenu"
   >
     <div
       v-if="titleVisible"
@@ -1052,7 +1126,6 @@ onBeforeUnmount(() => {
       :height="drawingHeight"
       role="img"
       :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
-      @contextmenu.capture.prevent
     >
       <defs>
         <clipPath
@@ -1065,7 +1138,7 @@ onBeforeUnmount(() => {
         </clipPath>
       </defs>
 
-      <g :transform="`translate(${chartLeftMargin}, ${margin.top})`">
+      <g :transform="`translate(${resolvedChartLeftMargin}, ${margin.top})`">
         <g v-if="displayMode !== 'compact'" class="waveform-chart__grid-slots" aria-hidden="true">
           <g
             v-for="cell in gridCells"

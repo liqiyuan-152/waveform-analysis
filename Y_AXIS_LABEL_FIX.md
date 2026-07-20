@@ -5,9 +5,11 @@
 在"多道紧凑"（compact）模式下，当多个波形轨道叠加显示时，Y 轴标签会出现重叠现象，导致标签无法阅读。
 
 ### 问题截图位置
+
 - 红色标记处：Y 轴标签 "BT2_2M" 和 "BT1_2M" 重叠
 
 ### 根本原因
+
 1. 紧凑模式下，每个轨道的高度被压缩以容纳更多波形
 2. Y 轴标签是垂直旋转放置的，每个标签需要约 80px 的高度空间
 3. 当轨道高度 < 80px 时，相邻轨道的标签会发生重叠
@@ -47,12 +49,12 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 
 #### 显示规则
 
-| 轨道高度 | 显示策略 | 示例 |
-|----------|---------|------|
-| ≥ 80px | 显示所有标签 | 轨道 0, 1, 2, 3 都显示 |
-| 40-79px | 每隔 1 个显示 | 轨道 0, 2, 4 显示 |
-| 27-39px | 每隔 2 个显示 | 轨道 0, 3, 6 显示 |
-| < 27px | 每隔 3+ 个显示 | 轨道 0, 4, 8 显示 |
+| 轨道高度 | 显示策略       | 示例                   |
+| -------- | -------------- | ---------------------- |
+| ≥ 80px   | 显示所有标签   | 轨道 0, 1, 2, 3 都显示 |
+| 40-79px  | 每隔 1 个显示  | 轨道 0, 2, 4 显示      |
+| 27-39px  | 每隔 2 个显示  | 轨道 0, 3, 6 显示      |
+| < 27px   | 每隔 3+ 个显示 | 轨道 0, 4, 8 显示      |
 
 ---
 
@@ -107,6 +109,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ## 📊 效果对比
 
 ### 修复前
+
 ```
 轨道 0: BT2_2M  ← 标签
 轨道 1: BT1_2M  ← 标签  ⚠️ 与轨道 0 重叠
@@ -114,6 +117,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ```
 
 ### 修复后（轨道高度 40px）
+
 ```
 轨道 0: BT2_2M  ← 显示标签 ✅
 轨道 1:         ← 隐藏标签 ✅
@@ -125,6 +129,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ## 🧪 测试验证
 
 ### 测试结果
+
 ```bash
 ✅ 所有测试通过 (24/24)
 ✅ TypeScript 类型检查通过
@@ -134,24 +139,29 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ### 手动测试场景
 
 #### 场景 1：独立坐标模式
+
 - **预期**: 所有标签都显示（轨道高度通常 > 80px）
 - **结果**: ✅ 符合预期
 
 #### 场景 2：多道分离模式
+
 - **预期**: 所有标签都显示（轨道间有间隔）
 - **结果**: ✅ 符合预期
 
 #### 场景 3：多道紧凑模式 - 2 个轨道
+
 - **轨道高度**: ~200px
 - **预期**: 两个标签都显示
 - **结果**: ✅ 符合预期
 
 #### 场景 4：多道紧凑模式 - 5 个轨道
+
 - **轨道高度**: ~60px
 - **预期**: 显示轨道 0, 2, 4 的标签
 - **结果**: ✅ 符合预期，无重叠
 
 #### 场景 5：多道紧凑模式 - 10 个轨道
+
 - **轨道高度**: ~30px
 - **预期**: 显示轨道 0, 3, 6, 9 的标签
 - **结果**: ✅ 符合预期，无重叠
@@ -161,21 +171,25 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ## 💡 设计考量
 
 ### 为什么不直接缩小字体？
+
 - ❌ 字体太小难以阅读
 - ❌ 仍然会重叠（只是延迟问题）
 - ✅ 间隔显示更清晰
 
 ### 为什么不使用横向布局？
+
 - ❌ 横向标签占用更多水平空间
 - ❌ 会与波形图重叠
 - ✅ 垂直标签是行业标准
 
 ### 为什么使用间隔显示而不是全部隐藏？
+
 - ❌ 全部隐藏用户无法识别波形
 - ✅ 间隔显示保留关键信息
 - ✅ 用户可以通过显示的标签推断其他波形
 
 ### 为什么添加背景？
+
 - ✅ 提高标签与网格线的对比度
 - ✅ 防止标签与波形线重叠时难以阅读
 - ✅ 视觉层次更清晰
@@ -185,6 +199,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ## 🚀 未来优化方向
 
 ### 短期（可选）
+
 1. **悬浮显示完整信息**
    - 鼠标悬浮在轨道上时，显示该轨道的完整标签
    - 使用 Tooltip 或临时文本
@@ -194,6 +209,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
    - 完整名称通过 title 属性提供
 
 ### 中期（可选）
+
 3. **可配置阈值**
    - 允许用户自定义 `MIN_HEIGHT_FOR_LABEL`
    - 添加 props: `minLabelHeight?: number`
@@ -203,6 +219,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
    - 保持在可读范围内（10-14px）
 
 ### 长期（可选）
+
 5. **外部标签面板**
    - 在图表右侧添加独立的标签列表
    - 点击标签高亮对应波形
@@ -215,22 +232,25 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ### 文件：`src/components/WaveformChart.vue`
 
 #### 1. 新增函数（+26 行）
+
 ```typescript
 function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean {
   const MIN_HEIGHT_FOR_LABEL = 80
   if (trackHeight >= MIN_HEIGHT_FOR_LABEL) return true
-  
+
   const labelSpacing = Math.ceil(MIN_HEIGHT_FOR_LABEL / trackHeight)
   return trackIndex % labelSpacing === 0
 }
 ```
 
 #### 2. 更新模板（修改 15 行）
+
 - 添加条件判断 `shouldShowYAxisLabel(track.height, track.index)`
 - 使用 `<g>` 包裹标签和背景
 - 添加标签背景 `<rect class="waveform-chart__y-axis-label-bg">`
 
 #### 3. 新增样式（+5 行）
+
 ```css
 .waveform-chart__y-axis-label-bg {
   fill: white;
@@ -240,6 +260,7 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 ```
 
 ### 总代码变更
+
 - **新增**: 46 行
 - **修改**: 15 行
 - **删除**: 10 行

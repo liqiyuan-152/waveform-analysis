@@ -91,7 +91,9 @@ export function findAnnotationSeriesCandidates(
         },
       ]
     })
-    .sort((first, second) => first.distance - second.distance || first.trackIndex - second.trackIndex)
+    .sort(
+      (first, second) => first.distance - second.distance || first.trackIndex - second.trackIndex,
+    )
 }
 let annotationTextMeasurementContext: CanvasRenderingContext2D | null | undefined
 
@@ -113,7 +115,9 @@ export function measureAnnotationTextWidth(text: string): number {
       }
     }
   }
-  return annotationTextMeasurementContext?.measureText(text).width ?? fallbackAnnotationTextWidth(text)
+  return (
+    annotationTextMeasurementContext?.measureText(text).width ?? fallbackAnnotationTextWidth(text)
+  )
 }
 
 export function resolveAnnotationStyle(style?: WaveformAnnotationStyle) {

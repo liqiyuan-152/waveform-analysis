@@ -13,6 +13,7 @@ import {
   type WaveformInteractionMode,
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
+  type WaveformOverlayMode,
   type WaveformSeries,
   type WaveformTitleOptions,
 } from './components'
@@ -40,8 +41,29 @@ const testChannelRows: WaveformSourceRow[] = importedSourceRows.slice(0, 2).map(
       Math.sin(sampleIndex / (index === 0 ? 11 : 18)) * (index === 0 ? 0.015 : 0.01),
   ),
 }))
-const sourceRows = [...importedSourceRows, ...testChannelRows]
+const additionalFrameOneRows: WaveformSourceRow[] = [
+  importedSourceRows[0],
+  importedSourceRows[1],
+  importedSourceRows[0],
+].flatMap((row, index) =>
+  row
+    ? [
+        {
+          ...row,
+          chnl: `TEST_CH_${index + 3}`,
+          chnl_id: 9003 + index,
+          data: row.data.map(
+            (value, sampleIndex) =>
+              value * [0.9, 1.35, 0.55][index]! +
+              Math.sin(sampleIndex / [14, 22, 8][index]!) * [0.012, 0.008, 0.02][index]!,
+          ),
+        },
+      ]
+    : [],
+)
+const sourceRows = [...importedSourceRows, ...testChannelRows, ...additionalFrameOneRows]
 const displayMode = ref<WaveformDisplayMode>('independent')
+const overlayMode = ref<WaveformOverlayMode>('single-axis')
 const rowCount = ref(2)
 const columnCount = ref(1)
 const frameBorderColor = ref('#1f2937')
@@ -112,7 +134,9 @@ const waveformSeries: WaveformSeries[] = sourceRows.map((row) => {
   return {
     id: String(row.chnl_id),
     trackId:
-      row.chnl === 'TEST_CH_1' ? String(importedSourceRows[0]?.chnl_id ?? row.chnl_id) : undefined,
+      row.chnl.startsWith('TEST_CH_') && row.chnl !== 'TEST_CH_2'
+        ? String(importedSourceRows[0]?.chnl_id ?? row.chnl_id)
+        : undefined,
     name: row.chnl,
     unit: row.dat_unit,
     data: {
@@ -201,6 +225,20 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             <Radio.Button value="independent">单独坐标</Radio.Button>
             <Radio.Button value="separated">多道分离</Radio.Button>
             <Radio.Button value="compact">多道紧凑</Radio.Button>
+          </Radio.Group>
+        </section>
+
+        <section class="control-section">
+          <h2>叠加方式</h2>
+          <Radio.Group
+            v-model:value="overlayMode"
+            class="display-mode-control"
+            button-style="solid"
+            size="small"
+            aria-label="波形叠加方式"
+          >
+            <Radio.Button value="single-axis">单值轴</Radio.Button>
+            <Radio.Button value="multi-axis">多值轴</Radio.Button>
           </Radio.Group>
         </section>
 
@@ -423,6 +461,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
       <WaveformChart
         :data="chartData"
         :display-mode="displayMode"
+        :overlay-mode="overlayMode"
         :grid="{ rowCount, columnCount, showPagination: true }"
         :title="titleOptions"
         :legend="{

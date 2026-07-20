@@ -50,6 +50,24 @@ import { WaveformChart } from './index'
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
 
+### 叠加与多值轴
+
+为多条曲线设置相同的 `trackId`，可将它们叠加到同一图框。`overlayMode` 控制叠加
+曲线共享一根 Y 轴还是使用独立值轴：
+
+```vue
+<WaveformChart :data="chartData" display-mode="independent" overlay-mode="multi-axis" />
+```
+
+`overlayMode` 对应公开类型 `WaveformOverlayMode`，可选值为 `single-axis` 和
+`multi-axis`，默认值为 `single-axis`。多值轴最多渲染四根 Y 轴；超过四条曲线时，
+后续曲线复用第 4 根轴，该轴的范围覆盖绑定到它的全部曲线。轴顺序依次为左侧、
+右侧；三轴时第 3 根位于右侧外部，四轴时顺序为左侧、左侧外部、右侧、右侧外部。
+
+`overlayMode` 与 `displayMode` 相互独立。`displayMode` 仍可使用 `independent`、
+`separated` 或 `compact` 控制图框布局和 X 轴共享方式；未共享 `trackId` 的单曲线
+图框不会因为切换叠加方式而改变。
+
 ### 绘图区域尺寸
 
 `width` 和 `height` 接收像素数值，并且可以独立设置。指定的维度使用固定尺寸，未指定的
@@ -215,5 +233,5 @@ const interactionMode = ref<WaveformInteractionMode>('zoom')
 标注文本最多 40 个字符，边框色、文字色和背景色均支持取色与透明度调整。组件只负责内存中的受控数据，
 业务层负责会话或后端持久化。
 
-Y 轴会根据整条轴域选择展示格式：绝对值范围在 `[0.01, 100)` 时使用普通小数，超出该范围时所有刻度共享一个科学计数指数，并只在最上方刻度显示 `E±NN`。tooltip 使用最多 4 位小数的本地化普通数字；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
+X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01, 100)` 时显示两位普通小数；大于等于 `100`，或大于 `0` 且小于 `0.01` 时，刻度显示两位缩放值，并在轴末端单独显示共享倍率 `E±NN`。X 轴先按 `timeUnit` 转换为秒或毫秒再判断范围，多 Y 轴则分别计算倍率。tooltip 使用最多 4 位小数的本地化普通数字；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
 标注框布局优先选择采样点正上方，其次正下方，再按左右方向自动避让；文本框通过连接箭头指向标注位置。

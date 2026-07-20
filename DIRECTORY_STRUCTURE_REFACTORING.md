@@ -60,6 +60,7 @@ src/
 **职责**：集中管理所有 TypeScript 类型定义
 
 #### `types/chart.ts` (98 行)
+
 - `WaveformPoint` - 波形数据点
 - `WaveformDisplayMode` - 显示模式（independent/separated/compact）
 - `WaveformInteractionMode` - 交互模式（zoom/select/annotation/vertical-line/range）
@@ -68,12 +69,14 @@ src/
 - `WaveformMarkupSelection` - 标注选择状态
 
 #### `types/data.ts` (45 行)
+
 - `SingleWaveformData` - 单波形数据格式
 - `WaveformSeries` - 波形系列
 - `WaveformData` - 完整波形数据
 - `NormalizedWaveformSeries` - 规范化后的系列
 
 **优势**：
+
 - ✅ 类型定义集中管理
 - ✅ 易于维护和扩展
 - ✅ 避免循环依赖
@@ -85,6 +88,7 @@ src/
 **职责**：提供与框架无关的核心数据处理逻辑
 
 #### `core/data.ts` (63 行)
+
 - `normalizeWaveformData()` - 规范化单波形数据
 - `normalizeWaveformSeries()` - 规范化波形系列
   - ID 唯一性验证
@@ -92,11 +96,13 @@ src/
   - 格式统一化
 
 **特点**：
+
 - ✅ 纯 TypeScript，无 Vue 依赖
 - ✅ 可在任何框架中使用（React/Svelte/Angular）
 - ✅ 易于单独测试
 
 **后续扩展方向**（阶段 2）：
+
 ```
 core/
 ├── data.ts          # ✅ 已完成
@@ -114,20 +120,24 @@ core/
 **职责**：提供纯函数工具集
 
 #### `utils/domain.ts` (29 行)
+
 - `paddedDomain()` - 计算带边距的数据域
 - `buildMinorTicks()` - 生成次要刻度
 
 #### `utils/formatters.ts` (64 行)
+
 - `displayTime()` - 时间单位转换
 - `formatEndpointTime()` - 端点时间格式化
 - `formatAxisTime()` - 坐标轴时间格式化
 - `formatTooltipTime()` - 悬浮提示时间格式化
 
 #### `utils/geometry.ts` (50 行)
+
 - `resolveTrackGeometry()` - 轨道几何布局
 - `clamp()` - 数值范围限制
 
 **特点**：
+
 - ✅ 所有函数都是纯函数
 - ✅ 完整的 JSDoc 注释
 - ✅ 易于单独测试和复用
@@ -139,10 +149,12 @@ core/
 **职责**：Vue 组件和标注工具
 
 #### `components/WaveformChart.vue` (1913 行)
+
 - 主波形图组件
 - 保持不变（已在阶段 1 简化）
 
 #### `components/waveform.ts` (27 行) - ✨ 重构为重新导出
+
 ```typescript
 // 向后兼容层
 export type { ... } from '../types'
@@ -150,11 +162,13 @@ export { ... } from '../core'
 ```
 
 **优势**：
+
 - ✅ 保持向后兼容
 - ✅ 旧代码无需修改导入路径
 - ✅ 内部使用新的模块结构
 
 #### `components/waveform-markup.ts` (154 行)
+
 - 标注和图形工具函数
 - 已更新为使用 `../types` 导入
 
@@ -172,6 +186,7 @@ interactions/
 ```
 
 **预期收益**：
+
 - 交互逻辑模块化
 - 可独立测试
 - 可复用到其他图表组件
@@ -191,6 +206,7 @@ hooks/
 ```
 
 **预期收益**：
+
 - 逻辑复用性提升
 - 组件代码减少 ~500 行
 - 易于在其他组件中使用
@@ -219,6 +235,7 @@ export { isFiniteAnnotation, ... } from './components/waveform-markup'
 ```
 
 **优势**：
+
 - ✅ 统一的入口点
 - ✅ 清晰的 API 导出
 - ✅ 便于发布为 npm 包
@@ -229,12 +246,12 @@ export { isFiniteAnnotation, ... } from './components/waveform-markup'
 
 ### 所有检查通过 ✅
 
-| 检查项 | 状态 | 结果 |
-|--------|------|------|
-| 单元测试 | ✅ | 24/24 通过 |
-| TypeScript 类型检查 | ✅ | 无错误 |
-| ESLint 代码规范 | ✅ | 0 错误 0 警告 |
-| 向后兼容性 | ✅ | 旧导入路径正常工作 |
+| 检查项              | 状态 | 结果               |
+| ------------------- | ---- | ------------------ |
+| 单元测试            | ✅   | 24/24 通过         |
+| TypeScript 类型检查 | ✅   | 无错误             |
+| ESLint 代码规范     | ✅   | 0 错误 0 警告      |
+| 向后兼容性          | ✅   | 旧导入路径正常工作 |
 
 ---
 
@@ -243,6 +260,7 @@ export { isFiniteAnnotation, ... } from './components/waveform-markup'
 ### 1. 代码组织
 
 **重构前**：
+
 ```
 src/components/
 ├── WaveformChart.vue    (1975 行 - 巨型文件)
@@ -251,6 +269,7 @@ src/components/
 ```
 
 **重构后**：
+
 ```
 src/
 ├── types/          (143 行 - 类型定义)
@@ -260,6 +279,7 @@ src/
 ```
 
 **改进**：
+
 - ✅ 模块职责清晰
 - ✅ 类型、逻辑、工具分离
 - ✅ 易于定位和修改
@@ -268,12 +288,12 @@ src/
 
 ### 2. 可维护性
 
-| 维度 | 重构前 | 重构后 | 提升 |
-|------|--------|--------|------|
-| 单文件平均行数 | 762 | 219 | ✅ 71% ↓ |
-| 模块内聚性 | 低 | 高 | ✅ 显著提升 |
-| 依赖关系 | 混乱 | 清晰 | ✅ 单向依赖 |
-| 新人理解成本 | 高 | 低 | ✅ 目录即文档 |
+| 维度           | 重构前 | 重构后 | 提升          |
+| -------------- | ------ | ------ | ------------- |
+| 单文件平均行数 | 762    | 219    | ✅ 71% ↓      |
+| 模块内聚性     | 低     | 高     | ✅ 显著提升   |
+| 依赖关系       | 混乱   | 清晰   | ✅ 单向依赖   |
+| 新人理解成本   | 高     | 低     | ✅ 目录即文档 |
 
 ---
 
@@ -281,14 +301,15 @@ src/
 
 **新增功能时的改动范围**：
 
-| 场景 | 重构前 | 重构后 |
-|------|--------|--------|
-| 添加新的数据格式 | 修改 waveform.ts | 只修改 core/data.ts |
+| 场景             | 重构前           | 重构后                |
+| ---------------- | ---------------- | --------------------- |
+| 添加新的数据格式 | 修改 waveform.ts | 只修改 core/data.ts   |
 | 添加新的图表类型 | 修改 waveform.ts | 只修改 types/chart.ts |
-| 添加新的工具函数 | 混在组件中 | 添加到对应 utils 模块 |
-| 添加新的交互模式 | 修改巨型组件 | 添加到 interactions/ |
+| 添加新的工具函数 | 混在组件中       | 添加到对应 utils 模块 |
+| 添加新的交互模式 | 修改巨型组件     | 添加到 interactions/  |
 
 **改进**：
+
 - ✅ 修改范围最小化
 - ✅ 降低回归风险
 - ✅ 支持并行开发
@@ -312,6 +333,7 @@ src/
 ```
 
 **预期收益**：
+
 - ✅ 测试粒度更细
 - ✅ 单元测试运行更快
 - ✅ 易于定位失败原因
@@ -336,6 +358,7 @@ const { normalizeWaveformData } = require('@/waveform-analysis/core')
 ```
 
 **优势**：
+
 - ✅ 核心逻辑可复用
 - ✅ 降低迁移成本
 - ✅ 支持多端共享
@@ -367,6 +390,7 @@ const { normalizeWaveformData } = require('@/waveform-analysis/core')
 ```
 
 **依赖规则**：
+
 - ✅ 单向依赖（从上到下）
 - ✅ 无循环依赖
 - ✅ 底层模块无 Vue 依赖
@@ -378,6 +402,7 @@ const { normalizeWaveformData } = require('@/waveform-analysis/core')
 ### 短期（1-2 周）
 
 **阶段 2：抽取核心引擎**
+
 ```
 core/
 ├── data.ts          # ✅ 已完成
@@ -394,6 +419,7 @@ core/
 ### 中期（3-4 周）
 
 **阶段 3：抽取 Composables**
+
 ```
 hooks/
 ├── useZoom.ts       # 📝 缩放逻辑
@@ -409,6 +435,7 @@ hooks/
 ### 长期（1-2 月）
 
 **阶段 4：组件拆分**
+
 ```
 components/
 ├── WaveformChart.vue        # 主容器 (~400 行)
@@ -419,6 +446,7 @@ components/
 ```
 
 **最终目标**：
+
 - 主组件 ~400 行（减少 80%）
 - 单文件平均 ~150 行
 - 完整的模块化架构
@@ -431,11 +459,7 @@ components/
 
 ```typescript
 // 旧的导入方式仍然可用
-import {
-  WaveformChart,
-  type WaveformData,
-  type WaveformAnnotation,
-} from './components'
+import { WaveformChart, type WaveformData, type WaveformAnnotation } from './components'
 
 // 或者
 import { WaveformData } from './components/waveform'
@@ -445,6 +469,7 @@ import { WaveformChart, type WaveformData } from './index'
 ```
 
 **保证**：
+
 - ✅ 所有旧导入路径正常工作
 - ✅ API 完全兼容
 - ✅ 无破坏性变更
@@ -519,27 +544,28 @@ export { downsampleData } from './core'
 
 ### 核心收益
 
-| 维度 | 改善 |
-|------|------|
-| 代码组织 | ✅ 清晰的分层架构 |
+| 维度     | 改善                  |
+| -------- | --------------------- |
+| 代码组织 | ✅ 清晰的分层架构     |
 | 可维护性 | ✅ 单文件平均减少 71% |
-| 可扩展性 | ✅ 模块化添加功能 |
-| 可测试性 | ✅ 支持细粒度测试 |
-| 可复用性 | ✅ 核心逻辑跨框架 |
+| 可扩展性 | ✅ 模块化添加功能     |
+| 可测试性 | ✅ 支持细粒度测试     |
+| 可复用性 | ✅ 核心逻辑跨框架     |
 
 ### 模块统计
 
-| 模块 | 文件数 | 代码行数 |
-|------|--------|----------|
-| types/ | 3 | 143 |
-| core/ | 2 | 63 |
-| utils/ | 4 | 162 |
-| components/ | 4 | 2094 |
-| **总计** | **13** | **2462** |
+| 模块        | 文件数 | 代码行数 |
+| ----------- | ------ | -------- |
+| types/      | 3      | 143      |
+| core/       | 2      | 63       |
+| utils/      | 4      | 162      |
+| components/ | 4      | 2094     |
+| **总计**    | **13** | **2462** |
 
 ### 下一步
 
 项目现在具备了**清晰的模块化架构**，可以支持：
+
 - ✅ 快速添加新功能
 - ✅ 多人并行开发
 - ✅ 独立测试和优化

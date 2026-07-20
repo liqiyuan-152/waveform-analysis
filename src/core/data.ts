@@ -1,4 +1,9 @@
-import type { SingleWaveformData, WaveformData, WaveformPoint, NormalizedWaveformSeries } from '../types'
+import type {
+  SingleWaveformData,
+  WaveformData,
+  WaveformPoint,
+  NormalizedWaveformSeries,
+} from '../types'
 
 /**
  * 规范化单波形数据

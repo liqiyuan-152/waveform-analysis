@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { axisBottom, axisLeft, select } from 'd3'
-import { formatAxisTime, formatScientificYAxisLabel } from '../../utils'
+import { axisBottom, axisLeft, axisRight, select } from 'd3'
+import { formatAxisTime, formatScientificAxisLabel } from '../../utils'
 import type { WaveformFrameStyle } from '../../types'
 import type {
   WaveformDisplayMode,
   WaveformInteractionMode,
   WaveformLegendPosition,
 } from '../data/types'
-import type { DisplaySeries, HoveredSeriesPoint, TrackLayout } from '../core/types'
+import type {
+  DisplaySeries,
+  HoveredSeriesPoint,
+  TrackLayout,
+  WaveformYAxisLayout,
+} from '../core/types'
 import WaveformLegend from './WaveformLegend.vue'
 
 interface Props {
@@ -60,7 +65,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const xAxisElement = ref<SVGGElement>()
-const yAxisElement = ref<SVGGElement>()
+const yAxisElements = ref<SVGGElement[]>([])
 const resolvedFrameStyle = computed(() => {
   const borderWidth = props.frameStyle?.borderWidth
   return {
@@ -76,6 +81,23 @@ const resolvedFrameStyle = computed(() => {
 
 function resolveYAxisLabel(series: DisplaySeries): string {
   return series.name.trim() || props.yLabel || ''
+}
+
+function hasYAxisTitle(axis: WaveformYAxisLayout): boolean {
+  const series = axis.seriesList[0]
+  return Boolean(series && resolveYAxisLabel(series))
+}
+
+function setYAxisElement(element: unknown, index: number) {
+  if (element) yAxisElements.value[index] = element as SVGGElement
+}
+
+function resolveHoveredYScale() {
+  const seriesId = props.hoveredPoint?.id
+  return (
+    props.track.seriesPaths.find((seriesPath) => seriesPath.series.id === seriesId)?.yScale ??
+    props.track.yScale
+  )
 }
 
 /**
@@ -101,7 +123,7 @@ function crosshairX(): number {
 
 function crosshairY(): number {
   return props.hoveredPoint && props.hoveredPoint.trackIndex === props.track.index
-    ? props.track.yScale(props.hoveredPoint.point.y)
+    ? resolveHoveredYScale()(props.hoveredPoint.point.y)
     : 0
 }
 
@@ -114,35 +136,32 @@ function hasCrosshair(): boolean {
 }
 
 function renderAxes() {
-  if (yAxisElement.value) {
-    const [axisMin, axisMax] = props.track.yScale.domain()
-    const visibleTicks = props.track.yAxisTickValues ?? props.track.yMajorTicks
-    const topTickValue = visibleTicks.reduce<number | undefined>((closestTick, tickValue) => {
-      if (closestTick === undefined) return tickValue
-      return Math.abs(tickValue - axisMax) < Math.abs(closestTick - axisMax)
-        ? tickValue
-        : closestTick
-    }, undefined)
-    const yAxis = axisLeft(props.track.yScale)
-      .tickFormat((value) =>
-        formatScientificYAxisLabel(Number(value), { axisMin, axisMax, topTickValue }),
-      )
+  props.track.yAxes.forEach((axis, index) => {
+    const element = yAxisElements.value[index]
+    if (!element) return
+    const [axisMin, axisMax] = axis.scale.domain()
+    const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
+      .tickFormat((value) => formatScientificAxisLabel(Number(value), { axisMin, axisMax }))
       .tickSize(-4)
       .tickPadding(7)
       .tickSizeOuter(0)
 
-    if (props.track.yAxisTickValues) {
-      yAxis.tickValues(props.track.yAxisTickValues)
-    }
+    yAxis.tickValues(axis.tickValues)
 
-    select(yAxisElement.value).call(yAxis)
-  }
+    select(element).call(yAxis)
+  })
 
   if (xAxisElement.value) {
     select(xAxisElement.value).call(
       axisBottom(props.track.xScale)
         .tickValues(props.track.xAxisTickValues)
-        .tickFormat((value) => formatAxisTime(Number(value), props.timeUnit))
+        .tickFormat((value) =>
+          formatAxisTime(
+            Number(value),
+            props.timeUnit,
+            props.track.xScale.domain() as [number, number],
+          ),
+        )
         .tickSize(-4)
         .tickPadding(7)
         .tickSizeOuter(0),
@@ -158,7 +177,7 @@ onMounted(async () => {
 watch(
   [
     () => props.track.xScale,
-    () => props.track.yScale,
+    () => props.track.yAxes,
     () => props.track.xAxisTickValues,
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
@@ -285,13 +304,41 @@ watch(
         {{ track.endpointLabels.end }}
       </text>
     </g>
+    <text
+      v-if="track.showXAxis && track.xAxisExponent"
+      class="waveform-track__axis-exponent waveform-track__axis-exponent--x waveform-chart__axis-exponent waveform-chart__axis-exponent--x"
+      :x="track.width ?? innerWidth"
+      :y="track.height + 27"
+      text-anchor="end"
+      aria-hidden="true"
+    >
+      {{ track.xAxisExponent }}
+    </text>
 
     <!-- Y 轴 -->
     <g
-      v-if="!track.isEmpty"
-      ref="yAxisElement"
+      v-for="axis in track.isEmpty ? [] : track.yAxes"
+      :key="`y-axis-${track.index}-${axis.index}`"
+      :ref="(element) => setYAxisElement(element, axis.index)"
       class="waveform-track__axis waveform-track__axis--y waveform-chart__axis waveform-chart__axis--y"
+      :class="`waveform-track__axis--${axis.side}`"
+      :data-y-axis-index="axis.index"
+      :data-y-axis-side="axis.side"
+      :transform="`translate(${axis.x}, 0)`"
     />
+    <text
+      v-for="axis in track.isEmpty ? [] : track.yAxes.filter((item) => item.exponentLabel)"
+      :key="`y-axis-exponent-${track.index}-${axis.index}`"
+      class="waveform-track__axis-exponent waveform-track__axis-exponent--y waveform-chart__axis-exponent waveform-chart__axis-exponent--y"
+      :data-y-axis-index="axis.index"
+      :x="axis.exponentX"
+      y="0"
+      dy="0.32em"
+      :text-anchor="axis.side === 'left' ? 'end' : 'start'"
+      aria-hidden="true"
+    >
+      {{ axis.exponentLabel }}
+    </text>
 
     <!-- Y 轴标签 -->
     <g
@@ -322,6 +369,31 @@ watch(
       </text>
     </g>
 
+    <g
+      v-for="axis in track.yAxes.length > 1 ? track.yAxes.filter(hasYAxisTitle) : []"
+      :key="`y-axis-title-${track.index}-${axis.index}`"
+      class="waveform-track__multi-axis-title"
+      :data-y-axis-title-index="axis.index"
+    >
+      <rect
+        class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
+        :x="axis.labelX - 12"
+        :y="track.height / 2 - 40"
+        width="24"
+        height="80"
+        rx="2"
+      />
+      <text
+        class="waveform-track__y-axis-label waveform-chart__y-axis-label"
+        :fill="axis.seriesList[0].color"
+        :transform="`translate(${axis.labelX}, ${track.height / 2}) rotate(-90)`"
+        text-anchor="middle"
+        dominant-baseline="central"
+      >
+        {{ resolveYAxisLabel(axis.seriesList[0]) }}
+      </text>
+    </g>
+
     <!-- 轨道边框 -->
     <rect
       v-if="!track.isEmpty"
@@ -343,6 +415,7 @@ watch(
         class="waveform-track__line waveform-chart__line"
         :data-series-id="seriesPath.series.id"
         :data-series-name="seriesPath.series.name || undefined"
+        :data-y-axis-index="seriesPath.yAxisIndex"
         :d="seriesPath.path ?? undefined"
         :stroke="seriesPath.series.color"
         :clip-path="`url(#${clipPathId}-${track.index})`"
@@ -478,6 +551,12 @@ watch(
   fill: #667085;
   font-size: 11px;
   pointer-events: none;
+}
+
+.waveform-track__axis-exponent {
+  fill: #666;
+  font-family: sans-serif;
+  font-size: 10px;
 }
 
 :deep(.waveform-track__axis path),

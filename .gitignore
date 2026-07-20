@@ -6,3 +6,4 @@ coverage
 .idea
 *.local
 *.log
+.claude/settings.local.json

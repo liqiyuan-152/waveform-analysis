@@ -51,14 +51,7 @@ export interface AnnotationBoxLayout {
 }
 
 export type AnnotationPlacement =
-  | 'top'
-  | 'bottom'
-  | 'right'
-  | 'left'
-  | 'top-right'
-  | 'top-left'
-  | 'bottom-right'
-  | 'bottom-left'
+  'top' | 'bottom' | 'right' | 'left' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 
 export interface RenderedAnnotation {
   annotation: WaveformAnnotation

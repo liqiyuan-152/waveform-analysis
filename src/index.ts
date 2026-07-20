@@ -11,6 +11,7 @@ export type {
   // 图表类型
   WaveformPoint,
   WaveformDisplayMode,
+  WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformAnnotationStyle,
   WaveformAnnotation,

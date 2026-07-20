@@ -60,10 +60,8 @@ export function calculateRotatedTitleLayout({
   }
 
   const maximumVisualHeight = TITLE_AREA_MAX_HEIGHT - TITLE_AREA_VERTICAL_PADDING
-  const naturalVisualWidth =
-    safeNaturalWidth * absoluteCosine + safeNaturalHeight * absoluteSine
-  const naturalVisualHeight =
-    safeNaturalWidth * absoluteSine + safeNaturalHeight * absoluteCosine
+  const naturalVisualWidth = safeNaturalWidth * absoluteCosine + safeNaturalHeight * absoluteSine
+  const naturalVisualHeight = safeNaturalWidth * absoluteSine + safeNaturalHeight * absoluteCosine
   const scale = Math.min(
     1,
     safeAvailableWidth / naturalVisualWidth,

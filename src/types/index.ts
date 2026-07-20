@@ -6,6 +6,7 @@
 export type {
   WaveformPoint,
   WaveformDisplayMode,
+  WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformAnnotationStyle,
   WaveformAnnotation,

@@ -5,6 +5,7 @@ export type {
   SingleWaveformData,
   WaveformData,
   WaveformDisplayMode,
+  WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformAnnotationStyle,
   WaveformAnnotation,
