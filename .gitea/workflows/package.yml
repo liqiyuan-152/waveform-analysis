@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   package:
@@ -70,9 +71,10 @@ jobs:
           short_sha="$(printf '%.12s' '${{ gitea.sha }}')"
           published_name="waveform-analysis-${package_version}-${short_sha}.tgz"
           install -m 644 "$package_file" "/downloads/$published_name"
-          sha256sum "/downloads/$published_name" > "/downloads/$published_name.sha256"
-          ln -sfn "$published_name" /downloads/waveform-analysis-latest.tgz
-          ln -sfn "$published_name.sha256" /downloads/waveform-analysis-latest.tgz.sha256
+          cd /downloads
+          sha256sum "$published_name" > "$published_name.sha256"
+          ln -sfn "$published_name" waveform-analysis-latest.tgz
+          ln -sfn "$published_name.sha256" waveform-analysis-latest.tgz.sha256
 
       - name: Upload component package
         uses: https://lqycustomsite.online/admin/actions-upload-artifact@v3
