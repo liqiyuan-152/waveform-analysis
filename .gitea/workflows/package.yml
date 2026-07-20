@@ -30,6 +30,48 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Set package version
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_version="$(node -p "require('./package.json').version")"
+          latest_version="$(
+            find /downloads -maxdepth 1 -type f -name 'waveform-analysis-*-*.tgz' -printf '%f\n' \
+              | sed -nE 's/^waveform-analysis-([0-9]+\.[0-9]+\.[0-9]+)-[0-9a-f]+\.tgz$/\1/p' \
+              | sort -V \
+              | tail -n 1
+          )"
+          next_version="$(node - "$source_version" "$latest_version" <<'NODE'
+          const source = process.argv[2]
+          const latest = process.argv[3]
+          const parse = (version) => {
+            const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
+            if (!match) throw new Error(`Unsupported package version: ${version}`)
+            return match.slice(1).map(Number)
+          }
+          const compare = (left, right) => {
+            for (let index = 0; index < 3; index += 1) {
+              if (left[index] !== right[index]) return left[index] - right[index]
+            }
+            return 0
+          }
+          const sourceParts = parse(source)
+          if (!latest) {
+            process.stdout.write(source)
+          } else {
+            const latestParts = parse(latest)
+            if (compare(sourceParts, latestParts) > 0) {
+              process.stdout.write(source)
+            } else {
+              latestParts[2] += 1
+              process.stdout.write(latestParts.join('.'))
+            }
+          }
+          NODE
+          )"
+          pnpm pkg set version="$next_version"
+          printf 'Packaging waveform-analysis@%s\n' "$next_version"
+
       - name: Type check
         run: pnpm typecheck
 
