@@ -50,6 +50,26 @@ import { WaveformChart } from './index'
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
 
+### 绘图区域尺寸
+
+`width` 和 `height` 接收像素数值，并且可以独立设置。指定的维度使用固定尺寸，未指定的
+维度自适应填满父容器：
+
+```vue
+<div class="chart-container">
+  <WaveformChart :data="chartData" :width="960" />
+</div>
+
+<style scoped>
+.chart-container {
+  height: 520px;
+}
+</style>
+```
+
+自适应高度要求父容器具有明确高度；父容器未定高时，组件使用最低 `180px` 高度。
+显式高度同样保留 `180px` 下限。非有限尺寸按未指定处理，负宽度归零。
+
 ## 大数据渲染
 
 组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；

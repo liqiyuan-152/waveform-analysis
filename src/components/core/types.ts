@@ -28,6 +28,7 @@ export interface HoveredSeriesPoint extends DisplaySeries {
 export interface TrackLayout {
   index: number
   series: DisplaySeries
+  isEmpty: boolean
   column: number
   showYAxisLabel: boolean
   yAxisLabelX: number

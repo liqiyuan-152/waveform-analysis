@@ -24,6 +24,7 @@ export interface BuildTrackLayoutsOptions {
   rendering: ResolvedWaveformRenderingOptions
   hideSecondaryLabels: boolean
   yAxisLabelX: number
+  showCompactEmptyTracks: boolean
 }
 
 export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayout[] {
@@ -31,8 +32,16 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
   const bottomCells = getBottomRowCellIndexes(visibleCells, options.grid.columnCount)
 
   return visibleCells.flatMap((cell, index) => {
-    const series = cell.series
-    if (!series) return []
+    const isEmpty = !cell.series
+    if (isEmpty && (options.displayMode !== 'compact' || !options.showCompactEmptyTracks)) return []
+    const series: DisplaySeries = cell.series ?? {
+      id: `empty-grid-slot-${cell.slotIndex}`,
+      name: '',
+      color: 'transparent',
+      points: [],
+      xDomain: [0, 1],
+      yDomain: [0, 1],
+    }
     const baseXScale =
       options.displayMode === 'independent'
         ? scaleLinear(series.xDomain, [0, cell.width])
@@ -45,10 +54,14 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const yScale = scaleLinear(series.yDomain, [cell.plotHeight, 0]).nice()
     const xMajorTicks = xScale.ticks(Math.max(2, Math.floor(cell.width / 100)))
     const yMajorTicks = yScale.ticks(Math.max(2, Math.floor(cell.plotHeight / 55)))
-    const yAxisTickValues =
-      options.displayMode === 'compact' && cell.row < options.grid.rowCount - 1
-        ? yMajorTicks.slice(1)
-        : yMajorTicks
+    const [yAxisStart, yAxisEnd] = yScale.domain()
+    const showYAxisEnd = options.displayMode !== 'compact' || cell.row === 0
+    const visibleYMajorTicks = showYAxisEnd
+      ? yMajorTicks
+      : yMajorTicks.filter((tick) => tick !== yAxisEnd)
+    const yAxisTickValues = Array.from(
+      new Set([yAxisStart, ...visibleYMajorTicks, ...(showYAxisEnd ? [yAxisEnd] : [])]),
+    )
     const domain = xScale.domain() as [number, number]
     const endpointLabels = {
       start: formatEndpointTime(domain[0], domain, options.timeUnit),
@@ -70,6 +83,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     return {
       index,
       series,
+      isEmpty,
       column: cell.column,
       showYAxisLabel: !options.hideSecondaryLabels || cell.column === 0,
       yAxisLabelX: options.yAxisLabelX,
@@ -80,16 +94,22 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       xScale,
       yScale,
       xMajorTicks,
-      xMinorTicks: buildMinorTicks(xMajorTicks),
+      xMinorTicks: buildMinorTicks(xMajorTicks, 5, domain),
       yMajorTicks,
       yMinorTicks: buildMinorTicks(yMajorTicks),
       yAxisTickValues,
       xAxisTickValues,
       endpointLabels,
-      path: line<WaveformPoint>()
-        .x((point) => xScale(point.x))
-        .y((point) => yScale(point.y))(renderPoints),
-      showXAxis: options.displayMode === 'independent' || bottomCells.has(cell.slotIndex),
+      path: isEmpty
+        ? null
+        : line<WaveformPoint>()
+            .x((point) => xScale(point.x))
+            .y((point) => yScale(point.y))(renderPoints),
+      showXAxis:
+        options.displayMode === 'independent' ||
+        (options.displayMode === 'compact'
+          ? cell.row === options.grid.rowCount - 1
+          : bottomCells.has(cell.slotIndex)),
     }
   })
 }

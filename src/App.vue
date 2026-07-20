@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { InputNumber, Radio, Tag } from 'ant-design-vue'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import {
   WaveformChart,
@@ -43,10 +43,6 @@ const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 
-const resolveChartHeight = () =>
-  Math.min(800, Math.max(560, (typeof window === 'undefined' ? 750 : window.innerHeight) - 190))
-const chartHeight = ref(resolveChartHeight())
-
 const waveformSeries: WaveformSeries[] = sourceRows.map((row) => {
   const pointCount = Math.min(row.time.length, row.data.length)
   return {
@@ -77,24 +73,12 @@ const displayedRange = computed(() => visibleRange.value ?? initialTimeRange)
 const formatMilliseconds = (seconds: number) =>
   (seconds * 1000).toLocaleString('zh-CN', { maximumFractionDigits: 1 })
 
-function updateChartHeight() {
-  chartHeight.value = resolveChartHeight()
-}
-
 watch(displayMode, () => {
   visibleRange.value = null
 })
 
 watch([rowCount, columnCount], () => {
   visibleRange.value = null
-})
-
-onMounted(() => {
-  window.addEventListener('resize', updateChartHeight)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', updateChartHeight)
 })
 </script>
 
@@ -149,7 +133,6 @@ onBeforeUnmount(() => {
         :data="chartData"
         :display-mode="displayMode"
         :grid="{ rowCount, columnCount, showPagination: true }"
-        :height="chartHeight"
         :frame-number="1"
         v-model:annotations="annotations"
         v-model:annotations-visible="annotationsVisible"
