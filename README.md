@@ -50,6 +50,36 @@ import { WaveformChart } from './index'
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
 
+### 线型、点型与误差棒
+
+每条序列可以独立设置连线方式、数据点符号和误差棒：
+
+```ts
+const series = {
+  id: 'temperature',
+  name: '温度',
+  lineType: 'step-end',
+  pointType: 'circle',
+  errorBar: { visible: true, width: 1.5, capWidth: 8 },
+  data: {
+    kind: 'points',
+    points: [
+      { x: 0, y: 12, error: 0.5 },
+      { x: 1, y: 15, lowerError: 0.4, upperError: 0.8 },
+    ],
+  },
+} satisfies WaveformSeries
+```
+
+`lineType` 支持 `none`、`linear`、`step-start`、`step-middle` 和 `step-end`；兼容值
+`step-after` 与 `step-end` 等价。三个阶梯值分别在区间起点、中点和终点跳变。`pointType`
+支持 `none`、`circle`、`square`、`triangle` 和 `diamond`。默认使用普通直线且不显示数据点；
+设置 `lineType: 'none'` 可以隐藏数据点之间的连接线，只保留点符号和误差棒；将其改为
+`linear` 或阶梯类型即可同时显示对应连接线。误差棒仅在 `errorBar.visible` 为 `true` 时显示，
+并参与 Y 轴范围计算；当误差棒可见时，`lineType` 和 `pointType` 可以同时为 `none`，用于展示
+纯误差棒。只有连接线、点符号和误差棒全部关闭时才会回退为普通直线。`lowerError`、
+`upperError` 分别覆盖对称的 `error`，图例会同步显示实际线型、点型和误差棒样式。
+
 ### 叠加与多值轴
 
 为多条曲线设置相同的 `trackId`，可将它们叠加到同一图框。`overlayMode` 控制叠加
@@ -166,23 +196,38 @@ Demo 左侧控制面板提供标题实时预览，可配置标题名称、显隐
 对应的公开类型为 `WaveformFrameStyle`。默认边框颜色为 `#1f2937`、线宽为 `1`、线型为
 `solid`，背景透明。`borderWidth` 为 `0` 时隐藏边框；非有限值或负数会回退到默认线宽。
 
-### 图例样式
+### 图例与曲线显隐
 
 `legend.backgroundColor` 设置多曲线图例的背景颜色。该字段接受任意有效 CSS 颜色值，
 可通过 `rgba(...)` 或 `hsla(...)` 中的 alpha 通道调整透明度：
 
 ```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const hiddenSeriesIds = ref<string[]>([])
+</script>
+
 <WaveformChart
   :data="chartData"
+  v-model:hidden-series-ids="hiddenSeriesIds"
   :legend="{
     position: 'top-right',
     orientation: 'auto',
     backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    interactive: true,
   }"
 />
 ```
 
 未配置或传入空字符串时，图例背景默认使用 `rgba(255, 255, 255, 0.7)`。
+`legend.interactive` 默认为 `false`；开启后可以单击或使用键盘操作图例项切换曲线显隐。
+调用方可通过 `hiddenSeriesIds` 和 `update:hidden-series-ids` 控制状态，也可使用
+`defaultHiddenSeriesIds` 设置非受控模式的初始隐藏项。隐藏状态同步作用于坐标轴、tooltip、
+悬浮点和标注交互；允许隐藏全部曲线，并可通过保留的图例恢复显示。
+
+显隐状态以规范化后的 `series.id` 为键。要在数据刷新和重新排序后稳定保留状态，每个系列都应
+提供全图唯一且稳定的显式 `id`；自动生成的索引 ID 或重复 ID 添加的后缀不保证跨排序稳定。
 
 ## 大数据渲染
 
@@ -198,11 +243,20 @@ Demo 左侧控制面板提供标题实时预览，可配置标题名称、显隐
     downsample: true,
     downsampleThreshold: 2000,
     maxPointsPerPixel: 4,
+    pointMinSpacing: 10,
+    errorBarMinSpacing: 12,
   }"
 />
 ```
 
-降采样仅作用于 SVG path。最近点查询、tooltip、标注插值和受控数据不会损失精度。
+全量视图只绘制均匀分布的真实数据点，放大后会自动恢复更多源标记。`pointMinSpacing` 和
+`errorBarMinSpacing` 分别控制点符号和误差棒的最小水平间距，单位为 CSS 像素。两者同时
+显示时共用一批采样点，并采用两个间距中的较大值，确保误差棒与对应点符号保持共心；仅显示
+一类装饰时仍使用各自的间距。仅显示一类装饰时可将对应间距设为 `0`；两者同时显示时需将
+两个间距都设为 `0` 才会关闭共同限制。设置 `downsample: false` 会关闭曲线和装饰的全部降采样。
+
+降采样仅作用于 SVG 中的曲线、点符号和误差棒。点符号和误差棒在每个系列中分别合并为
+单个 SVG path；最近点查询、tooltip、标注插值、Y 轴误差范围和受控数据不会损失精度。
 
 ## 采样点标注
 

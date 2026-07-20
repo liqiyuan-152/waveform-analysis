@@ -5,6 +5,37 @@ import type {
   NormalizedWaveformSeries,
 } from '../types'
 
+const DEFAULT_ERROR_BAR_WIDTH = 1.5
+const DEFAULT_ERROR_BAR_CAP_WIDTH = 8
+
+function normalizeError(value: number | undefined): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined
+}
+
+function normalizeWaveformPoint(point: WaveformPoint): WaveformPoint {
+  const error = normalizeError(point.error)
+  const lowerError = normalizeError(point.lowerError)
+  const upperError = normalizeError(point.upperError)
+  return {
+    x: point.x,
+    y: point.y,
+    ...(error === undefined ? {} : { error }),
+    ...(lowerError === undefined ? {} : { lowerError }),
+    ...(upperError === undefined ? {} : { upperError }),
+  }
+}
+
+export function resolveWaveformPointErrors(point: WaveformPoint): {
+  lower: number
+  upper: number
+} {
+  const symmetric = normalizeError(point.error) ?? 0
+  return {
+    lower: normalizeError(point.lowerError) ?? symmetric,
+    upper: normalizeError(point.upperError) ?? symmetric,
+  }
+}
+
 /**
  * 规范化单波形数据
  * @param data 输入数据（samples 或 points 格式）
@@ -22,7 +53,7 @@ export function normalizeWaveformData(data: SingleWaveformData): WaveformPoint[]
 
   return data.points
     .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
-    .map((point) => ({ ...point }))
+    .map(normalizeWaveformPoint)
     .sort((left, right) => left.x - right.x)
 }
 
@@ -34,7 +65,22 @@ export function normalizeWaveformData(data: SingleWaveformData): WaveformPoint[]
 export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformSeries[] {
   if (data.kind !== 'series') {
     const points = normalizeWaveformData(data)
-    return points.length > 0 ? [{ id: 'series-0', name: '', points }] : []
+    return points.length > 0
+      ? [
+          {
+            id: 'series-0',
+            name: '',
+            lineType: 'linear',
+            pointType: 'none',
+            errorBar: {
+              visible: false,
+              width: DEFAULT_ERROR_BAR_WIDTH,
+              capWidth: DEFAULT_ERROR_BAR_CAP_WIDTH,
+            },
+            points,
+          },
+        ]
+      : []
   }
 
   const usedIds = new Set<string>()
@@ -52,12 +98,31 @@ export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformS
       }
       usedIds.add(uniqueId)
 
+      const requestedLineType = series.lineType ?? 'linear'
+      const requestedPointType = series.pointType ?? 'none'
+      const errorBarVisible = series.errorBar?.visible === true
+      const lineType =
+        requestedLineType === 'none' && requestedPointType === 'none' && !errorBarVisible
+          ? 'linear'
+          : requestedLineType
+      const width = Number(series.errorBar?.width)
+      const capWidth = Number(series.errorBar?.capWidth)
+
       return {
         id: uniqueId,
         trackId: series.trackId?.trim() || undefined,
         name: series.name,
         unit: series.unit,
         color: series.color,
+        lineType,
+        pointType: requestedPointType,
+        errorBar: {
+          visible: errorBarVisible,
+          color: series.errorBar?.color,
+          width: Number.isFinite(width) && width > 0 ? width : DEFAULT_ERROR_BAR_WIDTH,
+          capWidth:
+            Number.isFinite(capWidth) && capWidth > 0 ? capWidth : DEFAULT_ERROR_BAR_CAP_WIDTH,
+        },
         points: normalizeWaveformData(series.data),
       }
     })

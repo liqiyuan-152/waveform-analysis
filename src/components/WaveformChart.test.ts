@@ -1,8 +1,10 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import { resizeObservers } from '../test/setup'
+import { flushAnimationFrames, pendingAnimationFrameCount, resizeObservers } from '../test/setup'
 import WaveformChart from './WaveformChart.vue'
+import { prepareWaveformSeries } from './core/useWaveformData'
+import { waveformLegendErrorBarPath, waveformLegendLinePath } from './rendering/seriesStyle'
 import { normalizeWaveformData, normalizeWaveformSeries, type WaveformData } from './waveform'
 
 async function mountSizedChart(data: WaveformData, extraProps = {}) {
@@ -50,6 +52,80 @@ describe('normalizeWaveformData', () => {
     expect(normalizeWaveformData({ kind: 'samples', values: [1, 2], sampleRate: 0 })).toEqual([])
   })
 
+  it('normalizes errors and preserves a pure error-bar series', () => {
+    const [series] = normalizeWaveformSeries({
+      kind: 'series',
+      series: [
+        {
+          name: 'styled',
+          lineType: 'none',
+          pointType: 'none',
+          errorBar: { visible: true, width: -1, capWidth: Number.NaN },
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 2, error: 1, lowerError: -1, upperError: 2 },
+              { x: 1, y: 3, error: Number.NaN },
+            ],
+          },
+        },
+      ],
+    })
+
+    expect(series).toMatchObject({
+      lineType: 'none',
+      pointType: 'none',
+      errorBar: { visible: true, width: 1.5, capWidth: 8 },
+      points: [
+        { x: 0, y: 2, error: 1, upperError: 2 },
+        { x: 1, y: 3 },
+      ],
+    })
+  })
+
+  it('falls back to a line only when every series visual is disabled', () => {
+    const [series] = normalizeWaveformSeries({
+      kind: 'series',
+      series: [
+        {
+          name: 'invisible',
+          lineType: 'none',
+          pointType: 'none',
+          errorBar: { visible: false },
+          data: { kind: 'points', points: [{ x: 0, y: 1 }] },
+        },
+      ],
+    })
+
+    expect(series).toMatchObject({
+      lineType: 'linear',
+      pointType: 'none',
+      errorBar: { visible: false },
+    })
+  })
+
+  it('includes visible error bounds in the prepared Y domain', () => {
+    const [series] = prepareWaveformSeries({
+      kind: 'series',
+      series: [
+        {
+          name: 'errors',
+          errorBar: { visible: true },
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 2, lowerError: 3, upperError: 4 },
+              { x: 1, y: 3 },
+            ],
+          },
+        },
+      ],
+    })
+
+    expect(series?.yDomain[0]).toBeLessThanOrEqual(-1)
+    expect(series?.yDomain[1]).toBeGreaterThanOrEqual(6)
+  })
+
   it('normalizes multiple named series and removes empty series', () => {
     expect(
       normalizeWaveformSeries({
@@ -74,9 +150,25 @@ describe('normalizeWaveformData', () => {
         name: 'BT2_2M',
         unit: 'T',
         color: undefined,
+        lineType: 'linear',
+        pointType: 'none',
+        errorBar: { visible: false, width: 1.5, capWidth: 8 },
         points: [{ x: 1, y: 2 }],
       },
     ])
+  })
+})
+
+describe('legend series geometry', () => {
+  it('keeps line samples centered and clamps error-bar caps to the swatch', () => {
+    expect(waveformLegendLinePath('linear')).toBe('M1 8H25')
+    expect(waveformLegendLinePath('step-start')).toBe('M1 8H25')
+    expect(waveformLegendLinePath('step-middle')).toBe('M1 8H25')
+    expect(waveformLegendLinePath('step-end')).toBe('M1 8H25')
+    expect(waveformLegendLinePath('step-after')).toBe('M1 8H25')
+    expect(waveformLegendLinePath('none')).toBeNull()
+    expect(waveformLegendErrorBarPath(10)).toBe('M8 2H18M13 2V14M8 14H18')
+    expect(waveformLegendErrorBarPath(100)).toBe('M1 2H25M13 2V14M1 14H25')
   })
 })
 
@@ -94,6 +186,232 @@ describe('WaveformChart', () => {
         ],
       },
     })),
+  })
+
+  it('places start, middle, and end step transitions at the expected X positions', async () => {
+    const lineTypes = ['step-start', 'step-middle', 'step-end', 'step-after'] as const
+    const wrapper = await mountSizedChart({
+      kind: 'series',
+      series: lineTypes.map((lineType) => ({
+        id: lineType,
+        trackId: 'steps',
+        name: lineType,
+        lineType,
+        data: {
+          kind: 'points',
+          points: [
+            { x: 0, y: 0 },
+            { x: 2, y: 10 },
+          ],
+        },
+      })),
+    })
+    const pathCoordinates = (lineType: (typeof lineTypes)[number]) =>
+      Array.from(
+        (
+          wrapper.get(`.waveform-chart__line[data-series-id="${lineType}"]`).attributes('d') ?? ''
+        ).matchAll(/[ML]([\d.-]+),([\d.-]+)/g),
+        (match) => ({ x: Number(match[1]), y: Number(match[2]) }),
+      )
+
+    const start = pathCoordinates('step-start')
+    const middle = pathCoordinates('step-middle')
+    const end = pathCoordinates('step-end')
+    const after = pathCoordinates('step-after')
+    expect(start.map((point) => point.x)).toEqual([start[0]?.x, start[0]?.x, start.at(-1)?.x])
+    expect(middle[1]?.x).toBe(middle[2]?.x)
+    expect(middle[1]?.x).toBe((middle[0]!.x + middle.at(-1)!.x) / 2)
+    expect(end.map((point) => point.x)).toEqual([end[0]?.x, end.at(-1)?.x, end.at(-1)?.x])
+    expect(after).toEqual(end)
+
+    wrapper.unmount()
+  })
+
+  it('renders per-series lines, point symbols, error bars, and matching legend swatches', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'series',
+      series: [
+        {
+          id: 'triangle-errors',
+          trackId: 'styled-track',
+          name: '三角误差',
+          lineType: 'none',
+          pointType: 'triangle',
+          errorBar: { visible: true },
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 1, error: 0.25 },
+              { x: 1, y: 2, error: 0.5 },
+            ],
+          },
+        },
+        {
+          id: 'line-only',
+          trackId: 'styled-track',
+          name: '纯线',
+          lineType: 'linear',
+          pointType: 'none',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 2 },
+              { x: 1, y: 3 },
+            ],
+          },
+        },
+        {
+          id: 'step-errors',
+          trackId: 'styled-track',
+          name: '阶梯误差',
+          lineType: 'step-after',
+          pointType: 'circle',
+          errorBar: { visible: true, color: '#222222', width: 2, capWidth: 10 },
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 3, lowerError: 0.5, upperError: 1 },
+              { x: 1, y: 4 },
+            ],
+          },
+        },
+        {
+          id: 'errors-only',
+          trackId: 'styled-track',
+          name: '纯误差棒',
+          lineType: 'none',
+          pointType: 'none',
+          errorBar: { visible: true },
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 4, error: 0.5 },
+              { x: 1, y: 5, error: 0.5 },
+            ],
+          },
+        },
+      ],
+    })
+
+    expect(wrapper.find('.waveform-chart__line[data-series-id="triangle-errors"]').exists()).toBe(
+      false,
+    )
+    const stepLine = wrapper.get('.waveform-chart__line[data-series-id="step-errors"]')
+    expect(stepLine.attributes('data-line-type')).toBe('step-after')
+    expect(stepLine.attributes('d')).toMatch(/^M[\d.-]+,([\d.-]+)L[\d.-]+,\1L/)
+    expect(
+      wrapper
+        .get('.waveform-chart__points[data-series-id="triangle-errors"]')
+        .attributes('data-point-type'),
+    ).toBe('triangle')
+    expect(wrapper.findAll('.waveform-chart__point')).toHaveLength(2)
+    expect(
+      wrapper
+        .get('.waveform-chart__points[data-series-id="triangle-errors"] .waveform-chart__point')
+        .attributes('d'),
+    ).toMatch(/M.*M/)
+    expect(wrapper.findAll('.waveform-chart__error-bar')).toHaveLength(3)
+    expect(
+      wrapper
+        .get('.waveform-chart__error-bars[data-series-id="step-errors"] .waveform-chart__error-bar')
+        .attributes('stroke'),
+    ).toBe('#222222')
+    const errorsOnlySeries = wrapper.get('.waveform-chart__series[data-series-id="errors-only"]')
+    expect(errorsOnlySeries.find('.waveform-chart__line').exists()).toBe(false)
+    expect(errorsOnlySeries.find('.waveform-chart__point').exists()).toBe(false)
+    expect(errorsOnlySeries.find('.waveform-chart__error-bar').exists()).toBe(true)
+
+    const swatches = wrapper.findAll('.waveform-legend__swatch')
+    expect(swatches.map((swatch) => swatch.attributes('data-line-type'))).toEqual([
+      'none',
+      'linear',
+      'step-after',
+      'none',
+    ])
+    expect(swatches[0]?.attributes('data-error-bar-visible')).toBe('true')
+    expect(swatches[2]?.attributes('data-error-bar-visible')).toBe('true')
+    expect(swatches[3]?.attributes('data-error-bar-visible')).toBe('true')
+    expect(swatches[0]!.findAll('path').map((path) => path.classes())).toEqual([
+      ['waveform-legend__error-bar'],
+      ['waveform-legend__point'],
+    ])
+    const stepSwatchPaths = swatches[2]!.findAll('path')
+    expect(stepSwatchPaths.map((path) => path.classes())).toEqual([
+      ['waveform-legend__line'],
+      ['waveform-legend__error-bar'],
+      ['waveform-legend__point'],
+    ])
+    expect(stepSwatchPaths[0]?.attributes()).toMatchObject({
+      d: 'M1 8H25',
+      stroke: '#389e0d',
+      'stroke-width': '1.5',
+    })
+    expect(stepSwatchPaths[1]?.attributes()).toMatchObject({
+      d: 'M8 2H18M13 2V14M8 14H18',
+      stroke: '#222222',
+      'stroke-width': '2',
+      'stroke-linecap': 'butt',
+    })
+    expect(stepSwatchPaths[2]?.attributes('transform')).toBe('translate(13 8)')
+    expect(swatches[3]!.findAll('path').map((path) => path.classes())).toEqual([
+      ['waveform-legend__error-bar'],
+    ])
+
+    const renderedSeriesNodes = wrapper
+      .findAll('.waveform-chart__line, .waveform-chart__point, .waveform-chart__error-bar')
+      .map((node) => node.element)
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const overlayWidth = Number(overlay.attributes('width'))
+    const overlayHeight = Number(overlay.attributes('height'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: overlayHeight }),
+    })
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        clientX: overlayWidth / 2,
+        clientY: overlayHeight / 2,
+        bubbles: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(
+      wrapper
+        .findAll('.waveform-chart__line, .waveform-chart__point, .waveform-chart__error-bar')
+        .map((node) => node.element),
+    ).toEqual(renderedSeriesNodes)
+
+    wrapper.unmount()
+  })
+
+  const visibilitySeries = (): WaveformData => ({
+    kind: 'series',
+    series: [
+      {
+        id: 'low',
+        trackId: 'shared-frame',
+        name: '低量程',
+        data: {
+          kind: 'points',
+          points: [
+            { x: 0, y: 0 },
+            { x: 1, y: 10 },
+          ],
+        },
+      },
+      {
+        id: 'high',
+        trackId: 'shared-frame',
+        name: '高量程',
+        data: {
+          kind: 'points',
+          points: [
+            { x: 10, y: 1000 },
+            { x: 20, y: 2000 },
+          ],
+        },
+      },
+    ],
   })
 
   it('binds overlaid series to at most four value axes in multi-axis mode', async () => {
@@ -353,8 +671,10 @@ describe('WaveformChart', () => {
       'TEST_CH_1',
     ])
     expect(
-      legend.findAll('.waveform-legend__swatch').map((swatch) => swatch.attributes('style')),
-    ).toEqual(['background-color: rgb(9, 96, 189);', 'background-color: rgb(56, 158, 13);'])
+      legend
+        .findAll('.waveform-legend__swatch')
+        .map((swatch) => swatch.get('path').attributes('stroke')),
+    ).toEqual(['#0960bd', '#389e0d'])
     expect(wrapper.findAll('.waveform-chart__watermark').map((item) => item.text())).toEqual([
       '1',
       '2',
@@ -374,6 +694,7 @@ describe('WaveformChart', () => {
         bubbles: true,
       }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     const tooltipSeries = wrapper.findAll('.waveform-chart__tooltip-series')
@@ -496,6 +817,193 @@ describe('WaveformChart', () => {
     })
   })
 
+  it('keeps legends display-only unless interaction is explicitly enabled', async () => {
+    const wrapper = await mountSizedChart(visibilitySeries(), {
+      grid: { rowCount: 1, columnCount: 1 },
+    })
+
+    const items = wrapper.findAll('.waveform-chart__legend-item')
+    expect(items).toHaveLength(2)
+    expect(items.every((item) => item.attributes('disabled') !== undefined)).toBe(true)
+    expect(wrapper.get('.waveform-legend__panel').classes()).not.toContain(
+      'waveform-legend__panel--interactive',
+    )
+    expect(wrapper.emitted('update:hidden-series-ids')).toBeUndefined()
+  })
+
+  it('toggles series, axes, tooltips, and annotations from an interactive legend', async () => {
+    const wrapper = await mountSizedChart(visibilitySeries(), {
+      annotations: [{ id: 'high-note', seriesId: 'high', x: 15, y: 1500, text: '高值' }],
+      grid: { rowCount: 1, columnCount: 1 },
+      legend: { interactive: true },
+      overlayMode: 'multi-axis',
+    })
+
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(2)
+    expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
+    const highLegendItem = wrapper.findAll('.waveform-chart__legend-item')[1]
+    expect(highLegendItem.attributes('aria-pressed')).toBe('true')
+
+    await highLegendItem.trigger('click')
+    await flushPromises()
+
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['low'])
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
+    expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(false)
+    expect(wrapper.findAll('.waveform-chart__legend-item')[1].classes()).toContain('is-hidden')
+    expect(wrapper.findAll('.waveform-chart__legend-item')[1].attributes('aria-pressed')).toBe(
+      'false',
+    )
+    expect(wrapper.emitted('update:hidden-series-ids')?.at(-1)).toEqual([['high']])
+    expect(wrapper.emitted('series-visibility-change')?.at(-1)).toEqual([
+      { seriesId: 'high', visible: false, hiddenSeriesIds: ['high'] },
+    ])
+
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const overlayWidth = Number(overlay.attributes('width'))
+    const overlayHeight = Number(overlay.attributes('height'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: overlayHeight }),
+    })
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', {
+        clientX: overlayWidth / 2,
+        clientY: overlayHeight / 2,
+        bubbles: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(1)
+    expect(wrapper.get('.waveform-chart__tooltip-series').text()).toContain('低量程')
+
+    await wrapper.findAll('.waveform-chart__legend-item')[1].trigger('click')
+    await flushPromises()
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(2)
+    expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
+    expect(wrapper.emitted('series-visibility-change')?.at(-1)).toEqual([
+      { seriesId: 'high', visible: true, hiddenSeriesIds: [] },
+    ])
+  })
+
+  it('waits for controlled visibility updates and preserves unknown controlled IDs', async () => {
+    const wrapper = await mountSizedChart(visibilitySeries(), {
+      grid: { rowCount: 1, columnCount: 1 },
+      hiddenSeriesIds: ['high', 'temporarily-absent'],
+      legend: { interactive: true },
+    })
+
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['low'])
+    await wrapper.findAll('.waveform-chart__legend-item')[0].trigger('click')
+    expect(wrapper.emitted('update:hidden-series-ids')?.at(-1)).toEqual([
+      ['high', 'temporarily-absent', 'low'],
+    ])
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['low'])
+
+    await wrapper.setProps({ hiddenSeriesIds: ['low'] })
+    await flushPromises()
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['high'])
+  })
+
+  it('retains uncontrolled visibility by stable ID and clears removed IDs', async () => {
+    const original = visibilitySeries()
+    const wrapper = await mountSizedChart(original, {
+      grid: { rowCount: 1, columnCount: 1 },
+      legend: { interactive: true },
+    })
+    await wrapper.findAll('.waveform-chart__legend-item')[1].trigger('click')
+
+    const reversed: WaveformData = {
+      kind: 'series',
+      series: [...(original.kind === 'series' ? original.series : [])].reverse(),
+    }
+    await wrapper.setProps({ data: reversed })
+    await flushPromises()
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['low'])
+
+    await wrapper.setProps({
+      data: {
+        kind: 'series',
+        series: original.kind === 'series' ? [original.series[0]!] : [],
+      },
+    })
+    await flushPromises()
+    await wrapper.setProps({ data: original })
+    await flushPromises()
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(2)
+  })
+
+  it('keeps a recoverable legend and stops chart interaction when every series is hidden', async () => {
+    const wrapper = await mountSizedChart(visibilitySeries(), {
+      defaultHiddenSeriesIds: ['low', 'high'],
+      grid: { rowCount: 1, columnCount: 1 },
+      legend: { interactive: true },
+      overlayMode: 'multi-axis',
+    })
+
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__axis')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__overlay')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(2)
+    expect(wrapper.get('.waveform-track__no-visible-series').text()).toBe('暂无可见曲线')
+
+    await wrapper.findAll('.waveform-chart__legend-item')[0].trigger('click')
+    await flushPromises()
+    expect(
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
+    ).toEqual(['low'])
+    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
+    expect(wrapper.findAll('.waveform-chart__overlay--independent')).toHaveLength(1)
+  })
+
+  it('closes an annotation editor when its series is hidden from the legend', async () => {
+    const wrapper = await mountSizedChart(visibilitySeries(), {
+      grid: { rowCount: 1, columnCount: 1 },
+      legend: { interactive: true },
+    })
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const overlayWidth = Number(overlay.attributes('width'))
+    const overlayHeight = Number(overlay.attributes('height'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: overlayHeight }),
+    })
+    overlay.element.dispatchEvent(
+      new MouseEvent('contextmenu', {
+        clientX: overlayWidth * 0.75,
+        clientY: overlayHeight / 2,
+        bubbles: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(true)
+
+    const component = wrapper.vm as typeof wrapper.vm & {
+      annotationInteraction: { editorDraft: { value: { annotation: { seriesId: string } } | null } }
+    }
+    const draftSeriesId = component.annotationInteraction.editorDraft.value?.annotation.seriesId
+    const item = wrapper
+      .findAll('.waveform-chart__legend-item')
+      .find((legendItem) =>
+        legendItem.text().includes(draftSeriesId === 'high' ? '高量程' : '低量程'),
+      )
+    expect(item).toBeDefined()
+    await item!.trigger('click')
+    await flushPromises()
+    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(false)
+  })
+
   it('renders independent cells with separate x axes and overlays', async () => {
     const wrapper = await mountSizedChart(gridSeries(4), {
       displayMode: 'independent',
@@ -556,10 +1064,10 @@ describe('WaveformChart', () => {
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
 
-    expect(labelX).toBe(-99)
+    expect(labelX).toBe(-103)
     expect(labelBackgroundX).toBe(labelX - 12)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(115)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(115)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(119)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(119)
   })
 
   it('keeps a tick-only gutter when channel labels are empty', async () => {
@@ -585,8 +1093,8 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(85)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(85)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(89)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(89)
   })
 
   it('keeps the Y-axis label gutter stable while paging between value ranges', async () => {
@@ -1020,6 +1528,7 @@ describe('WaveformChart', () => {
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: overlayWidth / 2, clientY: 100, bubbles: true }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     const tooltipTop = Number.parseFloat(
@@ -1165,6 +1674,39 @@ describe('WaveformChart', () => {
     expect(path).toContain(',0')
   })
 
+  it('bounds dense decorations by pixel spacing while keeping one SVG path per series', async () => {
+    const sourcePoints = Array.from({ length: 1_000 }, (_, index) => ({
+      x: index,
+      y: Math.sin(index / 20),
+      error: 0.1,
+    }))
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'dense-decorations',
+            name: '密集标记',
+            pointType: 'triangle',
+            errorBar: { visible: true },
+            data: { kind: 'points', points: sourcePoints },
+          },
+        ],
+      },
+      { rendering: { pointMinSpacing: 10, errorBarMinSpacing: 12 } },
+    )
+    const overlayWidth = Number(wrapper.get('.waveform-chart__overlay').attributes('width'))
+    const pointPaths = wrapper.findAll('.waveform-chart__point')
+    const errorBarPaths = wrapper.findAll('.waveform-chart__error-bar')
+    const pointCount = pointPaths[0]?.attributes('d')?.match(/M/g)?.length ?? 0
+    const errorBarCount = (errorBarPaths[0]?.attributes('d')?.match(/M/g)?.length ?? 0) / 3
+
+    expect(pointPaths).toHaveLength(1)
+    expect(errorBarPaths).toHaveLength(1)
+    expect(pointCount).toBeLessThanOrEqual(Math.ceil(overlayWidth / 10) + 2)
+    expect(errorBarCount).toBeLessThanOrEqual(Math.ceil(overlayWidth / 12) + 2)
+  })
+
   it('renders explicit points and supports a single point', async () => {
     const wrapper = await mountSizedChart({ kind: 'points', points: [{ x: 3, y: 8 }] })
 
@@ -1199,13 +1741,71 @@ describe('WaveformChart', () => {
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
+    flushAnimationFrames()
     await flushPromises()
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 5 }])
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
     expect(wrapper.get('.waveform-chart__tooltip').text()).toContain('ms: 1,000.0000')
+    const crosshairLines = wrapper.findAll('.waveform-chart__crosshair line')
+    expect(crosshairLines).toHaveLength(1)
+    expect(crosshairLines[0].attributes('x1')).toBe(crosshairLines[0].attributes('x2'))
+    expect(crosshairLines[0].attributes('y1')).toBe('0')
+    expect(wrapper.find('.waveform-chart__crosshair circle').exists()).toBe(false)
 
     await overlay.trigger('pointerleave')
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
+  })
+
+  it('coalesces pointer moves per frame and cancels pending hover work', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { grid: { rowCount: 1, columnCount: 1 } },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
+    })
+    const emittedBeforeMove = wrapper.emitted('point-hover')?.length ?? 0
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: 0, clientY: 100, bubbles: true }),
+    )
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
+    )
+
+    expect(pendingAnimationFrameCount()).toBe(1)
+    expect(wrapper.emitted('point-hover')?.length ?? 0).toBe(emittedBeforeMove)
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.emitted('point-hover')).toHaveLength(emittedBeforeMove + 1)
+    expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 5 }])
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: 0, clientY: 100, bubbles: true }),
+    )
+    expect(pendingAnimationFrameCount()).toBe(1)
+    await overlay.trigger('pointerleave')
+    const emittedAfterLeave = wrapper.emitted('point-hover')?.length ?? 0
+    expect(pendingAnimationFrameCount()).toBe(0)
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.emitted('point-hover')).toHaveLength(emittedAfterLeave)
+    expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 100, bubbles: true }),
+    )
+    expect(pendingAnimationFrameCount()).toBe(1)
+    wrapper.unmount()
+    expect(pendingAnimationFrameCount()).toBe(0)
   })
 
   it('renders reference grid styling and an optional frame watermark', async () => {
@@ -1430,6 +2030,7 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     const emittedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as
@@ -1469,6 +2070,7 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
@@ -1853,6 +2455,7 @@ describe('WaveformChart', () => {
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     const tooltip = wrapper.get('.waveform-chart__tooltip')
@@ -1860,8 +2463,32 @@ describe('WaveformChart', () => {
     expect(tooltip.text()).toContain('2 T')
     expect(tooltip.text()).toContain('BT1_2M:')
     expect(tooltip.text()).toContain('4 T')
-    expect(wrapper.findAll('.waveform-chart__crosshair circle')).toHaveLength(2)
+    const crosshairLines = wrapper.findAll('.waveform-chart__crosshair line')
+    expect(crosshairLines).toHaveLength(2)
+    crosshairLines.forEach((line) => {
+      expect(line.attributes('x1')).toBe(line.attributes('x2'))
+      expect(line.attributes('y1')).toBe('0')
+    })
+    expect(wrapper.find('.waveform-chart__crosshair circle').exists()).toBe(false)
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 2 }])
+  })
+
+  it('keeps synchronized hover feedback in compact mode', async () => {
+    const wrapper = await mountSizedChart(gridSeries(2), { displayMode: 'compact' })
+    const overlay = wrapper.get('.waveform-chart__overlay--shared')
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: 712, height: 290 }),
+    })
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(2)
+    expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 1 }])
   })
 
   it('keeps separated tracks apart while sharing one x-axis and one interaction layer', async () => {
@@ -1998,6 +2625,7 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     expect(endpoints()[0]).not.toBe(initialEndpoints[0])
@@ -2054,9 +2682,21 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
+    overlay.element.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -200,
+        clientX: 356,
+        clientY: 145,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    expect(pendingAnimationFrameCount()).toBe(1)
+    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(initialZoomEventCount)
+    flushAnimationFrames()
     await flushPromises()
 
-    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBeGreaterThan(initialZoomEventCount)
+    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(initialZoomEventCount + 1)
 
     await wrapper.setProps({ zoomable: false })
     await flushPromises()
@@ -2070,6 +2710,7 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
+    flushAnimationFrames()
     await flushPromises()
 
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(zoomEventCount)
@@ -2375,6 +3016,7 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
+    flushAnimationFrames()
     await flushPromises()
     expect(wrapper.get('.waveform-annotation__arrow').attributes('x2')).not.toBe(initialX)
 

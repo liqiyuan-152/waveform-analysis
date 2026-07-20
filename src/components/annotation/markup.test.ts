@@ -55,6 +55,34 @@ describe('waveform annotation markup', () => {
     ).toBeNull()
   })
 
+  it('interpolates start, middle, and end step lines at their visual transitions', () => {
+    const points = [
+      { x: 0, y: 2 },
+      { x: 2, y: 10 },
+    ]
+
+    expect(interpolateAnnotationPoint(points, 0.5, 'step-start')).toEqual({ x: 0.5, y: 10 })
+    expect(interpolateAnnotationPoint(points, 0.5, 'step-middle')).toEqual({ x: 0.5, y: 2 })
+    expect(interpolateAnnotationPoint(points, 1, 'step-middle')).toEqual({ x: 1, y: 10 })
+    expect(interpolateAnnotationPoint(points, 1.5, 'step-middle')).toEqual({ x: 1.5, y: 10 })
+    expect(interpolateAnnotationPoint(points, 1, 'step-end')).toEqual({ x: 1, y: 2 })
+    expect(interpolateAnnotationPoint(points, 1, 'step-after')).toEqual({ x: 1, y: 2 })
+    expect(interpolateAnnotationPoint(points, 2, 'step-start')).toEqual({ x: 2, y: 10 })
+    expect(interpolateAnnotationPoint(points, 2, 'step-after')).toEqual({ x: 2, y: 10 })
+    expect(interpolateAnnotationPoint(points, 1, 'none')).toBeNull()
+    expect(interpolateAnnotationPoint(points, 2, 'none')).toEqual({ x: 2, y: 10 })
+  })
+
+  it('omits interpolated candidates for point-only series between samples', () => {
+    const pointOnly = createTrack(0, 'points', 0, [
+      { x: 0, y: 2 },
+      { x: 2, y: 10 },
+    ])
+    pointOnly.series.lineType = 'none'
+
+    expect(findAnnotationSeriesCandidates([pointOnly], 1, 100, 50)).toEqual([])
+  })
+
   it('sorts line candidates by screen distance and keeps series metadata', () => {
     const first = createTrack(0, 'first', 0, [
       { x: 0, y: 0 },

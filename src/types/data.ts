@@ -1,5 +1,30 @@
 import type { WaveformPoint } from './chart'
 
+export type WaveformLineType =
+  | 'none'
+  | 'linear'
+  | 'step-start'
+  | 'step-middle'
+  | 'step-end'
+  /** Backward-compatible alias for `step-end`. */
+  | 'step-after'
+
+export type WaveformPointType = 'none' | 'circle' | 'square' | 'triangle' | 'diamond'
+
+export interface WaveformErrorBarOptions {
+  visible?: boolean
+  color?: string
+  width?: number
+  capWidth?: number
+}
+
+export interface ResolvedWaveformErrorBarOptions {
+  visible: boolean
+  color?: string
+  width: number
+  capWidth: number
+}
+
 /**
  * 单波形数据格式（采样点或显式坐标点）
  */
@@ -25,6 +50,9 @@ export interface WaveformSeries {
   name: string
   unit?: string
   color?: string
+  lineType?: WaveformLineType
+  pointType?: WaveformPointType
+  errorBar?: WaveformErrorBarOptions
   data: SingleWaveformData
 }
 
@@ -47,5 +75,8 @@ export interface NormalizedWaveformSeries {
   name: string
   unit?: string
   color?: string
+  lineType: WaveformLineType
+  pointType: WaveformPointType
+  errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]
 }

@@ -1,6 +1,6 @@
 import { bisector } from 'd3'
 
-import type { WaveformAnnotation, WaveformAnnotationStyle } from '../../types'
+import type { WaveformAnnotation, WaveformAnnotationStyle, WaveformLineType } from '../../types'
 import type {
   AnnotationBoxLayout,
   AnnotationHit,
@@ -46,6 +46,7 @@ const pointBisector = bisector((point: { x: number }) => point.x)
 export function interpolateAnnotationPoint(
   points: Array<{ x: number; y: number }>,
   xValue: number,
+  lineType: WaveformLineType = 'linear',
 ): { x: number; y: number } | null {
   if (!points.length || !Number.isFinite(xValue)) return null
   const first = points[0]
@@ -56,8 +57,16 @@ export function interpolateAnnotationPoint(
   const rightIndex = pointBisector.left(points, xValue)
   const right = points[Math.min(rightIndex, points.length - 1)]
   if (right.x === xValue || rightIndex === 0) return { x: xValue, y: right.y }
+  if (lineType === 'none') return null
 
   const left = points[rightIndex - 1]
+  if (lineType === 'step-start') return { x: xValue, y: right.y }
+  if (lineType === 'step-middle') {
+    return { x: xValue, y: xValue < (left.x + right.x) / 2 ? left.y : right.y }
+  }
+  if (lineType === 'step-end' || lineType === 'step-after') {
+    return { x: xValue, y: left.y }
+  }
   const xSpan = right.x - left.x
   if (xSpan === 0) return { x: xValue, y: right.y }
   const ratio = (xValue - left.x) / xSpan
@@ -72,7 +81,7 @@ export function findAnnotationSeriesCandidates(
 ): AnnotationSeriesCandidate[] {
   return tracks
     .flatMap((track): AnnotationSeriesCandidate[] => {
-      const point = interpolateAnnotationPoint(track.series.points, xValue)
+      const point = interpolateAnnotationPoint(track.series.points, xValue, track.series.lineType)
       if (!point) return []
       const screenX = track.xScale(point.x)
       const screenY = track.top + track.yScale(point.y)

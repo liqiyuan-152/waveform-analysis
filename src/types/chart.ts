@@ -4,6 +4,12 @@
 export interface WaveformPoint {
   x: number
   y: number
+  /** Symmetric Y error used when a side-specific value is not provided. */
+  error?: number
+  /** Error below Y; overrides `error` for the lower side. */
+  lowerError?: number
+  /** Error above Y; overrides `error` for the upper side. */
+  upperError?: number
 }
 
 /**
@@ -46,6 +52,10 @@ export interface WaveformRenderingOptions {
   downsampleThreshold?: number
   /** Upper bound for rendered points per horizontal CSS pixel. */
   maxPointsPerPixel?: number
+  /** Minimum horizontal CSS-pixel spacing between rendered point symbols. Use 0 to disable. */
+  pointMinSpacing?: number
+  /** Minimum horizontal CSS-pixel spacing between rendered error bars. Use 0 to disable. */
+  errorBarMinSpacing?: number
 }
 
 /** Text styling for the chart-level title. */
@@ -81,6 +91,8 @@ export interface WaveformLegendOptions {
   orientation?: WaveformLegendOrientation
   /** CSS color used by the legend panel; alpha controls background transparency. */
   backgroundColor?: string
+  /** Allows legend items to toggle their corresponding series. Defaults to false. */
+  interactive?: boolean
 }
 
 /** Styling shared by every non-empty waveform frame. */

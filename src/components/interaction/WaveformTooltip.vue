@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { resolveWaveformPointErrors } from '../../core'
 import { formatTooltipNumber, formatTooltipTime } from '../../utils'
 import type { WaveformPoint } from '../data/types'
 
@@ -30,15 +31,34 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const tooltipGap = 12
+const containerPadding = 8
+const tooltipMaxWidth = 238
+
 const tooltipStyle = computed(() => {
   if (!props.visible || !props.hoveredPoint) return { display: 'none' }
 
   const estimatedHeight = 44 + props.seriesPoints.length * 22
+  const rightPlacement = props.position.x + tooltipGap
+  const leftPlacement = props.position.x - tooltipGap - tooltipMaxWidth
+  const horizontalStyle =
+    rightPlacement + tooltipMaxWidth <= props.containerWidth - containerPadding
+      ? { left: `${rightPlacement}px` }
+      : leftPlacement >= containerPadding
+        ? { right: `${props.containerWidth - props.position.x + tooltipGap}px` }
+        : { left: `${containerPadding}px` }
+
   return {
-    left: `${Math.min(props.position.x + 12, Math.max(8, props.containerWidth - 250))}px`,
+    ...horizontalStyle,
     top: `${Math.max(8, Math.min(props.position.y - 18, props.containerHeight - estimatedHeight - 8))}px`,
   }
 })
+
+function formatError(point: WaveformPoint): string | null {
+  const { lower, upper } = resolveWaveformPointErrors(point)
+  if (lower === 0 && upper === 0) return null
+  return `(+${formatTooltipNumber(upper)} / -${formatTooltipNumber(lower)})`
+}
 </script>
 
 <template>
@@ -60,6 +80,7 @@ const tooltipStyle = computed(() => {
       <span>
         {{ formatTooltipNumber(seriesPoint.point.y)
         }}{{ seriesPoint.unit ? ` ${seriesPoint.unit}` : '' }}
+        <small v-if="formatError(seriesPoint.point)">{{ formatError(seriesPoint.point) }}</small>
       </span>
     </span>
   </div>
@@ -67,6 +88,7 @@ const tooltipStyle = computed(() => {
 
 <style scoped>
 .waveform-tooltip {
+  box-sizing: border-box;
   position: absolute;
   z-index: 2;
   display: grid;
@@ -109,6 +131,11 @@ const tooltipStyle = computed(() => {
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waveform-tooltip__series small {
+  color: #667085;
   white-space: nowrap;
 }
 </style>

@@ -18,6 +18,9 @@ export type {
   WaveformFrameStyle,
   WaveformPoint,
   WaveformSeries,
+  WaveformLineType,
+  WaveformPointType,
+  WaveformErrorBarOptions,
   WaveformGridOptions,
 } from './data/types'
 

@@ -22,6 +22,10 @@ export type {
 // 数据类型
 export type {
   SingleWaveformData,
+  WaveformLineType,
+  WaveformPointType,
+  WaveformErrorBarOptions,
+  ResolvedWaveformErrorBarOptions,
   WaveformSeries,
   WaveformData,
   NormalizedWaveformSeries,

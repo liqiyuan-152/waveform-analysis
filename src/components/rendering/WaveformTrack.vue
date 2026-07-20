@@ -15,6 +15,7 @@ import type {
   WaveformYAxisLayout,
 } from '../core/types'
 import WaveformLegend from './WaveformLegend.vue'
+import WaveformSeriesLayer from './WaveformSeriesLayer.vue'
 
 interface Props {
   /** 轨道布局信息 */
@@ -47,6 +48,10 @@ interface Props {
   legendOrientation?: 'horizontal' | 'vertical'
   /** 多曲线图例背景颜色 */
   legendBackgroundColor?: string
+  /** 图例是否允许切换曲线显隐 */
+  legendInteractive?: boolean
+  /** 当前隐藏的系列 ID */
+  hiddenSeriesIds?: string[]
 }
 
 interface Emits {
@@ -54,6 +59,7 @@ interface Emits {
   (e: 'pointer-leave'): void
   (e: 'click', event: MouseEvent): void
   (e: 'contextmenu', event: MouseEvent): void
+  (e: 'series-visibility-toggle', seriesId: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,6 +67,8 @@ const props = withDefaults(defineProps<Props>(), {
   legendPosition: 'top-right',
   legendOrientation: 'vertical',
   legendBackgroundColor: 'rgba(255, 255, 255, 0.7)',
+  legendInteractive: false,
+  hiddenSeriesIds: () => [],
 })
 const emit = defineEmits<Emits>()
 
@@ -92,14 +100,6 @@ function setYAxisElement(element: unknown, index: number) {
   if (element) yAxisElements.value[index] = element as SVGGElement
 }
 
-function resolveHoveredYScale() {
-  const seriesId = props.hoveredPoint?.id
-  return (
-    props.track.seriesPaths.find((seriesPath) => seriesPath.series.id === seriesId)?.yScale ??
-    props.track.yScale
-  )
-}
-
 /**
  * 判断是否应该显示 Y 轴标签
  * 在紧凑模式下，当轨道高度太小时隐藏标签避免重叠
@@ -118,12 +118,6 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 function crosshairX(): number {
   return props.hoveredPoint && props.hoveredPoint.trackIndex === props.track.index
     ? props.track.xScale(props.hoveredPoint.point.x)
-    : 0
-}
-
-function crosshairY(): number {
-  return props.hoveredPoint && props.hoveredPoint.trackIndex === props.track.index
-    ? resolveHoveredYScale()(props.hoveredPoint.point.y)
     : 0
 }
 
@@ -213,7 +207,11 @@ watch(
     />
 
     <!-- 网格和背景 -->
-    <g v-if="!track.isEmpty" :clip-path="`url(#${clipPathId}-${track.index})`" aria-hidden="true">
+    <g
+      v-if="!track.isEmpty && track.hasVisibleSeries"
+      :clip-path="`url(#${clipPathId}-${track.index})`"
+      aria-hidden="true"
+    >
       <g
         class="waveform-track__grid waveform-track__grid--minor waveform-chart__grid waveform-chart__grid--minor"
       >
@@ -258,7 +256,7 @@ watch(
 
     <!-- 帧编号水印 -->
     <text
-      v-if="!track.isEmpty && frameNumber !== undefined"
+      v-if="!track.isEmpty && track.hasVisibleSeries && frameNumber !== undefined"
       class="waveform-track__watermark waveform-chart__watermark"
       :x="(track.width ?? innerWidth) / 2"
       :y="track.height / 2"
@@ -344,6 +342,7 @@ watch(
     <g
       v-if="
         !track.isEmpty &&
+        track.hasVisibleSeries &&
         track.seriesList.length === 1 &&
         track.showYAxisLabel &&
         resolveYAxisLabel(track.series) &&
@@ -407,45 +406,21 @@ watch(
       aria-hidden="true"
     />
 
-    <!-- 波形线 -->
-    <g v-if="!track.isEmpty" class="waveform-track__lines">
-      <path
-        v-for="seriesPath in track.seriesPaths"
-        :key="seriesPath.series.id"
-        class="waveform-track__line waveform-chart__line"
-        :data-series-id="seriesPath.series.id"
-        :data-series-name="seriesPath.series.name || undefined"
-        :data-y-axis-index="seriesPath.yAxisIndex"
-        :d="seriesPath.path ?? undefined"
-        :stroke="seriesPath.series.color"
-        :clip-path="`url(#${clipPathId}-${track.index})`"
-      />
-    </g>
-
-    <WaveformLegend
-      v-if="!track.isEmpty && track.seriesList.length > 1"
-      :series="track.seriesList"
-      :position="legendPosition"
-      :orientation="legendOrientation"
-      :background-color="legendBackgroundColor"
-      :width="track.width ?? innerWidth"
-      :height="track.height"
-    />
+    <!-- 波形系列隔离在静态子组件中，避免 hover 更新遍历大量 SVG 节点。 -->
+    <WaveformSeriesLayer :track="track" :clip-path-id="clipPathId" />
 
     <!-- 十字线 -->
     <g
-      v-if="!track.isEmpty && hasCrosshair()"
+      v-if="!track.isEmpty && track.hasVisibleSeries && hasCrosshair()"
       class="waveform-track__crosshair waveform-chart__crosshair"
       :clip-path="`url(#${clipPathId}-${track.index})`"
     >
       <line :x1="crosshairX()" :x2="crosshairX()" y1="0" :y2="track.height" />
-      <line x1="0" :x2="track.width ?? innerWidth" :y1="crosshairY()" :y2="crosshairY()" />
-      <circle :cx="crosshairX()" :cy="crosshairY()" r="4" :fill="track.series.color" />
     </g>
 
     <!-- 交互覆盖层（仅在独立模式下） -->
     <rect
-      v-if="!track.isEmpty && displayMode === 'independent'"
+      v-if="!track.isEmpty && track.hasVisibleSeries && displayMode === 'independent'"
       class="waveform-track__overlay waveform-track__overlay--independent waveform-chart__overlay waveform-chart__overlay--independent"
       :class="{
         'is-zoomable': zoomable && interactionMode === 'zoom',
@@ -459,19 +434,37 @@ watch(
       @click="emit('click', $event)"
       @contextmenu="emit('contextmenu', $event)"
     />
+
+    <text
+      v-if="!track.isEmpty && !track.hasVisibleSeries"
+      class="waveform-track__no-visible-series"
+      :x="(track.width ?? innerWidth) / 2"
+      :y="track.height / 2"
+      text-anchor="middle"
+      dominant-baseline="central"
+    >
+      暂无可见曲线
+    </text>
+
+    <WaveformLegend
+      v-if="!track.isEmpty && track.legendSeries.length > 1"
+      :series="track.legendSeries"
+      :position="legendPosition"
+      :orientation="legendOrientation"
+      :background-color="legendBackgroundColor"
+      :interactive="legendInteractive"
+      :hidden-series-ids="hiddenSeriesIds"
+      :width="track.width ?? innerWidth"
+      :height="track.height"
+      @toggle="emit('series-visibility-toggle', $event)"
+    />
   </g>
 </template>
 
 <style scoped>
 .waveform-track {
   isolation: isolate;
-}
-
-.waveform-track__line {
-  fill: none;
-  stroke-width: 1.5;
-  stroke-linejoin: round;
-  stroke-linecap: round;
+  pointer-events: none;
 }
 
 .waveform-track__y-axis-label-bg {
@@ -517,7 +510,14 @@ watch(
 .waveform-track__overlay {
   fill: transparent;
   cursor: crosshair;
+  pointer-events: all;
   touch-action: none;
+}
+
+.waveform-track__no-visible-series {
+  fill: #8c8c8c;
+  font: 13px sans-serif;
+  pointer-events: none;
 }
 
 .waveform-track__overlay.is-zoomable {
@@ -540,11 +540,6 @@ watch(
   stroke: #57617b;
   stroke-width: 1;
   stroke-dasharray: 4 3;
-}
-
-.waveform-track__crosshair circle {
-  stroke: #fff;
-  stroke-width: 2;
 }
 
 .waveform-track__axis-endpoint {

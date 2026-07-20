@@ -1,6 +1,19 @@
-import { line, scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
+import {
+  curveStep,
+  curveStepAfter,
+  curveStepBefore,
+  line,
+  scaleLinear,
+  zoomIdentity,
+  type ZoomTransform,
+} from 'd3'
 
-import { selectRenderablePoints, type ResolvedWaveformRenderingOptions } from '../../core'
+import {
+  selectDecorationPoints,
+  selectRenderablePoints,
+  resolveWaveformPointErrors,
+  type ResolvedWaveformRenderingOptions,
+} from '../../core'
 import type { WaveformDisplayMode, WaveformOverlayMode, WaveformPoint } from '../../types'
 import {
   buildMinorTicks,
@@ -23,7 +36,7 @@ const Y_AXIS_TICK_PADDING = 7
 const Y_AXIS_OUTER_PADDING = 4
 const Y_AXIS_LABEL_GAP = 6
 const Y_AXIS_LABEL_BAND_WIDTH = 24
-const Y_AXIS_EXPONENT_GAP = 4
+export const Y_AXIS_EXPONENT_GAP = 8
 
 interface YAxisSeriesGroup {
   index: number
@@ -57,8 +70,8 @@ export function buildYAxisSeriesGroups(
   if (cached) return cached
   const axisCount =
     overlayMode === 'multi-axis'
-      ? Math.min(track.series.length, MAX_MULTI_Y_AXIS_COUNT)
-      : Math.min(track.series.length, 1)
+      ? Math.min(track.visibleSeries.length, MAX_MULTI_Y_AXIS_COUNT)
+      : Math.min(track.visibleSeries.length, 1)
   const sides = resolveAxisSides(axisCount)
   const grouped = Array.from({ length: axisCount }, (_, index) => ({
     index,
@@ -67,7 +80,7 @@ export function buildYAxisSeriesGroups(
     domain: [0, 1] as [number, number],
   }))
 
-  track.series.forEach((series, index) => {
+  track.visibleSeries.forEach((series, index) => {
     grouped[Math.min(index, axisCount - 1)]?.seriesList.push(series)
   })
   grouped.forEach((group) => {
@@ -136,7 +149,7 @@ export function measureTrackYAxisClearance(
   return buildYAxisSeriesGroups(track, overlayMode).reduce(
     (clearance, group) => {
       clearance[group.side] +=
-        overlayMode === 'multi-axis' || track.series.length === 1
+        overlayMode === 'multi-axis' || track.visibleSeries.length === 1
           ? measureYAxisGroupClearance(group)
           : measureYAxisGroupTickClearance(group)
       return clearance
@@ -174,6 +187,9 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       id: `empty-grid-slot-${cell.slotIndex}`,
       name: '',
       color: 'transparent',
+      lineType: 'linear',
+      pointType: 'none',
+      errorBar: { visible: false, width: 1.5, capWidth: 8 },
       points: [],
       xDomain: [0, 1],
       yDomain: [0, 1],
@@ -181,10 +197,12 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const displayTrack: DisplayTrack = cell.series ?? {
       id: emptySeries.id,
       series: [emptySeries],
+      visibleSeries: [emptySeries],
       xDomain: emptySeries.xDomain,
       yDomain: emptySeries.yDomain,
     }
-    const series = displayTrack.series[0]
+    const hasVisibleSeries = !isEmpty && displayTrack.visibleSeries.length > 0
+    const series = displayTrack.visibleSeries[0] ?? displayTrack.series[0] ?? emptySeries
     const baseXScale =
       options.displayMode === 'independent'
         ? scaleLinear(displayTrack.xDomain, [0, cell.width])
@@ -220,8 +238,8 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const exponentX =
         x +
         (group.side === 'left'
-          ? -(Y_AXIS_TICK_PADDING + tickTextWidth + exponentClearance)
-          : Y_AXIS_TICK_PADDING + tickTextWidth + exponentClearance)
+          ? -(Y_AXIS_TICK_PADDING + tickTextWidth + Y_AXIS_EXPONENT_GAP)
+          : Y_AXIS_TICK_PADDING + tickTextWidth + Y_AXIS_EXPONENT_GAP)
       const labelDistance =
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
@@ -261,24 +279,69 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const position = xScale(tick)
       return position > leftClearance && position < cell.width - rightClearance
     })
-    const seriesPaths = displayTrack.series.map((trackSeries) => {
+    const seriesPaths = displayTrack.visibleSeries.map((trackSeries) => {
       const yAxis = yAxes.find((axis) =>
         axis.seriesList.some((series) => series.id === trackSeries.id),
       )
       const seriesYScale = yAxis?.scale ?? yScale
-      const renderPoints = selectRenderablePoints(
+      const pathPoints = selectRenderablePoints(
         trackSeries.points,
         domain,
         cell.width,
         options.rendering,
       )
+      const hasError = (point: WaveformPoint) => {
+        const { lower, upper } = resolveWaveformPointErrors(point)
+        return lower !== 0 || upper !== 0
+      }
+      const hasErrorPoints = trackSeries.errorBar.visible && trackSeries.points.some(hasError)
+      const sharesDecorationPoints = trackSeries.pointType !== 'none' && hasErrorPoints
+      const sharedDecorationPoints = sharesDecorationPoints
+        ? selectDecorationPoints(
+            trackSeries.points,
+            domain,
+            cell.width,
+            Math.max(options.rendering.pointMinSpacing, options.rendering.errorBarMinSpacing),
+            options.rendering.downsample,
+            undefined,
+            hasError,
+          )
+        : undefined
+      const pointRenderPoints =
+        trackSeries.pointType === 'none'
+          ? []
+          : (sharedDecorationPoints ??
+            selectDecorationPoints(
+              trackSeries.points,
+              domain,
+              cell.width,
+              options.rendering.pointMinSpacing,
+              options.rendering.downsample,
+            ))
+      const errorBarRenderPoints = trackSeries.errorBar.visible
+        ? (sharedDecorationPoints?.filter(hasError) ??
+          selectDecorationPoints(
+            trackSeries.points,
+            domain,
+            cell.width,
+            options.rendering.errorBarMinSpacing,
+            options.rendering.downsample,
+            hasError,
+          ))
+        : []
+      const pathGenerator = line<WaveformPoint>()
+        .x((point) => xScale(point.x))
+        .y((point) => seriesYScale(point.y))
+      if (trackSeries.lineType === 'step-start') pathGenerator.curve(curveStepBefore)
+      if (trackSeries.lineType === 'step-middle') pathGenerator.curve(curveStep)
+      if (trackSeries.lineType === 'step-end' || trackSeries.lineType === 'step-after') {
+        pathGenerator.curve(curveStepAfter)
+      }
       return {
         series: trackSeries,
-        path: isEmpty
-          ? null
-          : line<WaveformPoint>()
-              .x((point) => xScale(point.x))
-              .y((point) => seriesYScale(point.y))(renderPoints),
+        path: isEmpty || trackSeries.lineType === 'none' ? null : pathGenerator(pathPoints),
+        pointRenderPoints,
+        errorBarRenderPoints,
         yScale: seriesYScale,
         yAxisIndex: yAxis?.index ?? 0,
       }
@@ -287,8 +350,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     return {
       index,
       series,
-      seriesList: displayTrack.series,
+      seriesList: displayTrack.visibleSeries,
+      legendSeries: displayTrack.series,
       isEmpty,
+      hasVisibleSeries,
       column: cell.column,
       showYAxisLabel: !options.hideSecondaryLabels || cell.column === 0,
       yAxisLabelX: options.yAxisLabelX,
@@ -310,10 +375,11 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       path: seriesPaths[0]?.path ?? null,
       seriesPaths,
       showXAxis:
-        options.displayMode === 'independent' ||
-        (options.displayMode === 'compact'
-          ? cell.row === options.grid.rowCount - 1
-          : bottomCells.has(cell.slotIndex)),
+        (isEmpty || hasVisibleSeries) &&
+        (options.displayMode === 'independent' ||
+          (options.displayMode === 'compact'
+            ? cell.row === options.grid.rowCount - 1
+            : bottomCells.has(cell.slotIndex))),
     }
   })
 }
