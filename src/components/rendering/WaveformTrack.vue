@@ -145,7 +145,9 @@ watch(
 <template>
   <g
     class="waveform-track waveform-chart__track"
+    :class="{ 'waveform-track--empty waveform-chart__track--empty': track.isEmpty }"
     :data-track-index="track.index"
+    :data-track-empty="track.isEmpty || undefined"
     :data-track-left="track.left"
     :data-track-width="track.width"
     :data-y-axis-label-x="track.yAxisLabelX"
@@ -154,7 +156,7 @@ watch(
     :transform="`translate(${track.left ?? 0}, ${track.top})`"
   >
     <!-- 网格和背景 -->
-    <g :clip-path="`url(#${clipPathId}-${track.index})`" aria-hidden="true">
+    <g v-if="!track.isEmpty" :clip-path="`url(#${clipPathId}-${track.index})`" aria-hidden="true">
       <g
         class="waveform-track__grid waveform-track__grid--minor waveform-chart__grid waveform-chart__grid--minor"
       >
@@ -199,7 +201,7 @@ watch(
 
     <!-- 帧编号水印 -->
     <text
-      v-if="frameNumber !== undefined"
+      v-if="!track.isEmpty && frameNumber !== undefined"
       class="waveform-track__watermark waveform-chart__watermark"
       :x="(track.width ?? innerWidth) / 2"
       :y="track.height / 2"
@@ -248,6 +250,7 @@ watch(
 
     <!-- Y 轴 -->
     <g
+      v-if="!track.isEmpty"
       ref="yAxisElement"
       class="waveform-track__axis waveform-track__axis--y waveform-chart__axis waveform-chart__axis--y"
     />
@@ -255,6 +258,7 @@ watch(
     <!-- Y 轴标签 -->
     <g
       v-if="
+        !track.isEmpty &&
         track.showYAxisLabel &&
         resolveYAxisLabel(track.series) &&
         shouldShowYAxisLabel(track.height, track.index)
@@ -281,6 +285,7 @@ watch(
 
     <!-- 轨道边框 -->
     <rect
+      v-if="!track.isEmpty"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
       :width="track.width ?? innerWidth"
       :height="track.height"
@@ -289,6 +294,7 @@ watch(
 
     <!-- 波形线 -->
     <path
+      v-if="!track.isEmpty"
       class="waveform-track__line waveform-chart__line"
       :data-series-id="track.series.id"
       :data-series-name="track.series.name || undefined"
@@ -299,7 +305,7 @@ watch(
 
     <!-- 十字线 -->
     <g
-      v-if="hasCrosshair()"
+      v-if="!track.isEmpty && hasCrosshair()"
       class="waveform-track__crosshair waveform-chart__crosshair"
       :clip-path="`url(#${clipPathId}-${track.index})`"
     >
@@ -310,7 +316,7 @@ watch(
 
     <!-- 交互覆盖层（仅在独立模式下） -->
     <rect
-      v-if="displayMode === 'independent'"
+      v-if="!track.isEmpty && displayMode === 'independent'"
       class="waveform-track__overlay waveform-track__overlay--independent waveform-chart__overlay waveform-chart__overlay--independent"
       :class="{
         'is-zoomable': zoomable && interactionMode === 'zoom',

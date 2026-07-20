@@ -102,6 +102,7 @@ h1 {
 }
 
 .chart-panel {
+  height: clamp(560px, calc(100vh - 190px), 800px);
   background: transparent;
 }
 

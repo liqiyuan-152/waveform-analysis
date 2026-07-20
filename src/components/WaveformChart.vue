@@ -65,6 +65,7 @@ const props = withDefaults(
   defineProps<{
     data: WaveformData
     displayMode?: WaveformDisplayMode
+    width?: number
     height?: number
     xLabel?: string
     yLabel?: string
@@ -82,7 +83,6 @@ const props = withDefaults(
   }>(),
   {
     displayMode: 'independent',
-    height: 360,
     yLabel: '幅值',
     lineColor: '#0960bd',
     showTooltip: true,
@@ -115,7 +115,8 @@ const minimumHeight = chartMinimumHeight
 const container = ref<HTMLDivElement>()
 const svgElement = ref<SVGSVGElement>()
 const sharedOverlayElement = ref<SVGRectElement>()
-const width = ref(0)
+const observedWidth = ref(0)
+const observedHeight = ref(0)
 const sharedTransform = shallowRef<ZoomTransform>(zoomIdentity)
 const independentTransforms = shallowRef<ZoomTransform[]>([])
 const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
@@ -141,9 +142,22 @@ interface TooltipSeriesPoint {
   point: WaveformPoint
 }
 
-const chartHeight = computed(() =>
-  Number.isFinite(props.height) ? Math.max(minimumHeight, props.height) : 360,
+const fixedWidth = computed(() =>
+  Number.isFinite(props.width) ? Math.max(0, props.width ?? 0) : undefined,
 )
+const fixedHeight = computed(() =>
+  Number.isFinite(props.height) ? Math.max(minimumHeight, props.height ?? 0) : undefined,
+)
+const chartWidth = computed(() =>
+  observedWidth.value > 0 ? observedWidth.value : (fixedWidth.value ?? 0),
+)
+const chartHeight = computed(() =>
+  observedHeight.value > 0 ? observedHeight.value : (fixedHeight.value ?? minimumHeight),
+)
+const containerStyle = computed(() => ({
+  width: fixedWidth.value === undefined ? '100%' : `${fixedWidth.value}px`,
+  height: fixedHeight.value === undefined ? '100%' : `${fixedHeight.value}px`,
+}))
 const innerHeight = computed(() => Math.max(0, chartHeight.value - margin.top - margin.bottom))
 const chartSeries = computed<DisplaySeries[]>(() =>
   preparedSeries.value.map((series, index: number): DisplaySeries => ({
@@ -203,7 +217,9 @@ const chartLeftMargin = computed(() =>
         : 0,
   ),
 )
-const innerWidth = computed(() => Math.max(0, width.value - chartLeftMargin.value - margin.right))
+const innerWidth = computed(() =>
+  Math.max(0, chartWidth.value - chartLeftMargin.value - margin.right),
+)
 const yAxisLayout = computed(() => {
   const baseGap = getGridGap(props.displayMode)
   const columnCount = gridOptions.value.columnCount
@@ -277,6 +293,7 @@ const trackLayouts = computed<TrackLayout[]>(() =>
     rendering: renderingOptions.value,
     hideSecondaryLabels: yAxisLayout.value.hideSecondaryLabels,
     yAxisLabelX: yAxisMetrics.value.labelCenterX,
+    showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
   }),
 )
 
@@ -445,7 +462,7 @@ function resolvePointerEditorAnchor(
   trackIndex?: number,
 ): AnnotationEditorAnchor {
   const overlay = event.currentTarget as SVGRectElement | null
-  if (!overlay) return { x: width.value / 2, y: chartHeight.value / 2 }
+  if (!overlay) return { x: chartWidth.value / 2, y: chartHeight.value / 2 }
   const [pointerX, pointerY] = pointer(event, overlay)
   const track = trackIndex === undefined ? undefined : trackLayouts.value[trackIndex]
   return {
@@ -457,7 +474,9 @@ function resolvePointerEditorAnchor(
 function resolveAnnotationEditorAnchor(annotation: WaveformAnnotation): AnnotationEditorAnchor {
   const track = trackLayouts.value.find((item) => item.series.id === annotation.seriesId)
   return {
-    x: track ? chartLeftMargin.value + track.left + track.xScale(annotation.x) : width.value / 2,
+    x: track
+      ? chartLeftMargin.value + track.left + track.xScale(annotation.x)
+      : chartWidth.value / 2,
     y: track ? margin.top + track.top + track.yScale(annotation.y) : chartHeight.value / 2,
   }
 }
@@ -600,12 +619,12 @@ function handleExistingAnnotationContextMenu(annotationId: string, event: MouseE
   if (!annotation) return
   const bounds = container.value.getBoundingClientRect()
   const editorAnchor = {
-    x: Math.max(0, Math.min(event.clientX - bounds.left, width.value)),
+    x: Math.max(0, Math.min(event.clientX - bounds.left, chartWidth.value)),
     y: Math.max(0, Math.min(event.clientY - bounds.top, chartHeight.value)),
   }
   annotationInteraction.openContextMenu({
     annotationId,
-    x: Math.max(4, Math.min(event.clientX - bounds.left, width.value - 120)),
+    x: Math.max(4, Math.min(event.clientX - bounds.left, chartWidth.value - 120)),
     y: Math.max(4, Math.min(event.clientY - bounds.top, chartHeight.value - 110)),
     editorAnchor,
   })
@@ -799,7 +818,8 @@ watch(
 onMounted(() => {
   if (!container.value) return
   resizeObserver.value = new ResizeObserver(([entry]) => {
-    width.value = Math.max(0, entry?.contentRect.width ?? 0)
+    observedWidth.value = Math.max(0, entry?.contentRect.width ?? 0)
+    observedHeight.value = Math.max(0, entry?.contentRect.height ?? 0)
   })
   resizeObserver.value.observe(container.value)
 })
@@ -819,7 +839,7 @@ onBeforeUnmount(() => {
       `waveform-chart--${displayMode}`,
       `waveform-chart--interaction-${activeInteractionMode}`,
     ]"
-    :style="{ height: `${chartHeight}px` }"
+    :style="containerStyle"
     :data-display-mode="displayMode"
     :data-interaction-mode="activeInteractionMode"
     :data-chart-left-margin="chartLeftMargin"
@@ -827,7 +847,7 @@ onBeforeUnmount(() => {
     <svg
       ref="svgElement"
       class="waveform-chart__svg"
-      :width="width"
+      :width="chartWidth"
       :height="chartHeight"
       role="img"
       :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
@@ -844,7 +864,7 @@ onBeforeUnmount(() => {
       </defs>
 
       <g :transform="`translate(${chartLeftMargin}, ${margin.top})`">
-        <g class="waveform-chart__grid-slots" aria-hidden="true">
+        <g v-if="displayMode !== 'compact'" class="waveform-chart__grid-slots" aria-hidden="true">
           <g
             v-for="cell in gridCells"
             :key="`grid-slot-${cell.slotIndex}`"
@@ -915,7 +935,7 @@ onBeforeUnmount(() => {
       <text
         v-if="hasChartArea && !hasWaveformData"
         class="waveform-chart__empty"
-        :x="width / 2"
+        :x="chartWidth / 2"
         :y="chartHeight / 2"
         text-anchor="middle"
       >
@@ -972,7 +992,7 @@ onBeforeUnmount(() => {
       :time-unit="timeUnit"
       :hovered-point="hoveredPoint"
       :series-points="tooltipSeriesPoints"
-      :container-width="width"
+      :container-width="chartWidth"
       :container-height="chartHeight"
     />
   </div>
@@ -980,9 +1000,10 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .waveform-chart {
+  box-sizing: border-box;
   position: relative;
-  width: 100%;
   min-width: 0;
+  min-height: 180px;
   overflow: hidden;
   color: #475467;
   background: #fff;

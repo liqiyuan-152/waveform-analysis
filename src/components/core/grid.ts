@@ -81,6 +81,10 @@ export function resolveGridCellGeometry(
   const axisRows = new Set<number>()
   if (displayMode === 'independent') {
     for (let row = 0; row < options.rowCount; row += 1) axisRows.add(row)
+  } else if (displayMode === 'compact') {
+    // Compact tracks share one continuous plot stack. Reserve the X-axis band
+    // only beneath the final grid row, including when that row is empty.
+    axisRows.add(options.rowCount - 1)
   } else {
     for (let column = 0; column < options.columnCount; column += 1) {
       for (let slotIndex = getPageSize(options) - 1; slotIndex >= 0; slotIndex -= 1) {

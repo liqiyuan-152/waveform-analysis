@@ -297,6 +297,64 @@ describe('WaveformChart', () => {
     }
   })
 
+  it('keeps unused compact cells visually empty while preserving bottom X axes', async () => {
+    const data = gridSeries(4)
+    if (data.kind === 'series') {
+      data.series.forEach((series, index) => {
+        series.data = {
+          kind: 'points',
+          points: [
+            { x: 100, y: index },
+            { x: 200, y: index + 1 },
+          ],
+        }
+      })
+    }
+    const wrapper = await mountSizedChart(data, {
+      displayMode: 'compact',
+      grid: { rowCount: 2, columnCount: 3 },
+    })
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    const emptyTracks = wrapper.findAll('.waveform-chart__track--empty')
+    const firstTrackTop = Number(tracks[0].attributes('data-track-top'))
+    const firstTrackHeight = Number(tracks[0].attributes('data-track-height'))
+    const secondRowFirstTrackTop = Number(tracks[3].attributes('data-track-top'))
+
+    expect(tracks).toHaveLength(6)
+    expect(emptyTracks).toHaveLength(2)
+    expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
+    expect(secondRowFirstTrackTop).toBe(firstTrackTop + firstTrackHeight)
+    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(3)
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(4)
+    expect(emptyTracks[0].findAll('.waveform-chart__grid')).toHaveLength(0)
+    expect(emptyTracks[0].find('.waveform-chart__plot-frame').exists()).toBe(false)
+    expect(emptyTracks[0].find('.waveform-chart__axis--y').exists()).toBe(false)
+    expect(emptyTracks[0].find('.waveform-chart__line').exists()).toBe(false)
+    expect(emptyTracks[0].find('.waveform-chart__y-axis-label').exists()).toBe(false)
+    expect(emptyTracks[0].find('.waveform-chart__watermark').exists()).toBe(false)
+
+    const populatedBottomTrack = tracks[3]
+    expect(emptyTracks[0].get('.waveform-chart__axis-endpoint--start').text()).toBe(
+      populatedBottomTrack.get('.waveform-chart__axis-endpoint--start').text(),
+    )
+    expect(emptyTracks[0].get('.waveform-chart__axis-endpoint--end').text()).toBe(
+      populatedBottomTrack.get('.waveform-chart__axis-endpoint--end').text(),
+    )
+  })
+
+  it('shows the global empty state when compact data has no valid channels', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [1], sampleRate: -1 },
+      { displayMode: 'compact', grid: { rowCount: 2, columnCount: 3 } },
+    )
+
+    expect(wrapper.get('.waveform-chart__empty').text()).toContain('暂无有效波形数据')
+    expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
+  })
+
   it('resets the page when the grid configuration changes', async () => {
     const wrapper = await mountSizedChart(gridSeries(5), {
       grid: { rowCount: 1, columnCount: 1 },
@@ -350,6 +408,108 @@ describe('WaveformChart', () => {
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('500')
     expect(wrapper.get('.waveform-chart__line').attributes('d')).not.toBe(initialPath)
+  })
+
+  it('uses fixed dimensions when both width and height are specified', async () => {
+    const wrapper = mount(WaveformChart, {
+      props: {
+        data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        width: 640,
+        height: 420,
+      },
+    })
+
+    expect(wrapper.attributes('style')).toContain('width: 640px')
+    expect(wrapper.attributes('style')).toContain('height: 420px')
+    expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
+
+    resizeObservers.at(-1)?.resize(640, 420)
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
+  })
+
+  it('allows fixed width and adaptive height to work independently', async () => {
+    const wrapper = mount(WaveformChart, {
+      props: {
+        data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        width: 640,
+      },
+    })
+
+    expect(wrapper.attributes('style')).toContain('width: 640px')
+    expect(wrapper.attributes('style')).toContain('height: 100%')
+
+    resizeObservers.at(-1)?.resize(640, 500)
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('500')
+  })
+
+  it('allows adaptive width and fixed height to work independently', async () => {
+    const wrapper = mount(WaveformChart, {
+      props: {
+        data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        height: 420,
+      },
+    })
+
+    expect(wrapper.attributes('style')).toContain('width: 100%')
+    expect(wrapper.attributes('style')).toContain('height: 420px')
+
+    resizeObservers.at(-1)?.resize(900, 420)
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('900')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
+  })
+
+  it('fills both dimensions and responds to container size changes by default', async () => {
+    const wrapper = mount(WaveformChart, {
+      props: { data: { kind: 'samples', values: [0, 1], sampleRate: 1 } },
+    })
+
+    expect(wrapper.attributes('style')).toContain('width: 100%')
+    expect(wrapper.attributes('style')).toContain('height: 100%')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('180')
+
+    resizeObservers.at(-1)?.resize(800, 520)
+    await flushPromises()
+    expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('520')
+
+    resizeObservers.at(-1)?.resize(500, 300)
+    await flushPromises()
+    expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('500')
+    expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('300')
+  })
+
+  it('applies size fallbacks for minimum, negative, and non-finite values', async () => {
+    const minimumWrapper = mount(WaveformChart, {
+      props: {
+        data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        width: -20,
+        height: -20,
+      },
+    })
+
+    expect(minimumWrapper.attributes('style')).toContain('width: 0px')
+    expect(minimumWrapper.attributes('style')).toContain('height: 180px')
+    expect(minimumWrapper.get('.waveform-chart__svg').attributes('height')).toBe('180')
+
+    const adaptiveWrapper = mount(WaveformChart, {
+      props: {
+        data: { kind: 'samples', values: [0, 1], sampleRate: 1 },
+        width: Number.POSITIVE_INFINITY,
+        height: Number.NaN,
+      },
+    })
+
+    expect(adaptiveWrapper.attributes('style')).toContain('width: 100%')
+    expect(adaptiveWrapper.attributes('style')).toContain('height: 100%')
   })
 
   it('keeps a 100k-point SVG path bounded by the plot width', async () => {
@@ -430,6 +590,32 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(true)
     expect(wrapper.get('.waveform-chart__watermark').text()).toBe('12')
     expect(wrapper.get('.waveform-chart__line').attributes('stroke')).toBe('#0960bd')
+  })
+
+  it('continues minor x-grid lines beyond the final major tick to the exact endpoint', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: -8, y: 0 },
+        { x: 4.9903, y: 1 },
+      ],
+    })
+    const majorGridPositions = wrapper
+      .findAll('.waveform-chart__grid--major line')
+      .map((line) => Number(line.attributes('x1')))
+      .filter(Number.isFinite)
+    const minorGridPositions = wrapper
+      .findAll('.waveform-chart__grid--minor line')
+      .map((line) => Number(line.attributes('x1')))
+      .filter(Number.isFinite)
+    const trackWidth = Number(wrapper.get('.waveform-chart__track').attributes('data-track-width'))
+
+    expect(Math.max(...minorGridPositions)).toBeGreaterThan(Math.max(...majorGridPositions))
+    expect(Math.max(...minorGridPositions)).toBeLessThan(trackWidth)
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').attributes('x')).toBe(
+      String(trackWidth),
+    )
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4,990')
   })
 
   it('uses one shared scientific exponent only for large and tiny Y-axis domains', async () => {
@@ -672,7 +858,7 @@ describe('WaveformChart', () => {
     ).toEqual(['1,000', '2,000'])
   })
 
-  it('does not duplicate Y-axis boundary labels in compact mode', async () => {
+  it('keeps the zero Y-axis label on upper compact tracks', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -703,14 +889,170 @@ describe('WaveformChart', () => {
     )
 
     const tracks = wrapper.findAll('.waveform-chart__track')
-    const firstTrackHeight = Number(tracks[0].attributes('data-track-height'))
     const firstAxisTicks = tracks[0].findAll('.waveform-chart__axis--y .tick')
-    const hasBottomBoundaryTick = firstAxisTicks.some((tick) => {
-      const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
-      return match ? Math.abs(Number(match[1]) - firstTrackHeight) < 0.1 : false
-    })
+    const zeroTicks = firstAxisTicks.filter((tick) => Number(tick.text()) === 0)
+    const firstTrackHeight = Number(tracks[0].attributes('data-track-height'))
+    const zeroTickY = Number(
+      zeroTicks[0].attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)?.[1],
+    )
 
-    expect(hasBottomBoundaryTick).toBe(false)
+    expect(zeroTicks).toHaveLength(1)
+    expect(Math.abs(zeroTickY - firstTrackHeight)).toBeLessThanOrEqual(1)
+  })
+
+  it.each(['independent', 'separated', 'compact'] as const)(
+    'shows a non-zero Y-axis start value once in %s mode',
+    async (displayMode) => {
+      const wrapper = await mountSizedChart(
+        {
+          kind: 'series',
+          series: [
+            {
+              name: 'first',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 0.11 },
+                  { x: 1, y: 0.89 },
+                ],
+              },
+            },
+            {
+              name: 'second',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 4 },
+                  { x: 1, y: 5 },
+                ],
+              },
+            },
+          ],
+        },
+        { displayMode },
+      )
+
+      const firstTrack = wrapper.findAll('.waveform-chart__track')[0]
+      const firstTrackHeight = Number(firstTrack.attributes('data-track-height'))
+      const startTicks = firstTrack.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
+        const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
+        return match ? Math.abs(Number(match[1]) - firstTrackHeight) <= 1 : false
+      })
+
+      expect(startTicks).toHaveLength(1)
+      expect(Number(startTicks[0].text())).toBe(0.1)
+    },
+  )
+
+  it.each(['independent', 'separated'] as const)(
+    'shows the Y-axis end value once on every track in %s mode',
+    async (displayMode) => {
+      const wrapper = await mountSizedChart(
+        {
+          kind: 'series',
+          series: [
+            {
+              name: 'first',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 0.11 },
+                  { x: 1, y: 0.89 },
+                ],
+              },
+            },
+            {
+              name: 'second',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 4.11 },
+                  { x: 1, y: 4.89 },
+                ],
+              },
+            },
+          ],
+        },
+        { displayMode },
+      )
+
+      const expectedEndValues = [0.9, 4.9]
+      wrapper.findAll('.waveform-chart__track').forEach((track, index) => {
+        const endTicks = track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
+          const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
+          return match ? Math.abs(Number(match[1])) <= 1 : false
+        })
+
+        expect(endTicks).toHaveLength(1)
+        expect(Number(endTicks[0].text())).toBe(expectedEndValues[index])
+      })
+    },
+  )
+
+  it('shows Y-axis end values only on the top row in compact mode', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            name: 'top-left',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0.11 },
+                { x: 1, y: 0.89 },
+              ],
+            },
+          },
+          {
+            name: 'top-right',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 1.11 },
+                { x: 1, y: 1.89 },
+              ],
+            },
+          },
+          {
+            name: 'bottom-left',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 2 },
+                { x: 1, y: 3 },
+              ],
+            },
+          },
+          {
+            name: 'bottom-right',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 4 },
+                { x: 1, y: 5 },
+              ],
+            },
+          },
+        ],
+      },
+      { displayMode: 'compact', grid: { rowCount: 2, columnCount: 2 } },
+    )
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    const endTicks = tracks.map((track) =>
+      track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
+        const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
+        return match ? Math.abs(Number(match[1])) <= 1 : false
+      }),
+    )
+
+    expect(endTicks[0]).toHaveLength(1)
+    expect(Number(endTicks[0][0].text())).toBe(0.9)
+    expect(endTicks[1]).toHaveLength(1)
+    expect(Number(endTicks[1][0].text())).toBe(1.9)
+    expect(endTicks[2]).toHaveLength(0)
+    expect(endTicks[3]).toHaveLength(0)
   })
 
   it('keeps the shared exponent on the top visible tick in compact mode', async () => {
