@@ -33,6 +33,22 @@ import 'waveform-analysis/style.css'
 Vue、D3、Ant Design Vue 和 vue3-colorpicker 是 peer dependencies，需要由使用方安装。
 `WaveformChart` 支持采样值与采样率，也支持显式的 `{ x, y }[]` 点数组。
 
+## 发布
+
+发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再创建同版本 tag：
+
+```bash
+git tag -a v0.1.7 -m "Release v0.1.7"
+git push origin main --follow-tags
+```
+
+支持稳定版 `vX.Y.Z` 与预发布版 `vX.Y.Z-rc.1`。tag 去掉 `v` 后必须与 `package.json` 的
+`version` 完全一致。稳定版发布为 npm `latest` 并更新服务器下载目录的 latest 链接；预发布版发布为
+npm `next`，不会覆盖稳定版 latest。流水线会创建 Gitea Release，并上传 `.tgz` 与 SHA-256 校验文件。
+
+仓库 Actions 需要配置 `NPM_PUBLISH_TOKEN`（npm 包发布权限）和 `GITEA_RELEASE_TOKEN`（仓库 Release
+写入权限）两个 Secret。
+
 ## 波形图
 
 组件内置缩放、悬浮取点和 tooltip。调用方只需要提供波形数据：

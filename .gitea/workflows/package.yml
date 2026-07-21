@@ -2,9 +2,8 @@ name: Package component
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 jobs:
   package:
@@ -17,10 +16,11 @@ jobs:
           set -euo pipefail
           server_url="${{ gitea.server_url }}"
           repository_url="${server_url%/}/${{ gitea.repository }}.git"
+          tag_name="${{ gitea.ref_name }}"
           git init .
           git remote add origin "$repository_url"
-          git fetch --depth 1 origin "${{ gitea.sha }}"
-          git checkout --detach FETCH_HEAD
+          git fetch --depth 1 origin "refs/tags/$tag_name:refs/tags/$tag_name"
+          git checkout --detach "$tag_name^{commit}"
 
       - name: Set up pnpm
         run: |
@@ -30,47 +30,71 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Set package version
+      - name: Validate release version
         shell: bash
         run: |
           set -euo pipefail
+          tag_name="${{ gitea.ref_name }}"
+          tag_pattern='^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)$'
+          if [[ ! "$tag_name" =~ $tag_pattern ]]; then
+            echo "Release tags must use vX.Y.Z or vX.Y.Z-prerelease format: $tag_name" >&2
+            exit 1
+          fi
+
+          package_version="${BASH_REMATCH[1]}"
           source_version="$(node -p "require('./package.json').version")"
-          latest_version="$(
-            find /downloads -maxdepth 1 -type f -name 'waveform-analysis-*-*.tgz' -printf '%f\n' \
-              | sed -nE 's/^waveform-analysis-([0-9]+\.[0-9]+\.[0-9]+)-[0-9a-f]+\.tgz$/\1/p' \
-              | sort -V \
-              | tail -n 1
-          )"
-          next_version="$(node - "$source_version" "$latest_version" <<'NODE'
-          const source = process.argv[2]
-          const latest = process.argv[3]
-          const parse = (version) => {
-            const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version)
-            if (!match) throw new Error(`Unsupported package version: ${version}`)
-            return match.slice(1).map(Number)
-          }
-          const compare = (left, right) => {
-            for (let index = 0; index < 3; index += 1) {
-              if (left[index] !== right[index]) return left[index] - right[index]
-            }
-            return 0
-          }
-          const sourceParts = parse(source)
-          if (!latest) {
-            process.stdout.write(source)
-          } else {
-            const latestParts = parse(latest)
-            if (compare(sourceParts, latestParts) > 0) {
-              process.stdout.write(source)
-            } else {
-              latestParts[2] += 1
-              process.stdout.write(latestParts.join('.'))
-            }
-          }
-          NODE
-          )"
-          pnpm pkg set version="$next_version"
-          printf 'Packaging waveform-analysis@%s\n' "$next_version"
+          if [[ "$source_version" != "$package_version" ]]; then
+            echo "package.json version $source_version does not match tag $tag_name" >&2
+            exit 1
+          fi
+
+          if [[ "$package_version" == *-* ]]; then
+            npm_dist_tag='next'
+            is_prerelease='true'
+          else
+            npm_dist_tag='latest'
+            is_prerelease='false'
+          fi
+
+          cat > release.env <<EOF
+          TAG_NAME=$tag_name
+          PACKAGE_VERSION=$package_version
+          NPM_DIST_TAG=$npm_dist_tag
+          IS_PRERELEASE=$is_prerelease
+          EOF
+          printf 'Packaging waveform-analysis@%s from %s\n' "$package_version" "$tag_name"
+
+      - name: Verify release is new
+        shell: bash
+        run: |
+          set -euo pipefail
+          source release.env
+          server_url="${{ gitea.server_url }}"
+          registry_url="${server_url%/}/api/packages/admin/npm/"
+          package_name="$(node -p "require('./package.json').name")"
+
+          release_status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            "$server_url/api/v1/repos/${{ gitea.repository }}/releases/tags/$TAG_NAME")"
+          if [[ "$release_status" != '404' ]]; then
+            echo "Release tag $TAG_NAME already exists or could not be checked (HTTP $release_status)" >&2
+            exit 1
+          fi
+
+          package_metadata="$(curl --fail --show-error --silent "$registry_url$package_name")"
+          if node -e 'const chunks = []; process.stdin.on("data", chunk => chunks.push(chunk)); process.stdin.on("end", () => { const metadata = JSON.parse(Buffer.concat(chunks).toString()); process.exit(metadata.versions?.[process.argv[1]] ? 0 : 1) })' "$PACKAGE_VERSION" <<<"$package_metadata"; then
+            echo "npm package $package_name@$PACKAGE_VERSION already exists" >&2
+            exit 1
+          fi
+
+      - name: Validate publish credentials
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+          GITEA_RELEASE_TOKEN: ${{ secrets.GITEA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          : "${NODE_AUTH_TOKEN:?NPM_PUBLISH_TOKEN is required}"
+          : "${GITEA_RELEASE_TOKEN:?GITEA_RELEASE_TOKEN is required}"
 
       - name: Type check
         run: pnpm typecheck
@@ -85,14 +109,25 @@ jobs:
         run: pnpm build
 
       - name: Pack component
-        run: pnpm pack --pack-destination artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          source release.env
+          pnpm pack --pack-destination artifacts
+          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          test -n "$package_file"
+          mkdir -p release-assets
+          published_name="waveform-analysis-${PACKAGE_VERSION}.tgz"
+          install -m 644 "$package_file" "release-assets/$published_name"
+          sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
 
       - name: Verify component package
         shell: bash
         run: |
           set -euo pipefail
-          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
-          test -n "$package_file"
+          source release.env
+          package_file="release-assets/waveform-analysis-${PACKAGE_VERSION}.tgz"
+          test -f "$package_file"
           package_contents="$(tar -tzf "$package_file")"
           for required_file in \
             package/dist/index.js \
@@ -110,15 +145,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
-          package_version="$(node -p "require('./package.json').version")"
-          short_sha="$(printf '%.12s' '${{ gitea.sha }}')"
-          published_name="waveform-analysis-${package_version}-${short_sha}.tgz"
-          install -m 644 "$package_file" "/downloads/$published_name"
+          source release.env
+          published_name="waveform-analysis-${PACKAGE_VERSION}.tgz"
+          install -m 644 "release-assets/$published_name" "/downloads/$published_name"
           cd /downloads
           sha256sum "$published_name" > "$published_name.sha256"
-          ln -sfn "$published_name" waveform-analysis-latest.tgz
-          ln -sfn "$published_name.sha256" waveform-analysis-latest.tgz.sha256
+          if [[ "$IS_PRERELEASE" == 'false' ]]; then
+            ln -sfn "$published_name" waveform-analysis-latest.tgz
+            ln -sfn "$published_name.sha256" waveform-analysis-latest.tgz.sha256
+          fi
 
       - name: Publish to Gitea npm registry
         shell: bash
@@ -126,8 +161,51 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
         run: |
           set -euo pipefail
+          source release.env
+          : "${NODE_AUTH_TOKEN:?NPM_PUBLISH_TOKEN is required}"
           registry_url='https://lqycustomsite.online/api/packages/admin/npm/'
-          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
-          test -n "$package_file"
+          package_file="release-assets/waveform-analysis-${PACKAGE_VERSION}.tgz"
           npm config set -- '//lqycustomsite.online/api/packages/admin/npm/:_authToken' "$NODE_AUTH_TOKEN"
-          npm publish "./$package_file" --registry="$registry_url"
+          npm publish "$package_file" --registry="$registry_url" --tag "$NPM_DIST_TAG"
+
+      - name: Create Gitea release
+        shell: bash
+        env:
+          GITEA_RELEASE_TOKEN: ${{ secrets.GITEA_RELEASE_TOKEN }}
+        run: |
+          set -euo pipefail
+          source release.env
+          : "${GITEA_RELEASE_TOKEN:?GITEA_RELEASE_TOKEN is required}"
+          server_url="${{ gitea.server_url }}"
+          api_url="$server_url/api/v1/repos/${{ gitea.repository }}/releases"
+          target_commitish="$(git rev-parse HEAD)"
+
+          node - "$TAG_NAME" "$PACKAGE_VERSION" "$target_commitish" "$IS_PRERELEASE" > release.json <<'NODE'
+          const [tagName, packageVersion, targetCommitish, prerelease] = process.argv.slice(2)
+          process.stdout.write(JSON.stringify({
+            tag_name: tagName,
+            target_commitish: targetCommitish,
+            name: `waveform-analysis ${tagName}`,
+            body: `Release ${tagName}\n\n- npm: waveform-analysis@${packageVersion}`,
+            draft: false,
+            prerelease: prerelease === 'true',
+          }))
+          NODE
+
+          release_response="$(curl --fail --show-error --silent \
+            --request POST \
+            --header "Authorization: token $GITEA_RELEASE_TOKEN" \
+            --header 'Content-Type: application/json' \
+            --data @release.json \
+            "$api_url")"
+          release_id="$(node -e 'const chunks = []; process.stdin.on("data", chunk => chunks.push(chunk)); process.stdin.on("end", () => { const release = JSON.parse(Buffer.concat(chunks).toString()); if (!release.id) process.exit(1); process.stdout.write(String(release.id)) })' <<<"$release_response")"
+
+          for asset in release-assets/*; do
+            asset_name="$(basename "$asset")"
+            curl --fail --show-error --silent \
+              --request POST \
+              --header "Authorization: token $GITEA_RELEASE_TOKEN" \
+              --header 'Content-Type: application/octet-stream' \
+              --data-binary "@$asset" \
+              "$api_url/$release_id/assets?name=$asset_name" > /dev/null
+          done
