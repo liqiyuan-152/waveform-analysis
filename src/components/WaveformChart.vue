@@ -13,6 +13,7 @@ import {
 } from 'd3'
 import { resolveWaveformRenderingOptions } from '../core'
 import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../utils'
+import { useAnimationFrameThrottle } from './utils/useAnimationFrameThrottle'
 import {
   computed,
   nextTick,
@@ -173,11 +174,10 @@ const annotationInteraction = useWaveformAnnotationInteraction()
 const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
 let generatedAnnotationId = 0
 let synchronizingZoomTransform = false
-let zoomAnimationFrame: number | null = null
 let pendingSharedZoomTransform: ZoomTransform | null = null
 const pendingIndependentZoomTransforms = new Map<number, ZoomTransform>()
-let hoverAnimationFrame: number | null = null
-let pendingHoverUpdate: (() => void) | null = null
+const zoomThrottle = useAnimationFrameThrottle()
+const hoverThrottle = useAnimationFrameThrottle()
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
 
 // 用于传递给 WaveformTooltip 的接口
@@ -608,27 +608,18 @@ function commitPendingZoom() {
 }
 
 function scheduleZoomCommit() {
-  if (zoomAnimationFrame !== null) return
-  zoomAnimationFrame = requestAnimationFrame(() => {
-    zoomAnimationFrame = null
-    commitPendingZoom()
-  })
+  zoomThrottle.schedule(() => commitPendingZoom())
 }
 
 function flushPendingZoom() {
-  if (zoomAnimationFrame !== null) {
-    cancelAnimationFrame(zoomAnimationFrame)
-    zoomAnimationFrame = null
-  }
+  zoomThrottle.flush()
   commitPendingZoom()
 }
 
 function cancelPendingZoom() {
   pendingSharedZoomTransform = null
   pendingIndependentZoomTransforms.clear()
-  if (zoomAnimationFrame === null) return
-  cancelAnimationFrame(zoomAnimationFrame)
-  zoomAnimationFrame = null
+  zoomThrottle.cancel()
 }
 
 function clearZoomBindings() {
@@ -705,21 +696,11 @@ function configureZoom() {
 }
 
 function cancelPendingHover() {
-  pendingHoverUpdate = null
-  if (hoverAnimationFrame === null) return
-  cancelAnimationFrame(hoverAnimationFrame)
-  hoverAnimationFrame = null
+  hoverThrottle.cancel()
 }
 
 function scheduleHover(update: () => void) {
-  pendingHoverUpdate = update
-  if (hoverAnimationFrame !== null) return
-  hoverAnimationFrame = requestAnimationFrame(() => {
-    hoverAnimationFrame = null
-    const nextUpdate = pendingHoverUpdate
-    pendingHoverUpdate = null
-    nextUpdate?.()
-  })
+  hoverThrottle.schedule(update)
 }
 
 function hoveredPointsMatch(nextPoints: HoveredSeriesPoint[]): boolean {
@@ -1051,9 +1032,15 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
   const overlay = event.currentTarget as SVGRectElement | null
   if (!overlay) return
   const [pointerX, pointerY] = pointer(event, overlay)
+  // 捕获轨道对象以避免竞态条件
+  const track = trackLayouts.value[trackIndex]
+  if (!track || !track.hasVisibleSeries) return
+
   scheduleHover(() => {
-    const track = trackLayouts.value[trackIndex]
-    if (!track) return
+    // 重新验证轨道仍然有效且有可见系列
+    const currentTrack = trackLayouts.value[trackIndex]
+    if (!currentTrack || !currentTrack.hasVisibleSeries || currentTrack !== track) return
+
     const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
     const nextPoints = track.seriesList.flatMap((series) => {
       const point = nearestPoint(series, xValue)
@@ -1177,7 +1164,7 @@ watch(
     )
     if (
       retainedIds.size !== internalHiddenSeriesIds.value.size ||
-      Array.from(retainedIds).some((seriesId) => !internalHiddenSeriesIds.value.has(seriesId))
+      Array.from(internalHiddenSeriesIds.value).some((seriesId) => !retainedIds.has(seriesId))
     ) {
       internalHiddenSeriesIds.value = retainedIds
     }
