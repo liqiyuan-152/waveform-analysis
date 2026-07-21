@@ -1,14 +1,17 @@
 # 代码审查问题修复总结
 
 ## 修复日期
+
 2026-07-20
 
 ## 审查方法
+
 使用 Claude Code 的 `/code-review` 命令在 medium effort 级别进行代码审查，对 `feature-control` 分支的未提交更改进行了 8 个角度的分析。
 
 ## 发现的问题
 
 共发现 4 个已确认的问题：
+
 - 1 个正确性 bug
 - 2 个性能问题
 - 1 个设计缺陷
@@ -23,6 +26,7 @@
 在 multi-axis 模式下，当 series 的 points 数组为空时，`paddedDomain([])` 会返回默认值 `[0, 1]`，而不是使用已验证的 `track.yDomain`。这导致 Y 轴显示错误的范围。
 
 **修复方案**:
+
 ```typescript
 // 修复前
 group.domain = paddedDomain(group.seriesList.flatMap(...))
@@ -43,16 +47,19 @@ group.domain = yValues.length > 0 ? paddedDomain(yValues) : track.yDomain
 
 **问题描述**:
 `buildYAxisSeriesGroups` 函数对同一个 track + overlayMode 组合被调用两次：
+
 - 一次在 `WaveformChart.vue` 的 `multiAxisClearance` computed 中（通过 `measureTrackYAxisClearance`）
 - 一次在 `buildTrackLayouts` 函数中（line 182）
 
 对于 10 个 tracks，这意味着 20 次函数调用，每次都要：
+
 - 创建数组
 - 遍历所有 series
 - 计算 paddedDomain
 
 **修复方案**:
 添加 WeakMap 缓存机制：
+
 ```typescript
 const yAxisGroupsCache = new WeakMap<DisplayTrack, Map<WaveformOverlayMode, YAxisSeriesGroup[]>>()
 
@@ -79,6 +86,7 @@ export function buildYAxisSeriesGroups(
 ```
 
 **影响**:
+
 - 减少 50% 的 `buildYAxisSeriesGroups` 调用
 - 对于 10 tracks × 4 series，从 20 次调用减少到 10 次
 - 显著提升 zoom、数据更新时的响应速度
@@ -91,6 +99,7 @@ export function buildYAxisSeriesGroups(
 
 **问题描述**:
 在 Y 轴布局计算中，`axisTextMetrics` 对同一个 domain 被调用 3 次：
+
 - Line 195: `measureYAxisGroupClearance(group)` 内部调用一次
 - Line 197: 直接调用 `axisTextMetrics(group.domain)`
 - Line 98: `measureYAxisGroupClearance` 调用 `axisExponentClearance` 时再次调用
@@ -99,6 +108,7 @@ export function buildYAxisSeriesGroups(
 
 **修复方案**:
 在 `yAxes` 映射中只调用一次 `axisTextMetrics`，然后内联计算 clearance：
+
 ```typescript
 const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
   // ... scale 和 ticks 计算 ...
@@ -121,6 +131,7 @@ const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
 ```
 
 **影响**:
+
 - 对于 4 个 Y 轴，从 12 次调用减少到 4 次
 - 减少 120 次字符串格式化操作（10 ticks × 3 × 4 axes）
 - 每次布局计算节省数毫秒
@@ -133,6 +144,7 @@ const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
 
 **问题描述**:
 代码中有 4 处使用 `yAxes[0]?.scale ?? scaleLinear(...)` 回退模式：
+
 ```typescript
 const yScale = yAxes[0]?.scale ?? scaleLinear(displayTrack.yDomain, [cell.plotHeight, 0]).nice()
 const yMajorTicks = yAxes[0]?.majorTicks ?? []
@@ -141,15 +153,18 @@ const yAxisTickValues = yAxes[0]?.tickValues ?? []
 ```
 
 这些回退代码防御一个永远不会发生的条件：
+
 - Line 164-169 的空轨道处理确保 `displayTrack.series.length >= 1`
 - 因此 `yAxes` 数组永远不会为空
 
 **问题**:
+
 - 如果 `buildYAxisSeriesGroups` 的契约改变允许空数组，崩溃会被错误的回退 scale 掩盖，而不是快速失败
 - 重复的防御代码增加了维护负担
 
 **当前状态**:
 保持原样，但已识别为技术债务。未来可以考虑：
+
 1. 在 `buildYAxisSeriesGroups` 中添加断言确保至少返回一个轴组
 2. 或者移除回退代码，让代码在不变式被违反时快速失败
 
@@ -173,13 +188,14 @@ const yAxisTickValues = yAxes[0]?.tickValues ?? []
 
 基于 10 tracks × 4 series 的典型场景：
 
-| 优化项 | 改进 |
-|--------|------|
-| buildYAxisSeriesGroups 调用 | 从 20 次减少到 10 次（-50%） |
-| axisTextMetrics 调用 | 从 12 次减少到 4 次（-67%） |
-| 字符串格式化操作 | 从 120 次减少到 40 次（-67%） |
+| 优化项                      | 改进                          |
+| --------------------------- | ----------------------------- |
+| buildYAxisSeriesGroups 调用 | 从 20 次减少到 10 次（-50%）  |
+| axisTextMetrics 调用        | 从 12 次减少到 4 次（-67%）   |
+| 字符串格式化操作            | 从 120 次减少到 40 次（-67%） |
 
 **预期影响**:
+
 - Zoom 和数据更新的响应速度提升 30-40%
 - 内存分配减少
 - 更好的缓存局部性

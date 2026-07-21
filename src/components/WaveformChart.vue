@@ -74,11 +74,7 @@ import {
   type WaveformGridOptions,
 } from './core/grid'
 import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
-import {
-  buildTrackLayouts,
-  measureTrackYAxisClearance,
-  Y_AXIS_EXPONENT_GAP,
-} from './core/layout'
+import { buildTrackLayouts, measureTrackYAxisClearance, Y_AXIS_EXPONENT_GAP } from './core/layout'
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
@@ -360,9 +356,7 @@ const yAxisMetrics = computed(() => {
     0,
     ...axisText.map(({ exponentLabel }) => (exponentLabel?.length ?? 0) * yAxisCharacterWidth),
   )
-  const exponentClearance = maximumExponentWidth
-    ? maximumExponentWidth + Y_AXIS_EXPONENT_GAP
-    : 0
+  const exponentClearance = maximumExponentWidth ? maximumExponentWidth + Y_AXIS_EXPONENT_GAP : 0
   const tickClearance = tickTextWidth + yAxisTickPadding + exponentClearance + yAxisOuterPadding
   const labelCenterX = -(
     yAxisTickPadding +
@@ -879,9 +873,14 @@ function resolveTrackAtPointer(
     if (pointerY > track.top + track.height) return pointerY - (track.top + track.height)
     return xDistance
   }
+  // 修复 O(n²) 问题：缓存距离计算结果
+  const trackDistances = new Map<TrackLayout, number>()
+  visibleTracks.forEach((track) => {
+    trackDistances.set(track, distanceToTrack(track))
+  })
   return visibleTracks.reduce((closest, candidate) => {
-    const distance = distanceToTrack(candidate)
-    const closestDistance = distanceToTrack(closest)
+    const distance = trackDistances.get(candidate)!
+    const closestDistance = trackDistances.get(closest)!
     if (distance !== closestDistance) return distance < closestDistance ? candidate : closest
     const centerDistance = Math.abs(pointerY - (candidate.top + candidate.height / 2))
     const closestCenterDistance = Math.abs(pointerY - (closest.top + closest.height / 2))
@@ -1181,8 +1180,13 @@ watch(
     clearHover()
     editorSeriesOptions.value = []
     const draftSeriesId = annotationInteraction.editorDraft.value?.annotation.seriesId
-    if (draftSeriesId && hiddenSeriesIdSet.value.has(draftSeriesId)) {
-      annotationInteraction.closeEditor()
+    // 修复：不仅检查系列是否被隐藏，还要检查系列是否从数据中完全移除
+    if (draftSeriesId) {
+      const seriesExists = chartSeries.value.some((series) => series.id === draftSeriesId)
+      const seriesHidden = hiddenSeriesIdSet.value.has(draftSeriesId)
+      if (!seriesExists || seriesHidden) {
+        annotationInteraction.closeEditor()
+      }
     }
     const contextAnnotationId = annotationInteraction.contextMenu.value?.annotationId
     const contextAnnotation = props.annotations.find((item) => item.id === contextAnnotationId)

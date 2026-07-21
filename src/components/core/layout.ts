@@ -52,18 +52,39 @@ function resolveAxisSides(axisCount: number): Array<'left' | 'right'> {
   return ['left']
 }
 
-// 缓存 axis groups 计算结果，避免重复计算
-const yAxisGroupsCache = new WeakMap<DisplayTrack, Map<WaveformOverlayMode, YAxisSeriesGroup[]>>()
+// Cache across recreated track objects without reusing groups whose axis-relevant data changed.
+const yAxisGroupsCache = new Map<string, Map<WaveformOverlayMode, YAxisSeriesGroup[]>>()
+const MAX_CACHE_SIZE = 100
+
+function getCacheKey(track: DisplayTrack): string {
+  return JSON.stringify([
+    track.id,
+    track.yDomain,
+    track.visibleSeries.map((series) => [
+      series.id,
+      series.name,
+      series.unit,
+      series.color,
+      series.yDomain,
+    ]),
+  ])
+}
 
 export function buildYAxisSeriesGroups(
   track: DisplayTrack,
   overlayMode: WaveformOverlayMode,
 ): YAxisSeriesGroup[] {
-  // 检查缓存
-  let trackCache = yAxisGroupsCache.get(track)
+  const cacheKey = getCacheKey(track)
+  let trackCache = yAxisGroupsCache.get(cacheKey)
   if (!trackCache) {
     trackCache = new Map()
-    yAxisGroupsCache.set(track, trackCache)
+    yAxisGroupsCache.set(cacheKey, trackCache)
+    if (yAxisGroupsCache.size > MAX_CACHE_SIZE) {
+      const firstKey = yAxisGroupsCache.keys().next().value
+      if (firstKey !== undefined) {
+        yAxisGroupsCache.delete(firstKey)
+      }
+    }
   }
 
   const cached = trackCache.get(overlayMode)
