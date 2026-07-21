@@ -288,13 +288,11 @@ const legendOrientation = computed<Exclude<WaveformLegendOrientation, 'auto'>>((
     : 'vertical'
 })
 const resolvedTitleText = computed(() => props.title?.text.trim() ?? '')
-const titleVisible = computed(
+const titleAreaReserved = computed(
   () =>
-    !isCleanView.value &&
-    Boolean(props.title) &&
-    props.title?.visible !== false &&
-    resolvedTitleText.value.length > 0,
+    Boolean(props.title) && props.title?.visible !== false && resolvedTitleText.value.length > 0,
 )
+const titleVisible = computed(() => titleAreaReserved.value && !isCleanView.value)
 const titleFontSize = computed(() => {
   const fontSize = props.title?.textStyle?.fontSize
   return Number.isFinite(fontSize) && (fontSize ?? 0) > 0 ? (fontSize as number) : 14
@@ -343,12 +341,10 @@ const titleLayout = computed(() =>
     rotation: titleRotation.value,
   }),
 )
-const titleAreaHeight = computed(() => (titleVisible.value ? titleLayout.value.areaHeight : 0))
-const chartTopMargin = computed(() => (isCleanView.value ? 0 : margin.top))
+const titleAreaHeight = computed(() => (titleAreaReserved.value ? titleLayout.value.areaHeight : 0))
+const chartTopMargin = computed(() => margin.top)
 const drawingHeight = computed(() => Math.max(0, chartHeight.value - titleAreaHeight.value))
-const innerHeight = computed(() =>
-  Math.max(0, drawingHeight.value - (isCleanView.value ? 0 : margin.top + margin.bottom)),
-)
+const innerHeight = computed(() => Math.max(0, drawingHeight.value - margin.top - margin.bottom))
 const titleAreaStyle = computed<CSSProperties>(() => ({
   height: `${titleAreaHeight.value}px`,
   justifyContent:
@@ -461,7 +457,7 @@ const hasVisibleWaveformData = computed(() =>
 )
 const chartLeftMargin = computed(() =>
   Math.max(
-    isCleanView.value ? 0 : margin.left,
+    margin.left,
     hasYAxisLabels.value
       ? yAxisMetrics.value.fullClearance
       : hasVisibleWaveformData.value
@@ -482,20 +478,14 @@ const multiAxisClearance = computed(() =>
   ),
 )
 const resolvedChartLeftMargin = computed(() =>
-  isCleanView.value
-    ? 0
-    : props.overlayMode === 'multi-axis'
-      ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
-      : chartLeftMargin.value,
+  props.overlayMode === 'multi-axis'
+    ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
+    : chartLeftMargin.value,
 )
 const chartRightMargin = computed(() =>
   props.overlayMode === 'multi-axis'
-    ? isCleanView.value
-      ? 0
-      : Math.max(margin.right, multiAxisClearance.value.right)
-    : isCleanView.value
-      ? 0
-      : margin.right,
+    ? Math.max(margin.right, multiAxisClearance.value.right)
+    : margin.right,
 )
 const innerWidth = computed(() =>
   Math.max(0, chartWidth.value - resolvedChartLeftMargin.value - chartRightMargin.value),
@@ -595,7 +585,6 @@ const gridCells = computed(() => {
     props.displayMode,
     pagedTracks.value.map(Boolean),
     yAxisLayout.value.horizontalGap,
-    !isCleanView.value,
   )
   return cells.map((cell, index) => ({ ...cell, series: pagedTracks.value[index] }))
 })
@@ -1763,7 +1752,7 @@ watch(
 )
 
 function measureTitle() {
-  if (!titleVisible.value || !titleMeasureElement.value) {
+  if (!titleAreaReserved.value || !titleMeasureElement.value) {
     measuredTitleWidth.value = 0
     measuredTitleHeight.value = 0
     return
@@ -1774,7 +1763,7 @@ function measureTitle() {
 }
 
 watch(
-  [resolvedTitleText, titleVisible, titleMeasureStyle],
+  [resolvedTitleText, titleAreaReserved, titleMeasureStyle],
   async () => {
     measuredTitleWidth.value = 0
     measuredTitleHeight.value = 0
@@ -1813,7 +1802,10 @@ onBeforeUnmount(() => {
     :class="[
       `waveform-chart--${displayMode}`,
       `waveform-chart--interaction-${activeInteractionMode}`,
-      { 'waveform-chart--panning': selection?.mode === 'pan' },
+      {
+        'waveform-chart--clean': isCleanView,
+        'waveform-chart--panning': selection?.mode === 'pan',
+      },
     ]"
     :style="containerStyle"
     :data-display-mode="displayMode"
@@ -1824,11 +1816,12 @@ onBeforeUnmount(() => {
     @contextmenu.capture="handleNativeContextMenu"
   >
     <div
-      v-if="titleVisible"
+      v-if="titleAreaReserved"
       class="waveform-chart__title-area"
       :style="titleAreaStyle"
-      role="heading"
-      aria-level="2"
+      :role="titleVisible ? 'heading' : undefined"
+      :aria-level="titleVisible ? 2 : undefined"
+      :aria-hidden="isCleanView || undefined"
     >
       <span
         ref="titleMeasureElement"
@@ -1838,7 +1831,7 @@ onBeforeUnmount(() => {
       >
         {{ resolvedTitleText }}
       </span>
-      <span class="waveform-chart__title-visual" :style="titleVisualStyle">
+      <span v-if="titleVisible" class="waveform-chart__title-visual" :style="titleVisualStyle">
         <span
           class="waveform-chart__title-text"
           :style="titleTextStyle"
@@ -2067,6 +2060,10 @@ onBeforeUnmount(() => {
   background: #fff;
   border: 1px solid rgb(0 0 0 / 8%);
   border-radius: 6px;
+}
+
+.waveform-chart--clean {
+  border-color: transparent;
 }
 
 .waveform-chart__pagination {

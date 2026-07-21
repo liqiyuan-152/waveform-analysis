@@ -297,63 +297,87 @@ describe('WaveformChart', () => {
     expect(zeroLines[0].attributes('y1')).not.toBe(zeroLines[1].attributes('y1'))
   })
 
-  it('uses the full drawing area and hides auxiliary layers in clean view', async () => {
-    const wrapper = await mountSizedChart(
-      {
-        kind: 'series',
-        series: [
-          {
-            id: 'first',
-            trackId: 'overlay',
-            name: 'first',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: -1 },
-                { x: 1, y: 1 },
-              ],
-            },
+  it('preserves a titled multi-axis plot and hides auxiliary layers in clean view', async () => {
+    const data: WaveformData = {
+      kind: 'series',
+      series: [
+        {
+          id: 'first',
+          trackId: 'overlay',
+          name: 'first',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: -1 },
+              { x: 1, y: 1 },
+            ],
           },
-          {
-            id: 'second',
-            trackId: 'overlay',
-            name: 'second',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: 1 },
-                { x: 1, y: 2 },
-              ],
-            },
+        },
+        {
+          id: 'second',
+          trackId: 'overlay',
+          name: 'second',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 1 },
+              { x: 1, y: 2 },
+            ],
           },
-          {
-            id: 'third',
-            name: 'third',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: 2 },
-                { x: 1, y: 3 },
-              ],
-            },
+        },
+        {
+          id: 'third',
+          name: 'third',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 2 },
+              { x: 1, y: 3 },
+            ],
           },
-        ],
-      },
-      {
-        cleanView: true,
-        grid: { rowCount: 1, columnCount: 1, showPagination: true },
-        title: { text: 'hidden title' },
-        frameNumber: 1,
-        annotations: [{ id: 'note', seriesId: 'first', x: 0.5, y: 0, text: 'hidden note' }],
-        zeroLine: { visible: true },
-      },
-    )
+        },
+      ],
+    }
+    const sharedProps = {
+      grid: { rowCount: 1, columnCount: 1, showPagination: true },
+      overlayMode: 'multi-axis' as const,
+      frameNumber: 1,
+      annotations: [{ id: 'note', seriesId: 'first', x: 0.5, y: 0, text: 'hidden note' }],
+      zeroLine: { visible: true },
+      title: { text: 'hidden title' },
+    }
+    const regularWrapper = await mountSizedChart(data, sharedProps)
+    const wrapper = await mountSizedChart(data, {
+      ...sharedProps,
+      cleanView: true,
+    })
 
-    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('0')
-    expect(wrapper.get('.waveform-chart__track').attributes('data-track-height')).toBe('360')
+    const regularTrack = regularWrapper.get('.waveform-chart__track')
+    const cleanTrack = wrapper.get('.waveform-chart__track')
+    const geometryAttributes = [
+      'data-track-left',
+      'data-track-top',
+      'data-track-width',
+      'data-track-height',
+    ]
+
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe(
+      regularWrapper.get('.waveform-chart').attributes('data-chart-left-margin'),
+    )
+    expect(wrapper.get('.waveform-chart').attributes('data-title-area-height')).toBe(
+      regularWrapper.get('.waveform-chart').attributes('data-title-area-height'),
+    )
+    geometryAttributes.forEach((attribute) => {
+      expect(cleanTrack.attributes(attribute)).toBe(regularTrack.attributes(attribute))
+    })
+    expect(wrapper.get('.waveform-chart').classes()).toContain('waveform-chart--clean')
+    expect(getComputedStyle(wrapper.get('.waveform-chart').element).borderColor).toBe(
+      'rgba(0, 0, 0, 0)',
+    )
     expect(wrapper.findAll('.waveform-chart__series')).toHaveLength(2)
     expect(wrapper.find('.waveform-chart__overlay--independent').exists()).toBe(true)
-    expect(wrapper.find('.waveform-chart__title-area').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__title-area').attributes('aria-hidden')).toBe('true')
+    expect(wrapper.find('.waveform-chart__title-visual').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__axis').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(false)
@@ -364,6 +388,30 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation-layer').exists()).toBe(false)
     expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+  })
+
+  it('preserves every track geometry in a multi-column clean view', async () => {
+    const props = {
+      displayMode: 'independent' as const,
+      grid: { rowCount: 2, columnCount: 2 },
+    }
+    const regularWrapper = await mountSizedChart(gridSeries(4), props)
+    const cleanWrapper = await mountSizedChart(gridSeries(4), { ...props, cleanView: true })
+    const geometryAttributes = [
+      'data-track-left',
+      'data-track-top',
+      'data-track-width',
+      'data-track-height',
+    ]
+    const regularTracks = regularWrapper.findAll('.waveform-chart__track')
+    const cleanTracks = cleanWrapper.findAll('.waveform-chart__track')
+
+    expect(cleanTracks).toHaveLength(regularTracks.length)
+    cleanTracks.forEach((track, index) => {
+      geometryAttributes.forEach((attribute) => {
+        expect(track.attributes(attribute)).toBe(regularTracks[index].attributes(attribute))
+      })
+    })
   })
 
   it('places start, middle, and end step transitions at the expected X positions', async () => {
