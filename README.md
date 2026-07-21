@@ -54,8 +54,9 @@ git push origin main --follow-tags
 `version` 完全一致。稳定版发布为 npm `latest` 并更新服务器下载目录的 latest 链接；预发布版发布为
 npm `next`，不会覆盖稳定版 latest。流水线会创建 Gitea Release，并上传 `.tgz` 与 SHA-256 校验文件。
 
-仓库 Actions 需要配置 `NPM_PUBLISH_TOKEN`（npm 包发布权限）和 `GITEA_RELEASE_TOKEN`（仓库 Release
+仓库 Actions 需要配置 `NPM_PUBLISH_TOKEN`（npm 包发布权限）和 `RELEASE_TOKEN`（仓库 Release
 写入权限）两个 Secret。
+
 ### 数据结构
 
 单通道可以使用采样值（`sampleRate` 为每秒采样数）或显式坐标点：
