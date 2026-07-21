@@ -92,6 +92,10 @@ const props = withDefaults(
     lineColor?: string
     showTooltip?: boolean
     zoomable?: boolean
+    minZoomSpan?: number
+    minVisiblePoints?: number
+    initialXDomain?: [number, number]
+    initialXDomains?: Record<string, [number, number]>
     timeUnit?: 's' | 'ms'
     frameNumber?: string | number
     frameStyle?: WaveformFrameStyle
@@ -113,6 +117,7 @@ const props = withDefaults(
     lineColor: '#0960bd',
     showTooltip: true,
     zoomable: true,
+    minVisiblePoints: 0,
     timeUnit: 'ms',
     frameNumber: undefined,
     annotations: () => [],
@@ -130,6 +135,7 @@ const emit = defineEmits<{
   'point-hover': [point: WaveformPoint | null]
   'zoom-change': [domain: [number, number]]
   'zoom-end': [payload: WaveformZoomEndPayload]
+  'zoom-reset': []
   'update:annotations': [annotations: WaveformAnnotation[]]
   'update:annotations-visible': [visible: boolean]
   'update:interaction-mode': [mode: WaveformInteractionMode]
@@ -159,6 +165,8 @@ const measuredTitleWidth = ref(0)
 const measuredTitleHeight = ref(0)
 const sharedTransform = shallowRef<ZoomTransform>(zoomIdentity)
 const independentTransforms = shallowRef<ZoomTransform[]>([])
+const sharedYDomains = ref<Record<string, [number, number]>>({})
+const independentYDomains = ref<Record<number, [number, number]>>({})
 const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
 const hoveredTrackIndex = ref<number | null>(null)
 const hoverPosition = ref({ x: 0, y: 0 })
@@ -174,11 +182,52 @@ const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
 let generatedAnnotationId = 0
 let synchronizingZoomTransform = false
 let pendingSharedZoomTransform: ZoomTransform | null = null
+type ZoomGestureKind = 'wheel'
+let pendingSharedZoomGesture: ZoomGestureKind | null = null
+let lastSharedZoomGesture: ZoomGestureKind | null = null
 const pendingIndependentZoomTransforms = new Map<number, ZoomTransform>()
+const pendingIndependentZoomGestures = new Map<number, ZoomGestureKind>()
+const lastIndependentZoomGestures = new Map<number, ZoomGestureKind>()
 const lastZoomedTrackIndexes = new Set<number>()
 const zoomThrottle = useAnimationFrameThrottle()
 const hoverThrottle = useAnimationFrameThrottle()
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
+
+interface SelectionState {
+  trackIndex: number
+  independent: boolean
+  overlay: SVGRectElement
+  startX: number
+  startY: number
+  currentX: number
+  currentY: number
+  pointerId: number
+  mode: 'box' | 'pan'
+  xDomain: [number, number]
+  yDomains: Record<string, [number, number]>
+}
+
+const selection = ref<SelectionState | null>(null)
+const spacePressed = ref(false)
+const selectionBox = computed(() => {
+  const active = selection.value
+  if (!active) return null
+  const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
+  return {
+    x: Math.min(active.startX, active.currentX) + (active.independent ? (track?.left ?? 0) : 0),
+    y: Math.min(active.startY, active.currentY) + (active.independent ? (track?.top ?? 0) : 0),
+    width: Math.abs(active.currentX - active.startX),
+    height: Math.abs(active.currentY - active.startY),
+  }
+})
+
+function handleInteractionKeyDown(event: KeyboardEvent) {
+  if (event.code === 'Space') spacePressed.value = true
+}
+
+function handleInteractionKeyUp(event: KeyboardEvent) {
+  if (event.code === 'Space') spacePressed.value = false
+}
 
 // 用于传递给 WaveformTooltip 的接口
 interface TooltipSeriesPoint {
@@ -475,10 +524,39 @@ const sharedXDomain = computed(() =>
     chartTracks.value.flatMap((track) => (track.visibleSeries.length ? track.xDomain : [])),
   ),
 )
+const initialXDomain = computed<[number, number]>(() => {
+  const domain = props.initialXDomain
+  if (
+    domain &&
+    Number.isFinite(domain[0]) &&
+    Number.isFinite(domain[1]) &&
+    domain[0] !== domain[1]
+  ) {
+    return domain[0] < domain[1] ? domain : [domain[1], domain[0]]
+  }
+  return sharedXDomain.value
+})
+function resolveInitialTrackDomain(track: TrackLayout): [number, number] {
+  const configuredDomain =
+    props.initialXDomains?.[track.series.trackId ?? track.series.id] ??
+    props.initialXDomains?.[track.series.id] ??
+    props.initialXDomain
+  if (
+    configuredDomain &&
+    Number.isFinite(configuredDomain[0]) &&
+    Number.isFinite(configuredDomain[1]) &&
+    configuredDomain[0] !== configuredDomain[1]
+  ) {
+    return configuredDomain[0] < configuredDomain[1]
+      ? configuredDomain
+      : [configuredDomain[1], configuredDomain[0]]
+  }
+  return paddedDomain(track.seriesList.flatMap((series) => series.xDomain))
+}
 const sharedZoomDomain = computed(
   () =>
     sharedTransform.value
-      .rescaleX(scaleLinear(sharedXDomain.value, [0, innerWidth.value]))
+      .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
       .domain() as [number, number],
 )
 
@@ -502,6 +580,17 @@ const trackLayouts = computed<TrackLayout[]>(() =>
     overlayMode: props.overlayMode,
     independentTransforms: independentTransforms.value,
     sharedZoomDomain: sharedZoomDomain.value,
+    initialXDomain: props.initialXDomain ? initialXDomain.value : undefined,
+    initialXDomains: props.initialXDomains,
+    yDomains:
+      props.displayMode === 'independent'
+        ? Object.fromEntries(
+            chartTracks.value.flatMap((track, index) => {
+              const domain = independentYDomains.value[index]
+              return domain ? [[track.id, domain]] : []
+            }),
+          )
+        : sharedYDomains.value,
     timeUnit: props.timeUnit,
     rendering: renderingOptions.value,
     hideSecondaryLabels: yAxisLayout.value.hideSecondaryLabels,
@@ -568,6 +657,7 @@ function handleSharedZoom(event: D3ZoomEvent<SVGRectElement, unknown>) {
   if (synchronizingZoomTransform) return
   cancelPendingHover()
   pendingSharedZoomTransform = event.transform
+  pendingSharedZoomGesture = 'wheel'
   scheduleZoomCommit()
 }
 
@@ -575,6 +665,7 @@ function handleIndependentZoom(event: D3ZoomEvent<SVGRectElement, unknown>, trac
   if (synchronizingZoomTransform) return
   cancelPendingHover()
   pendingIndependentZoomTransforms.set(trackIndex, event.transform)
+  pendingIndependentZoomGestures.set(trackIndex, 'wheel')
   scheduleZoomCommit()
 }
 
@@ -582,9 +673,11 @@ function commitPendingZoom() {
   if (pendingSharedZoomTransform) {
     const transform = pendingSharedZoomTransform
     pendingSharedZoomTransform = null
+    lastSharedZoomGesture = pendingSharedZoomGesture
+    pendingSharedZoomGesture = null
     sharedTransform.value = transform
     const domain = transform
-      .rescaleX(scaleLinear(sharedXDomain.value, [0, innerWidth.value]))
+      .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
       .domain()
     emit('zoom-change', [domain[0], domain[1]])
   }
@@ -595,10 +688,15 @@ function commitPendingZoom() {
     // Clear stale track indexes before recording the new batch
     lastZoomedTrackIndexes.clear()
     changedTrackIndexes.forEach((trackIndex) => lastZoomedTrackIndexes.add(trackIndex))
+    changedTrackIndexes.forEach((trackIndex) => {
+      const gesture = pendingIndependentZoomGestures.get(trackIndex)
+      if (gesture) lastIndependentZoomGestures.set(trackIndex, gesture)
+    })
     pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
       nextTransforms[trackIndex] = transform
     })
     pendingIndependentZoomTransforms.clear()
+    pendingIndependentZoomGestures.clear()
     independentTransforms.value = nextTransforms
     changedTrackIndexes.forEach((trackIndex) => {
       const track = trackLayouts.value.find((item) => item.index === trackIndex)
@@ -622,29 +720,58 @@ function flushPendingZoom() {
 function emitZoomEnd() {
   if (props.displayMode === 'independent') {
     lastZoomedTrackIndexes.forEach((trackIndex) => {
+      const gesture = lastIndependentZoomGestures.get(trackIndex)
+      if (gesture !== 'wheel') return
       const track = trackLayouts.value.find((item) => item.index === trackIndex)
       if (!track) return
       const domain = track.xScale.domain() as [number, number]
       emit('zoom-end', {
         start: domain[0],
         end: domain[1],
+        yStart: track.yScale.domain()[0],
+        yEnd: track.yScale.domain()[1],
         trackIndex,
         seriesIds: track.seriesList.map((series) => series.id),
+        gesture: 'wheel',
       })
     })
     lastZoomedTrackIndexes.clear()
+    lastIndependentZoomGestures.clear()
     return
   }
 
+  if (lastSharedZoomGesture !== 'wheel') {
+    lastSharedZoomGesture = null
+    return
+  }
   const domain = sharedZoomDomain.value
-  emit('zoom-end', { start: domain[0], end: domain[1] })
+  const visibleTracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
+  const payload: WaveformZoomEndPayload = { start: domain[0], end: domain[1], gesture: 'wheel' }
+  if (visibleTracks.length === 1) {
+    const yDomain = visibleTracks[0]?.yScale.domain()
+    payload.yStart = yDomain?.[0]
+    payload.yEnd = yDomain?.[1]
+  } else {
+    payload.yRanges = Object.fromEntries(
+      visibleTracks.map((track) => [
+        track.series.trackId ?? track.series.id,
+        track.yScale.domain() as [number, number],
+      ]),
+    )
+  }
+  emit('zoom-end', payload)
+  lastSharedZoomGesture = null
 }
 
 function cancelPendingZoom() {
   // Clear all pending zoom state to prevent stale emissions
   pendingSharedZoomTransform = null
+  pendingSharedZoomGesture = null
+  lastSharedZoomGesture = null
   pendingIndependentZoomTransforms.clear()
+  pendingIndependentZoomGestures.clear()
   lastZoomedTrackIndexes.clear()
+  lastIndependentZoomGestures.clear()
   zoomThrottle.cancel()
 }
 
@@ -660,6 +787,35 @@ function clearZoomBindings() {
   zoomBehaviors.clear()
 }
 
+function resolveMaximumZoomScale(domain: [number, number]): number {
+  const minZoomSpan = props.minZoomSpan
+  if (!Number.isFinite(minZoomSpan) || (minZoomSpan ?? 0) <= 0) return 40
+  const domainSpan = Math.abs(domain[1] - domain[0])
+  if (!Number.isFinite(domainSpan) || domainSpan <= 0) return 1
+  return Math.min(40, Math.max(1, domainSpan / (minZoomSpan ?? domainSpan)))
+}
+
+function visiblePointCount(track: TrackLayout): number {
+  const [start, end] = track.xScale.domain()
+  const xValues = new Set<number>()
+  track.seriesList.forEach((series) => {
+    series.points.forEach((point) => {
+      if (point.x >= start && point.x <= end) xValues.add(point.x)
+    })
+  })
+  return xValues.size
+}
+
+function canZoomTrack(track: TrackLayout): boolean {
+  const minimum = Number(props.minVisiblePoints)
+  return !Number.isFinite(minimum) || minimum <= 0 || visiblePointCount(track) >= minimum
+}
+
+function canZoomSharedTracks(): boolean {
+  const tracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
+  return tracks.length > 0 && tracks.every(canZoomTrack)
+}
+
 function configureZoom() {
   clearZoomBindings()
   if (!props.zoomable || !isZoomMode.value || !hasChartArea.value || !trackLayouts.value.length)
@@ -671,8 +827,13 @@ function configureZoom() {
         `[data-independent-overlay-index="${track.index}"]`,
       )
       if (!overlay) return
+      const dataDomain = resolveInitialTrackDomain(track)
       const behavior = zoom<SVGRectElement, unknown>()
-        .scaleExtent([1, 40])
+        .filter(
+          (event) =>
+            event.type === 'wheel' && (event as WheelEvent).deltaY < 0 && canZoomTrack(track),
+        )
+        .scaleExtent([1, resolveMaximumZoomScale(dataDomain)])
         .extent([
           [0, 0],
           [track.width, track.height],
@@ -688,6 +849,7 @@ function configureZoom() {
       try {
         select(overlay)
           .call(behavior)
+          .on('dblclick.zoom', null)
           .call(behavior.transform, independentTransforms.value[track.index] ?? zoomIdentity)
       } finally {
         synchronizingZoomTransform = false
@@ -698,7 +860,11 @@ function configureZoom() {
 
   if (!sharedOverlayElement.value) return
   const behavior = zoom<SVGRectElement, unknown>()
-    .scaleExtent([1, 40])
+    .filter(
+      (event) =>
+        event.type === 'wheel' && (event as WheelEvent).deltaY < 0 && canZoomSharedTracks(),
+    )
+    .scaleExtent([1, resolveMaximumZoomScale(initialXDomain.value)])
     .extent([
       [0, 0],
       [innerWidth.value, innerHeight.value],
@@ -714,7 +880,10 @@ function configureZoom() {
   if (overlay) {
     synchronizingZoomTransform = true
     try {
-      select(overlay).call(behavior).call(behavior.transform, sharedTransform.value)
+      select(overlay)
+        .call(behavior)
+        .on('dblclick.zoom', null)
+        .call(behavior.transform, sharedTransform.value)
     } finally {
       synchronizingZoomTransform = false
     }
@@ -1100,6 +1269,10 @@ function confirmAnnotation(annotation: WaveformAnnotation) {
 }
 
 function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
+  if (selection.value?.trackIndex === trackIndex && selection.value.independent) {
+    updateViewportDrag(event)
+    return
+  }
   if (consumeHoverSuppression()) return
   const overlay = event.currentTarget as SVGRectElement | null
   if (!overlay) return
@@ -1126,6 +1299,10 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
 }
 
 function handleSharedPointerMove(event: PointerEvent) {
+  if (selection.value?.overlay === event.currentTarget) {
+    updateViewportDrag(event)
+    return
+  }
   if (consumeHoverSuppression()) return
   if (!sharedOverlayElement.value || !trackLayouts.value.length) return
   const [pointerX, pointerY] = pointer(event, sharedOverlayElement.value)
@@ -1152,14 +1329,259 @@ function handleSharedPointerMove(event: PointerEvent) {
   })
 }
 
-function resetViewport() {
+const minimumSelectionSize = 6
+
+function transformForDomain(
+  domain: [number, number],
+  baseDomain: [number, number],
+  width: number,
+): ZoomTransform {
+  const baseSpan = baseDomain[1] - baseDomain[0]
+  const span = domain[1] - domain[0]
+  if (!Number.isFinite(baseSpan) || !Number.isFinite(span) || baseSpan <= 0 || span <= 0) {
+    return zoomIdentity
+  }
+  const scale = baseSpan / span
+  const baseScale = scaleLinear(baseDomain, [0, width])
+  return zoomIdentity.translate(-scale * baseScale(domain[0]), 0).scale(scale)
+}
+
+function resolveMinimumZoomSpan(boundary: [number, number]): number {
+  const boundarySpan = Math.abs(boundary[1] - boundary[0])
+  if (!Number.isFinite(boundarySpan) || boundarySpan <= 0) return 0
+  const configured = props.minZoomSpan
+  if (Number.isFinite(configured) && (configured ?? 0) > 0) {
+    return Math.min(boundarySpan, configured as number)
+  }
+  return boundarySpan / 40
+}
+
+function constrainZoomDomain(
+  domain: [number, number],
+  boundary: [number, number],
+): [number, number] {
+  const normalizedBoundary: [number, number] =
+    boundary[0] <= boundary[1] ? [...boundary] : [boundary[1], boundary[0]]
+  const boundarySpan = normalizedBoundary[1] - normalizedBoundary[0]
+  if (!Number.isFinite(boundarySpan) || boundarySpan <= 0) return normalizedBoundary
+  const requestedStart = Math.min(domain[0], domain[1])
+  const requestedEnd = Math.max(domain[0], domain[1])
+  const minimumSpan = resolveMinimumZoomSpan(normalizedBoundary)
+  const span = Math.max(minimumSpan, Math.min(boundarySpan, requestedEnd - requestedStart))
+  const center = (requestedStart + requestedEnd) / 2
+  const start = Math.max(
+    normalizedBoundary[0],
+    Math.min(center - span / 2, normalizedBoundary[1] - span),
+  )
+  return [start, start + span]
+}
+
+function clampDomain(domain: [number, number], boundary: [number, number]): [number, number] {
+  const span = domain[1] - domain[0]
+  const boundarySpan = boundary[1] - boundary[0]
+  if (span >= boundarySpan) return [...boundary]
+  if (domain[0] < boundary[0]) return [boundary[0], boundary[0] + span]
+  if (domain[1] > boundary[1]) return [boundary[1] - span, boundary[1]]
+  return domain
+}
+
+function currentYDomains(): Record<string, [number, number]> {
+  return Object.fromEntries(
+    trackLayouts.value.map((track) => [
+      track.series.trackId ?? track.series.id,
+      track.yScale.domain() as [number, number],
+    ]),
+  )
+}
+
+function beginViewportDrag(event: PointerEvent, trackIndex: number, independent: boolean) {
+  if (!props.zoomable || !isZoomMode.value || event.button !== 0) return
+  const overlay = event.currentTarget as SVGRectElement
+  const track = trackLayouts.value.find((item) => item.index === trackIndex)
+  if (!track) return
+  const [rawX, rawY] = pointer(event, overlay)
+  const x = Math.max(0, Math.min(independent ? track.width : innerWidth.value, rawX))
+  const y = Math.max(0, Math.min(independent ? track.height : innerHeight.value, rawY))
+  selection.value = {
+    trackIndex,
+    independent,
+    overlay,
+    startX: x,
+    startY: y,
+    currentX: x,
+    currentY: y,
+    pointerId: event.pointerId,
+    mode: spacePressed.value ? 'pan' : 'box',
+    xDomain: track.xScale.domain() as [number, number],
+    yDomains: currentYDomains(),
+  }
+  overlay.setPointerCapture?.(event.pointerId)
+  clearHover()
+  event.preventDefault()
+}
+
+function beginSharedViewportDrag(event: PointerEvent) {
+  if (!sharedOverlayElement.value) return
+  const [x, y] = pointer(event, sharedOverlayElement.value)
+  const track =
+    resolveTrackAtPointer(x, y) ?? trackLayouts.value.find((item) => item.hasVisibleSeries)
+  if (track) beginViewportDrag(event, track.index, false)
+}
+
+function updateViewportDrag(event: PointerEvent) {
+  const active = selection.value
+  if (!active || event.pointerId !== active.pointerId) return
+  const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
+  if (!track) return
+  const [rawX, rawY] = pointer(event, active.overlay)
+  active.currentX = Math.max(0, Math.min(active.independent ? track.width : innerWidth.value, rawX))
+  active.currentY = Math.max(
+    0,
+    Math.min(active.independent ? track.height : innerHeight.value, rawY),
+  )
+  selection.value = { ...active }
+  if (active.mode === 'pan') applyPan(active, track)
+  event.preventDefault()
+}
+
+function applyPan(active: SelectionState, track: TrackLayout) {
+  const width = track.width || 1
+  const height = track.height || 1
+  const dx = active.currentX - active.startX
+  const dy = active.currentY - active.startY
+  const xSpan = active.xDomain[1] - active.xDomain[0]
+  const initialDomain = active.independent ? resolveInitialTrackDomain(track) : initialXDomain.value
+  const nextX = clampDomain(
+    [active.xDomain[0] - (dx / width) * xSpan, active.xDomain[1] - (dx / width) * xSpan],
+    initialDomain,
+  )
+  if (active.independent) {
+    const next = [...independentTransforms.value]
+    next[track.index] = transformForDomain(nextX, initialDomain, width)
+    independentTransforms.value = next
+  } else {
+    sharedTransform.value = transformForDomain(nextX, initialDomain, innerWidth.value)
+  }
+
+  const targets = active.independent ? [track] : trackLayouts.value
+  targets.forEach((target) => {
+    const key = target.series.trackId ?? target.series.id
+    const source = active.yDomains[key] ?? (target.yScale.domain() as [number, number])
+    const boundary = chartTracks.value.find((item) => item.id === key)?.yDomain ?? source
+    const ySpan = source[1] - source[0]
+    const nextY = clampDomain(
+      [source[0] + (dy / height) * ySpan, source[1] + (dy / height) * ySpan],
+      boundary,
+    )
+    if (active.independent)
+      independentYDomains.value = { ...independentYDomains.value, [target.index]: nextY }
+    else sharedYDomains.value = { ...sharedYDomains.value, [key]: nextY }
+  })
+  emit('zoom-change', nextX)
+}
+
+function finishViewportDrag(event: PointerEvent) {
+  const active = selection.value
+  if (!active || event.pointerId !== active.pointerId) return
+  updateViewportDrag(event)
+  active.overlay.releasePointerCapture?.(active.pointerId)
+  selection.value = null
+  if (active.mode === 'pan') {
+    void nextTick(configureZoom)
+    return
+  }
+  const width = Math.abs(active.currentX - active.startX)
+  if (width < minimumSelectionSize) return
+  applyBoxZoom(active)
+}
+
+function cancelViewportDrag(event?: PointerEvent) {
+  const active = selection.value
+  if (!active || (event && event.pointerId !== active.pointerId)) return
+  active.overlay.releasePointerCapture?.(active.pointerId)
+  selection.value = null
+}
+
+function applyBoxZoom(active: SelectionState) {
+  const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
+  if (!track || (active.independent ? !canZoomTrack(track) : !canZoomSharedTracks())) return
+  const offsetX = active.independent ? 0 : track.left
+  const left = Math.max(
+    0,
+    Math.min(track.width, Math.min(active.startX, active.currentX) - offsetX),
+  )
+  const right = Math.max(
+    0,
+    Math.min(track.width, Math.max(active.startX, active.currentX) - offsetX),
+  )
+  if (right - left < minimumSelectionSize) return
+  const baseXDomain = active.independent ? resolveInitialTrackDomain(track) : initialXDomain.value
+  const xDomain = constrainZoomDomain(
+    [track.xScale.invert(left), track.xScale.invert(right)],
+    baseXDomain,
+  )
+  if (active.independent) {
+    const next = [...independentTransforms.value]
+    next[track.index] = transformForDomain(xDomain, baseXDomain, track.width)
+    independentTransforms.value = next
+  } else {
+    sharedTransform.value = transformForDomain(xDomain, baseXDomain, innerWidth.value)
+  }
+
+  const targets = active.independent ? [track] : trackLayouts.value
+  const yRanges: Record<string, [number, number]> = Object.fromEntries(
+    targets.map((target) => [
+      target.series.trackId ?? target.series.id,
+      target.yScale.domain() as [number, number],
+    ]),
+  )
+
+  emit('zoom-change', xDomain)
+  const payload: WaveformZoomEndPayload = { start: xDomain[0], end: xDomain[1], gesture: 'box' }
+  if (active.independent) {
+    const yDomain = yRanges[track.series.trackId ?? track.series.id]
+    payload.trackIndex = track.index
+    payload.seriesIds = track.seriesList.map((series) => series.id)
+    payload.yStart = yDomain?.[0]
+    payload.yEnd = yDomain?.[1]
+  } else if (targets.length === 1) {
+    const yDomain = Object.values(yRanges)[0]
+    payload.yStart = yDomain?.[0]
+    payload.yEnd = yDomain?.[1]
+  } else payload.yRanges = yRanges
+  emit('zoom-end', payload)
+  void nextTick(configureZoom)
+}
+
+function resetViewport(trackIndex?: number) {
   cancelPendingZoom()
-  sharedTransform.value = zoomIdentity
-  independentTransforms.value = chartTracks.value.map(() => zoomIdentity)
+  cancelViewportDrag()
+  if (props.displayMode === 'independent' && trackIndex !== undefined) {
+    const nextTransforms = [...independentTransforms.value]
+    nextTransforms[trackIndex] = zoomIdentity
+    independentTransforms.value = nextTransforms
+    const nextYDomains = { ...independentYDomains.value }
+    delete nextYDomains[trackIndex]
+    independentYDomains.value = nextYDomains
+  } else {
+    sharedTransform.value = zoomIdentity
+    independentTransforms.value = chartTracks.value.map(() => zoomIdentity)
+    sharedYDomains.value = {}
+    independentYDomains.value = {}
+  }
   clearHover()
   editorSeriesOptions.value = []
   void nextTick(configureZoom)
 }
+
+function requestViewportReset(event: MouseEvent) {
+  if (!props.zoomable || !isZoomMode.value) return
+  event.preventDefault()
+  resetViewport()
+  emit('zoom-reset')
+}
+
+defineExpose({ resetViewport })
 
 function goToPage(page: number) {
   const nextPage = Math.min(pageCount.value, Math.max(1, Math.floor(page)))
@@ -1170,6 +1592,7 @@ function goToPage(page: number) {
   cancelAnnotation()
   if (props.displayMode === 'independent') {
     independentTransforms.value = pagedTracks.value.map(() => zoomIdentity)
+    independentYDomains.value = {}
   }
   void nextTick(configureZoom)
   emit('page-change', nextPage, pageCount.value)
@@ -1180,6 +1603,9 @@ watch(
     innerWidth,
     innerHeight,
     () => props.zoomable,
+    () => props.minZoomSpan,
+    () => props.initialXDomain,
+    () => props.initialXDomains,
     () => props.displayMode,
     () => chartTracks.value.length,
     () => currentPage.value,
@@ -1195,10 +1621,20 @@ watch(
 )
 
 function handleDataReferenceChange() {
-  const previousPage = currentPage.value
-  currentPage.value = 1
-  resetViewport()
-  if (previousPage !== 1) emit('page-change', 1, pageCount.value)
+  if (props.displayMode === 'independent') {
+    const currentTransforms = independentTransforms.value
+    independentTransforms.value = chartTracks.value.map(
+      (_track, index) => currentTransforms[index] ?? zoomIdentity,
+    )
+    clearHover()
+    editorSeriesOptions.value = []
+    void nextTick(configureZoom)
+    return
+  }
+
+  clearHover()
+  editorSeriesOptions.value = []
+  void nextTick(configureZoom)
 }
 
 watch(
@@ -1321,6 +1757,8 @@ watch(
 )
 
 onMounted(() => {
+  window.addEventListener('keydown', handleInteractionKeyDown)
+  window.addEventListener('keyup', handleInteractionKeyUp)
   if (!container.value) return
   resizeObserver.value = new ResizeObserver(([entry]) => {
     observedWidth.value = Math.max(0, entry?.contentRect.width ?? 0)
@@ -1331,6 +1769,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleInteractionKeyDown)
+  window.removeEventListener('keyup', handleInteractionKeyUp)
   cancelPendingHover()
   resizeObserver.value?.disconnect()
   clearZoomBindings()
@@ -1345,6 +1785,7 @@ onBeforeUnmount(() => {
     :class="[
       `waveform-chart--${displayMode}`,
       `waveform-chart--interaction-${activeInteractionMode}`,
+      { 'waveform-chart--panning': selection?.mode === 'pan' },
     ]"
     :style="containerStyle"
     :data-display-mode="displayMode"
@@ -1388,6 +1829,7 @@ onBeforeUnmount(() => {
       :height="drawingHeight"
       role="img"
       :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
+      @dblclick="requestViewportReset"
     >
       <defs>
         <clipPath
@@ -1426,6 +1868,9 @@ onBeforeUnmount(() => {
           :width="innerWidth"
           :height="innerHeight"
           @pointermove="handleSharedPointerMove"
+          @pointerdown="beginSharedViewportDrag"
+          @pointerup="finishViewportDrag"
+          @pointercancel="cancelViewportDrag"
           @pointerleave="clearHover"
           @click="handleAnnotationClick"
           @contextmenu="handleAnnotationContextMenu"
@@ -1448,9 +1893,22 @@ onBeforeUnmount(() => {
           :y-label="yLabel"
           :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
           @pointer-move="handleIndependentPointerMove($event, track.index)"
+          @pointer-down="beginViewportDrag($event, track.index, true)"
+          @pointer-up="finishViewportDrag"
+          @pointer-cancel="cancelViewportDrag"
           @pointer-leave="clearHover"
           @click="handleAnnotationClick($event, track.index)"
           @contextmenu="handleAnnotationContextMenu($event, track.index)"
+        />
+
+        <rect
+          v-if="selectionBox && selection?.mode === 'box'"
+          class="waveform-chart__zoom-selection"
+          :x="selectionBox.x"
+          :y="selectionBox.y"
+          :width="selectionBox.width"
+          :height="selectionBox.height"
+          aria-hidden="true"
         />
 
         <WaveformAnnotationLayer
@@ -1647,11 +2105,18 @@ onBeforeUnmount(() => {
 }
 
 .waveform-chart__overlay.is-zoomable {
-  cursor: grab;
+  cursor: crosshair;
 }
 
-.waveform-chart__overlay.is-zoomable:active {
+.waveform-chart--panning .waveform-chart__overlay.is-zoomable {
   cursor: grabbing;
+}
+
+.waveform-chart__zoom-selection {
+  fill: rgb(22 119 255 / 14%);
+  stroke: #1677ff;
+  stroke-width: 1;
+  pointer-events: none;
 }
 
 .waveform-chart__overlay.is-annotating {

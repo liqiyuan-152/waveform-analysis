@@ -30,8 +30,12 @@ export type WaveformInteractionMode = 'zoom' | 'annotation'
 export interface WaveformZoomEndPayload {
   start: number
   end: number
+  yStart?: number
+  yEnd?: number
+  yRanges?: Record<string, [number, number]>
   trackIndex?: number
   seriesIds?: string[]
+  gesture?: 'wheel' | 'box'
 }
 
 /** 标注颜色样式 */

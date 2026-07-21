@@ -20,6 +20,7 @@ import {
 } from './components'
 import chartWaveformsJson from './data/chartWaveforms.json'
 import demoWaveformsJson from './data/demoWaveforms.json'
+import { normalizeWaveformSeries } from './core'
 
 interface WaveformSourcePoint {
   x: number
@@ -187,7 +188,25 @@ const fullChartData: WaveformData = {
   kind: 'series',
   series: [...frameOneSeries, ...basicCurveDemoSeries, ...stepDemoSeries, ...remainingSeries],
 }
+const initialXValues = normalizeWaveformSeries(fullChartData).flatMap((series) =>
+  series.points.map((point) => point.x),
+)
+const [initialXMinimum, initialXMaximum] = initialXValues.reduce<[number, number]>(
+  ([minimum, maximum], value) => [Math.min(minimum, value), Math.max(maximum, value)],
+  [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY],
+)
+const initialXSpan = initialXMaximum - initialXMinimum
+const minZoomSpan =
+  Number.isFinite(initialXSpan) && initialXSpan > 0 ? initialXSpan / 40 : undefined
+const initialXDomainValue: [number, number] | undefined =
+  Number.isFinite(initialXMinimum) && Number.isFinite(initialXMaximum)
+    ? [initialXMinimum, initialXMaximum]
+    : undefined
+// Keep the full source domain stable while viewport data windows are replaced.
+const initialXDomain = ref<[number, number] | undefined>(initialXDomainValue)
 const chartData = ref<WaveformData>(fullChartData)
+const waveformChartRef = ref<{ resetViewport: (trackIndex?: number) => void }>()
+
 let zoomRequestSequence = 0
 
 function filterWaveformData(data: WaveformData, start: number, end: number): WaveformData {
@@ -215,6 +234,22 @@ function filterWaveformData(data: WaveformData, start: number, end: number): Wav
   }
 }
 
+function mergeIndependentWindow(
+  currentData: WaveformData,
+  responseData: WaveformData,
+  seriesIds: string[],
+): WaveformData {
+  if (currentData.kind !== 'series' || responseData.kind !== 'series') return responseData
+  const responseById = new Map(responseData.series.map((series) => [series.id, series]))
+  const changedIds = new Set(seriesIds)
+  return {
+    kind: 'series',
+    series: currentData.series.map((series) =>
+      series.id && changedIds.has(series.id) ? (responseById.get(series.id) ?? series) : series,
+    ),
+  }
+}
+
 async function handleZoomEnd(payload: WaveformZoomEndPayload) {
   // Demo-only sequence number cancellation. Production code should use AbortController
   // to cancel in-flight requests when a newer zoom gesture arrives.
@@ -224,7 +259,18 @@ async function handleZoomEnd(payload: WaveformZoomEndPayload) {
 
   // Demo-only stand-in for the backend response. Production code should replace this
   // with a request using payload.start/payload.end and the optional channel metadata.
-  chartData.value = filterWaveformData(fullChartData, payload.start, payload.end)
+  const responseData = filterWaveformData(fullChartData, payload.start, payload.end)
+  chartData.value =
+    payload.trackIndex !== undefined && payload.seriesIds?.length
+      ? mergeIndependentWindow(chartData.value, responseData, payload.seriesIds)
+      : responseData
+}
+
+function resetWaveformViewport() {
+  zoomRequestSequence += 1
+  chartData.value = fullChartData
+  initialXDomain.value = initialXDomainValue
+  waveformChartRef.value?.resetViewport()
 }
 const titleOptions = computed<WaveformTitleOptions>(() => ({
   visible: titleVisible.value,
@@ -302,6 +348,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             <Radio.Button value="separated">多道分离</Radio.Button>
             <Radio.Button value="compact">多道紧凑</Radio.Button>
           </Radio.Group>
+        </section>
+
+        <section class="control-section">
+          <h2>视图</h2>
+          <Button block aria-label="重置波形视图" @click="resetWaveformViewport">重置视图</Button>
         </section>
 
         <section class="control-section">
@@ -535,7 +586,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
 
     <section class="chart-panel">
       <WaveformChart
+        ref="waveformChartRef"
         :data="chartData"
+        :min-zoom-span="minZoomSpan"
+        :min-visible-points="5"
+        :initial-x-domain="initialXDomain"
         :display-mode="displayMode"
         :overlay-mode="overlayMode"
         :grid="{ rowCount, columnCount, showPagination: true }"
@@ -553,6 +608,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         v-model:interaction-mode="interactionMode"
         v-model:hidden-series-ids="hiddenSeriesIds"
         @zoom-end="handleZoomEnd"
+        @zoom-reset="resetWaveformViewport"
       />
     </section>
   </main>

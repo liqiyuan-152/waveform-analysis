@@ -41,6 +41,9 @@ interface Props {
 
 interface Emits {
   (e: 'pointer-move', event: PointerEvent): void
+  (e: 'pointer-down', event: PointerEvent): void
+  (e: 'pointer-up', event: PointerEvent): void
+  (e: 'pointer-cancel', event: PointerEvent): void
   (e: 'pointer-leave'): void
   (e: 'click', event: MouseEvent): void
   (e: 'contextmenu', event: MouseEvent): void
@@ -409,6 +412,9 @@ watch(
       :width="track.width ?? innerWidth"
       :height="track.height"
       @pointermove="emit('pointer-move', $event)"
+      @pointerdown="emit('pointer-down', $event)"
+      @pointerup="emit('pointer-up', $event)"
+      @pointercancel="emit('pointer-cancel', $event)"
       @pointerleave="emit('pointer-leave')"
       @click="emit('click', $event)"
       @contextmenu="emit('contextmenu', $event)"
@@ -471,6 +477,8 @@ watch(
   fill: rgb(22 119 255 / 10%);
   font-family: Consolas, Monaco, 'Courier New', monospace;
   pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .waveform-track__overlay {

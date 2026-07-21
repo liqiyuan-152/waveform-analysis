@@ -190,6 +190,9 @@ export interface BuildTrackLayoutsOptions {
   overlayMode: WaveformOverlayMode
   independentTransforms: ZoomTransform[]
   sharedZoomDomain: [number, number]
+  initialXDomain?: [number, number]
+  initialXDomains?: Record<string, [number, number]>
+  yDomains?: Record<string, [number, number]>
   timeUnit: 's' | 'ms'
   rendering: ResolvedWaveformRenderingOptions
   hideSecondaryLabels: boolean
@@ -226,14 +229,23 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const series = displayTrack.visibleSeries[0] ?? displayTrack.series[0] ?? emptySeries
     const baseXScale =
       options.displayMode === 'independent'
-        ? scaleLinear(displayTrack.xDomain, [0, cell.width])
+        ? scaleLinear(
+            options.initialXDomains?.[displayTrack.id] ??
+              options.initialXDomains?.[series.id] ??
+              displayTrack.xDomain,
+            [0, cell.width],
+          )
         : scaleLinear(options.sharedZoomDomain, [0, cell.width])
     const transform =
       options.displayMode === 'independent'
         ? (options.independentTransforms[index] ?? zoomIdentity)
         : zoomIdentity
     const xScale = transform.rescaleX(baseXScale)
-    const yAxisGroups = buildYAxisSeriesGroups(displayTrack, options.overlayMode)
+    const configuredYDomain = options.yDomains?.[displayTrack.id]
+    const yAxisGroups = buildYAxisSeriesGroups(displayTrack, options.overlayMode).map((group) => ({
+      ...group,
+      domain: configuredYDomain ?? group.domain,
+    }))
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
       const scale = scaleLinear(group.domain, [cell.plotHeight, 0]).nice()

@@ -1,66 +1,104 @@
 # Waveform Analysis
 
-基于 Vue 3、TypeScript 和 D3 的响应式波形图组件库与示例项目。
+基于 Vue 3、TypeScript 和 D3 的响应式 SVG 波形图组件。适合展示单通道、多通道和大规模采样
+数据，内置缩放、tooltip、图例、误差棒、标注、分页和多 Y 轴叠加。
 
-组件使用 SVG 绘制坐标轴和波形；大数据会按当前可见范围和屏幕像素自动保峰降采样，
-tooltip 与标注仍使用完整原始数据。
+组件使用不可变数据模型：替换 `data` 引用后会重新计算数据域和视口；大数据会按当前可见范围
+和屏幕像素自动保峰降采样，而 tooltip、最近点查询和标注仍使用完整原始数据。
 
 ## 在线示例
 
 最新稳定版 Demo：<https://lqycustomsite.online/waveform-analysis/>
 
-## 开始使用
+## 特性
+
+- Vue 3 Composition API + TypeScript，支持按需导入 `WaveformChart`
+- 采样值、显式坐标点和多系列数据模型
+- `independent`、`separated`、`compact` 三种布局模式
+- 曲线、阶梯线、点符号和对称/非对称误差棒
+- 缩放过程事件、缩放结束按可视区间加载和视口重置
+- 多系列图例、受控显隐、网格分页和最多四根 Y 轴
+- 受控标注、右键编辑、拖拽避让和自定义颜色
+- 标题、图框、坐标轴、时间单位和降采样参数可配置
+
+## 安装
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-开发环境要求 Node.js 22、pnpm，以及支持 Vue 3 的宿主项目。组件库会将 Vue、D3、
-Ant Design Vue 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
+组件库将 Vue、D3、Ant Design Vue 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
 安装这些依赖：
 
 ```bash
 pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
 ```
 
-## 常用命令
-
-```bash
-pnpm typecheck
-pnpm lint
-pnpm test
-pnpm test:coverage
-pnpm build
-```
-
-`pnpm build` 同时生成 `dist` 组件库产物和 `dist-demo` 演示应用。发布稳定版后，在线示例
-会自动更新；预发布版本不会覆盖在线示例。正式公开入口为
-`src/index.ts`；发布后使用包入口：
-
-```ts
-import { WaveformChart, type WaveformData } from 'waveform-analysis'
-import 'waveform-analysis/style.css'
-```
-
-Vue、D3、Ant Design Vue 和 vue3-colorpicker 是 peer dependencies，需要由使用方安装。
-`WaveformChart` 支持采样值与采样率，也支持显式的 `{ x, y }[]` 点数组。
-
 ## 发布
 
-发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再创建同版本 tag：
+发布由推送版本 tag 触发。`package.json` 的 `version` 必须与 tag 去掉 `v` 后完全一致。
+稳定版使用 `vX.Y.Z`，预发布版使用 `vX.Y.Z-rc.1`；稳定版发布为 npm `latest`，预发布版发布为
+`next`。流水线会创建 Gitea Release，并上传包文件与 SHA-256 校验文件。
 
-```bash
-git tag -a v0.1.7 -m "Release v0.1.7"
-git push origin main --follow-tags
+## 最小示例
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { WaveformChart, type WaveformData } from 'waveform-analysis'
+import 'waveform-analysis/style.css'
+
+const data = ref<WaveformData>({
+  kind: 'points',
+  points: [
+    { x: 0, y: 0.2 },
+    { x: 0.001, y: 0.4 },
+    { x: 0.002, y: 0.1 },
+  ],
+})
+</script>
+
+<template>
+  <div class="chart-container">
+    <WaveformChart :data="data" />
+  </div>
+</template>
+
+<style scoped>
+.chart-container {
+  height: 420px;
+}
+</style>
 ```
 
-支持稳定版 `vX.Y.Z` 与预发布版 `vX.Y.Z-rc.1`。tag 去掉 `v` 后必须与 `package.json` 的
-`version` 完全一致。稳定版发布为 npm `latest` 并更新服务器下载目录的 latest 链接；预发布版发布为
-npm `next`，不会覆盖稳定版 latest。流水线会创建 Gitea Release，并上传 `.tgz` 与 SHA-256 校验文件。
+父容器需要有明确高度；未指定 `width` 或 `height` 时，组件会填充父容器，并保持最小高度
+`180px`。`WaveformChart` 的正式入口为 `src/index.ts`，样式入口为 `waveform-analysis/style.css`。
 
-仓库 Actions 需要配置 `NPM_PUBLISH_TOKEN`（npm 包发布权限）和 `RELEASE_TOKEN`（仓库 Release
-写入权限）两个 Secret。
+## API 速查
+
+### Props
+
+| Prop                              | 类型                                        | 默认值                                                  | 说明                              |
+| --------------------------------- | ------------------------------------------- | ------------------------------------------------------- | --------------------------------- |
+| `data`                            | `WaveformData`                              | 必填                                                    | 波形数据                          |
+| `displayMode`                     | `'independent' \| 'separated' \| 'compact'` | `'independent'`                                         | 图框布局                          |
+| `overlayMode`                     | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                         | 叠加曲线的 Y 轴模式               |
+| `timeUnit`                        | `'s' \| 'ms'`                               | `'ms'`                                                  | 坐标轴和 tooltip 展示单位         |
+| `width` / `height`                | `number`                                    | 自适应                                                  | 组件总尺寸，单位为 CSS 像素       |
+| `zoomable` / `showTooltip`        | `boolean`                                   | `true` / `true`                                         | 缩放和 tooltip 开关               |
+| `minZoomSpan`                     | `number`                                    | 未设置                                                  | 最小缩放跨度，使用原始 X 数据单位 |
+| `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围             |
+| `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围   |
+| `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                        |
+| `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距             |
+| `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式              |
+| `annotations`                     | `WaveformAnnotation[]`                      | `[]`                                                    | 受控标注数据                      |
+| `hiddenSeriesIds`                 | `string[]`                                  | 未设置                                                  | 受控隐藏系列 ID                   |
+| `defaultHiddenSeriesIds`          | `string[]`                                  | `[]`                                                    | 非受控模式的初始隐藏系列          |
+
+所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
+`WaveformAnnotation`、`WaveformRenderingOptions` 和 `WaveformGridOptions`。
 
 ### 数据结构
 
@@ -114,20 +152,41 @@ import { WaveformChart } from './index'
 
 ### 缩放后按可视区间加载数据
 
-组件会在一次缩放手势结束后触发 `zoom-end`，调用方可以使用端点请求后端，再通过 `data`
-传回新数据。共享 X 轴模式的 payload 为 `{ start, end }`；独立分图模式还会包含
-`trackIndex` 和稳定的 `seriesIds`。
+组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放
+X/Y 轴；按住空格键拖拽可平移当前视口。鼠标滚轮仍可放大，双击恢复完整视口。
+组件会在滚轮或框选缩放结束后触发 `zoom-end`，调用方可以使用端点请求后端，再通过
+`data` 传回新数据。独立分图模式还会包含 `trackIndex` 和稳定的 `seriesIds`。
 
 ```vue
-<WaveformChart :data="chartData" @zoom-end="loadVisibleData" />
+<WaveformChart
+  ref="chart"
+  :data="chartData"
+  :initial-x-domain="initialDomain"
+  :min-zoom-span="initialDomainSpan / 40"
+  @zoom-end="loadVisibleData"
+  @zoom-reset="restoreInitialData"
+/>
 ```
 
-`zoom-change` 仍会在缩放过程中持续触发，适合更新外部状态；后端请求应使用
-`zoom-end` 或在 `zoom-change` 上自行防抖。标注数据应由父组件独立持有，替换波形数据时
+`zoom-change` 会在滚轮、框选和平移过程中触发，适合更新外部状态；后端请求应使用
+`zoom-end`，或在 `zoom-change` 上自行防抖。标注数据应由父组件独立持有，替换波形数据时
 不要清空标注，组件会根据当前数据域自动隐藏或恢复对应标注。
+
+`zoom-end.gesture` 用于区分 `wheel` 和 `box`。单轨道 payload 使用 `yStart/yEnd`；共享
+X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平移不会触发 `zoom-end`，
+因此不会自动发起新的区间加载请求。
 
 调用方应处理加载失败的情况（网络错误、超时等），并保持旧数据或显示加载状态。生产环境建议使用
 `AbortController` 取消过时的请求。
+
+`initialXDomain` 固定首次完整数据的 X 轴缩放边界，不要将它改成后端返回的当前窗口；独立图框有不同时间范围时，可通过
+`initialXDomains` 按 track ID 或 series ID 分别配置。`minZoomSpan` 使用原始 X 数据单位，
+可防止每次区间数据回填后重新累计放大。双击图框会
+重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。
+外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。
+
+独立坐标模式下，回填响应应只替换 `seriesIds` 对应的系列，并调用
+`resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。
 
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
@@ -395,14 +454,15 @@ X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01,
 
 组件提供以下事件，名称与 Vue 模板写法一致：
 
-| 事件                                                            | 说明                                                       |
-| --------------------------------------------------------------- | ---------------------------------------------------------- |
-| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                |
-| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                      |
-| `zoom-end`                                                      | 缩放结束后触发；独立分图模式附带 `trackIndex`、`seriesIds` |
-| `page-change`                                                   | 分页变化，参数为当前页和总页数                             |
-| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                     |
-| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                       |
+| 事件                                                            | 说明                                                           |
+| --------------------------------------------------------------- | -------------------------------------------------------------- |
+| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
+| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
+| `zoom-end`                                                      | 滚轮放大结束后触发；独立分图模式附带 `trackIndex`、`seriesIds` |
+| `zoom-reset`                                                    | 双击重置视口时触发，调用方应恢复首次完整数据                   |
+| `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
+| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
+| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                           |
 
 `annotations`、`annotations-visible`、`interaction-mode` 和 `hidden-series-ids` 均支持
 `v-model`；业务层应负责将标注和显隐状态持久化。
@@ -414,5 +474,37 @@ X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01,
 - `src/components/{core,data,rendering,interaction,annotation}`：数据、布局、渲染和交互模块
 - `src/App.vue`：可交互 demo，`src/data` 中提供示例波形数据
 
-构建后，`dist/` 是可发布的组件库，`dist-demo/` 是 demo 静态产物；两者均为生成目录，
-不要手工编辑。
+## 本地开发
+
+开发环境要求 Node.js 22 和 pnpm：
+
+```bash
+pnpm install
+pnpm dev
+```
+
+常用质量检查和构建命令：
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test
+pnpm test:coverage
+pnpm build
+```
+
+`pnpm build` 同时生成 `dist/` 组件库产物和 `dist-demo/` 演示应用。正式公开入口为
+`src/index.ts`，样式入口为 `src/styles.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
+
+## 发布流程
+
+发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再创建同版本 tag：
+
+```bash
+git tag -a v0.1.7 -m "Release v0.1.7"
+git push origin main --follow-tags
+```
+
+支持稳定版 `vX.Y.Z` 与预发布版 `vX.Y.Z-rc.1`。tag 去掉 `v` 后必须与 `package.json` 的
+`version` 完全一致。稳定版发布为 npm `latest`，预发布版发布为 npm `next`。流水线会创建 Gitea
+Release，并上传 `.tgz` 与 SHA-256 校验文件。

@@ -66,6 +66,7 @@ function layoutForSeries(
     overlayMode: 'single-axis',
     independentTransforms: [transform],
     sharedZoomDomain: sourceSeries.xDomain,
+    yDomains: undefined,
     timeUnit: 'ms',
     rendering,
     hideSecondaryLabels: false,
@@ -75,6 +76,42 @@ function layoutForSeries(
 }
 
 describe('multi-value Y-axis grouping', () => {
+  it('uses a configured visible Y domain for axis and series scales', () => {
+    const source = series('a', 0, 100)
+    const sourceTrack = track([source])
+    const result = buildTrackLayouts({
+      cells: [
+        {
+          slotIndex: 0,
+          row: 0,
+          column: 0,
+          left: 0,
+          top: 0,
+          width: 120,
+          height: 100,
+          plotHeight: 100,
+          cellHeight: 130,
+          xAxisBand: 30,
+          series: sourceTrack,
+        },
+      ],
+      grid: { rowCount: 1, columnCount: 1, showPagination: false },
+      displayMode: 'independent',
+      overlayMode: 'single-axis',
+      independentTransforms: [zoomIdentity],
+      sharedZoomDomain: [0, 1],
+      yDomains: { track: [25, 75] },
+      timeUnit: 'ms',
+      rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
+      hideSecondaryLabels: false,
+      yAxisLabelX: -50,
+      showCompactEmptyTracks: false,
+    })[0]
+
+    expect(result?.yScale.domain()).toEqual([25, 75])
+    expect(result?.seriesPaths[0]?.yScale.domain()).toEqual([25, 75])
+  })
+
   it('keeps every overlaid series on one axis in single-axis mode', () => {
     const groups = buildYAxisSeriesGroups(
       track([series('a', 0, 1), series('b', 10, 20)]),

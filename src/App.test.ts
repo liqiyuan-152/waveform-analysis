@@ -1,11 +1,36 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { InputNumber, Select } from 'ant-design-vue'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
 
 import App from './App.vue'
+import { WaveformChart, type WaveformData } from './components'
 
 describe('App workspace layout', { timeout: 20_000 }, () => {
+  it('restores full data and invalidates a pending zoom request', async () => {
+    vi.useFakeTimers()
+    const wrapper = mount(App)
+    try {
+      await flushPromises()
+      const chart = wrapper.getComponent(WaveformChart)
+      const pointCount = (data: WaveformData) =>
+        data.kind === 'series' && data.series[0]?.data.kind === 'points'
+          ? data.series[0].data.points.length
+          : 0
+      const initialPointCount = pointCount(chart.props('data') as WaveformData)
+
+      chart.vm.$emit('zoom-end', { start: 0, end: 0.001 })
+      await wrapper.get('[aria-label="重置波形视图"]').trigger('click')
+      await vi.advanceTimersByTimeAsync(100)
+      await flushPromises()
+
+      expect(pointCount(chart.props('data') as WaveformData)).toBe(initialPointCount)
+    } finally {
+      wrapper.unmount()
+      vi.useRealTimers()
+    }
+  })
+
   it('places controls in the sidebar beside the chart', async () => {
     const wrapper = mount(App)
     await flushPromises()

@@ -1261,6 +1261,75 @@ describe('WaveformChart', () => {
     }
   })
 
+  it('uses each track x domain in independent mode instead of the shared initial domain', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'narrow-track',
+            name: '窄范围',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 0.006, y: 1 },
+              ],
+            },
+          },
+          {
+            id: 'wide-track',
+            name: '宽范围',
+            data: {
+              kind: 'points',
+              points: [
+                { x: -8, y: 0 },
+                { x: 5, y: 1 },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        displayMode: 'independent',
+        grid: { rowCount: 1, columnCount: 2 },
+        initialXDomain: [-8, 5],
+      },
+    )
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('6.00')
+    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5.00')
+  })
+
+  it('uses an explicit initial x domain override for an independent track', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'narrow-track',
+            name: '窄范围',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 0.006, y: 1 },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        displayMode: 'independent',
+        initialXDomain: [-8, 5],
+        initialXDomains: { 'narrow-track': [0, 1] },
+      },
+    )
+
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+  })
+
   it('keeps annotations bound to their channel while paging', async () => {
     const wrapper = await mountSizedChart(gridSeries(3), {
       grid: { rowCount: 1, columnCount: 1 },
@@ -1838,6 +1907,9 @@ describe('WaveformChart', () => {
     ).toBeUndefined()
     expect(wrapper.get('.waveform-chart__plot-background').attributes('fill')).toBe('transparent')
     expect(wrapper.get('.waveform-chart__watermark').text()).toBe('12')
+    expect(getComputedStyle(wrapper.get('.waveform-chart__watermark').element).userSelect).toBe(
+      'none',
+    )
     expect(wrapper.get('.waveform-chart__line').attributes('stroke')).toBe('#0960bd')
   })
 
@@ -2122,9 +2194,205 @@ describe('WaveformChart', () => {
       expect(payload.start).toBeGreaterThanOrEqual(0)
       expect(payload.end).toBeLessThanOrEqual(2)
       expect(payload.start).toBeLessThan(payload.end)
+      expect(payload.end - payload.start).toBeCloseTo(2 / 40)
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it('zooms only the x axis and identifies the box gesture', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 10 },
+        { x: 2, y: 20 },
+      ],
+    })
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const width = Number(overlay.attributes('width'))
+    const height = Number(overlay.attributes('height'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height }),
+    })
+
+    const dispatchPointer = (type: string, clientX: number, clientY: number) => {
+      const event = new MouseEvent(type, { button: 0, clientX, clientY, bubbles: true })
+      Object.defineProperty(event, 'pointerId', { value: 7 })
+      overlay.element.dispatchEvent(event)
+    }
+    dispatchPointer('pointerdown', width * 0.25, height / 2)
+    dispatchPointer('pointermove', width * 0.75, height / 2 + 2)
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    dispatchPointer('pointerup', width * 0.75, height * 0.75)
+    await flushPromises()
+
+    const payload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as
+      | {
+          start: number
+          end: number
+          yStart?: number
+          yEnd?: number
+          trackIndex: number
+          seriesIds: string[]
+          gesture: string
+        }
+      | undefined
+    expect(payload).toMatchObject({ trackIndex: 0, seriesIds: ['series-0'], gesture: 'box' })
+    expect(payload?.end).toBeGreaterThan(payload?.start ?? Number.POSITIVE_INFINITY)
+    expect(payload?.yStart).toBeDefined()
+    expect(payload?.yEnd).toBeDefined()
+    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+  })
+
+  it('limits box zoom to the configured minimum x span', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 10 },
+          { x: 2, y: 20 },
+        ],
+      },
+      { minZoomSpan: 0.25 },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const width = Number(overlay.attributes('width'))
+    const height = Number(overlay.attributes('height'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height }),
+    })
+    const dispatchPointer = (type: string, clientX: number, clientY: number) => {
+      const event = new MouseEvent(type, { button: 0, clientX, clientY, bubbles: true })
+      Object.defineProperty(event, 'pointerId', { value: 8 })
+      overlay.element.dispatchEvent(event)
+    }
+    dispatchPointer('pointerdown', width / 2, height / 2)
+    dispatchPointer('pointermove', width / 2 + 8, height / 2 + 8)
+    dispatchPointer('pointerup', width / 2 + 8, height / 2 + 8)
+    await flushPromises()
+
+    const payload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as { start: number; end: number }
+    expect(payload.end - payload.start).toBeGreaterThanOrEqual(0.25 - 1e-8)
+  })
+
+  it('does not zoom a track when its visible sample count is below the configured minimum', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 10 },
+          { x: 2, y: 20 },
+        ],
+      },
+      { minVisiblePoints: 10 },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const width = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 290 }),
+    })
+    overlay.element.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -1000,
+        clientX: width / 2,
+        clientY: 145,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(wrapper.emitted('zoom-change')).toBeUndefined()
+    expect(wrapper.emitted('zoom-end')).toBeUndefined()
+  })
+
+  it('ignores shared viewport dragging', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 2, y: 1 },
+      ],
+    })
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const width = Number(overlay.attributes('width'))
+    const createDragEvent = (type: string, init: MouseEventInit) => {
+      const event = new MouseEvent(type, init)
+      Object.defineProperty(event, 'view', { value: window })
+      return event
+    }
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 290 }),
+    })
+    overlay.element.dispatchEvent(
+      createDragEvent('mousedown', {
+        button: 0,
+        clientX: width / 2,
+        clientY: 145,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    window.dispatchEvent(
+      new MouseEvent('mousemove', {
+        clientX: width / 2 + 80,
+        clientY: 145,
+        bubbles: true,
+      }),
+    )
+    window.dispatchEvent(createDragEvent('mouseup', { bubbles: true }))
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(wrapper.emitted('zoom-change')).toBeUndefined()
+    expect(wrapper.emitted('zoom-end')).toBeUndefined()
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+  })
+
+  it('ignores independent viewport dragging', async () => {
+    const wrapper = await mountSizedChart(gridSeries(2), {
+      displayMode: 'independent',
+      grid: { rowCount: 1, columnCount: 2 },
+    })
+    const overlay = wrapper.findAll('.waveform-chart__overlay--independent')[0]
+    const width = Number(overlay.attributes('width'))
+    const createDragEvent = (type: string, init: MouseEventInit) => {
+      const event = new MouseEvent(type, init)
+      Object.defineProperty(event, 'view', { value: window })
+      return event
+    }
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 260 }),
+    })
+
+    overlay.element.dispatchEvent(
+      createDragEvent('mousedown', {
+        button: 0,
+        clientX: width / 2,
+        clientY: 130,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    window.dispatchEvent(
+      new MouseEvent('mousemove', {
+        clientX: width / 2 + 60,
+        clientY: 130,
+        bubbles: true,
+      }),
+    )
+    window.dispatchEvent(createDragEvent('mouseup', { bubbles: true }))
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(wrapper.emitted('zoom-change')).toBeUndefined()
+    expect(wrapper.emitted('zoom-end')).toBeUndefined()
   })
 
   it('includes track and series IDs in independent zoom-end payloads', async () => {
@@ -2159,6 +2427,222 @@ describe('WaveformChart', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+
+  it('keeps the global minimum zoom span after replacing the data window', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 1 },
+        ],
+      },
+      { minZoomSpan: 10 },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const width = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 290 }),
+    })
+    const zoomAtCenter = async () => {
+      overlay.element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: -4000,
+          clientX: width / 2,
+          clientY: 145,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      flushAnimationFrames()
+      await flushPromises()
+    }
+
+    await zoomAtCenter()
+    const firstDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(firstDomain[1] - firstDomain[0]).toBeCloseTo(10)
+
+    await wrapper.setProps({
+      data: {
+        kind: 'points',
+        points: [
+          { x: firstDomain[0], y: 0 },
+          { x: firstDomain[1], y: 1 },
+        ],
+      },
+    })
+    await flushPromises()
+    await zoomAtCenter()
+
+    const secondDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(secondDomain[1] - secondDomain[0]).toBeCloseTo(10)
+  })
+
+  it('keeps one global domain while loading narrower and wider windows', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 1 },
+        ],
+      },
+      { displayMode: 'separated', initialXDomain: [0, 100] },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const width = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 290 }),
+    })
+    const dispatchWheel = async (deltaY: number) => {
+      overlay.element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY,
+          clientX: width / 2,
+          clientY: 145,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      flushAnimationFrames()
+      await flushPromises()
+    }
+
+    await dispatchWheel(-4000)
+    const zoomedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(2.5)
+
+    await wrapper.setProps({
+      data: {
+        kind: 'points',
+        points: [
+          { x: 48, y: 0 },
+          { x: 52, y: 1 },
+        ],
+      },
+    })
+    await flushPromises()
+    const preservedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(preservedDomain[1] - preservedDomain[0]).toBeCloseTo(2.5)
+
+    const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
+    await dispatchWheel(4000)
+    const currentDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount)
+    expect(currentDomain[1] - currentDomain[0]).toBeCloseTo(2.5)
+  })
+
+  it('resets a shared viewport on double-click and emits zoom-reset', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 2, y: 1 },
+      ],
+    })
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const width = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 290 }),
+    })
+    overlay.element.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -4000,
+        clientX: width / 2,
+        clientY: 145,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe('0.00')
+
+    overlay.element.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }))
+    await flushPromises()
+
+    expect(wrapper.emitted('zoom-reset')).toHaveLength(1)
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+  })
+
+  it('exposes resetViewport for independent tracks', async () => {
+    const wrapper = await mountSizedChart(gridSeries(2), {
+      displayMode: 'independent',
+      grid: { rowCount: 1, columnCount: 2 },
+    })
+    const overlay = wrapper.findAll('.waveform-chart__overlay--independent')[0]
+    const width = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 260 }),
+    })
+    overlay.element.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: -4000,
+        clientX: width / 2,
+        clientY: 130,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).not.toBe('0.00')
+
+    const chart = wrapper.vm as unknown as { resetViewport: () => void }
+    chart.resetViewport()
+    await flushPromises()
+
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe('0.00')
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--end')[0].text()).toBe('1.00')
+  })
+
+  it('keeps other independent tracks unchanged when one data window is replaced', async () => {
+    const wrapper = await mountSizedChart(gridSeries(2), {
+      displayMode: 'independent',
+      grid: { rowCount: 1, columnCount: 2 },
+    })
+    const originalEndpoints = wrapper
+      .findAll('.waveform-chart__axis-endpoint--end')
+      .map((endpoint) => endpoint.text())
+
+    await wrapper.setProps({
+      data: {
+        kind: 'series',
+        series: [
+          {
+            id: 'channel-0',
+            name: '通道 1',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0.25, y: 0 },
+                { x: 0.75, y: 1 },
+              ],
+            },
+          },
+          {
+            id: 'channel-1',
+            name: '通道 2',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 1 },
+                { x: 1, y: 2 },
+              ],
+            },
+          },
+        ],
+      },
+    })
+    await flushPromises()
+
+    const nextEndpoints = wrapper
+      .findAll('.waveform-chart__axis-endpoint--end')
+      .map((endpoint) => endpoint.text())
+    expect(nextEndpoints[0]).not.toBe(originalEndpoints[0])
+    expect(nextEndpoints[1]).toBe(originalEndpoints[1])
   })
 
   it('rebuilds cached domains only when the data reference changes', async () => {
