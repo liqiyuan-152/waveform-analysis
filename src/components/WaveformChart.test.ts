@@ -220,6 +220,152 @@ describe('WaveformChart', () => {
     second.unmount()
   })
 
+  it('renders a configurable zero line only when the Y domain contains zero', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: -2 },
+          { x: 1, y: 4 },
+        ],
+      },
+      { zeroLine: { visible: true, color: '#475467', width: 2, dash: '3 2' } },
+    )
+
+    const zeroLine = wrapper.get('.waveform-chart__zero-line')
+    expect(zeroLine.attributes()).toMatchObject({
+      stroke: '#475467',
+      'stroke-width': '2',
+      'stroke-dasharray': '3 2',
+      'data-y-axis-index': '0',
+    })
+    expect(zeroLine.attributes('y1')).toBe(zeroLine.attributes('y2'))
+
+    await wrapper.setProps({ zeroLine: { visible: false } })
+    expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
+
+    const positive = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 2 },
+          { x: 1, y: 4 },
+        ],
+      },
+      { zeroLine: { visible: true } },
+    )
+    expect(positive.find('.waveform-chart__zero-line').exists()).toBe(false)
+  })
+
+  it('renders zero lines from each visible Y axis in multi-axis mode', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'small',
+            trackId: 'overlay',
+            name: 'small',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: -1 },
+                { x: 1, y: 3 },
+              ],
+            },
+          },
+          {
+            id: 'large',
+            trackId: 'overlay',
+            name: 'large',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: -10 },
+                { x: 1, y: 2 },
+              ],
+            },
+          },
+        ],
+      },
+      { overlayMode: 'multi-axis', zeroLine: { visible: true } },
+    )
+
+    const zeroLines = wrapper.findAll('.waveform-chart__zero-line')
+    expect(zeroLines).toHaveLength(2)
+    expect(zeroLines.map((line) => line.attributes('data-y-axis-index'))).toEqual(['0', '1'])
+    expect(zeroLines[0].attributes('y1')).not.toBe(zeroLines[1].attributes('y1'))
+  })
+
+  it('uses the full drawing area and hides auxiliary layers in clean view', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'first',
+            trackId: 'overlay',
+            name: 'first',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: -1 },
+                { x: 1, y: 1 },
+              ],
+            },
+          },
+          {
+            id: 'second',
+            trackId: 'overlay',
+            name: 'second',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 1 },
+                { x: 1, y: 2 },
+              ],
+            },
+          },
+          {
+            id: 'third',
+            name: 'third',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 2 },
+                { x: 1, y: 3 },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        cleanView: true,
+        grid: { rowCount: 1, columnCount: 1, showPagination: true },
+        title: { text: 'hidden title' },
+        frameNumber: 1,
+        annotations: [{ id: 'note', seriesId: 'first', x: 0.5, y: 0, text: 'hidden note' }],
+        zeroLine: { visible: true },
+      },
+    )
+
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('0')
+    expect(wrapper.get('.waveform-chart__track').attributes('data-track-height')).toBe('360')
+    expect(wrapper.findAll('.waveform-chart__series')).toHaveLength(2)
+    expect(wrapper.find('.waveform-chart__overlay--independent').exists()).toBe(true)
+    expect(wrapper.find('.waveform-chart__title-area').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__axis').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__plot-background').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__watermark').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__legend-layer').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__label').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
+    expect(wrapper.find('.waveform-annotation-layer').exists()).toBe(false)
+    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+  })
+
   it('places start, middle, and end step transitions at the expected X positions', async () => {
     const lineTypes = ['step-start', 'step-middle', 'step-end', 'step-after'] as const
     const wrapper = await mountSizedChart({

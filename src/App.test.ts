@@ -41,6 +41,12 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(panel.find('[aria-label="波形展示方式"]').exists()).toBe(true)
     expect(panel.find('[aria-label="波形叠加方式"]').exists()).toBe(true)
     expect(panel.find('[aria-label="波形网格尺寸"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="净图模式"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="显示零值参考线"]').exists()).toBe(true)
+    const zeroLineControls = panel.get('.zero-line-controls')
+    expect(zeroLineControls.findAllComponents(ColorPicker)).toHaveLength(1)
+    expect(zeroLineControls.find('[aria-label="零值参考线线宽"]').exists()).toBe(true)
+    expect(zeroLineControls.find('[aria-label="零值参考线线型"]').exists()).toBe(true)
     expect(frameControls.findAllComponents(ColorPicker)).toHaveLength(2)
     expect(frameControls.text()).toContain('边框颜色')
     expect(frameControls.text()).toContain('背景颜色')
@@ -68,6 +74,23 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(panel.text()).not.toContain('数据摘要')
     expect(wrapper.get('.chart-panel').find('.waveform-chart').exists()).toBe(true)
 
+    wrapper.unmount()
+  })
+
+  it('passes clean view and zero-line controls to the chart', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+    const chart = wrapper.getComponent(WaveformChart)
+
+    expect(chart.props('cleanView')).toBe(false)
+    expect(chart.props('zeroLine')).toMatchObject({ visible: false, color: '#98a2b3', width: 1 })
+
+    await wrapper.get('[aria-label="净图模式"]').trigger('click')
+    await wrapper.get('[aria-label="显示零值参考线"]').trigger('click')
+    await flushPromises()
+
+    expect(chart.props('cleanView')).toBe(true)
+    expect(chart.props('zeroLine')).toMatchObject({ visible: true, color: '#98a2b3', width: 1 })
     wrapper.unmount()
   })
 

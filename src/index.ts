@@ -23,6 +23,7 @@ export type {
   WaveformLegendOrientation,
   WaveformLegendOptions,
   WaveformFrameStyle,
+  WaveformZeroLineOptions,
   // 数据类型
   SingleWaveformData,
   WaveformLineType,

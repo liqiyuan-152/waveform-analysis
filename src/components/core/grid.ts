@@ -74,6 +74,7 @@ export function resolveGridCellGeometry(
   displayMode: WaveformDisplayMode,
   slotHasSeries: boolean[] = [],
   horizontalGap?: number,
+  showXAxis = true,
 ): GridCellGeometry[] {
   const defaultGap = getGridGap(displayMode)
   const columnGap = Number.isFinite(horizontalGap)
@@ -81,7 +82,9 @@ export function resolveGridCellGeometry(
     : defaultGap
   const totalHorizontalGap = Math.max(0, options.columnCount - 1) * columnGap
   const axisRows = new Set<number>()
-  if (displayMode === 'independent') {
+  if (!showXAxis) {
+    // Net view uses the full drawing area for waveform pixels.
+  } else if (displayMode === 'independent') {
     for (let row = 0; row < options.rowCount; row += 1) axisRows.add(row)
   } else if (displayMode === 'compact') {
     // Compact tracks share one continuous plot stack. Reserve the X-axis band

@@ -18,6 +18,7 @@ export type {
   WaveformLegendOrientation,
   WaveformLegendOptions,
   WaveformFrameStyle,
+  WaveformZeroLineOptions,
 } from './chart'
 
 // 数据类型

@@ -17,6 +17,7 @@ import {
   type WaveformSeries,
   type WaveformTitleOptions,
   type WaveformZoomEndPayload,
+  type WaveformZeroLineOptions,
 } from './components'
 import chartWaveformsJson from './data/chartWaveforms.json'
 import demoWaveformsJson from './data/demoWaveforms.json'
@@ -53,6 +54,11 @@ const frameBackgroundColor = ref('rgba(255, 255, 255, 0)')
 const frameWatermarkVisible = ref(true)
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
+const cleanView = ref(false)
+const zeroLineVisible = ref(false)
+const zeroLineColor = ref('#98a2b3')
+const zeroLineWidth = ref(1)
+const zeroLineDash = ref('6 4')
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
 const legendOrientation = ref<WaveformLegendOrientation>('auto')
@@ -88,6 +94,11 @@ const frameBorderStyleOptions = [
   { label: '实线', value: 'solid' },
   { label: '虚线', value: 'dashed' },
 ]
+const zeroLineDashOptions = [
+  { label: '虚线', value: '6 4' },
+  { label: '点划线', value: '2 3' },
+  { label: '实线', value: '' },
+]
 const titleAlignOptions: Array<{
   label: string
   value: NonNullable<WaveformTitleOptions['align']>
@@ -108,6 +119,12 @@ const frameStyle = computed<WaveformFrameStyle>(() => ({
   borderWidth: frameBorderWidth.value,
   borderStyle: frameBorderStyle.value,
   backgroundColor: frameBackgroundColor.value,
+}))
+const zeroLine = computed<WaveformZeroLineOptions>(() => ({
+  visible: zeroLineVisible.value,
+  color: zeroLineColor.value,
+  width: zeroLineWidth.value,
+  dash: zeroLineDash.value,
 }))
 
 const seriesStylePresets: Array<Pick<WaveformSeries, 'lineType' | 'pointType' | 'errorBar'>> = [
@@ -353,6 +370,53 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         <section class="control-section">
           <h2>视图</h2>
           <Button block aria-label="重置波形视图" @click="resetWaveformViewport">重置视图</Button>
+          <div class="auxiliary-style-controls" style="margin-top: 10px">
+            <label class="frame-style-control frame-style-control--switch">
+              <span>净图</span>
+              <Switch v-model:checked="cleanView" size="small" aria-label="净图模式" />
+            </label>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <div class="control-section__header">
+            <h2>零值参考线</h2>
+            <Switch v-model:checked="zeroLineVisible" size="small" aria-label="显示零值参考线" />
+          </div>
+          <div class="auxiliary-style-controls zero-line-controls" style="margin-top: 10px">
+            <label class="frame-style-control">
+              <span>颜色</span>
+              <ColorPicker
+                v-model:pure-color="zeroLineColor"
+                aria-label="零值参考线颜色"
+                use-type="pure"
+                picker-type="chrome"
+                format="hex"
+                :disable-alpha="true"
+                :blur-close="true"
+              />
+            </label>
+            <label class="frame-style-control">
+              <span>线宽</span>
+              <InputNumber
+                v-model:value="zeroLineWidth"
+                :min="0.5"
+                :max="10"
+                :step="0.5"
+                size="small"
+                aria-label="零值参考线线宽"
+              />
+            </label>
+            <label class="frame-style-control">
+              <span>线型</span>
+              <Select
+                v-model:value="zeroLineDash"
+                :options="zeroLineDashOptions"
+                size="small"
+                aria-label="零值参考线线型"
+              />
+            </label>
+          </div>
         </section>
 
         <section class="control-section">
@@ -602,6 +666,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
           interactive: true,
         }"
         :frame-style="frameStyle"
+        :clean-view="cleanView"
+        :zero-line="zeroLine"
         :frame-number="frameWatermarkVisible ? 1 : undefined"
         v-model:annotations="annotations"
         v-model:annotations-visible="annotationsVisible"

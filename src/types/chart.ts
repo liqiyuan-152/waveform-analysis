@@ -118,3 +118,11 @@ export interface WaveformFrameStyle {
   borderStyle?: 'solid' | 'dashed'
   backgroundColor?: string
 }
+
+/** Styling and visibility options for the horizontal zero-value reference line. */
+export interface WaveformZeroLineOptions {
+  visible?: boolean
+  color?: string
+  width?: number
+  dash?: string
+}

@@ -39,9 +39,9 @@ pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
 
 组件库支持以下运行时版本：
 
-| 依赖 | 支持版本 |
-| --- | --- |
-| Vue | `>=3.2.33 <4` |
+| 依赖           | 支持版本      |
+| -------------- | ------------- |
+| Vue            | `>=3.2.33 <4` |
 | Ant Design Vue | `>=3.2.20 <4` |
 
 安装时请确保业务项目中的 Vue 与 Ant Design Vue 版本满足上述范围。
@@ -104,12 +104,15 @@ const data = ref<WaveformData>({
 | `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                        |
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距             |
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式              |
+| `zeroLine`                        | `WaveformZeroLineOptions`                   | `{ visible: false }`                                    | 零值参考线显隐与样式              |
+| `cleanView`                       | `boolean`                                   | `false`                                                 | 仅保留波形的净图模式              |
 | `annotations`                     | `WaveformAnnotation[]`                      | `[]`                                                    | 受控标注数据                      |
 | `hiddenSeriesIds`                 | `string[]`                                  | 未设置                                                  | 受控隐藏系列 ID                   |
 | `defaultHiddenSeriesIds`          | `string[]`                                  | `[]`                                                    | 非受控模式的初始隐藏系列          |
 
 所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
-`WaveformAnnotation`、`WaveformRenderingOptions` 和 `WaveformGridOptions`。
+`WaveformAnnotation`、`WaveformRenderingOptions`、`WaveformZeroLineOptions` 和
+`WaveformGridOptions`。
 
 ### 数据结构
 
@@ -380,6 +383,35 @@ const hiddenSeriesIds = ref<string[]>([])
 
 显隐状态以规范化后的 `series.id` 为键。要在数据刷新和重新排序后稳定保留状态，每个系列都应
 提供全图唯一且稳定的显式 `id`；自动生成的索引 ID 或重复 ID 添加的后缀不保证跨排序稳定。
+
+### 零值参考线与净图
+
+`zeroLine` 用于绘制 `y = 0` 的水平参考线，默认隐藏。参考线只在对应 Y 轴的当前 domain
+包含 0 时渲染，不会为了显示参考线而扩展数据范围。多值轴模式下，每根可见 Y 轴分别按自身
+scale 定位零线：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :zero-line="{
+    visible: true,
+    color: '#98a2b3',
+    width: 1,
+    dash: '6 4',
+  }"
+/>
+```
+
+`dash` 直接对应 SVG 的 `stroke-dasharray`；传入空字符串可显示实线。无效或非正数的
+`width` 会回退到 `1`。
+
+设置 `cleanView` 后，组件隐藏标题、图例、网格、坐标轴、轴标签、图框背景与边框、帧水印、
+零值参考线、标注和分页器，并取消这些元素预留的边距，仅保留波形数据层。缩放、悬浮、十字线和
+tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失：
+
+```vue
+<WaveformChart :data="chartData" :clean-view="cleanViewEnabled" />
+```
 
 ### 网格、分页与交互模式
 

@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import { formatAxisTime, formatScientificAxisLabel } from '../../utils'
-import type { WaveformFrameStyle } from '../../types'
+import type { WaveformFrameStyle, WaveformZeroLineOptions } from '../../types'
 import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
 import type {
   DisplaySeries,
@@ -37,6 +37,12 @@ interface Props {
   hoveredPoint?: HoveredSeriesPoint
   /** Y 轴标签回退值 */
   yLabel?: string
+  /** Hide visual aids while keeping chart interaction active. */
+  cleanView?: boolean
+  /** Resolved zero reference line style. */
+  zeroLine?: Required<Pick<WaveformZeroLineOptions, 'color' | 'width' | 'dash'>> & {
+    visible: boolean
+  }
 }
 
 interface Emits {
@@ -51,6 +57,8 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
+  cleanView: false,
+  zeroLine: () => ({ visible: false, color: '#98a2b3', width: 1, dash: '6 4' }),
 })
 const emit = defineEmits<Emits>()
 
@@ -109,6 +117,12 @@ function hasCrosshair(): boolean {
     props.hoveredPoint !== undefined &&
     props.hoveredPoint.trackIndex === props.track.index
   )
+}
+
+function zeroLineY(axis: WaveformYAxisLayout): number | null {
+  const [minimum, maximum] = axis.scale.domain()
+  if (!props.zeroLine.visible || minimum > 0 || maximum < 0) return null
+  return axis.scale(0)
 }
 
 function renderAxes() {
@@ -180,7 +194,7 @@ watch(
     :transform="`translate(${track.left ?? 0}, ${track.top})`"
   >
     <rect
-      v-if="!track.isEmpty"
+      v-if="!track.isEmpty && !cleanView"
       class="waveform-track__plot-background waveform-chart__plot-background"
       :width="track.width ?? innerWidth"
       :height="track.height"
@@ -190,7 +204,7 @@ watch(
 
     <!-- 网格和背景 -->
     <g
-      v-if="!track.isEmpty && track.hasVisibleSeries"
+      v-if="!track.isEmpty && track.hasVisibleSeries && !cleanView"
       :clip-path="`url(#${clipPathId}-${track.index})`"
       aria-hidden="true"
     >
@@ -236,9 +250,31 @@ watch(
       </g>
     </g>
 
+    <g
+      v-if="!track.isEmpty && track.hasVisibleSeries && zeroLine.visible && !cleanView"
+      class="waveform-track__zero-lines waveform-chart__zero-lines"
+      :clip-path="`url(#${clipPathId}-${track.index})`"
+      aria-hidden="true"
+    >
+      <template v-for="axis in track.yAxes" :key="`zero-line-${track.index}-${axis.index}`">
+        <line
+          v-if="zeroLineY(axis) !== null"
+          class="waveform-track__zero-line waveform-chart__zero-line"
+          :data-y-axis-index="axis.index"
+          x1="0"
+          :x2="track.width ?? innerWidth"
+          :y1="zeroLineY(axis) ?? 0"
+          :y2="zeroLineY(axis) ?? 0"
+          :stroke="zeroLine.color"
+          :stroke-width="zeroLine.width"
+          :stroke-dasharray="zeroLine.dash || undefined"
+        />
+      </template>
+    </g>
+
     <!-- 帧编号水印 -->
     <text
-      v-if="!track.isEmpty && track.hasVisibleSeries && frameNumber !== undefined"
+      v-if="!track.isEmpty && track.hasVisibleSeries && frameNumber !== undefined && !cleanView"
       class="waveform-track__watermark waveform-chart__watermark"
       :x="(track.width ?? innerWidth) / 2"
       :y="track.height / 2"
@@ -252,13 +288,13 @@ watch(
 
     <!-- X 轴 -->
     <g
-      v-if="track.showXAxis"
+      v-if="track.showXAxis && !cleanView"
       ref="xAxisElement"
       class="waveform-track__axis waveform-track__axis--x waveform-chart__axis waveform-chart__axis--x"
       :transform="`translate(0, ${track.height})`"
     />
     <g
-      v-if="track.showXAxis"
+      v-if="track.showXAxis && !cleanView"
       class="waveform-track__axis-endpoints waveform-chart__axis-endpoints"
       :transform="`translate(0, ${track.height})`"
       font-family="sans-serif"
@@ -285,7 +321,7 @@ watch(
       </text>
     </g>
     <text
-      v-if="track.showXAxis && track.xAxisExponent"
+      v-if="track.showXAxis && track.xAxisExponent && !cleanView"
       class="waveform-track__axis-exponent waveform-track__axis-exponent--x waveform-chart__axis-exponent waveform-chart__axis-exponent--x"
       :x="track.width ?? innerWidth"
       :y="track.height + 27"
@@ -297,7 +333,7 @@ watch(
 
     <!-- Y 轴 -->
     <g
-      v-for="axis in track.isEmpty ? [] : track.yAxes"
+      v-for="axis in track.isEmpty || cleanView ? [] : track.yAxes"
       :key="`y-axis-${track.index}-${axis.index}`"
       :ref="(element) => setYAxisElement(element, axis.index)"
       class="waveform-track__axis waveform-track__axis--y waveform-chart__axis waveform-chart__axis--y"
@@ -307,7 +343,9 @@ watch(
       :transform="`translate(${axis.x}, 0)`"
     />
     <text
-      v-for="axis in track.isEmpty ? [] : track.yAxes.filter((item) => item.exponentLabel)"
+      v-for="axis in track.isEmpty || cleanView
+        ? []
+        : track.yAxes.filter((item) => item.exponentLabel)"
       :key="`y-axis-exponent-${track.index}-${axis.index}`"
       class="waveform-track__axis-exponent waveform-track__axis-exponent--y waveform-chart__axis-exponent waveform-chart__axis-exponent--y"
       :data-y-axis-index="axis.index"
@@ -323,6 +361,7 @@ watch(
     <!-- Y 轴标签 -->
     <g
       v-if="
+        !cleanView &&
         !track.isEmpty &&
         track.hasVisibleSeries &&
         track.seriesList.length === 1 &&
@@ -351,7 +390,7 @@ watch(
     </g>
 
     <g
-      v-for="axis in track.yAxes.length > 1 ? track.yAxes.filter(hasYAxisTitle) : []"
+      v-for="axis in !cleanView && track.yAxes.length > 1 ? track.yAxes.filter(hasYAxisTitle) : []"
       :key="`y-axis-title-${track.index}-${axis.index}`"
       class="waveform-track__multi-axis-title"
       :data-y-axis-title-index="axis.index"
@@ -377,7 +416,7 @@ watch(
 
     <!-- 轨道边框 -->
     <rect
-      v-if="!track.isEmpty"
+      v-if="!track.isEmpty && !cleanView"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
       :width="track.width ?? innerWidth"
       :height="track.height"
@@ -421,7 +460,7 @@ watch(
     />
 
     <text
-      v-if="!track.isEmpty && !track.hasVisibleSeries"
+      v-if="!track.isEmpty && !track.hasVisibleSeries && !cleanView"
       class="waveform-track__no-visible-series"
       :x="(track.width ?? innerWidth) / 2"
       :y="track.height / 2"
@@ -514,6 +553,11 @@ watch(
   stroke: #57617b;
   stroke-width: 1;
   stroke-dasharray: 4 3;
+}
+
+.waveform-track__zero-line {
+  fill: none;
+  pointer-events: none;
 }
 
 .waveform-track__axis-endpoint {

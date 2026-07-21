@@ -38,6 +38,7 @@ import {
   type WaveformPoint,
   type WaveformRenderingOptions,
   type WaveformTitleOptions,
+  type WaveformZeroLineOptions,
   type WaveformZoomEndPayload,
 } from './data/types'
 import {
@@ -109,6 +110,8 @@ const props = withDefaults(
     legend?: WaveformLegendOptions
     hiddenSeriesIds?: string[]
     defaultHiddenSeriesIds?: string[]
+    cleanView?: boolean
+    zeroLine?: WaveformZeroLineOptions
   }>(),
   {
     displayMode: 'independent',
@@ -128,6 +131,8 @@ const props = withDefaults(
     rendering: () => ({}),
     legend: () => ({ position: 'top-right', orientation: 'auto' }),
     defaultHiddenSeriesIds: () => [],
+    cleanView: false,
+    zeroLine: () => ({ visible: false }),
   },
 )
 
@@ -255,6 +260,16 @@ const containerStyle = computed(() => ({
   height: fixedHeight.value === undefined ? '100%' : `${fixedHeight.value}px`,
 }))
 const legendPosition = computed<WaveformLegendPosition>(() => props.legend?.position ?? 'top-right')
+const isCleanView = computed(() => props.cleanView === true)
+const resolvedZeroLine = computed(() => {
+  const width = props.zeroLine?.width
+  return {
+    visible: props.zeroLine?.visible === true,
+    color: props.zeroLine?.color || '#98a2b3',
+    width: typeof width === 'number' && Number.isFinite(width) && width > 0 ? width : 1,
+    dash: props.zeroLine?.dash ?? '6 4',
+  }
+})
 const legendBackgroundColor = computed(
   () => props.legend?.backgroundColor || 'rgba(255, 255, 255, 0.7)',
 )
@@ -275,7 +290,10 @@ const legendOrientation = computed<Exclude<WaveformLegendOrientation, 'auto'>>((
 const resolvedTitleText = computed(() => props.title?.text.trim() ?? '')
 const titleVisible = computed(
   () =>
-    Boolean(props.title) && props.title?.visible !== false && resolvedTitleText.value.length > 0,
+    !isCleanView.value &&
+    Boolean(props.title) &&
+    props.title?.visible !== false &&
+    resolvedTitleText.value.length > 0,
 )
 const titleFontSize = computed(() => {
   const fontSize = props.title?.textStyle?.fontSize
@@ -326,8 +344,11 @@ const titleLayout = computed(() =>
   }),
 )
 const titleAreaHeight = computed(() => (titleVisible.value ? titleLayout.value.areaHeight : 0))
+const chartTopMargin = computed(() => (isCleanView.value ? 0 : margin.top))
 const drawingHeight = computed(() => Math.max(0, chartHeight.value - titleAreaHeight.value))
-const innerHeight = computed(() => Math.max(0, drawingHeight.value - margin.top - margin.bottom))
+const innerHeight = computed(() =>
+  Math.max(0, drawingHeight.value - (isCleanView.value ? 0 : margin.top + margin.bottom)),
+)
 const titleAreaStyle = computed<CSSProperties>(() => ({
   height: `${titleAreaHeight.value}px`,
   justifyContent:
@@ -440,7 +461,7 @@ const hasVisibleWaveformData = computed(() =>
 )
 const chartLeftMargin = computed(() =>
   Math.max(
-    margin.left,
+    isCleanView.value ? 0 : margin.left,
     hasYAxisLabels.value
       ? yAxisMetrics.value.fullClearance
       : hasVisibleWaveformData.value
@@ -461,14 +482,20 @@ const multiAxisClearance = computed(() =>
   ),
 )
 const resolvedChartLeftMargin = computed(() =>
-  props.overlayMode === 'multi-axis'
-    ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
-    : chartLeftMargin.value,
+  isCleanView.value
+    ? 0
+    : props.overlayMode === 'multi-axis'
+      ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
+      : chartLeftMargin.value,
 )
 const chartRightMargin = computed(() =>
   props.overlayMode === 'multi-axis'
-    ? Math.max(margin.right, multiAxisClearance.value.right)
-    : margin.right,
+    ? isCleanView.value
+      ? 0
+      : Math.max(margin.right, multiAxisClearance.value.right)
+    : isCleanView.value
+      ? 0
+      : margin.right,
 )
 const innerWidth = computed(() =>
   Math.max(0, chartWidth.value - resolvedChartLeftMargin.value - chartRightMargin.value),
@@ -568,6 +595,7 @@ const gridCells = computed(() => {
     props.displayMode,
     pagedTracks.value.map(Boolean),
     yAxisLayout.value.horizontalGap,
+    !isCleanView.value,
   )
   return cells.map((cell, index) => ({ ...cell, series: pagedTracks.value[index] }))
 })
@@ -593,7 +621,7 @@ const trackLayouts = computed<TrackLayout[]>(() =>
         : sharedYDomains.value,
     timeUnit: props.timeUnit,
     rendering: renderingOptions.value,
-    hideSecondaryLabels: yAxisLayout.value.hideSecondaryLabels,
+    hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
     yAxisLabelX: yAxisMetrics.value.labelCenterX,
     showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
   }),
@@ -1004,7 +1032,7 @@ function resolvePointerEditorAnchor(
   const track = trackIndex === undefined ? undefined : trackLayouts.value[trackIndex]
   return {
     x: resolvedChartLeftMargin.value + (track ? track.left + pointerX : pointerX),
-    y: titleAreaHeight.value + margin.top + (track ? track.top + pointerY : pointerY),
+    y: titleAreaHeight.value + chartTopMargin.value + (track ? track.top + pointerY : pointerY),
   }
 }
 
@@ -1018,7 +1046,7 @@ function resolveAnnotationEditorAnchor(annotation: WaveformAnnotation): Annotati
       : chartWidth.value / 2,
     y: track
       ? titleAreaHeight.value +
-        margin.top +
+        chartTopMargin.value +
         track.top +
         resolveSeriesYScale(track, annotation.seriesId)(annotation.y)
       : chartHeight.value / 2,
@@ -1293,7 +1321,7 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
     })
     commitHover(nextPoints, trackIndex, {
       x: resolvedChartLeftMargin.value + track.left + pointerX,
-      y: titleAreaHeight.value + margin.top + track.top + pointerY,
+      y: titleAreaHeight.value + chartTopMargin.value + track.top + pointerY,
     })
   })
 }
@@ -1324,7 +1352,7 @@ function handleSharedPointerMove(event: PointerEvent) {
     )
     commitHover(nextPoints, null, {
       x: resolvedChartLeftMargin.value + pointerX,
-      y: titleAreaHeight.value + margin.top + pointerY,
+      y: titleAreaHeight.value + chartTopMargin.value + pointerY,
     })
   })
 }
@@ -1842,8 +1870,12 @@ onBeforeUnmount(() => {
         </clipPath>
       </defs>
 
-      <g :transform="`translate(${resolvedChartLeftMargin}, ${margin.top})`">
-        <g v-if="displayMode !== 'compact'" class="waveform-chart__grid-slots" aria-hidden="true">
+      <g :transform="`translate(${resolvedChartLeftMargin}, ${chartTopMargin})`">
+        <g
+          v-if="displayMode !== 'compact' && !isCleanView"
+          class="waveform-chart__grid-slots"
+          aria-hidden="true"
+        >
           <g
             v-for="cell in gridCells"
             :key="`grid-slot-${cell.slotIndex}`"
@@ -1889,6 +1921,8 @@ onBeforeUnmount(() => {
           :interaction-mode="activeInteractionMode"
           :frame-number="resolveFrameNumber(track.index)"
           :frame-style="frameStyle"
+          :clean-view="isCleanView"
+          :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"
           :y-label="yLabel"
           :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
@@ -1912,6 +1946,7 @@ onBeforeUnmount(() => {
         />
 
         <WaveformAnnotationLayer
+          v-if="!isCleanView"
           :annotations="renderedAnnotations"
           :visible="annotationsVisible"
           @contextmenu="handleExistingAnnotationContextMenu"
@@ -1920,7 +1955,7 @@ onBeforeUnmount(() => {
           @drag-end="endAnnotationDrag"
         />
 
-        <g class="waveform-chart__legend-layer">
+        <g v-if="!isCleanView" class="waveform-chart__legend-layer">
           <g
             v-for="track in trackLayouts"
             :key="`legend-${track.index}-${track.series.name}`"
@@ -1944,7 +1979,7 @@ onBeforeUnmount(() => {
         </g>
 
         <text
-          v-if="resolvedXLabel"
+          v-if="resolvedXLabel && !isCleanView"
           class="waveform-chart__label"
           :x="innerWidth / 2"
           :y="xAxisTitleY"
@@ -1966,7 +2001,7 @@ onBeforeUnmount(() => {
     </svg>
 
     <Pagination
-      v-if="gridOptions.showPagination && pageCount > 1"
+      v-if="gridOptions.showPagination && pageCount > 1 && !isCleanView"
       class="waveform-chart__pagination"
       aria-label="波形分页"
       :current="currentPage"
@@ -1978,7 +2013,7 @@ onBeforeUnmount(() => {
     />
 
     <WaveformAnnotationToolbar
-      v-if="showAnnotationToolbar"
+      v-if="showAnnotationToolbar && !isCleanView"
       :interaction-mode="activeInteractionMode"
       :annotations-visible="annotationsVisible"
       @update:interaction-mode="setInteractionMode"
@@ -1986,7 +2021,7 @@ onBeforeUnmount(() => {
     />
 
     <WaveformAnnotationEditor
-      v-if="annotationInteraction.editorDraft.value"
+      v-if="annotationInteraction.editorDraft.value && !isCleanView"
       :annotation="annotationInteraction.editorDraft.value.annotation"
       :mode="annotationInteraction.editorDraft.value.mode"
       :series="editorSeries"
@@ -1998,6 +2033,7 @@ onBeforeUnmount(() => {
     />
 
     <WaveformAnnotationContextMenu
+      v-if="!isCleanView"
       :visible="annotationInteraction.contextMenu.value !== null"
       :x="annotationInteraction.contextMenu.value?.x || 0"
       :y="annotationInteraction.contextMenu.value?.y || 0"
