@@ -5,6 +5,10 @@
 组件使用 SVG 绘制坐标轴和波形；大数据会按当前可见范围和屏幕像素自动保峰降采样，
 tooltip 与标注仍使用完整原始数据。
 
+## 在线示例
+
+最新稳定版 Demo：<https://lqycustomsite.online/waveform-analysis/>
+
 ## 开始使用
 
 ```bash
@@ -30,7 +34,8 @@ pnpm test:coverage
 pnpm build
 ```
 
-`pnpm build` 同时生成 `dist` 组件库产物和 `dist-demo` 演示应用。正式公开入口为
+`pnpm build` 同时生成 `dist` 组件库产物和 `dist-demo` 演示应用。发布稳定版后，在线示例
+会自动更新；预发布版本不会覆盖在线示例。正式公开入口为
 `src/index.ts`；发布后使用包入口：
 
 ```ts

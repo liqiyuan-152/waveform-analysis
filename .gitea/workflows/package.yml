@@ -113,6 +113,8 @@ jobs:
         run: pnpm test:coverage
 
       - name: Build component
+        env:
+          DEMO_BASE_PATH: /waveform-analysis/
         run: pnpm build
 
       - name: Pack component
@@ -172,6 +174,35 @@ jobs:
           package_file="release-assets/waveform-analysis-${PACKAGE_VERSION}.tgz"
           npm config set -- '//registry.npmjs.org/:_authToken' "$NODE_AUTH_TOKEN"
           npm publish "./$package_file" --registry='https://registry.npmjs.org/' --tag "$NPM_DIST_TAG" --access public
+
+      - name: Deploy stable demo
+        shell: bash
+        run: |
+          set -euo pipefail
+          source release.env
+          if [[ "$IS_PRERELEASE" == 'true' ]]; then
+            echo 'Skipping demo deployment for prerelease'
+            exit 0
+          fi
+
+          deploy_root='/demo-deploy'
+          releases_dir="$deploy_root/releases"
+          release_dir="$releases_dir/$PACKAGE_VERSION"
+          test ! -e "$release_dir"
+          install -d -m 755 "$releases_dir"
+          staging_dir="$(mktemp -d "$deploy_root/.staging-${PACKAGE_VERSION}-XXXXXX")"
+          trap 'rm -rf -- "$staging_dir"' EXIT
+          cp -a dist-demo/. "$staging_dir/"
+          find "$staging_dir" -type d -exec chmod 755 {} +
+          find "$staging_dir" -type f -exec chmod 644 {} +
+          mv "$staging_dir" "$release_dir"
+          trap - EXIT
+          ln -sfn "releases/$PACKAGE_VERSION" "$deploy_root/current"
+
+          mapfile -t old_releases < <(find "$releases_dir" -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V | head -n -5)
+          for old_release in "${old_releases[@]}"; do
+            rm -rf -- "$releases_dir/$old_release"
+          done
 
       - name: Create Gitea release
         shell: bash

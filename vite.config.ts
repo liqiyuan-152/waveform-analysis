@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  base: process.env.DEMO_BASE_PATH ?? '/',
   plugins: [vue()],
   server: {
     host: '0.0.0.0',
