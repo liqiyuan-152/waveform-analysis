@@ -16,6 +16,7 @@ import {
   type WaveformOverlayMode,
   type WaveformSeries,
   type WaveformTitleOptions,
+  type WaveformZoomEndPayload,
 } from './components'
 import chartWaveformsJson from './data/chartWaveforms.json'
 import demoWaveformsJson from './data/demoWaveforms.json'
@@ -182,9 +183,48 @@ const frameOneSeries = waveformSeries.filter(
   (series) => series.id === frameOneTrackId || series.trackId === frameOneTrackId,
 )
 const remainingSeries = waveformSeries.filter((series) => !frameOneSeries.includes(series))
-const chartData: WaveformData = {
+const fullChartData: WaveformData = {
   kind: 'series',
   series: [...frameOneSeries, ...basicCurveDemoSeries, ...stepDemoSeries, ...remainingSeries],
+}
+const chartData = ref<WaveformData>(fullChartData)
+let zoomRequestSequence = 0
+
+function filterWaveformData(data: WaveformData, start: number, end: number): WaveformData {
+  const lower = Math.min(start, end)
+  const upper = Math.max(start, end)
+  if (data.kind === 'samples') return data
+  if (data.kind === 'points') {
+    return {
+      kind: 'points',
+      points: data.points.filter((point) => point.x >= lower && point.x <= upper),
+    }
+  }
+  return {
+    kind: 'series',
+    series: data.series.map((series) => ({
+      ...series,
+      data:
+        series.data.kind === 'points'
+          ? {
+              kind: 'points',
+              points: series.data.points.filter((point) => point.x >= lower && point.x <= upper),
+            }
+          : series.data,
+    })),
+  }
+}
+
+async function handleZoomEnd(payload: WaveformZoomEndPayload) {
+  // Demo-only sequence number cancellation. Production code should use AbortController
+  // to cancel in-flight requests when a newer zoom gesture arrives.
+  const requestSequence = ++zoomRequestSequence
+  await new Promise((resolve) => window.setTimeout(resolve, 80))
+  if (requestSequence !== zoomRequestSequence) return
+
+  // Demo-only stand-in for the backend response. Production code should replace this
+  // with a request using payload.start/payload.end and the optional channel metadata.
+  chartData.value = filterWaveformData(fullChartData, payload.start, payload.end)
 }
 const titleOptions = computed<WaveformTitleOptions>(() => ({
   visible: titleVisible.value,
@@ -512,6 +552,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         v-model:annotations-visible="annotationsVisible"
         v-model:interaction-mode="interactionMode"
         v-model:hidden-series-ids="hiddenSeriesIds"
+        @zoom-end="handleZoomEnd"
       />
     </section>
   </main>

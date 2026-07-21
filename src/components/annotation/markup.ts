@@ -269,7 +269,9 @@ function chooseBestPlacement(
 
   // Try to find a placement that fits completely within bounds
   for (const placement of placements) {
-    if (isPlacementWithinBounds(anchorX, anchorY, width, height, placement, plotWidth, plotHeight)) {
+    if (
+      isPlacementWithinBounds(anchorX, anchorY, width, height, placement, plotWidth, plotHeight)
+    ) {
       return placement
     }
   }
@@ -423,8 +425,8 @@ export function layoutAnnotations(
 
     // Choose best placement only if no manual offset exists
     const hasManualOffset =
-      Number.isFinite(annotation.labelOffsetX) && annotation.labelOffsetX !== 0 ||
-      Number.isFinite(annotation.labelOffsetY) && annotation.labelOffsetY !== 0
+      (Number.isFinite(annotation.labelOffsetX) && annotation.labelOffsetX !== 0) ||
+      (Number.isFinite(annotation.labelOffsetY) && annotation.labelOffsetY !== 0)
 
     const { width, height } = annotationBoxSize(lines, trackWidth, localHeight)
     const placement: AnnotationPlacement = hasManualOffset

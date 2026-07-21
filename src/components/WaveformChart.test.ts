@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames, pendingAnimationFrameCount, resizeObservers } from '../test/setup'
 import WaveformChart from './WaveformChart.vue'
@@ -2085,6 +2085,82 @@ describe('WaveformChart', () => {
     expect(endpoints()[1]).toBe(initialEndpoints[1])
   })
 
+  it('emits one zoom-end payload after a shared zoom gesture completes', async () => {
+    vi.useFakeTimers()
+    try {
+      const wrapper = await mountSizedChart({
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 2, y: 1 },
+        ],
+      })
+      const overlay = wrapper.get('.waveform-chart__overlay')
+      const overlayWidth = Number(overlay.attributes('width'))
+      Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+        value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
+      })
+
+      overlay.element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: -4000,
+          clientX: overlayWidth / 2,
+          clientY: 145,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      expect(wrapper.emitted('zoom-end')).toBeUndefined()
+      flushAnimationFrames()
+      // Wait for zoom-end debounce (internal throttle + flush)
+      await vi.advanceTimersByTimeAsync(200)
+      await flushPromises()
+
+      const endEvents = wrapper.emitted('zoom-end') ?? []
+      expect(endEvents).toHaveLength(1)
+      const payload = endEvents[0]?.[0] as { start: number; end: number }
+      expect(payload.start).toBeGreaterThanOrEqual(0)
+      expect(payload.end).toBeLessThanOrEqual(2)
+      expect(payload.start).toBeLessThan(payload.end)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('includes track and series IDs in independent zoom-end payloads', async () => {
+    vi.useFakeTimers()
+    try {
+      const wrapper = await mountSizedChart(gridSeries(2), {
+        displayMode: 'independent',
+        grid: { rowCount: 1, columnCount: 2 },
+      })
+      const overlay = wrapper.findAll('.waveform-chart__overlay--independent')[0]
+      const overlayWidth = Number(overlay.attributes('width'))
+      Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+        value: () => ({ left: 0, top: 0, width: overlayWidth, height: 260 }),
+      })
+
+      overlay.element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY: -4000,
+          clientX: overlayWidth / 2,
+          clientY: 130,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      flushAnimationFrames()
+      await vi.advanceTimersByTimeAsync(200)
+      await flushPromises()
+
+      const payload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as
+        { trackIndex: number; seriesIds: string[] } | undefined
+      expect(payload).toMatchObject({ trackIndex: 0, seriesIds: ['channel-0'] })
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('rebuilds cached domains only when the data reference changes', async () => {
     const firstData: WaveformData = {
       kind: 'points',
@@ -2103,6 +2179,51 @@ describe('WaveformChart', () => {
     await wrapper.setProps({ data: { ...firstData, points: [...firstData.points] } })
     await flushPromises()
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+  })
+
+  it('keeps controlled annotations when replacing the loaded data window', async () => {
+    const annotations = [
+      { id: 'window-note', seriesId: 'series-0', x: 0.5, y: 0.5, text: '窗口标注' },
+    ]
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ],
+      },
+      { annotations },
+    )
+    expect(wrapper.find('[data-annotation-id="window-note"]').exists()).toBe(true)
+
+    await wrapper.setProps({
+      data: {
+        kind: 'points',
+        points: [
+          { x: 2, y: 0 },
+          { x: 3, y: 1 },
+        ],
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.find('[data-annotation-id="window-note"]').exists()).toBe(false)
+    expect(annotations).toEqual([
+      { id: 'window-note', seriesId: 'series-0', x: 0.5, y: 0.5, text: '窗口标注' },
+    ])
+
+    await wrapper.setProps({
+      data: {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 1 },
+        ],
+      },
+    })
+    await flushPromises()
+    expect(wrapper.find('[data-annotation-id="window-note"]').exists()).toBe(true)
   })
 
   it('renders named multi-channel paths as independent tracks by default', async () => {

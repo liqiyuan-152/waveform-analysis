@@ -12,6 +12,14 @@ pnpm install
 pnpm dev
 ```
 
+开发环境要求 Node.js 22、pnpm，以及支持 Vue 3 的宿主项目。组件库会将 Vue、D3、
+Ant Design Vue 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
+安装这些依赖：
+
+```bash
+pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
+```
+
 ## 常用命令
 
 ```bash
@@ -33,6 +41,42 @@ import 'waveform-analysis/style.css'
 Vue、D3、Ant Design Vue 和 vue3-colorpicker 是 peer dependencies，需要由使用方安装。
 `WaveformChart` 支持采样值与采样率，也支持显式的 `{ x, y }[]` 点数组。
 
+### 数据结构
+
+单通道可以使用采样值（`sampleRate` 为每秒采样数）或显式坐标点：
+
+```ts
+import type { WaveformData } from 'waveform-analysis'
+
+const samples: WaveformData = {
+  kind: 'samples',
+  values: [0.2, 0.4, 0.1],
+  sampleRate: 1000,
+  startTime: 0,
+}
+
+const points: WaveformData = {
+  kind: 'points',
+  points: [
+    { x: 0, y: 12 },
+    { x: 0.001, y: 15, lowerError: 0.4, upperError: 0.8 },
+  ],
+}
+```
+
+多通道使用 `kind: 'series'`。同一个 `trackId` 的系列会绘制在同一图框中；没有
+`trackId` 的系列默认各占一个图框。建议为每个系列提供全图唯一且稳定的 `id`。
+
+```ts
+const chartData: WaveformData = {
+  kind: 'series',
+  series: [
+    { id: 'ch-a', name: '通道 A', trackId: 'group-1', data: samples },
+    { id: 'ch-b', name: '通道 B', trackId: 'group-1', data: points },
+  ],
+}
+```
+
 ## 波形图
 
 组件内置缩放、悬浮取点和 tooltip。调用方只需要提供波形数据：
@@ -46,6 +90,23 @@ import { WaveformChart } from './index'
   <WaveformChart :data="chartData" />
 </template>
 ```
+
+### 缩放后按可视区间加载数据
+
+组件会在一次缩放手势结束后触发 `zoom-end`，调用方可以使用端点请求后端，再通过 `data`
+传回新数据。共享 X 轴模式的 payload 为 `{ start, end }`；独立分图模式还会包含
+`trackIndex` 和稳定的 `seriesIds`。
+
+```vue
+<WaveformChart :data="chartData" @zoom-end="loadVisibleData" />
+```
+
+`zoom-change` 仍会在缩放过程中持续触发，适合更新外部状态；后端请求应使用
+`zoom-end` 或在 `zoom-change` 上自行防抖。标注数据应由父组件独立持有，替换波形数据时
+不要清空标注，组件会根据当前数据域自动隐藏或恢复对应标注。
+
+调用方应处理加载失败的情况（网络错误、超时等），并保持旧数据或显示加载状态。生产环境建议使用
+`AbortController` 取消过时的请求。
 
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
@@ -229,6 +290,25 @@ const hiddenSeriesIds = ref<string[]>([])
 显隐状态以规范化后的 `series.id` 为键。要在数据刷新和重新排序后稳定保留状态，每个系列都应
 提供全图唯一且稳定的显式 `id`；自动生成的索引 ID 或重复 ID 添加的后缀不保证跨排序稳定。
 
+### 网格、分页与交互模式
+
+`grid` 控制独立图框的行列数（范围 `1–10`）以及是否显示分页器。默认值为 `2` 行、
+`1` 列并开启分页；当图框数量超过网格容量时，分页器会显示在图表右下角。
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :grid="{ rowCount: 2, columnCount: 2, showPagination: true }"
+  v-model:interaction-mode="interactionMode"
+  :show-annotation-toolbar="true"
+/>
+```
+
+`interactionMode` 可选 `zoom` 或 `annotation`。默认不渲染标注工具栏，推荐通过右键
+打开标注编辑器；设置 `showAnnotationToolbar` 可显示兼容工具栏。`zoomable` 和
+`showTooltip` 可分别关闭缩放和 tooltip。空数据或过滤后没有有效点时，组件会保留图框
+布局并显示“暂无有效波形数据”。
+
 ## 大数据渲染
 
 组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；
@@ -289,3 +369,29 @@ const interactionMode = ref<WaveformInteractionMode>('zoom')
 
 X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01, 100)` 时显示两位普通小数；大于等于 `100`，或大于 `0` 且小于 `0.01` 时，刻度显示两位缩放值，并在轴末端单独显示共享倍率 `E±NN`。X 轴先按 `timeUnit` 转换为秒或毫秒再判断范围，多 Y 轴则分别计算倍率。tooltip 使用最多 4 位小数的本地化普通数字；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
 标注框默认布局在采样点正上方，只做绘图区边界裁剪；文本框通过连接箭头指向标注位置，多个标注重叠时可通过拖动手动避让。
+
+## 事件
+
+组件提供以下事件，名称与 Vue 模板写法一致：
+
+| 事件                                                            | 说明                                                       |
+| --------------------------------------------------------------- | ---------------------------------------------------------- |
+| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                |
+| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                      |
+| `zoom-end`                                                      | 缩放结束后触发；独立分图模式附带 `trackIndex`、`seriesIds` |
+| `page-change`                                                   | 分页变化，参数为当前页和总页数                             |
+| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                     |
+| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                       |
+
+`annotations`、`annotations-visible`、`interaction-mode` 和 `hidden-series-ids` 均支持
+`v-model`；业务层应负责将标注和显隐状态持久化。
+
+## 项目结构
+
+- `src/index.ts`：组件库公开入口和工具函数导出
+- `src/components/WaveformChart.vue`：图表容器、缩放、tooltip、图例和标注编排
+- `src/components/{core,data,rendering,interaction,annotation}`：数据、布局、渲染和交互模块
+- `src/App.vue`：可交互 demo，`src/data` 中提供示例波形数据
+
+构建后，`dist/` 是可发布的组件库，`dist-demo/` 是 demo 静态产物；两者均为生成目录，
+不要手工编辑。

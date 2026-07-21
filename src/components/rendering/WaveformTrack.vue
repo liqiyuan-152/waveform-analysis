@@ -424,7 +424,6 @@ watch(
     >
       暂无可见曲线
     </text>
-
   </g>
 </template>
 

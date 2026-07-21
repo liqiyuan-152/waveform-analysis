@@ -39,6 +39,7 @@ import {
   type WaveformPoint,
   type WaveformRenderingOptions,
   type WaveformTitleOptions,
+  type WaveformZoomEndPayload,
 } from './data/types'
 import {
   ANNOTATION_AMBIGUITY_DISTANCE,
@@ -128,6 +129,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   'point-hover': [point: WaveformPoint | null]
   'zoom-change': [domain: [number, number]]
+  'zoom-end': [payload: WaveformZoomEndPayload]
   'update:annotations': [annotations: WaveformAnnotation[]]
   'update:annotations-visible': [visible: boolean]
   'update:interaction-mode': [mode: WaveformInteractionMode]
@@ -173,6 +175,7 @@ let generatedAnnotationId = 0
 let synchronizingZoomTransform = false
 let pendingSharedZoomTransform: ZoomTransform | null = null
 const pendingIndependentZoomTransforms = new Map<number, ZoomTransform>()
+const lastZoomedTrackIndexes = new Set<number>()
 const zoomThrottle = useAnimationFrameThrottle()
 const hoverThrottle = useAnimationFrameThrottle()
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
@@ -586,20 +589,24 @@ function commitPendingZoom() {
     emit('zoom-change', [domain[0], domain[1]])
   }
 
-  if (!pendingIndependentZoomTransforms.size) return
-  const nextTransforms = [...independentTransforms.value]
-  const changedTrackIndexes = Array.from(pendingIndependentZoomTransforms.keys())
-  pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
-    nextTransforms[trackIndex] = transform
-  })
-  pendingIndependentZoomTransforms.clear()
-  independentTransforms.value = nextTransforms
-  changedTrackIndexes.forEach((trackIndex) => {
-    const track = trackLayouts.value.find((item) => item.index === trackIndex)
-    if (!track) return
-    const domain = track.xScale.domain()
-    emit('zoom-change', [domain[0], domain[1]])
-  })
+  if (pendingIndependentZoomTransforms.size) {
+    const nextTransforms = [...independentTransforms.value]
+    const changedTrackIndexes = Array.from(pendingIndependentZoomTransforms.keys())
+    // Clear stale track indexes before recording the new batch
+    lastZoomedTrackIndexes.clear()
+    changedTrackIndexes.forEach((trackIndex) => lastZoomedTrackIndexes.add(trackIndex))
+    pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
+      nextTransforms[trackIndex] = transform
+    })
+    pendingIndependentZoomTransforms.clear()
+    independentTransforms.value = nextTransforms
+    changedTrackIndexes.forEach((trackIndex) => {
+      const track = trackLayouts.value.find((item) => item.index === trackIndex)
+      if (!track) return
+      const domain = track.xScale.domain()
+      emit('zoom-change', [domain[0], domain[1]])
+    })
+  }
 }
 
 function scheduleZoomCommit() {
@@ -609,11 +616,35 @@ function scheduleZoomCommit() {
 function flushPendingZoom() {
   zoomThrottle.flush()
   commitPendingZoom()
+  emitZoomEnd()
+}
+
+function emitZoomEnd() {
+  if (props.displayMode === 'independent') {
+    lastZoomedTrackIndexes.forEach((trackIndex) => {
+      const track = trackLayouts.value.find((item) => item.index === trackIndex)
+      if (!track) return
+      const domain = track.xScale.domain() as [number, number]
+      emit('zoom-end', {
+        start: domain[0],
+        end: domain[1],
+        trackIndex,
+        seriesIds: track.seriesList.map((series) => series.id),
+      })
+    })
+    lastZoomedTrackIndexes.clear()
+    return
+  }
+
+  const domain = sharedZoomDomain.value
+  emit('zoom-end', { start: domain[0], end: domain[1] })
 }
 
 function cancelPendingZoom() {
+  // Clear all pending zoom state to prevent stale emissions
   pendingSharedZoomTransform = null
   pendingIndependentZoomTransforms.clear()
+  lastZoomedTrackIndexes.clear()
   zoomThrottle.cancel()
 }
 

@@ -26,6 +26,14 @@ export type WaveformOverlayMode = 'single-axis' | 'multi-axis'
 /** 标注工具模式 */
 export type WaveformInteractionMode = 'zoom' | 'annotation'
 
+/** Describes the X-axis viewport after a zoom gesture completes. */
+export interface WaveformZoomEndPayload {
+  start: number
+  end: number
+  trackIndex?: number
+  seriesIds?: string[]
+}
+
 /** 标注颜色样式 */
 export interface WaveformAnnotationStyle {
   borderColor?: string
