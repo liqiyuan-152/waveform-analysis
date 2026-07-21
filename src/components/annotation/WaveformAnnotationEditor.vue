@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, nextTick, ref, useId, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, ref, watch } from 'vue'
 
 import type { WaveformAnnotation } from '../../types'
 import { formatAnnotationTime, formatPlainNumber, type TimeUnit } from '../../utils'
 import { ANNOTATION_MAX_TEXT_LENGTH, resolveAnnotationStyle } from './markup'
 import type { AnnotationSeriesCandidate, AnnotationSeriesInfo } from './types'
+import { useWaveformInstanceId } from '../../utils/waveformId'
 
 const ColorPicker = defineAsyncComponent(async () => {
   await import('vue3-colorpicker/style.css')
@@ -29,7 +30,7 @@ const emit = defineEmits<{
 }>()
 
 const textarea = ref<HTMLTextAreaElement>()
-const dialogTitleId = `waveform-annotation-editor-title-${useId()}`
+const dialogTitleId = useWaveformInstanceId('waveform-annotation-editor-title')
 const text = ref('')
 const borderColor = ref('')
 const textColor = ref('')

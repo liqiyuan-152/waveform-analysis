@@ -35,6 +35,17 @@ pnpm dev
 pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
 ```
 
+### 运行时版本要求
+
+组件库支持以下运行时版本：
+
+| 依赖 | 支持版本 |
+| --- | --- |
+| Vue | `>=3.2.33 <4` |
+| Ant Design Vue | `>=3.2.20 <4` |
+
+安装时请确保业务项目中的 Vue 与 Ant Design Vue 版本满足上述范围。
+
 ## 发布
 
 发布由推送版本 tag 触发。`package.json` 的 `version` 必须与 tag 去掉 `v` 后完全一致。

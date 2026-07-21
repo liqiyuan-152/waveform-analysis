@@ -21,7 +21,6 @@ import {
   onMounted,
   ref,
   shallowRef,
-  useId,
   watch,
   type CSSProperties,
 } from 'vue'
@@ -79,6 +78,7 @@ import { buildTrackLayouts, measureTrackYAxisClearance, Y_AXIS_EXPONENT_GAP } fr
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
+import { useWaveformInstanceId } from '../utils/waveformId'
 
 const props = withDefaults(
   defineProps<{
@@ -174,7 +174,7 @@ const suppressHoverUntilMove = ref(false)
 const currentPage = ref(1)
 const resizeObserver = shallowRef<ResizeObserver>()
 const zoomBehaviors = new Map<number | 'shared', ZoomBehavior<SVGRectElement, unknown>>()
-const clipPathId = `${useId()}-waveform-clip`
+const clipPathId = useWaveformInstanceId('waveform-clip')
 const internalInteractionMode = ref<WaveformInteractionMode | undefined>(undefined)
 const internalHiddenSeriesIds = ref(new Set(props.defaultHiddenSeriesIds))
 const annotationInteraction = useWaveformAnnotationInteraction()

@@ -188,6 +188,38 @@ describe('WaveformChart', () => {
     })),
   })
 
+  it('keeps clip path ids unique across chart instances', async () => {
+    const data: WaveformData = {
+      kind: 'series',
+      series: [
+        {
+          id: 'channel-1',
+          name: '通道 1',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: 0 },
+              { x: 1, y: 1 },
+            ],
+          },
+        },
+      ],
+    }
+    const first = await mountSizedChart(data)
+    const second = await mountSizedChart(data)
+    const firstClipPathId = first.get('clipPath').attributes('id')
+    const secondClipPathId = second.get('clipPath').attributes('id')
+
+    expect(firstClipPathId).toBeTruthy()
+    expect(secondClipPathId).toBeTruthy()
+    expect(firstClipPathId).not.toBe(secondClipPathId)
+    expect(first.get('[clip-path]').attributes('clip-path')).toContain(firstClipPathId)
+    expect(second.get('[clip-path]').attributes('clip-path')).toContain(secondClipPathId)
+
+    first.unmount()
+    second.unmount()
+  })
+
   it('places start, middle, and end step transitions at the expected X positions', async () => {
     const lineTypes = ['step-start', 'step-middle', 'step-end', 'step-after'] as const
     const wrapper = await mountSizedChart({

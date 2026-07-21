@@ -8,6 +8,30 @@ import WaveformAnnotationLayer from './WaveformAnnotationLayer.vue'
 import WaveformAnnotationToolbar from './WaveformAnnotationToolbar.vue'
 
 describe('waveform annotation controls', () => {
+  it('keeps dialog title ids unique across editor instances', () => {
+    const first = mount(WaveformAnnotationEditor, {
+      props: {
+        annotation: { id: 'first', seriesId: 'a', x: 1, y: 2, text: '说明' },
+        mode: 'edit',
+      },
+    })
+    const second = mount(WaveformAnnotationEditor, {
+      props: {
+        annotation: { id: 'second', seriesId: 'a', x: 1, y: 2, text: '说明' },
+        mode: 'edit',
+      },
+    })
+
+    const firstTitleId = first.get('h2').attributes('id')
+    const secondTitleId = second.get('h2').attributes('id')
+
+    expect(firstTitleId).toBeTruthy()
+    expect(secondTitleId).toBeTruthy()
+    expect(firstTitleId).not.toBe(secondTitleId)
+    expect(first.get('[role="dialog"]').attributes('aria-labelledby')).toBe(firstTitleId)
+    expect(second.get('[role="dialog"]').attributes('aria-labelledby')).toBe(secondTitleId)
+  })
+
   it('allows changing the annotation series inside the editor', async () => {
     const wrapper = mount(WaveformAnnotationEditor, {
       props: {

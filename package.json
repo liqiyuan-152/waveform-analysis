@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -35,10 +35,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
-    "ant-design-vue": "^4.2.6",
-    "d3": "^7.9.0",
-    "vue": "^3.5.40",
-    "vue3-colorpicker": "^2.3.0"
+    "ant-design-vue": ">=3.2.20 <4",
+    "d3": ">=7.9.0 <8",
+    "vue": ">=3.2.33 <4",
+    "vue3-colorpicker": ">=2.3.0 <3"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
