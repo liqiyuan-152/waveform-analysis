@@ -99,6 +99,8 @@ jobs:
             package/dist/index.cjs \
             package/dist/types/index.d.ts \
             package/dist/style.css \
+            package/src/index.ts \
+            package/src/components/WaveformChart.vue \
             package/package.json \
             package/README.md; do
             grep -Fxq "$required_file" <<< "$package_contents"
