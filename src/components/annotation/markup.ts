@@ -30,18 +30,18 @@ export const ANNOTATION_TEXT_GLYPH_HEIGHT = 14
 export const ANNOTATION_TEXT_FONT = '12px Arial, sans-serif'
 export const ANNOTATION_CONNECTOR_LENGTH = 32
 
-const ANNOTATION_PLACEMENTS: AnnotationPlacement[] = [
-  'top',
-  'bottom',
-  'right',
-  'left',
-  'top-right',
-  'top-left',
-  'bottom-right',
-  'bottom-left',
-]
-
 const pointBisector = bisector((point: { x: number }) => point.x)
+
+export function findNearestPointByX(
+  points: Array<{ x: number; y: number }>,
+  xValue: number,
+): { x: number; y: number } | null {
+  if (!points.length || !Number.isFinite(xValue)) return null
+  const centerIndex = pointBisector.center(points, xValue)
+  const center = points[Math.min(centerIndex, points.length - 1)]
+  const left = points[Math.max(0, centerIndex - 1)]
+  return Math.abs(xValue - left.x) < Math.abs(center.x - xValue) ? left : center
+}
 
 export function interpolateAnnotationPoint(
   points: Array<{ x: number; y: number }>,
@@ -81,10 +81,26 @@ export function findAnnotationSeriesCandidates(
 ): AnnotationSeriesCandidate[] {
   return tracks
     .flatMap((track): AnnotationSeriesCandidate[] => {
-      const point = interpolateAnnotationPoint(track.series.points, xValue, track.series.lineType)
-      if (!point) return []
-      const screenX = track.xScale(point.x)
-      const screenY = track.top + track.yScale(point.y)
+      const interpolatedPoint = interpolateAnnotationPoint(
+        track.series.points,
+        xValue,
+        track.series.lineType,
+      )
+      if (!interpolatedPoint) return []
+
+      // Always snap to nearest actual sample point for the anchor
+      // This ensures annotations align with visible data points
+      const nearestPoint = findNearestPointByX(track.series.points, xValue)
+      if (!nearestPoint) return []
+
+      // Use interpolated point for distance calculation to get accurate series selection
+      const interpolatedScreenX = track.xScale(interpolatedPoint.x)
+      const interpolatedScreenY = track.top + track.yScale(interpolatedPoint.y)
+
+      // But use nearest point as the actual anchor
+      const screenX = track.xScale(nearestPoint.x)
+      const screenY = track.top + track.yScale(nearestPoint.y)
+
       return [
         {
           trackIndex: track.index,
@@ -92,11 +108,10 @@ export function findAnnotationSeriesCandidates(
           name: track.series.name?.trim() || track.series.id,
           color: track.series.color || DEFAULT_ANNOTATION_STYLE.borderColor,
           unit: track.series.unit,
-          point,
+          point: nearestPoint,
           screenX,
           screenY,
-          distance: Math.hypot(screenX - pointerX, screenY - pointerY),
-          xValue,
+          distance: Math.hypot(interpolatedScreenX - pointerX, interpolatedScreenY - pointerY),
         },
       ]
     })
@@ -203,19 +218,6 @@ function isWithin(value: number, domain: [number, number]): boolean {
   return value >= Math.min(domain[0], domain[1]) && value <= Math.max(domain[0], domain[1])
 }
 
-function overlaps(first: AnnotationBoxLayout, second: AnnotationBoxLayout): boolean {
-  return (
-    first.x < second.x + second.width &&
-    first.x + first.width > second.x &&
-    first.y < second.y + second.height &&
-    first.y + first.height > second.y
-  )
-}
-
-function containsPoint(box: AnnotationBoxLayout, x: number, y: number): boolean {
-  return x >= box.x && x <= box.x + box.width && y >= box.y && y <= box.y + box.height
-}
-
 function clampBox(box: AnnotationBoxLayout, width: number, height: number): AnnotationBoxLayout {
   const x = Math.max(0, Math.min(box.x, Math.max(0, width - box.width)))
   const y = Math.max(0, Math.min(box.y, Math.max(0, height - box.height)))
@@ -226,6 +228,56 @@ function clampBox(box: AnnotationBoxLayout, width: number, height: number): Anno
     lineEndX: Math.max(x, Math.min(box.lineEndX, x + box.width)),
     lineEndY: Math.max(y, Math.min(box.lineEndY, y + box.height)),
   }
+}
+
+function isPlacementWithinBounds(
+  anchorX: number,
+  anchorY: number,
+  width: number,
+  height: number,
+  placement: AnnotationPlacement,
+  plotWidth: number,
+  plotHeight: number,
+): boolean {
+  const position = boxPosition(anchorX, anchorY, width, height, placement)
+  return (
+    position.x >= 0 &&
+    position.y >= 0 &&
+    position.x + width <= plotWidth &&
+    position.y + height <= plotHeight
+  )
+}
+
+function chooseBestPlacement(
+  anchorX: number,
+  anchorY: number,
+  width: number,
+  height: number,
+  plotWidth: number,
+  plotHeight: number,
+): AnnotationPlacement {
+  const placements: AnnotationPlacement[] = [
+    'top',
+    'bottom',
+    'right',
+    'left',
+    'top-right',
+    'top-left',
+    'bottom-right',
+    'bottom-left',
+  ]
+
+  // Try to find a placement that fits completely within bounds
+  for (const placement of placements) {
+    if (
+      isPlacementWithinBounds(anchorX, anchorY, width, height, placement, plotWidth, plotHeight)
+    ) {
+      return placement
+    }
+  }
+
+  // Fallback to 'top' if no placement fits perfectly (will be clamped)
+  return 'top'
 }
 
 function resolveConnectorStart(
@@ -318,24 +370,6 @@ function annotationBoxSize(
   }
 }
 
-function isPlacementWithinBounds(
-  anchorX: number,
-  anchorY: number,
-  lines: string[],
-  plotWidth: number,
-  plotHeight: number,
-  placement: AnnotationPlacement,
-): boolean {
-  const { width, height } = annotationBoxSize(lines, plotWidth, plotHeight)
-  const position = boxPosition(anchorX, anchorY, width, height, placement)
-  return (
-    position.x >= 0 &&
-    position.y >= 0 &&
-    position.x + width <= plotWidth &&
-    position.y + height <= plotHeight
-  )
-}
-
 export function layoutAnnotationBox(
   anchorX: number,
   anchorY: number,
@@ -343,11 +377,20 @@ export function layoutAnnotationBox(
   plotWidth: number,
   plotHeight: number,
   placement: AnnotationPlacement,
+  offsetX = 0,
+  offsetY = 0,
 ): AnnotationBoxLayout {
   const { width, height } = annotationBoxSize(lines, plotWidth, plotHeight)
   const position = boxPosition(anchorX, anchorY, width, height, placement)
   const clamped = clampBox(
-    { x: position.x, y: position.y, width, height, lineEndX: anchorX, lineEndY: anchorY },
+    {
+      x: position.x + offsetX,
+      y: position.y + offsetY,
+      width,
+      height,
+      lineEndX: anchorX,
+      lineEndY: anchorY,
+    },
     plotWidth,
     plotHeight,
   )
@@ -361,7 +404,6 @@ export function layoutAnnotations(
   plotWidth: number,
   plotHeight: number,
 ): RenderedAnnotation[] {
-  const placedByTrack = new Map<number, AnnotationBoxLayout[]>()
   const rendered: RenderedAnnotation[] = []
 
   annotations.forEach((annotation) => {
@@ -380,46 +422,27 @@ export function layoutAnnotations(
     const anchorY = track.yScale(annotation.y) + track.top
     const localHeight = Math.min(track.height, Math.max(0, plotHeight - track.top))
     const localAnchorY = anchorY - track.top
-    const placed = placedByTrack.get(track.index) || []
-    let placement = ANNOTATION_PLACEMENTS[0]
-    let box = layoutAnnotationBox(
+
+    // Choose best placement only if no manual offset exists
+    const hasManualOffset =
+      (Number.isFinite(annotation.labelOffsetX) && annotation.labelOffsetX !== 0) ||
+      (Number.isFinite(annotation.labelOffsetY) && annotation.labelOffsetY !== 0)
+
+    const { width, height } = annotationBoxSize(lines, trackWidth, localHeight)
+    const placement: AnnotationPlacement = hasManualOffset
+      ? 'top'
+      : chooseBestPlacement(localAnchorX, localAnchorY, width, height, trackWidth, localHeight)
+
+    const box = layoutAnnotationBox(
       localAnchorX,
       localAnchorY,
       lines,
       trackWidth,
       localHeight,
       placement,
+      Number.isFinite(annotation.labelOffsetX) ? annotation.labelOffsetX : 0,
+      Number.isFinite(annotation.labelOffsetY) ? annotation.labelOffsetY : 0,
     )
-    for (const candidatePlacement of ANNOTATION_PLACEMENTS) {
-      if (
-        !isPlacementWithinBounds(
-          localAnchorX,
-          localAnchorY,
-          lines,
-          trackWidth,
-          localHeight,
-          candidatePlacement,
-        )
-      ) {
-        continue
-      }
-      const candidate = layoutAnnotationBox(
-        localAnchorX,
-        localAnchorY,
-        lines,
-        trackWidth,
-        localHeight,
-        candidatePlacement,
-      )
-      if (
-        !containsPoint(candidate, localAnchorX, localAnchorY) &&
-        !placed.some((item) => overlaps(candidate, item))
-      ) {
-        box = candidate
-        placement = candidatePlacement
-        break
-      }
-    }
 
     const globalBox = {
       ...box,
@@ -428,8 +451,6 @@ export function layoutAnnotations(
       lineEndX: box.lineEndX + trackLeft,
       lineEndY: box.lineEndY + track.top,
     }
-    placed.push(box)
-    placedByTrack.set(track.index, placed)
     rendered.push({
       annotation,
       trackIndex: track.index,

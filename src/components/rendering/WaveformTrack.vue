@@ -3,18 +3,13 @@ import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import { formatAxisTime, formatScientificAxisLabel } from '../../utils'
 import type { WaveformFrameStyle } from '../../types'
-import type {
-  WaveformDisplayMode,
-  WaveformInteractionMode,
-  WaveformLegendPosition,
-} from '../data/types'
+import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
 import type {
   DisplaySeries,
   HoveredSeriesPoint,
   TrackLayout,
   WaveformYAxisLayout,
 } from '../core/types'
-import WaveformLegend from './WaveformLegend.vue'
 import WaveformSeriesLayer from './WaveformSeriesLayer.vue'
 
 interface Props {
@@ -42,16 +37,6 @@ interface Props {
   hoveredPoint?: HoveredSeriesPoint
   /** Y 轴标签回退值 */
   yLabel?: string
-  /** 多曲线图例位置 */
-  legendPosition?: WaveformLegendPosition
-  /** 多曲线图例排列方向 */
-  legendOrientation?: 'horizontal' | 'vertical'
-  /** 多曲线图例背景颜色 */
-  legendBackgroundColor?: string
-  /** 图例是否允许切换曲线显隐 */
-  legendInteractive?: boolean
-  /** 当前隐藏的系列 ID */
-  hiddenSeriesIds?: string[]
 }
 
 interface Emits {
@@ -59,16 +44,10 @@ interface Emits {
   (e: 'pointer-leave'): void
   (e: 'click', event: MouseEvent): void
   (e: 'contextmenu', event: MouseEvent): void
-  (e: 'series-visibility-toggle', seriesId: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
-  legendPosition: 'top-right',
-  legendOrientation: 'vertical',
-  legendBackgroundColor: 'rgba(255, 255, 255, 0.7)',
-  legendInteractive: false,
-  hiddenSeriesIds: () => [],
 })
 const emit = defineEmits<Emits>()
 
@@ -445,19 +424,6 @@ watch(
     >
       暂无可见曲线
     </text>
-
-    <WaveformLegend
-      v-if="!track.isEmpty && track.legendSeries.length > 1"
-      :series="track.legendSeries"
-      :position="legendPosition"
-      :orientation="legendOrientation"
-      :background-color="legendBackgroundColor"
-      :interactive="legendInteractive"
-      :hidden-series-ids="hiddenSeriesIds"
-      :width="track.width ?? innerWidth"
-      :height="track.height"
-      @toggle="emit('series-visibility-toggle', $event)"
-    />
   </g>
 </template>
 

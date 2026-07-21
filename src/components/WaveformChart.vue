@@ -13,6 +13,7 @@ import {
 } from 'd3'
 import { resolveWaveformRenderingOptions } from '../core'
 import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../utils'
+import { useAnimationFrameThrottle } from './utils/useAnimationFrameThrottle'
 import {
   computed,
   nextTick,
@@ -38,12 +39,13 @@ import {
   type WaveformPoint,
   type WaveformRenderingOptions,
   type WaveformTitleOptions,
+  type WaveformZoomEndPayload,
 } from './data/types'
 import {
   ANNOTATION_AMBIGUITY_DISTANCE,
   ANNOTATION_HIT_RADIUS,
-  findAnnotationSeriesCandidates,
   interpolateAnnotationPoint,
+  findAnnotationSeriesCandidates,
   layoutAnnotations,
   useWaveformAnnotationInteraction,
   type AnnotationEditorAnchor,
@@ -56,7 +58,7 @@ import {
   type AnnotationTrackLayout,
 } from './annotation'
 import { WaveformTooltip } from './interaction'
-import { WaveformTrack } from './rendering'
+import { WaveformLegend, WaveformTrack } from './rendering'
 import {
   channelColors,
   margin as chartMargin,
@@ -73,11 +75,7 @@ import {
   type WaveformGridOptions,
 } from './core/grid'
 import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
-import {
-  buildTrackLayouts,
-  measureTrackYAxisClearance,
-  Y_AXIS_EXPONENT_GAP,
-} from './core/layout'
+import { buildTrackLayouts, measureTrackYAxisClearance, Y_AXIS_EXPONENT_GAP } from './core/layout'
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
@@ -131,6 +129,7 @@ const props = withDefaults(
 const emit = defineEmits<{
   'point-hover': [point: WaveformPoint | null]
   'zoom-change': [domain: [number, number]]
+  'zoom-end': [payload: WaveformZoomEndPayload]
   'update:annotations': [annotations: WaveformAnnotation[]]
   'update:annotations-visible': [visible: boolean]
   'update:interaction-mode': [mode: WaveformInteractionMode]
@@ -163,6 +162,7 @@ const independentTransforms = shallowRef<ZoomTransform[]>([])
 const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
 const hoveredTrackIndex = ref<number | null>(null)
 const hoverPosition = ref({ x: 0, y: 0 })
+const suppressHoverUntilMove = ref(false)
 const currentPage = ref(1)
 const resizeObserver = shallowRef<ResizeObserver>()
 const zoomBehaviors = new Map<number | 'shared', ZoomBehavior<SVGRectElement, unknown>>()
@@ -173,11 +173,11 @@ const annotationInteraction = useWaveformAnnotationInteraction()
 const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
 let generatedAnnotationId = 0
 let synchronizingZoomTransform = false
-let zoomAnimationFrame: number | null = null
 let pendingSharedZoomTransform: ZoomTransform | null = null
 const pendingIndependentZoomTransforms = new Map<number, ZoomTransform>()
-let hoverAnimationFrame: number | null = null
-let pendingHoverUpdate: (() => void) | null = null
+const lastZoomedTrackIndexes = new Set<number>()
+const zoomThrottle = useAnimationFrameThrottle()
+const hoverThrottle = useAnimationFrameThrottle()
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
 
 // 用于传递给 WaveformTooltip 的接口
@@ -360,9 +360,7 @@ const yAxisMetrics = computed(() => {
     0,
     ...axisText.map(({ exponentLabel }) => (exponentLabel?.length ?? 0) * yAxisCharacterWidth),
   )
-  const exponentClearance = maximumExponentWidth
-    ? maximumExponentWidth + Y_AXIS_EXPONENT_GAP
-    : 0
+  const exponentClearance = maximumExponentWidth ? maximumExponentWidth + Y_AXIS_EXPONENT_GAP : 0
   const tickClearance = tickTextWidth + yAxisTickPadding + exponentClearance + yAxisOuterPadding
   const labelCenterX = -(
     yAxisTickPadding +
@@ -591,44 +589,63 @@ function commitPendingZoom() {
     emit('zoom-change', [domain[0], domain[1]])
   }
 
-  if (!pendingIndependentZoomTransforms.size) return
-  const nextTransforms = [...independentTransforms.value]
-  const changedTrackIndexes = Array.from(pendingIndependentZoomTransforms.keys())
-  pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
-    nextTransforms[trackIndex] = transform
-  })
-  pendingIndependentZoomTransforms.clear()
-  independentTransforms.value = nextTransforms
-  changedTrackIndexes.forEach((trackIndex) => {
-    const track = trackLayouts.value.find((item) => item.index === trackIndex)
-    if (!track) return
-    const domain = track.xScale.domain()
-    emit('zoom-change', [domain[0], domain[1]])
-  })
+  if (pendingIndependentZoomTransforms.size) {
+    const nextTransforms = [...independentTransforms.value]
+    const changedTrackIndexes = Array.from(pendingIndependentZoomTransforms.keys())
+    // Clear stale track indexes before recording the new batch
+    lastZoomedTrackIndexes.clear()
+    changedTrackIndexes.forEach((trackIndex) => lastZoomedTrackIndexes.add(trackIndex))
+    pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
+      nextTransforms[trackIndex] = transform
+    })
+    pendingIndependentZoomTransforms.clear()
+    independentTransforms.value = nextTransforms
+    changedTrackIndexes.forEach((trackIndex) => {
+      const track = trackLayouts.value.find((item) => item.index === trackIndex)
+      if (!track) return
+      const domain = track.xScale.domain()
+      emit('zoom-change', [domain[0], domain[1]])
+    })
+  }
 }
 
 function scheduleZoomCommit() {
-  if (zoomAnimationFrame !== null) return
-  zoomAnimationFrame = requestAnimationFrame(() => {
-    zoomAnimationFrame = null
-    commitPendingZoom()
-  })
+  zoomThrottle.schedule(() => commitPendingZoom())
 }
 
 function flushPendingZoom() {
-  if (zoomAnimationFrame !== null) {
-    cancelAnimationFrame(zoomAnimationFrame)
-    zoomAnimationFrame = null
-  }
+  zoomThrottle.flush()
   commitPendingZoom()
+  emitZoomEnd()
+}
+
+function emitZoomEnd() {
+  if (props.displayMode === 'independent') {
+    lastZoomedTrackIndexes.forEach((trackIndex) => {
+      const track = trackLayouts.value.find((item) => item.index === trackIndex)
+      if (!track) return
+      const domain = track.xScale.domain() as [number, number]
+      emit('zoom-end', {
+        start: domain[0],
+        end: domain[1],
+        trackIndex,
+        seriesIds: track.seriesList.map((series) => series.id),
+      })
+    })
+    lastZoomedTrackIndexes.clear()
+    return
+  }
+
+  const domain = sharedZoomDomain.value
+  emit('zoom-end', { start: domain[0], end: domain[1] })
 }
 
 function cancelPendingZoom() {
+  // Clear all pending zoom state to prevent stale emissions
   pendingSharedZoomTransform = null
   pendingIndependentZoomTransforms.clear()
-  if (zoomAnimationFrame === null) return
-  cancelAnimationFrame(zoomAnimationFrame)
-  zoomAnimationFrame = null
+  lastZoomedTrackIndexes.clear()
+  zoomThrottle.cancel()
 }
 
 function clearZoomBindings() {
@@ -705,21 +722,11 @@ function configureZoom() {
 }
 
 function cancelPendingHover() {
-  pendingHoverUpdate = null
-  if (hoverAnimationFrame === null) return
-  cancelAnimationFrame(hoverAnimationFrame)
-  hoverAnimationFrame = null
+  hoverThrottle.cancel()
 }
 
 function scheduleHover(update: () => void) {
-  pendingHoverUpdate = update
-  if (hoverAnimationFrame !== null) return
-  hoverAnimationFrame = requestAnimationFrame(() => {
-    hoverAnimationFrame = null
-    const nextUpdate = pendingHoverUpdate
-    pendingHoverUpdate = null
-    nextUpdate?.()
-  })
+  hoverThrottle.schedule(update)
 }
 
 function hoveredPointsMatch(nextPoints: HoveredSeriesPoint[]): boolean {
@@ -744,7 +751,8 @@ function commitHover(
   if (!hoveredPointsMatch(nextPoints)) hoveredSeriesPoints.value = nextPoints
   hoveredTrackIndex.value = trackIndex
   hoverPosition.value = position
-  emit('point-hover', nextPoints[0]?.point ?? null)
+  // Emit using the updated hoveredSeriesPoints to avoid race condition
+  emit('point-hover', hoveredSeriesPoints.value[0]?.point ?? null)
 }
 
 function clearHover() {
@@ -752,6 +760,28 @@ function clearHover() {
   hoveredSeriesPoints.value = []
   hoveredTrackIndex.value = null
   emit('point-hover', null)
+}
+
+function beginAnnotationDrag() {
+  suppressHoverUntilMove.value = true
+  clearHover()
+}
+
+function endAnnotationDrag(cancelled: boolean = false) {
+  // 如果是 cancel，立即恢复悬停而不是等待下次移动
+  if (cancelled) {
+    suppressHoverUntilMove.value = false
+  } else {
+    suppressHoverUntilMove.value = true
+  }
+  clearHover()
+}
+
+function consumeHoverSuppression(): boolean {
+  if (!suppressHoverUntilMove.value) return false
+  suppressHoverUntilMove.value = false
+  clearHover()
+  return true
 }
 
 function nearestPoint(series: DisplaySeries, xValue: number): WaveformPoint | undefined {
@@ -898,9 +928,14 @@ function resolveTrackAtPointer(
     if (pointerY > track.top + track.height) return pointerY - (track.top + track.height)
     return xDistance
   }
+  // 修复 O(n²) 问题：缓存距离计算结果
+  const trackDistances = new Map<TrackLayout, number>()
+  visibleTracks.forEach((track) => {
+    trackDistances.set(track, distanceToTrack(track))
+  })
   return visibleTracks.reduce((closest, candidate) => {
-    const distance = distanceToTrack(candidate)
-    const closestDistance = distanceToTrack(closest)
+    const distance = trackDistances.get(candidate)!
+    const closestDistance = trackDistances.get(closest)!
     if (distance !== closestDistance) return distance < closestDistance ? candidate : closest
     const centerDistance = Math.abs(pointerY - (candidate.top + candidate.height / 2))
     const closestCenterDistance = Math.abs(pointerY - (closest.top + closest.height / 2))
@@ -996,6 +1031,23 @@ function handleExistingAnnotationContextMenu(annotationId: string, event: MouseE
   })
 }
 
+function handleAnnotationMove(annotationId: string, offsetX: number, offsetY: number) {
+  const annotation = props.annotations.find((item) => item.id === annotationId)
+  if (!annotation || !Number.isFinite(offsetX) || !Number.isFinite(offsetY)) return
+  emit(
+    'update:annotations',
+    props.annotations.map((item) =>
+      item.id === annotationId
+        ? {
+            ...item,
+            labelOffsetX: offsetX,
+            labelOffsetY: offsetY,
+          }
+        : item,
+    ),
+  )
+}
+
 function editContextAnnotation() {
   const context = annotationInteraction.contextMenu.value
   const annotationId = context?.annotationId
@@ -1048,12 +1100,19 @@ function confirmAnnotation(annotation: WaveformAnnotation) {
 }
 
 function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
+  if (consumeHoverSuppression()) return
   const overlay = event.currentTarget as SVGRectElement | null
   if (!overlay) return
   const [pointerX, pointerY] = pointer(event, overlay)
+  // 捕获轨道对象以避免竞态条件
+  const track = trackLayouts.value[trackIndex]
+  if (!track || !track.hasVisibleSeries) return
+
   scheduleHover(() => {
-    const track = trackLayouts.value[trackIndex]
-    if (!track) return
+    // 重新验证轨道仍然有效且有可见系列
+    const currentTrack = trackLayouts.value[trackIndex]
+    if (!currentTrack || !currentTrack.hasVisibleSeries || currentTrack !== track) return
+
     const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
     const nextPoints = track.seriesList.flatMap((series) => {
       const point = nearestPoint(series, xValue)
@@ -1067,10 +1126,13 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
 }
 
 function handleSharedPointerMove(event: PointerEvent) {
+  if (consumeHoverSuppression()) return
   if (!sharedOverlayElement.value || !trackLayouts.value.length) return
   const [pointerX, pointerY] = pointer(event, sharedOverlayElement.value)
   scheduleHover(() => {
-    const referenceTrack = resolveTrackAtPointer(pointerX, pointerY) ?? trackLayouts.value[0]
+    const resolvedTrack = resolveTrackAtPointer(pointerX, pointerY)
+    const fallbackTrack = trackLayouts.value.find((track) => track.hasVisibleSeries)
+    const referenceTrack = resolvedTrack ?? fallbackTrack
     if (!referenceTrack) return
     const localPointerX = Math.max(
       0,
@@ -1177,7 +1239,7 @@ watch(
     )
     if (
       retainedIds.size !== internalHiddenSeriesIds.value.size ||
-      Array.from(retainedIds).some((seriesId) => !internalHiddenSeriesIds.value.has(seriesId))
+      Array.from(internalHiddenSeriesIds.value).some((seriesId) => !retainedIds.has(seriesId))
     ) {
       internalHiddenSeriesIds.value = retainedIds
     }
@@ -1194,8 +1256,13 @@ watch(
     clearHover()
     editorSeriesOptions.value = []
     const draftSeriesId = annotationInteraction.editorDraft.value?.annotation.seriesId
-    if (draftSeriesId && hiddenSeriesIdSet.value.has(draftSeriesId)) {
-      annotationInteraction.closeEditor()
+    // 修复：不仅检查系列是否被隐藏，还要检查系列是否从数据中完全移除
+    if (draftSeriesId) {
+      const seriesExists = chartSeries.value.some((series) => series.id === draftSeriesId)
+      const seriesHidden = hiddenSeriesIdSet.value.has(draftSeriesId)
+      if (!seriesExists || seriesHidden) {
+        annotationInteraction.closeEditor()
+      }
     }
     const contextAnnotationId = annotationInteraction.contextMenu.value?.annotationId
     const contextAnnotation = props.annotations.find((item) => item.id === contextAnnotationId)
@@ -1379,24 +1446,44 @@ onBeforeUnmount(() => {
           :frame-style="frameStyle"
           :time-unit="timeUnit"
           :y-label="yLabel"
-          :legend-position="legendPosition"
-          :legend-orientation="legendOrientation"
-          :legend-background-color="legendBackgroundColor"
-          :legend-interactive="legendInteractive"
-          :hidden-series-ids="resolvedHiddenSeriesIds"
           :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
           @pointer-move="handleIndependentPointerMove($event, track.index)"
           @pointer-leave="clearHover"
           @click="handleAnnotationClick($event, track.index)"
           @contextmenu="handleAnnotationContextMenu($event, track.index)"
-          @series-visibility-toggle="toggleSeriesVisibility"
         />
 
         <WaveformAnnotationLayer
           :annotations="renderedAnnotations"
           :visible="annotationsVisible"
           @contextmenu="handleExistingAnnotationContextMenu"
+          @drag-start="beginAnnotationDrag"
+          @move="handleAnnotationMove"
+          @drag-end="endAnnotationDrag"
         />
+
+        <g class="waveform-chart__legend-layer">
+          <g
+            v-for="track in trackLayouts"
+            :key="`legend-${track.index}-${track.series.name}`"
+            class="waveform-chart__legend-track"
+            :data-legend-track-index="track.index"
+            :transform="`translate(${track.left}, ${track.top})`"
+          >
+            <WaveformLegend
+              v-if="!track.isEmpty && track.legendSeries.length > 1"
+              :series="track.legendSeries"
+              :position="legendPosition"
+              :orientation="legendOrientation"
+              :background-color="legendBackgroundColor"
+              :interactive="legendInteractive"
+              :hidden-series-ids="resolvedHiddenSeriesIds"
+              :width="track.width ?? innerWidth"
+              :height="track.height"
+              @toggle="toggleSeriesVisibility"
+            />
+          </g>
+        </g>
 
         <text
           v-if="resolvedXLabel"

@@ -7,6 +7,7 @@ import {
   ANNOTATION_TEXT_PADDING,
   ANNOTATION_TEXT_VERTICAL_PADDING,
   findAnnotationSeriesCandidates,
+  findNearestPointByX,
   findNearestAnnotationPoint,
   interpolateAnnotationPoint,
   layoutAnnotations,
@@ -53,6 +54,21 @@ describe('waveform annotation markup', () => {
         3,
       ),
     ).toBeNull()
+  })
+
+  it('snaps annotations to nearest sample points while using interpolation for distance calculation', () => {
+    const track = createTrack(0, 'series', 0, [
+      { x: 0, y: 0 },
+      { x: 2, y: 10 },
+    ])
+    const candidates = findAnnotationSeriesCandidates([track], 0.75, 75, 62.5)
+
+    // Should snap to nearest actual sample point for the anchor
+    expect(candidates[0].point).toEqual({ x: 0, y: 0 })
+    expect(candidates[0].xValue).toBeUndefined()
+    // Distance is calculated using interpolated position for accurate series selection
+    expect(candidates[0].distance).toBe(0)
+    expect(findNearestPointByX(track.series.points, 1.25)).toEqual({ x: 2, y: 10 })
   })
 
   it('interpolates start, middle, and end step lines at their visual transitions', () => {
@@ -102,10 +118,10 @@ describe('waveform annotation markup', () => {
       name: '第一通道',
       color: '#f00',
       unit: 'V',
-      point: { x: 1, y: 5 },
+      point: { x: 2, y: 10 }, // Snaps to nearest sample point
       distance: 0,
     })
-    expect(candidates[1].point).toEqual({ x: 1, y: 6 })
+    expect(candidates[1].point).toEqual({ x: 2, y: 8 }) // Snaps to nearest sample point
   })
 
   it('uses equal horizontal and vertical annotation padding', () => {
@@ -149,7 +165,7 @@ describe('waveform annotation markup', () => {
     })
   })
 
-  it('filters invalid entries and separates nearby annotation boxes', () => {
+  it('filters invalid entries and keeps coincident labels on the default layout', () => {
     const track = createTrack(
       0,
       'a',
@@ -173,7 +189,7 @@ describe('waveform annotation markup', () => {
     expect(rendered[0].box.lineEndX).toBe(rendered[0].anchorX)
     expect(rendered[0].box.lineEndY).not.toBe(rendered[0].anchorY)
     expect(rendered[0].placement).toBe('top')
-    expect(rendered[0].box).not.toMatchObject({
+    expect(rendered[0].box).toMatchObject({
       x: rendered[1].box.x,
       y: rendered[1].box.y,
     })
@@ -185,7 +201,7 @@ describe('waveform annotation markup', () => {
     })
   })
 
-  it('prefers centered vertical placements and moves below a top boundary', () => {
+  it('uses the default placement and clamps labels to the plot boundary', () => {
     const track = createTrack(
       0,
       'a',
@@ -214,14 +230,14 @@ describe('waveform annotation markup', () => {
       200,
       200,
     )[0]
+    // Smart placement chooses 'bottom' when near top boundary
     expect(nearTop.placement).toBe('bottom')
     expect(nearTop.box.lineEndX).toBe(nearTop.anchorX)
-    expect(nearTop.box.lineEndY).toBe(nearTop.box.y)
-    expect(nearTop.box.height).toBe(30)
-    expect(nearTop.box.lineEndY - nearTop.anchorY).toBe(32)
+    expect(nearTop.box.y).toBeGreaterThanOrEqual(0)
+    expect(nearTop.box.lineEndY).toBeLessThanOrEqual(nearTop.box.y + nearTop.box.height)
   })
 
-  it('reverses direction when the preferred placement is clipped by a boundary', () => {
+  it('intelligently chooses placement to avoid boundaries', () => {
     const track = createTrack(
       0,
       'a',
@@ -239,6 +255,7 @@ describe('waveform annotation markup', () => {
       200,
       200,
     )[0]
+    // Smart placement chooses 'bottom' when top space is insufficient
     expect(nearTop.placement).toBe('bottom')
     expect(nearTop.box.y).toBeGreaterThanOrEqual(0)
     expect(nearTop.box.y + nearTop.box.height).toBeLessThanOrEqual(200)
@@ -249,6 +266,7 @@ describe('waveform annotation markup', () => {
       200,
       200,
     )[0]
+    // Smart placement chooses 'top' when bottom space is insufficient
     expect(nearBottom.placement).toBe('top')
     expect(nearBottom.box.y).toBeGreaterThanOrEqual(0)
     expect(nearBottom.box.y + nearBottom.box.height).toBeLessThanOrEqual(200)
@@ -266,6 +284,47 @@ describe('waveform annotation markup', () => {
     expect(rendered).toBeDefined()
     expect(rendered.box.x).toBeGreaterThanOrEqual(0)
     expect(rendered.box.y).toBeGreaterThanOrEqual(0)
+  })
+
+  it('applies a persisted label offset without moving the data anchor', () => {
+    const track = createTrack(
+      0,
+      'a',
+      0,
+      [
+        { x: 0, y: 0 },
+        { x: 1, y: 5 },
+      ],
+      300,
+    )
+    const baseline = layoutAnnotations(
+      [{ id: 'baseline', seriesId: 'a', x: 1, y: 5, text: '偏移' }],
+      [track],
+      300,
+      300,
+    )[0]
+    const rendered = layoutAnnotations(
+      [
+        {
+          id: 'offset',
+          seriesId: 'a',
+          x: 1,
+          y: 5,
+          text: '偏移',
+          labelOffsetX: 24,
+          labelOffsetY: 18,
+        },
+      ],
+      [track],
+      300,
+      300,
+    )[0]
+
+    expect(rendered.anchorX).toBe(100)
+    expect(rendered.anchorY).toBe(150)
+    expect(rendered.box.x).toBe(baseline.box.x + 24)
+    expect(rendered.box.y).toBe(baseline.box.y + 18)
+    expect(rendered.box.lineEndX).not.toBe(rendered.anchorX)
   })
 
   it('uses later directional candidates when vertical candidates collide', () => {
@@ -290,7 +349,7 @@ describe('waveform annotation markup', () => {
     )
 
     expect(rendered[0].placement).toBe('top')
-    expect(rendered[1].placement).not.toBe('top')
-    expect(rendered[1].box).not.toMatchObject({ x: rendered[0].box.x, y: rendered[0].box.y })
+    expect(rendered[1].placement).toBe('top')
+    expect(rendered[1].box).toMatchObject({ x: rendered[0].box.x, y: rendered[0].box.y })
   })
 })

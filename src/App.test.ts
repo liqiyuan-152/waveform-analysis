@@ -105,7 +105,10 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     )
     expect(triangleSeries.get('.waveform-chart__error-bar').attributes('stroke')).toBe('#0960bd')
 
-    const triangleLegendItem = firstFrame
+    const firstFrameLegend = wrapper.get(
+      '.waveform-chart__legend-track[data-legend-track-index="0"]',
+    )
+    const triangleLegendItem = firstFrameLegend
       .findAll('.waveform-chart__legend-item')
       .find((item) => item.text().includes('BT2_2M'))
     expect(triangleLegendItem).toBeDefined()
@@ -139,7 +142,10 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       secondFrame.findAll('.waveform-chart__line').map((line) => line.attributes('data-line-type')),
     ).toEqual(['step-start', 'step-middle', 'step-end'])
     expect(secondFrame.findAll('.waveform-chart__points')).toHaveLength(3)
-    const legendItems = secondFrame.findAll('.waveform-chart__legend-item')
+    const secondFrameLegend = wrapper.get(
+      '.waveform-chart__legend-track[data-legend-track-index="1"]',
+    )
+    const legendItems = secondFrameLegend.findAll('.waveform-chart__legend-item')
     expect(legendItems).toHaveLength(3)
     expect(legendItems.map((item) => item.get('.waveform-legend__line').attributes('d'))).toEqual([
       'M1 8H25',

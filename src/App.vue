@@ -16,52 +16,31 @@ import {
   type WaveformOverlayMode,
   type WaveformSeries,
   type WaveformTitleOptions,
+  type WaveformZoomEndPayload,
 } from './components'
-import waveformJson from './data/wData.json'
+import chartWaveformsJson from './data/chartWaveforms.json'
+import demoWaveformsJson from './data/demoWaveforms.json'
+
+interface WaveformSourcePoint {
+  x: number
+  y: number
+  error?: number
+  lowerError?: number
+  upperError?: number
+}
 
 interface WaveformSourceRow {
   chnl: string
   chnl_id: number
   dat_unit: string
-  data: number[]
+  data: WaveformSourcePoint[]
   dev: number
   shot: number
-  time: number[]
+  time?: number[]
   time_unit: 'ms'
 }
 
-const importedSourceRows = waveformJson as unknown as WaveformSourceRow[]
-const testChannelRows: WaveformSourceRow[] = importedSourceRows.slice(0, 2).map((row, index) => ({
-  ...row,
-  chnl: `TEST_CH_${index + 1}`,
-  chnl_id: 9001 + index,
-  data: row.data.map(
-    (value, sampleIndex) =>
-      value * (index === 0 ? 0.72 : 1.12) +
-      Math.sin(sampleIndex / (index === 0 ? 11 : 18)) * (index === 0 ? 0.015 : 0.01),
-  ),
-}))
-const additionalFrameOneRows: WaveformSourceRow[] = [
-  importedSourceRows[0],
-  importedSourceRows[1],
-  importedSourceRows[0],
-].flatMap((row, index) =>
-  row
-    ? [
-        {
-          ...row,
-          chnl: `TEST_CH_${index + 3}`,
-          chnl_id: 9003 + index,
-          data: row.data.map(
-            (value, sampleIndex) =>
-              value * [0.9, 1.35, 0.55][index]! +
-              Math.sin(sampleIndex / [14, 22, 8][index]!) * [0.012, 0.008, 0.02][index]!,
-          ),
-        },
-      ]
-    : [],
-)
-const sourceRows = [...importedSourceRows, ...testChannelRows, ...additionalFrameOneRows]
+const sourceRows = chartWaveformsJson as unknown as WaveformSourceRow[]
 const displayMode = ref<WaveformDisplayMode>('independent')
 const overlayMode = ref<WaveformOverlayMode>('single-axis')
 const rowCount = ref(2)
@@ -138,7 +117,6 @@ const seriesStylePresets: Array<Pick<WaveformSeries, 'lineType' | 'pointType' | 
 ]
 
 const waveformSeries: WaveformSeries[] = sourceRows.map((row, seriesIndex) => {
-  const pointCount = Math.min(row.time.length, row.data.length)
   const presetStyle = seriesStylePresets[seriesIndex % seriesStylePresets.length]!
   const style: Pick<WaveformSeries, 'lineType' | 'pointType' | 'errorBar'> =
     row.chnl === 'TEST_CH_4'
@@ -148,55 +126,37 @@ const waveformSeries: WaveformSeries[] = sourceRows.map((row, seriesIndex) => {
     id: String(row.chnl_id),
     trackId:
       row.chnl.startsWith('TEST_CH_') && row.chnl !== 'TEST_CH_2'
-        ? String(importedSourceRows[0]?.chnl_id ?? row.chnl_id)
+        ? String(sourceRows[0]?.chnl_id ?? row.chnl_id)
         : undefined,
     name: row.chnl,
     unit: row.dat_unit,
     ...style,
     data: {
       kind: 'points',
-      points: Array.from({ length: pointCount }, (_, index) => {
-        const y = row.data[index]
-        const error = Math.max(Math.abs(y) * 0.08, 0.005)
-        return {
-          x: row.time[index] / 1000,
-          y,
-          ...(style.errorBar?.visible
-            ? seriesIndex % 2 === 0
-              ? { lowerError: error * 0.65, upperError: error }
-              : { error }
-            : {}),
-        }
-      }),
+      points: row.data,
     },
   }
 })
 
-const stepDemoValues = [
-  {
-    id: 'step-demo-start',
-    name: 'Step Start',
-    color: '#5470c6',
-    lineType: 'step-start',
-    values: [120, 132, 101, 134, 90, 230, 210],
-  },
-  {
-    id: 'step-demo-middle',
-    name: 'Step Middle',
-    color: '#91cc75',
-    lineType: 'step-middle',
-    values: [220, 282, 201, 234, 290, 430, 410],
-  },
-  {
-    id: 'step-demo-end',
-    name: 'Step End',
-    color: '#505372',
-    lineType: 'step-end',
-    values: [450, 432, 401, 454, 590, 530, 510],
-  },
-] as const
+const demoWaveforms = demoWaveformsJson as {
+  stepDemoValues: Array<{
+    id: string
+    name: string
+    color: string
+    lineType: 'step-start' | 'step-middle' | 'step-end'
+    values: number[]
+  }>
+  basicCurveDemoSeries: Array<{
+    id: string
+    name: string
+    color: string
+    lineType: 'none' | 'linear'
+    pointType: 'circle' | 'none'
+    points: Array<{ x: number; y: number }>
+  }>
+}
 
-const stepDemoSeries: WaveformSeries[] = stepDemoValues.map((series) => ({
+const stepDemoSeries: WaveformSeries[] = demoWaveforms.stepDemoValues.map((series) => ({
   id: series.id,
   trackId: 'step-demo',
   name: series.name,
@@ -209,49 +169,62 @@ const stepDemoSeries: WaveformSeries[] = stepDemoValues.map((series) => ({
   },
 }))
 
-const frameOneTrackId = String(importedSourceRows[0]?.chnl_id ?? 'frame-one')
-const frameOneDemoSource = importedSourceRows[0]
-const basicCurveDemoSeries: WaveformSeries[] = frameOneDemoSource
-  ? [
-      {
-        id: 'basic-points-only-demo',
-        trackId: frameOneTrackId,
-        name: '纯点无线',
-        color: '#d4380d',
-        lineType: 'none',
-        pointType: 'circle',
-        data: {
-          kind: 'points',
-          points: frameOneDemoSource.data.map((value, index) => ({
-            x: frameOneDemoSource.time[index]! / 1000,
-            y: value * 1.18 + Math.sin(index / 12) * 0.006,
-          })),
-        },
-      },
-      {
-        id: 'basic-line-only-demo',
-        trackId: frameOneTrackId,
-        name: '纯线无点',
-        color: '#00796b',
-        lineType: 'linear',
-        pointType: 'none',
-        data: {
-          kind: 'points',
-          points: frameOneDemoSource.data.map((value, index) => ({
-            x: frameOneDemoSource.time[index]! / 1000,
-            y: value * 0.82 - Math.sin(index / 16) * 0.006,
-          })),
-        },
-      },
-    ]
-  : []
+const frameOneTrackId = String(sourceRows[0]?.chnl_id ?? 'frame-one')
+const basicCurveDemoSeries: WaveformSeries[] = demoWaveforms.basicCurveDemoSeries.map((series) => ({
+  id: series.id,
+  trackId: frameOneTrackId,
+  name: series.name,
+  color: series.color,
+  lineType: series.lineType,
+  pointType: series.pointType,
+  data: { kind: 'points', points: series.points },
+}))
 const frameOneSeries = waveformSeries.filter(
   (series) => series.id === frameOneTrackId || series.trackId === frameOneTrackId,
 )
 const remainingSeries = waveformSeries.filter((series) => !frameOneSeries.includes(series))
-const chartData: WaveformData = {
+const fullChartData: WaveformData = {
   kind: 'series',
   series: [...frameOneSeries, ...basicCurveDemoSeries, ...stepDemoSeries, ...remainingSeries],
+}
+const chartData = ref<WaveformData>(fullChartData)
+let zoomRequestSequence = 0
+
+function filterWaveformData(data: WaveformData, start: number, end: number): WaveformData {
+  const lower = Math.min(start, end)
+  const upper = Math.max(start, end)
+  if (data.kind === 'samples') return data
+  if (data.kind === 'points') {
+    return {
+      kind: 'points',
+      points: data.points.filter((point) => point.x >= lower && point.x <= upper),
+    }
+  }
+  return {
+    kind: 'series',
+    series: data.series.map((series) => ({
+      ...series,
+      data:
+        series.data.kind === 'points'
+          ? {
+              kind: 'points',
+              points: series.data.points.filter((point) => point.x >= lower && point.x <= upper),
+            }
+          : series.data,
+    })),
+  }
+}
+
+async function handleZoomEnd(payload: WaveformZoomEndPayload) {
+  // Demo-only sequence number cancellation. Production code should use AbortController
+  // to cancel in-flight requests when a newer zoom gesture arrives.
+  const requestSequence = ++zoomRequestSequence
+  await new Promise((resolve) => window.setTimeout(resolve, 80))
+  if (requestSequence !== zoomRequestSequence) return
+
+  // Demo-only stand-in for the backend response. Production code should replace this
+  // with a request using payload.start/payload.end and the optional channel metadata.
+  chartData.value = filterWaveformData(fullChartData, payload.start, payload.end)
 }
 const titleOptions = computed<WaveformTitleOptions>(() => ({
   visible: titleVisible.value,
@@ -579,6 +552,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         v-model:annotations-visible="annotationsVisible"
         v-model:interaction-mode="interactionMode"
         v-model:hidden-series-ids="hiddenSeriesIds"
+        @zoom-end="handleZoomEnd"
       />
     </section>
   </main>

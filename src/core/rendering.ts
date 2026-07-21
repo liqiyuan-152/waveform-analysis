@@ -1,6 +1,6 @@
 import { bisector } from 'd3'
 
-import type { WaveformPoint, WaveformRenderingOptions } from '../types'
+import type { WaveformPoint, WaveformRenderingOptions } from '@/types'
 
 export interface ResolvedWaveformRenderingOptions {
   downsample: boolean
