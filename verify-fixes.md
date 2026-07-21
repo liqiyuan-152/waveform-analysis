@@ -5,22 +5,28 @@
 ## 自动验证
 
 ### 1. 类型检查
+
 ```bash
 pnpm typecheck
 ```
+
 **预期结果**: ✅ 通过，无类型错误
 
 ### 2. 代码格式和风格
+
 ```bash
 pnpm lint
 pnpm format
 ```
+
 **预期结果**: ✅ 通过，无警告
 
 ### 3. 单元测试
+
 ```bash
 pnpm test
 ```
+
 **预期结果**: ✅ 全部通过
 
 ## 手动验证场景
@@ -28,6 +34,7 @@ pnpm test
 ### 场景 1: 系列可见性切换（修复 #1 + #3 + #4）
 
 **测试步骤**:
+
 1. 启动开发服务器: `pnpm dev`
 2. 打开浏览器访问 http://localhost:5173
 3. 确保图例设置为交互式 (`legend.interactive: true`)
@@ -36,6 +43,7 @@ pnpm test
 6. 再次点击图例显示/隐藏系列
 
 **验证点**:
+
 - ✅ 隐藏的系列 ID 正确从内部状态中移除（修复 #1）
 - ✅ Y 轴缓存在可见性切换后正确工作（修复 #4）
 - ✅ 控制台无错误
@@ -43,12 +51,14 @@ pnpm test
 ### 场景 2: 标注编辑器与系列移除（修复 #3）
 
 **测试步骤**:
+
 1. 在图表上右键创建标注
 2. 开始编辑该标注
 3. 在编辑器打开时，通过父组件移除该系列的数据
 4. 或者，在编辑器打开时隐藏该系列
 
 **验证点**:
+
 - ✅ 编辑器自动关闭（修复 #3）
 - ✅ 无悬空引用错误
 - ✅ 可以继续与其他系列交互
@@ -56,12 +66,14 @@ pnpm test
 ### 场景 3: 快速悬停交互（修复 #2 + #5 + #6）
 
 **测试步骤**:
+
 1. 加载包含多个轨道的图表
 2. 快速移动鼠标在图表上
 3. 同时进行缩放操作（滚轮）
 4. 在悬停时切换系列可见性
 
 **验证点**:
+
 - ✅ 工具提示显示正确的数据（修复 #2）
 - ✅ 无崩溃或闪烁
 - ✅ 悬停响应流畅（修复 #5 - O(n²) 优化）
@@ -70,11 +82,13 @@ pnpm test
 ### 场景 4: 大数据集性能（修复 #4 + #5 + #6）
 
 **测试步骤**:
+
 1. 加载包含 10+ 个系列，每个 10,000+ 点的数据集
 2. 快速切换系列可见性 10 次
 3. 观察性能分析器（开发者工具 > Performance）
 
 **验证点**:
+
 - ✅ 可见性切换响应快速（< 100ms）
 - ✅ 缓存命中率高（修复 #4）
 - ✅ 无明显的 JavaScript 执行延迟
@@ -83,11 +97,13 @@ pnpm test
 ### 场景 5: 多轨道鼠标悬停（修复 #5）
 
 **测试步骤**:
+
 1. 设置 `displayMode: 'independent'` 和 `grid: { rowCount: 10, columnCount: 1 }`
 2. 加载 10 个轨道
 3. 在各轨道之间移动鼠标
 
 **验证点**:
+
 - ✅ 工具提示显示正确的轨道数据
 - ✅ 鼠标移动流畅，无延迟
 - ✅ 距离计算不会造成性能问题（修复 #5）
@@ -95,6 +111,7 @@ pnpm test
 ## 性能基准测试（可选）
 
 ### 缓存效率测试
+
 ```typescript
 // 在开发者控制台中运行
 const start = performance.now()
@@ -109,11 +126,12 @@ console.log(`100次可见性切换耗时: ${end - start}ms`)
 **预期结果**: 修复后应该比修复前快 30-50%
 
 ### RAF 节流测试
+
 ```typescript
 // 检查 RAF 调度次数
 let rafCount = 0
 const originalRAF = window.requestAnimationFrame
-window.requestAnimationFrame = function(...args) {
+window.requestAnimationFrame = function (...args) {
   rafCount++
   return originalRAF.apply(this, args)
 }
@@ -125,6 +143,7 @@ window.requestAnimationFrame = function(...args) {
 ## 回归测试
 
 ### 确保未破坏现有功能
+
 - ✅ 缩放和平移仍然正常工作
 - ✅ 标注创建、编辑、删除功能正常
 - ✅ 图例交互正常
@@ -141,6 +160,7 @@ window.requestAnimationFrame = function(...args) {
 ## 问题报告
 
 如果发现任何问题，请记录：
+
 1. 复现步骤
 2. 预期行为
 3. 实际行为
@@ -151,6 +171,7 @@ window.requestAnimationFrame = function(...args) {
 ## 批准检查清单
 
 在合并代码前，确认：
+
 - [ ] 所有自动验证通过
 - [ ] 至少完成 3 个手动测试场景
 - [ ] 无明显的性能退化

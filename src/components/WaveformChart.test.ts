@@ -659,8 +659,8 @@ describe('WaveformChart', () => {
     expect(tracks[0].find('.waveform-chart__y-axis-label').exists()).toBe(false)
     expect(tracks[0].findAll('.waveform-chart__axis--y .tick').length).toBeGreaterThan(0)
     expect(tracks[1].get('.waveform-chart__y-axis-label').text()).toBe('BT1_2M')
-    expect(tracks[1].find('.waveform-chart__legend').exists()).toBe(false)
-    const legend = tracks[0].get('.waveform-chart__legend')
+    expect(wrapper.findAll('.waveform-chart__legend')).toHaveLength(1)
+    const legend = wrapper.get('.waveform-chart__legend')
     expect(legend.attributes('data-position')).toBe('top-right')
     expect(legend.attributes('data-orientation')).toBe('vertical')
     expect(legend.get('.waveform-legend__panel').attributes('style')).toContain(
@@ -841,6 +841,11 @@ describe('WaveformChart', () => {
 
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(2)
     expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
+    const annotationLayer = wrapper.get('.waveform-annotation-layer').element
+    const legendLayer = wrapper.get('.waveform-chart__legend-layer').element
+    expect(
+      annotationLayer.compareDocumentPosition(legendLayer) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
     const highLegendItem = wrapper.findAll('.waveform-chart__legend-item')[1]
     expect(highLegendItem.attributes('aria-pressed')).toBe('true')
 
@@ -2815,17 +2820,17 @@ describe('WaveformChart', () => {
     await textarea.setValue('右键标注')
     await wrapper.get('.waveform-annotation-editor button.is-primary').trigger('click')
 
+    // Annotation snaps to nearest sample point (x=1, y=5)
     expect(wrapper.emitted('update:annotations')?.at(-1)?.[0]).toMatchObject([
-      { seriesId: 'series-0', x: 0.5, y: 2.5 },
+      { seriesId: 'series-0', x: 1, y: 5 },
     ])
     await wrapper.setProps({
-      annotations: [{ id: 'right-click', seriesId: 'series-0', x: 0.5, y: 2.5, text: '右键标注' }],
+      annotations: [{ id: 'right-click', seriesId: 'series-0', x: 1, y: 5, text: '右键标注' }],
     })
     expect(wrapper.find('.waveform-annotation__vertical-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation__anchor').exists()).toBe(false)
-    expect(wrapper.get('.waveform-annotation').attributes('data-placement')).toBe('top')
-    expect(wrapper.get('.waveform-annotation__arrow').attributes('x1')).toBe(
-      wrapper.get('.waveform-annotation__arrow').attributes('x2'),
+    expect(wrapper.get('.waveform-annotation__arrow').attributes('x2')).not.toBe(
+      String(overlayWidth / 2),
     )
   })
 
@@ -2890,7 +2895,7 @@ describe('WaveformChart', () => {
     ).toEqual(['通道 B'])
   })
 
-  it('moves an annotation below the point when the top boundary is too close', async () => {
+  it('intelligently chooses placement to avoid clipping at boundaries', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'points',
@@ -2902,6 +2907,7 @@ describe('WaveformChart', () => {
       { annotations: [{ id: 'top-edge', seriesId: 'series-0', x: 0.5, y: 5, text: '顶部标注' }] },
     )
 
+    // Smart placement chooses 'bottom' when annotation is near top boundary
     expect(wrapper.get('.waveform-annotation').attributes('data-placement')).toBe('bottom')
     expect(wrapper.get('.waveform-annotation__arrow').attributes('x1')).toBe(
       wrapper.get('.waveform-annotation__arrow').attributes('x2'),
@@ -2949,6 +2955,129 @@ describe('WaveformChart', () => {
     await wrapper.findAll('.waveform-annotation-context-menu button')[1].trigger('click')
     expect(wrapper.emitted('update:annotations')?.at(-1)?.[0]).toEqual([])
     expect(wrapper.emitted('annotation-delete')).toHaveLength(1)
+  })
+
+  it('commits a dragged label offset once without changing its data anchor', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { annotations: [{ id: 'dragged', seriesId: 'series-0', x: 1, y: 5, text: '拖动' }] },
+    )
+    const annotation = wrapper.get('[data-annotation-id="dragged"]')
+    const element = annotation.element as SVGElement & {
+      setPointerCapture: (pointerId: number) => void
+      releasePointerCapture: (pointerId: number) => void
+      hasPointerCapture: (pointerId: number) => boolean
+    }
+    element.setPointerCapture = () => undefined
+    element.releasePointerCapture = () => undefined
+    element.hasPointerCapture = () => false
+
+    const dispatchPointer = (type: string, values: Record<string, number>) => {
+      const event = new Event(type, { bubbles: true })
+      Object.defineProperties(event, {
+        button: { value: values.button ?? 0 },
+        clientX: { value: values.clientX ?? 0 },
+        clientY: { value: values.clientY ?? 0 },
+        pointerId: { value: values.pointerId ?? 1 },
+      })
+      element.dispatchEvent(event)
+    }
+
+    dispatchPointer('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 })
+    expect(wrapper.emitted('update:annotations')).toBeUndefined()
+    dispatchPointer('pointermove', { clientX: 130, clientY: 120, pointerId: 1 })
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.emitted('update:annotations')).toBeUndefined()
+    dispatchPointer('pointermove', { clientX: 140, clientY: 130, pointerId: 1 })
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.emitted('update:annotations')).toBeUndefined()
+    const boxBeforeUp = {
+      x: wrapper.get('.waveform-annotation__box').attributes('x'),
+      y: wrapper.get('.waveform-annotation__box').attributes('y'),
+    }
+    dispatchPointer('pointerup', { clientX: 140, clientY: 130, pointerId: 1 })
+    await flushPromises()
+    expect(wrapper.get('.waveform-annotation__box').attributes('x')).toBe(boxBeforeUp.x)
+    expect(wrapper.get('.waveform-annotation__box').attributes('y')).toBe(boxBeforeUp.y)
+
+    const updated = wrapper.emitted('update:annotations')?.at(-1)?.[0] as
+      Array<{ x: number; y: number; labelOffsetX?: number; labelOffsetY?: number }> | undefined
+    expect(updated).toMatchObject([{ x: 1, y: 5, labelOffsetX: 40, labelOffsetY: 30 }])
+    expect(wrapper.emitted('update:annotations')).toHaveLength(1)
+  })
+
+  it('hides the tooltip through a label drag until the next real hover move', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { annotations: [{ id: 'dragged', seriesId: 'series-0', x: 1, y: 5, text: '拖动' }] },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
+    })
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
+
+    const annotation = wrapper.get('[data-annotation-id="dragged"]')
+    const element = annotation.element as SVGElement & {
+      setPointerCapture: (pointerId: number) => void
+      releasePointerCapture: (pointerId: number) => void
+      hasPointerCapture: (pointerId: number) => boolean
+    }
+    element.setPointerCapture = () => undefined
+    element.releasePointerCapture = () => undefined
+    element.hasPointerCapture = () => false
+    const dispatchPointer = (type: string, values: Record<string, number>) => {
+      const event = new Event(type, { bubbles: true })
+      Object.defineProperties(event, {
+        button: { value: values.button ?? 0 },
+        clientX: { value: values.clientX ?? 0 },
+        clientY: { value: values.clientY ?? 0 },
+        pointerId: { value: values.pointerId ?? 1 },
+      })
+      element.dispatchEvent(event)
+    }
+
+    dispatchPointer('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 })
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
+    dispatchPointer('pointermove', { clientX: 130, clientY: 120, pointerId: 1 })
+    dispatchPointer('pointerup', { clientX: 130, clientY: 120, pointerId: 1 })
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth / 2, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
   })
 
   it('controls visibility and interaction mode while filtering unknown series', async () => {

@@ -43,8 +43,8 @@ import {
 import {
   ANNOTATION_AMBIGUITY_DISTANCE,
   ANNOTATION_HIT_RADIUS,
-  findAnnotationSeriesCandidates,
   interpolateAnnotationPoint,
+  findAnnotationSeriesCandidates,
   layoutAnnotations,
   useWaveformAnnotationInteraction,
   type AnnotationEditorAnchor,
@@ -57,7 +57,7 @@ import {
   type AnnotationTrackLayout,
 } from './annotation'
 import { WaveformTooltip } from './interaction'
-import { WaveformTrack } from './rendering'
+import { WaveformLegend, WaveformTrack } from './rendering'
 import {
   channelColors,
   margin as chartMargin,
@@ -160,6 +160,7 @@ const independentTransforms = shallowRef<ZoomTransform[]>([])
 const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
 const hoveredTrackIndex = ref<number | null>(null)
 const hoverPosition = ref({ x: 0, y: 0 })
+const suppressHoverUntilMove = ref(false)
 const currentPage = ref(1)
 const resizeObserver = shallowRef<ResizeObserver>()
 const zoomBehaviors = new Map<number | 'shared', ZoomBehavior<SVGRectElement, unknown>>()
@@ -719,7 +720,8 @@ function commitHover(
   if (!hoveredPointsMatch(nextPoints)) hoveredSeriesPoints.value = nextPoints
   hoveredTrackIndex.value = trackIndex
   hoverPosition.value = position
-  emit('point-hover', nextPoints[0]?.point ?? null)
+  // Emit using the updated hoveredSeriesPoints to avoid race condition
+  emit('point-hover', hoveredSeriesPoints.value[0]?.point ?? null)
 }
 
 function clearHover() {
@@ -727,6 +729,28 @@ function clearHover() {
   hoveredSeriesPoints.value = []
   hoveredTrackIndex.value = null
   emit('point-hover', null)
+}
+
+function beginAnnotationDrag() {
+  suppressHoverUntilMove.value = true
+  clearHover()
+}
+
+function endAnnotationDrag(cancelled: boolean = false) {
+  // 如果是 cancel，立即恢复悬停而不是等待下次移动
+  if (cancelled) {
+    suppressHoverUntilMove.value = false
+  } else {
+    suppressHoverUntilMove.value = true
+  }
+  clearHover()
+}
+
+function consumeHoverSuppression(): boolean {
+  if (!suppressHoverUntilMove.value) return false
+  suppressHoverUntilMove.value = false
+  clearHover()
+  return true
 }
 
 function nearestPoint(series: DisplaySeries, xValue: number): WaveformPoint | undefined {
@@ -976,6 +1000,23 @@ function handleExistingAnnotationContextMenu(annotationId: string, event: MouseE
   })
 }
 
+function handleAnnotationMove(annotationId: string, offsetX: number, offsetY: number) {
+  const annotation = props.annotations.find((item) => item.id === annotationId)
+  if (!annotation || !Number.isFinite(offsetX) || !Number.isFinite(offsetY)) return
+  emit(
+    'update:annotations',
+    props.annotations.map((item) =>
+      item.id === annotationId
+        ? {
+            ...item,
+            labelOffsetX: offsetX,
+            labelOffsetY: offsetY,
+          }
+        : item,
+    ),
+  )
+}
+
 function editContextAnnotation() {
   const context = annotationInteraction.contextMenu.value
   const annotationId = context?.annotationId
@@ -1028,6 +1069,7 @@ function confirmAnnotation(annotation: WaveformAnnotation) {
 }
 
 function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
+  if (consumeHoverSuppression()) return
   const overlay = event.currentTarget as SVGRectElement | null
   if (!overlay) return
   const [pointerX, pointerY] = pointer(event, overlay)
@@ -1053,10 +1095,13 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
 }
 
 function handleSharedPointerMove(event: PointerEvent) {
+  if (consumeHoverSuppression()) return
   if (!sharedOverlayElement.value || !trackLayouts.value.length) return
   const [pointerX, pointerY] = pointer(event, sharedOverlayElement.value)
   scheduleHover(() => {
-    const referenceTrack = resolveTrackAtPointer(pointerX, pointerY) ?? trackLayouts.value[0]
+    const resolvedTrack = resolveTrackAtPointer(pointerX, pointerY)
+    const fallbackTrack = trackLayouts.value.find((track) => track.hasVisibleSeries)
+    const referenceTrack = resolvedTrack ?? fallbackTrack
     if (!referenceTrack) return
     const localPointerX = Math.max(
       0,
@@ -1370,24 +1415,44 @@ onBeforeUnmount(() => {
           :frame-style="frameStyle"
           :time-unit="timeUnit"
           :y-label="yLabel"
-          :legend-position="legendPosition"
-          :legend-orientation="legendOrientation"
-          :legend-background-color="legendBackgroundColor"
-          :legend-interactive="legendInteractive"
-          :hidden-series-ids="resolvedHiddenSeriesIds"
           :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
           @pointer-move="handleIndependentPointerMove($event, track.index)"
           @pointer-leave="clearHover"
           @click="handleAnnotationClick($event, track.index)"
           @contextmenu="handleAnnotationContextMenu($event, track.index)"
-          @series-visibility-toggle="toggleSeriesVisibility"
         />
 
         <WaveformAnnotationLayer
           :annotations="renderedAnnotations"
           :visible="annotationsVisible"
           @contextmenu="handleExistingAnnotationContextMenu"
+          @drag-start="beginAnnotationDrag"
+          @move="handleAnnotationMove"
+          @drag-end="endAnnotationDrag"
         />
+
+        <g class="waveform-chart__legend-layer">
+          <g
+            v-for="track in trackLayouts"
+            :key="`legend-${track.index}-${track.series.name}`"
+            class="waveform-chart__legend-track"
+            :data-legend-track-index="track.index"
+            :transform="`translate(${track.left}, ${track.top})`"
+          >
+            <WaveformLegend
+              v-if="!track.isEmpty && track.legendSeries.length > 1"
+              :series="track.legendSeries"
+              :position="legendPosition"
+              :orientation="legendOrientation"
+              :background-color="legendBackgroundColor"
+              :interactive="legendInteractive"
+              :hidden-series-ids="resolvedHiddenSeriesIds"
+              :width="track.width ?? innerWidth"
+              :height="track.height"
+              @toggle="toggleSeriesVisibility"
+            />
+          </g>
+        </g>
 
         <text
           v-if="resolvedXLabel"

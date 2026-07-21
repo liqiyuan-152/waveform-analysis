@@ -40,6 +40,10 @@ export interface WaveformAnnotation {
   x: number
   y: number
   text: string
+  /** Pixel offset of the label box from its default position. */
+  labelOffsetX?: number
+  /** Pixel offset of the label box from its default position. */
+  labelOffsetY?: number
   style?: WaveformAnnotationStyle
   createdAt?: string
 }
