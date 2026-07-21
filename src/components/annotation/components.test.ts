@@ -5,7 +5,6 @@ import { ColorPicker } from 'vue3-colorpicker'
 import WaveformAnnotationContextMenu from './WaveformAnnotationContextMenu.vue'
 import WaveformAnnotationEditor from './WaveformAnnotationEditor.vue'
 import WaveformAnnotationLayer from './WaveformAnnotationLayer.vue'
-import WaveformAnnotationToolbar from './WaveformAnnotationToolbar.vue'
 
 describe('waveform annotation controls', () => {
   it('keeps dialog title ids unique across editor instances', () => {
@@ -74,18 +73,6 @@ describe('waveform annotation controls', () => {
     await wrapper.get('select[aria-label="选择标注波形"]').setValue('b')
     expect(wrapper.emitted('series-change')).toEqual([['b']])
     expect(wrapper.get('.waveform-annotation-editor__series').text()).toContain('通道 A')
-  })
-
-  it('emits controlled toolbar changes', async () => {
-    const wrapper = mount(WaveformAnnotationToolbar, {
-      props: { interactionMode: 'zoom', annotationsVisible: true },
-    })
-
-    await wrapper.get('button[aria-label="添加标注"]').trigger('click')
-    await wrapper.get('button[aria-label="隐藏标注"]').trigger('click')
-
-    expect(wrapper.emitted('update:interaction-mode')).toEqual([['annotation']])
-    expect(wrapper.emitted('update:annotations-visible')).toEqual([[false]])
   })
 
   it('validates text and emits an immutable edited annotation with style defaults', async () => {

@@ -405,8 +405,8 @@ scale 定位零线：
 `dash` 直接对应 SVG 的 `stroke-dasharray`；传入空字符串可显示实线。无效或非正数的
 `width` 会回退到 `1`。
 
-设置 `cleanView` 后，组件隐藏标题、图例、网格、坐标轴、轴标签、图框背景与边框、帧水印、
-零值参考线、标注和分页器，并取消这些元素预留的边距，仅保留波形数据层。缩放、悬浮、十字线和
+设置 `cleanView` 后，组件隐藏标题内容、图例、网格、坐标轴、轴标签、图框背景与边框、帧水印、
+零值参考线、标注和分页器，同时保留原图的标题区域、边距和波形尺寸。缩放、悬浮、十字线和
 tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失：
 
 ```vue
@@ -422,15 +422,13 @@ tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失
 <WaveformChart
   :data="chartData"
   :grid="{ rowCount: 2, columnCount: 2, showPagination: true }"
-  v-model:interaction-mode="interactionMode"
-  :show-annotation-toolbar="true"
+  :interaction-mode="interactionMode"
 />
 ```
 
-`interactionMode` 可选 `zoom` 或 `annotation`。默认不渲染标注工具栏，推荐通过右键
-打开标注编辑器；设置 `showAnnotationToolbar` 可显示兼容工具栏。`zoomable` 和
-`showTooltip` 可分别关闭缩放和 tooltip。空数据或过滤后没有有效点时，组件会保留图框
-布局并显示“暂无有效波形数据”。
+`interactionMode` 可选 `zoom` 或 `annotation`，默认使用缩放模式。右键绘图区可直接打开
+标注编辑器，无需切换交互模式。`zoomable` 和 `showTooltip` 可分别关闭缩放和 tooltip。
+空数据或过滤后没有有效点时，组件会保留图框布局并显示“暂无有效波形数据”。
 
 ## 大数据渲染
 
@@ -469,7 +467,13 @@ tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { WaveformChart, type WaveformAnnotation, type WaveformInteractionMode } from './index'
+import {
+  parseWaveformAnnotations,
+  serializeWaveformAnnotations,
+  WaveformChart,
+  type WaveformAnnotation,
+  type WaveformInteractionMode,
+} from './index'
 
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
@@ -480,15 +484,29 @@ const interactionMode = ref<WaveformInteractionMode>('zoom')
   <WaveformChart
     :data="chartData"
     v-model:annotations="annotations"
-    v-model:annotations-visible="annotationsVisible"
-    v-model:interaction-mode="interactionMode"
+    :annotations-visible="annotationsVisible"
+    :interaction-mode="interactionMode"
   />
 </template>
 ```
 
-默认不显示标注工具栏；右键绘图区任意位置即可弹出居中编辑器，标注会吸附到当前 X 位置最近的真实采样点，右键已有标注可以编辑或删除。需要兼容旧工具栏时可显式设置 `showAnnotationToolbar`。
+标注默认显示。右键绘图区任意位置即可弹出居中编辑器，标注会吸附到当前 X 位置最近的真实采样点，右键已有标注可以编辑或删除。
 标注框可以直接拖动进行手动避让，拖动只改变标签框位置，不会改变 `x/y` 数据锚点；偏移会以 `labelOffsetX/labelOffsetY` 像素字段保存在标注中。标注文本最多 40 个字符，边框色、文字色和背景色均支持取色与透明度调整。组件只负责内存中的受控数据，
 业务层负责会话或后端持久化。
+
+标注可以序列化为带版本号的 JSON，并在解析成功后整体替换当前数据：
+
+```ts
+const exportedJson = serializeWaveformAnnotations(annotations.value)
+
+async function importAnnotationFile(file: File) {
+  annotations.value = parseWaveformAnnotations(await file.text())
+}
+```
+
+导出格式为 `{ version: 1, annotations: [...] }`。解析会验证全部标注；文件格式、版本或任意
+字段无效时会抛出 `TypeError`，不会返回部分结果。导入包含未知 `seriesId` 的标注是允许的，
+对应曲线加载后会恢复显示。文件选择、错误提示和下载由业务层实现。
 
 X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01, 100)` 时显示两位普通小数；大于等于 `100`，或大于 `0` 且小于 `0.01` 时，刻度显示两位缩放值，并在轴末端单独显示共享倍率 `E±NN`。X 轴先按 `timeUnit` 转换为秒或毫秒再判断范围，多 Y 轴则分别计算倍率。tooltip 使用最多 4 位小数的本地化普通数字；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
 标注框默认布局在采样点正上方，只做绘图区边界裁剪；文本框通过连接箭头指向标注位置，多个标注重叠时可通过拖动手动避让。
@@ -507,8 +525,8 @@ X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01,
 | `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
 | `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                           |
 
-`annotations`、`annotations-visible`、`interaction-mode` 和 `hidden-series-ids` 均支持
-`v-model`；业务层应负责将标注和显隐状态持久化。
+`annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
+`interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
 
 ## 项目结构
 

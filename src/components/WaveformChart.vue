@@ -51,7 +51,6 @@ import {
   type AnnotationEditorAnchor,
   WaveformAnnotationContextMenu,
   WaveformAnnotationLayer,
-  WaveformAnnotationToolbar,
   type AnnotationHit,
   type AnnotationSeriesCandidate,
   type AnnotationSeriesInfo,
@@ -103,7 +102,6 @@ const props = withDefaults(
     annotations?: WaveformAnnotation[]
     annotationsVisible?: boolean
     interactionMode?: WaveformInteractionMode
-    showAnnotationToolbar?: boolean
     grid?: WaveformGridOptions
     rendering?: WaveformRenderingOptions
     title?: WaveformTitleOptions
@@ -126,7 +124,6 @@ const props = withDefaults(
     annotations: () => [],
     annotationsVisible: true,
     interactionMode: undefined,
-    showAnnotationToolbar: false,
     grid: () => ({ rowCount: 2, columnCount: 1, showPagination: true }),
     rendering: () => ({}),
     legend: () => ({ position: 'top-right', orientation: 'auto' }),
@@ -142,8 +139,6 @@ const emit = defineEmits<{
   'zoom-end': [payload: WaveformZoomEndPayload]
   'zoom-reset': []
   'update:annotations': [annotations: WaveformAnnotation[]]
-  'update:annotations-visible': [visible: boolean]
-  'update:interaction-mode': [mode: WaveformInteractionMode]
   'update:hidden-series-ids': [ids: string[]]
   'series-visibility-change': [
     payload: {
@@ -180,7 +175,6 @@ const currentPage = ref(1)
 const resizeObserver = shallowRef<ResizeObserver>()
 const zoomBehaviors = new Map<number | 'shared', ZoomBehavior<SVGRectElement, unknown>>()
 const clipPathId = useWaveformInstanceId('waveform-clip')
-const internalInteractionMode = ref<WaveformInteractionMode | undefined>(undefined)
 const internalHiddenSeriesIds = ref(new Set(props.defaultHiddenSeriesIds))
 const annotationInteraction = useWaveformAnnotationInteraction()
 const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
@@ -196,6 +190,8 @@ const lastIndependentZoomGestures = new Map<number, ZoomGestureKind>()
 const lastZoomedTrackIndexes = new Set<number>()
 const zoomThrottle = useAnimationFrameThrottle()
 const hoverThrottle = useAnimationFrameThrottle()
+const wheelZoomDebounceMs = 200
+let wheelZoomEndTimer: ReturnType<typeof setTimeout> | undefined
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
 
 interface SelectionState {
@@ -519,7 +515,7 @@ const hasWaveformData = computed(() => chartSeries.value.length > 0)
 const hoveredPoint = computed(() => hoveredSeriesPoints.value[0]?.point ?? null)
 const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
 const resolvedXLabel = computed(() => props.xLabel ?? `时间（${props.timeUnit}）`)
-const activeInteractionMode = computed(() => props.interactionMode ?? internalInteractionMode.value)
+const activeInteractionMode = computed(() => props.interactionMode)
 // 当 interactionMode 未定义或为 'zoom' 时启用缩放
 const isZoomMode = computed(
   () => activeInteractionMode.value === 'zoom' || activeInteractionMode.value === undefined,
@@ -676,6 +672,7 @@ function handleSharedZoom(event: D3ZoomEvent<SVGRectElement, unknown>) {
   pendingSharedZoomTransform = event.transform
   pendingSharedZoomGesture = 'wheel'
   scheduleZoomCommit()
+  scheduleWheelZoomEnd()
 }
 
 function handleIndependentZoom(event: D3ZoomEvent<SVGRectElement, unknown>, trackIndex: number) {
@@ -684,6 +681,7 @@ function handleIndependentZoom(event: D3ZoomEvent<SVGRectElement, unknown>, trac
   pendingIndependentZoomTransforms.set(trackIndex, event.transform)
   pendingIndependentZoomGestures.set(trackIndex, 'wheel')
   scheduleZoomCommit()
+  scheduleWheelZoomEnd()
 }
 
 function commitPendingZoom() {
@@ -731,7 +729,18 @@ function scheduleZoomCommit() {
 function flushPendingZoom() {
   zoomThrottle.flush()
   commitPendingZoom()
+  if (lastSharedZoomGesture === 'wheel' || lastIndependentZoomGestures.size) return
   emitZoomEnd()
+}
+
+function scheduleWheelZoomEnd() {
+  if (wheelZoomEndTimer !== undefined) clearTimeout(wheelZoomEndTimer)
+  wheelZoomEndTimer = setTimeout(() => {
+    wheelZoomEndTimer = undefined
+    zoomThrottle.flush()
+    commitPendingZoom()
+    emitZoomEnd()
+  }, wheelZoomDebounceMs)
 }
 
 function emitZoomEnd() {
@@ -790,6 +799,10 @@ function cancelPendingZoom() {
   lastZoomedTrackIndexes.clear()
   lastIndependentZoomGestures.clear()
   zoomThrottle.cancel()
+  if (wheelZoomEndTimer !== undefined) {
+    clearTimeout(wheelZoomEndTimer)
+    wheelZoomEndTimer = undefined
+  }
 }
 
 function clearZoomBindings() {
@@ -981,22 +994,6 @@ function makeAnnotationId(): string {
     return crypto.randomUUID()
   }
   return `annotation-${Date.now()}-${generatedAnnotationId}`
-}
-
-function setInteractionMode(mode: WaveformInteractionMode) {
-  if (props.interactionMode === undefined) internalInteractionMode.value = mode
-  annotationInteraction.closeContextMenu()
-  editorSeriesOptions.value = []
-  emit('update:interaction-mode', mode)
-}
-
-function setAnnotationsVisible(visible: boolean) {
-  annotationInteraction.closeContextMenu()
-  if (!visible) {
-    annotationInteraction.closeEditor()
-    editorSeriesOptions.value = []
-  }
-  emit('update:annotations-visible', visible)
 }
 
 function toggleSeriesVisibility(seriesId: string) {
@@ -2003,14 +2000,6 @@ onBeforeUnmount(() => {
       :show-size-changer="false"
       :show-quick-jumper="false"
       @change="goToPage"
-    />
-
-    <WaveformAnnotationToolbar
-      v-if="showAnnotationToolbar && !isCleanView"
-      :interaction-mode="activeInteractionMode"
-      :annotations-visible="annotationsVisible"
-      @update:interaction-mode="setInteractionMode"
-      @update:annotations-visible="setAnnotationsVisible"
     />
 
     <WaveformAnnotationEditor

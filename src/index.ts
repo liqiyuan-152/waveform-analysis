@@ -60,3 +60,5 @@ export {
   selectRenderablePoints,
   type ResolvedWaveformRenderingOptions,
 } from './core'
+
+export { parseWaveformAnnotations, serializeWaveformAnnotations } from './components/annotation'

@@ -1577,7 +1577,6 @@ describe('WaveformChart', () => {
 
     expect(initialPath).toContain('L')
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
-    expect(wrapper.find('.waveform-annotation-toolbar').exists()).toBe(false)
     expect(wrapper.attributes('data-interaction-mode')).toBeUndefined()
 
     resizeObservers.at(-1)?.resize(500, 360)
@@ -1876,7 +1875,6 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart(gridSeries(2), {
       title: { text: '波形标题' },
       grid: { rowCount: 1, columnCount: 1, showPagination: true },
-      showAnnotationToolbar: true,
     })
 
     for (const selector of [
@@ -1884,7 +1882,6 @@ describe('WaveformChart', () => {
       '.waveform-chart__grid',
       '.waveform-chart__overlay',
       '.waveform-chart__pagination',
-      '.waveform-annotation-toolbar',
     ]) {
       const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
       const dispatched = wrapper.get(selector).element.dispatchEvent(event)
@@ -2410,8 +2407,12 @@ describe('WaveformChart', () => {
       )
       expect(wrapper.emitted('zoom-end')).toBeUndefined()
       flushAnimationFrames()
-      // Wait for zoom-end debounce (internal throttle + flush)
-      await vi.advanceTimersByTimeAsync(200)
+      // The wheel debounce is 200ms: it must not end early, then ends at the boundary.
+      await vi.advanceTimersByTimeAsync(199)
+      await flushPromises()
+      expect(wrapper.emitted('zoom-end')).toBeUndefined()
+
+      await vi.advanceTimersByTimeAsync(1)
       await flushPromises()
 
       const endEvents = wrapper.emitted('zoom-end') ?? []
@@ -3553,23 +3554,6 @@ describe('WaveformChart', () => {
     expect(overlay.classes()).not.toContain('is-zoomable')
   })
 
-  it('keeps the annotation toolbar available behind the compatibility prop', async () => {
-    const wrapper = await mountSizedChart(
-      {
-        kind: 'points',
-        points: [
-          { x: 0, y: 0 },
-          { x: 1, y: 5 },
-        ],
-      },
-      { showAnnotationToolbar: true },
-    )
-
-    expect(wrapper.find('.waveform-annotation-toolbar').exists()).toBe(true)
-    await wrapper.get('button[aria-label="添加标注"]').trigger('click')
-    expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
-  })
-
   it('creates a controlled annotation from externally selected annotation mode', async () => {
     const wrapper = await mountSizedChart(
       {
@@ -3922,7 +3906,6 @@ describe('WaveformChart', () => {
       },
       {
         interactionMode: 'annotation',
-        showAnnotationToolbar: true,
         annotations: [
           { id: 'valid', seriesId: 'series-0', x: 1, y: 5, text: '显示' },
           { id: 'unknown', seriesId: 'missing', x: 1, y: 5, text: '不显示' },
@@ -3932,10 +3915,8 @@ describe('WaveformChart', () => {
 
     expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
     expect(wrapper.findAll('.waveform-annotation')).toHaveLength(1)
+    expect(wrapper.find('.waveform-annotation-toolbar').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__overlay').classes()).toContain('is-annotating')
-    await wrapper.get('button[aria-label="隐藏标注"]').trigger('click')
-    expect(wrapper.emitted('update:annotations-visible')?.at(-1)).toEqual([false])
-
     await wrapper.setProps({ annotationsVisible: false })
     expect(wrapper.find('.waveform-annotation').exists()).toBe(false)
   })
