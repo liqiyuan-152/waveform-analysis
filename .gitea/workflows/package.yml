@@ -141,6 +141,19 @@ jobs:
             grep -Fxq "$required_file" <<< "$package_contents"
           done
 
+      - name: Publish to Gitea npm registry
+        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
+        run: |
+          set -euo pipefail
+          source release.env
+          : "${NODE_AUTH_TOKEN:?NPM_PUBLISH_TOKEN is required}"
+          registry_url='https://lqycustomsite.online/api/packages/admin/npm/'
+          package_file="release-assets/waveform-analysis-${PACKAGE_VERSION}.tgz"
+          npm config set -- '//lqycustomsite.online/api/packages/admin/npm/:_authToken' "$NODE_AUTH_TOKEN"
+          npm publish "./$package_file" --registry="$registry_url" --tag "$NPM_DIST_TAG"
+
       - name: Publish component package
         shell: bash
         run: |
@@ -154,19 +167,6 @@ jobs:
             ln -sfn "$published_name" waveform-analysis-latest.tgz
             ln -sfn "$published_name.sha256" waveform-analysis-latest.tgz.sha256
           fi
-
-      - name: Publish to Gitea npm registry
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
-        run: |
-          set -euo pipefail
-          source release.env
-          : "${NODE_AUTH_TOKEN:?NPM_PUBLISH_TOKEN is required}"
-          registry_url='https://lqycustomsite.online/api/packages/admin/npm/'
-          package_file="release-assets/waveform-analysis-${PACKAGE_VERSION}.tgz"
-          npm config set -- '//lqycustomsite.online/api/packages/admin/npm/:_authToken' "$NODE_AUTH_TOKEN"
-          npm publish "$package_file" --registry="$registry_url" --tag "$NPM_DIST_TAG"
 
       - name: Create Gitea release
         shell: bash
