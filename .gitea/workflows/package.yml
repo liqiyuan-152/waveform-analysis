@@ -128,4 +128,4 @@ jobs:
           package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
           test -n "$package_file"
           npm config set -- '//lqycustomsite.online/api/packages/admin/npm/:_authToken' "$NODE_AUTH_TOKEN"
-          npm publish "$package_file" --registry="$registry_url"
+          npm publish "./$package_file" --registry="$registry_url"
