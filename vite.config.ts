@@ -34,19 +34,5 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist-demo',
-    rolldownOptions: {
-      output: {
-        codeSplitting: {
-          groups: [
-            {
-              name: 'vendor',
-              test: /node_modules[\\/]/,
-              maxSize: 400_000,
-              priority: 1,
-            },
-          ],
-        },
-      },
-    },
   },
 })
