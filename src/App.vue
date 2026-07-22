@@ -7,6 +7,7 @@ import 'vue3-colorpicker/style.css'
 import {
   WaveformChart,
   type WaveformAnnotation,
+  type WaveformAxesOptions,
   type WaveformData,
   type WaveformDisplayMode,
   type WaveformFrameStyle,
@@ -60,13 +61,15 @@ const rowCount = ref(4)
 const columnCount = ref(1)
 const frameBorderColor = ref('#1f2937')
 const frameBorderWidth = ref(1)
-const frameBorderStyle = ref<'solid' | 'dashed'>('solid')
+const frameBorderStyle = ref<NonNullable<WaveformFrameStyle['borderStyle']>>('solid')
 const frameBackgroundColor = ref('rgba(255, 255, 255, 0)')
 const frameWatermarkVisible = ref(true)
 const horizontalGridVisible = ref(true)
 const horizontalGridColor = ref('#dfe5ef')
 const verticalGridVisible = ref(true)
 const verticalGridColor = ref('#dfe5ef')
+const xAxisLineVisible = ref(true)
+const yAxisLineVisible = ref(true)
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
 const cleanView = ref(false)
@@ -109,6 +112,7 @@ const legendOrientationOptions: Array<{ label: string; value: WaveformLegendOrie
 const frameBorderStyleOptions = [
   { label: '实线', value: 'solid' },
   { label: '虚线', value: 'dashed' },
+  { label: '点虚线', value: 'dotted' },
 ]
 const zeroLineDashOptions = [
   { label: '虚线', value: '6 4' },
@@ -135,6 +139,10 @@ const frameStyle = computed<WaveformFrameStyle>(() => ({
   borderWidth: frameBorderWidth.value,
   borderStyle: frameBorderStyle.value,
   backgroundColor: frameBackgroundColor.value,
+}))
+const axes = computed<WaveformAxesOptions>(() => ({
+  x: { lineVisible: xAxisLineVisible.value },
+  y: { lineVisible: yAxisLineVisible.value },
 }))
 const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   visible: zeroLineVisible.value,
@@ -510,7 +518,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         </section>
 
         <section class="control-section">
-          <h2>网格线</h2>
+          <h2>网格与轴线</h2>
           <div class="grid-line-controls">
             <div class="grid-line-control">
               <span>水平网格</span>
@@ -547,6 +555,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
                   :blur-close="true"
                 />
               </span>
+            </div>
+            <div class="grid-line-control grid-line-control--switch-only">
+              <span>横轴线</span>
+              <Switch v-model:checked="xAxisLineVisible" size="small" aria-label="显示横轴线" />
+            </div>
+            <div class="grid-line-control grid-line-control--switch-only">
+              <span>纵轴线</span>
+              <Switch v-model:checked="yAxisLineVisible" size="small" aria-label="显示纵轴线" />
             </div>
           </div>
         </section>
@@ -773,6 +789,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
           interactive: true,
         }"
         :frame-style="frameStyle"
+        :axes="axes"
         :clean-view="cleanView"
         :show-tooltip="showTooltip"
         :zero-line="zeroLine"

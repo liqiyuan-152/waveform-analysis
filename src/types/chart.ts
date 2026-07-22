@@ -117,8 +117,18 @@ export interface WaveformLegendOptions {
 export interface WaveformFrameStyle {
   borderColor?: string
   borderWidth?: number
-  borderStyle?: 'solid' | 'dashed'
+  borderStyle?: 'solid' | 'dashed' | 'dotted'
   backgroundColor?: string
+}
+
+/** Controls axis baseline visibility while preserving tick marks and axis text. */
+export interface WaveformAxesOptions {
+  x?: {
+    lineVisible?: boolean
+  }
+  y?: {
+    lineVisible?: boolean
+  }
 }
 
 /** Styling and visibility options for the horizontal zero-value reference line. */

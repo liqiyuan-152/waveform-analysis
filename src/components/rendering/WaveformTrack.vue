@@ -2,7 +2,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import { formatAxisTime, formatScientificAxisLabel } from '../../utils'
-import type { WaveformFrameStyle, WaveformZeroLineOptions } from '../../types'
+import type { WaveformAxesOptions, WaveformFrameStyle, WaveformZeroLineOptions } from '../../types'
 import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
 import type {
   DisplaySeries,
@@ -31,6 +31,8 @@ interface Props {
   frameNumber?: string | number
   /** 图框样式 */
   frameStyle?: WaveformFrameStyle
+  /** 坐标轴线显示选项 */
+  axes?: WaveformAxesOptions
   /** 时间单位 */
   timeUnit: 's' | 'ms'
   /** 悬浮点（用于显示十字线） */
@@ -72,7 +74,10 @@ const resolvedFrameStyle = computed(() => {
       typeof borderWidth === 'number' && Number.isFinite(borderWidth) && borderWidth >= 0
         ? borderWidth
         : 1,
-    borderStyle: props.frameStyle?.borderStyle === 'dashed' ? 'dashed' : 'solid',
+    borderStyle:
+      props.frameStyle?.borderStyle === 'dashed' || props.frameStyle?.borderStyle === 'dotted'
+        ? props.frameStyle.borderStyle
+        : 'solid',
     backgroundColor: props.frameStyle?.backgroundColor || 'transparent',
   }
 })
@@ -138,11 +143,16 @@ function renderAxes() {
 
     yAxis.tickValues(axis.tickValues)
 
-    select(element).call(yAxis)
+    const selection = select(element)
+    selection.call(yAxis)
+    selection
+      .selectAll('path.domain')
+      .attr('display', props.axes?.y?.lineVisible === false ? 'none' : null)
   })
 
   if (xAxisElement.value) {
-    select(xAxisElement.value).call(
+    const selection = select(xAxisElement.value)
+    selection.call(
       axisBottom(props.track.xScale)
         .tickValues(props.track.xAxisTickValues)
         .tickFormat((value) =>
@@ -156,6 +166,9 @@ function renderAxes() {
         .tickPadding(7)
         .tickSizeOuter(0),
     )
+    selection
+      .selectAll('path.domain')
+      .attr('display', props.axes?.x?.lineVisible === false ? 'none' : null)
   }
 }
 
@@ -171,6 +184,8 @@ watch(
     () => props.track.xAxisTickValues,
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
+    () => props.axes?.x?.lineVisible,
+    () => props.axes?.y?.lineVisible,
   ],
   async () => {
     await nextTick()
@@ -307,6 +322,7 @@ watch(
       v-if="track.showXAxis && !cleanView"
       ref="xAxisElement"
       class="waveform-track__axis waveform-track__axis--x waveform-chart__axis waveform-chart__axis--x"
+      :class="{ 'waveform-track__axis--line-hidden': axes?.x?.lineVisible === false }"
       :transform="`translate(0, ${track.height})`"
     />
     <g
@@ -353,7 +369,10 @@ watch(
       :key="`y-axis-${track.index}-${axis.index}`"
       :ref="(element) => setYAxisElement(element, axis.index)"
       class="waveform-track__axis waveform-track__axis--y waveform-chart__axis waveform-chart__axis--y"
-      :class="`waveform-track__axis--${axis.side}`"
+      :class="[
+        `waveform-track__axis--${axis.side}`,
+        { 'waveform-track__axis--line-hidden': axes?.y?.lineVisible === false },
+      ]"
       :data-y-axis-index="axis.index"
       :data-y-axis-side="axis.side"
       :transform="`translate(${axis.x}, 0)`"
@@ -439,7 +458,14 @@ watch(
       fill="none"
       :stroke="resolvedFrameStyle.borderColor"
       :stroke-width="resolvedFrameStyle.borderWidth"
-      :stroke-dasharray="resolvedFrameStyle.borderStyle === 'dashed' ? '6 4' : undefined"
+      :stroke-dasharray="
+        resolvedFrameStyle.borderStyle === 'dashed'
+          ? '6 4'
+          : resolvedFrameStyle.borderStyle === 'dotted'
+            ? '1 3'
+            : undefined
+      "
+      :stroke-linecap="resolvedFrameStyle.borderStyle === 'dotted' ? 'round' : undefined"
       aria-hidden="true"
     />
 

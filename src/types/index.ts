@@ -18,6 +18,7 @@ export type {
   WaveformLegendOrientation,
   WaveformLegendOptions,
   WaveformFrameStyle,
+  WaveformAxesOptions,
   WaveformZeroLineOptions,
 } from './chart'
 

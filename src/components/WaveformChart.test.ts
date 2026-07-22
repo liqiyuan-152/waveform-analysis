@@ -349,6 +349,75 @@ describe('WaveformChart', () => {
     expect(zeroLines[0].attributes('y1')).not.toBe(zeroLines[1].attributes('y1'))
   })
 
+  it('hides X and Y axis lines independently while preserving axis text and the frame', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'series',
+      series: [
+        {
+          id: 'channel',
+          name: 'Voltage',
+          data: {
+            kind: 'points',
+            points: [
+              { x: 0, y: -1 },
+              { x: 1, y: 1 },
+            ],
+          },
+        },
+      ],
+    })
+    const xAxis = wrapper.get('.waveform-chart__axis--x')
+    const yAxis = wrapper.get('.waveform-chart__axis--y')
+
+    expect(xAxis.classes()).not.toContain('waveform-track__axis--line-hidden')
+    expect(yAxis.classes()).not.toContain('waveform-track__axis--line-hidden')
+
+    await wrapper.setProps({ axes: { x: { lineVisible: false } } })
+    await flushPromises()
+    expect(xAxis.classes()).toContain('waveform-track__axis--line-hidden')
+    expect(yAxis.classes()).not.toContain('waveform-track__axis--line-hidden')
+    expect(xAxis.get('path.domain').attributes('display')).toBe('none')
+    expect(
+      xAxis.findAll('.tick line').every((line) => line.attributes('display') === undefined),
+    ).toBe(true)
+    expect(yAxis.get('path.domain').attributes('display')).toBeUndefined()
+
+    await wrapper.setProps({
+      axes: {
+        x: { lineVisible: false },
+        y: { lineVisible: false },
+      },
+      grid: {
+        rowCount: 1,
+        columnCount: 1,
+        trackLines: { channel: { horizontal: false, vertical: false } },
+      },
+      frameStyle: { borderColor: '#dc2626', borderWidth: 2 },
+    })
+    await flushPromises()
+
+    expect(xAxis.classes()).toContain('waveform-track__axis--line-hidden')
+    expect(yAxis.classes()).toContain('waveform-track__axis--line-hidden')
+    expect(yAxis.get('path.domain').attributes('display')).toBe('none')
+    expect(
+      yAxis.findAll('.tick line').every((line) => line.attributes('display') === undefined),
+    ).toBe(true)
+    expect(xAxis.findAll('text').length).toBeGreaterThan(0)
+    expect(yAxis.findAll('text').length).toBeGreaterThan(0)
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint')).toHaveLength(2)
+    expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('Voltage')
+    expect(wrapper.findAll('[data-grid-direction]')).toHaveLength(0)
+    expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
+      stroke: '#dc2626',
+      'stroke-width': '2',
+    })
+
+    await wrapper.setProps({ axes: { x: { lineVisible: true }, y: { lineVisible: true } } })
+    await flushPromises()
+    expect(xAxis.get('path.domain').attributes('display')).toBeUndefined()
+    expect(yAxis.get('path.domain').attributes('display')).toBeUndefined()
+  })
+
   it('preserves a titled multi-axis plot and hides auxiliary layers in clean view', async () => {
     const data: WaveformData = {
       kind: 'series',
@@ -2382,6 +2451,17 @@ describe('WaveformChart', () => {
 
     await wrapper.setProps({ frameStyle: { borderWidth: Number.NaN } })
     expect(wrapper.get('.waveform-chart__plot-frame').attributes('stroke-width')).toBe('1')
+  })
+
+  it('renders a dotted frame with rounded dots', async () => {
+    const wrapper = await mountSizedChart(gridSeries(1), {
+      frameStyle: { borderStyle: 'dotted' },
+    })
+
+    expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
+      'stroke-dasharray': '1 3',
+      'stroke-linecap': 'round',
+    })
   })
 
   it('continues minor x-grid lines beyond the final major tick to the exact endpoint', async () => {

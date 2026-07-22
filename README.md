@@ -108,6 +108,7 @@ const data = ref<WaveformData>({
 | `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围             |
 | `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围   |
 | `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                        |
+| `axes`                            | `WaveformAxesOptions`                       | 轴线均显示                                              | X/Y 轴基线显隐                    |
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距             |
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式              |
 | `frameNumber`                     | `string \| number`                          | 未设置                                                  | 图框水印内容                      |
@@ -121,7 +122,8 @@ const data = ref<WaveformData>({
 
 所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
 `WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
-`WaveformZeroLineOptions`、`WaveformGridOptions` 和 `WaveformGridTrackLines`。
+`WaveformAxesOptions`、`WaveformZeroLineOptions`、`WaveformGridOptions` 和
+`WaveformGridTrackLines`。
 
 ### 数据结构
 
@@ -340,6 +342,8 @@ Demo 左侧控制面板提供标题实时预览，可配置标题名称、显隐
 />
 ```
 
+`frameStyle.borderStyle` 支持 `solid`（实线）、`dashed`（虚线）和 `dotted`（点虚线）。
+
 对应的公开类型为 `WaveformFrameStyle`。默认边框颜色为 `#1f2937`、线宽为 `1`、线型为
 `solid`，背景透明。`borderWidth` 为 `0` 时隐藏边框；非有限值或负数会回退到默认线宽。
 
@@ -438,6 +442,29 @@ tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失
     },
   }"
   :interaction-mode="interactionMode"
+/>
+```
+
+`axes` 可以分别隐藏 X/Y 轴的基线，同时保留刻度短线、刻度数字、科学计数倍率、单位和轴标题。
+与关闭网格线、设置 `frameStyle` 组合后，可以只使用图框边框围住绘图区：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :axes="{
+    x: { lineVisible: false },
+    y: { lineVisible: false },
+  }"
+  :grid="{
+    trackLines: {
+      voltage: { horizontal: false, vertical: false },
+    },
+  }"
+  :frame-style="{
+    borderColor: '#1f2937',
+    borderWidth: 1,
+    borderStyle: 'solid',
+  }"
 />
 ```
 

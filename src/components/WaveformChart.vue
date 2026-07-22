@@ -28,6 +28,7 @@ import {
 
 import {
   type WaveformAnnotation,
+  type WaveformAxesOptions,
   type WaveformData,
   type WaveformDisplayMode,
   type WaveformFrameStyle,
@@ -121,6 +122,7 @@ const props = withDefaults(
     timeUnit?: 's' | 'ms'
     frameNumber?: string | number
     frameStyle?: WaveformFrameStyle
+    axes?: WaveformAxesOptions
     annotations?: WaveformAnnotation[]
     annotationsVisible?: boolean
     interactionMode?: WaveformInteractionMode
@@ -251,7 +253,9 @@ function handleInteractionKeyDown(event: KeyboardEvent) {
   const target = event.target
   if (
     target instanceof Element &&
-    target.closest('button, input, select, textarea, [contenteditable]:not([contenteditable="false"])')
+    target.closest(
+      'button, input, select, textarea, [contenteditable]:not([contenteditable="false"])',
+    )
   ) {
     return
   }
@@ -296,7 +300,10 @@ const resolvedZeroLine = computed(() => {
   return {
     visible: props.zeroLine?.visible === true,
     color: props.zeroLine?.color || ZERO_LINE_DEFAULTS.COLOR,
-    width: typeof width === 'number' && Number.isFinite(width) && width > 0 ? width : ZERO_LINE_DEFAULTS.WIDTH,
+    width:
+      typeof width === 'number' && Number.isFinite(width) && width > 0
+        ? width
+        : ZERO_LINE_DEFAULTS.WIDTH,
     dash: props.zeroLine?.dash ?? ZERO_LINE_DEFAULTS.DASH,
   }
 })
@@ -329,7 +336,9 @@ const titleAreaReserved = computed(
 const titleVisible = computed(() => titleAreaReserved.value && !isCleanView.value)
 const titleFontSize = computed(() => {
   const fontSize = props.title?.textStyle?.fontSize
-  return Number.isFinite(fontSize) && (fontSize ?? 0) > 0 ? (fontSize as number) : TITLE_DEFAULT_FONT_SIZE
+  return Number.isFinite(fontSize) && (fontSize ?? 0) > 0
+    ? (fontSize as number)
+    : TITLE_DEFAULT_FONT_SIZE
 })
 const titleRotation = computed(() => {
   const rotation = props.title?.textStyle?.rotation
@@ -354,7 +363,10 @@ const estimatedTitleWidth = computed(() => {
   const spacingWidth = Number.isFinite(letterSpacing)
     ? Math.max(0, resolvedTitleText.value.length - 1) * letterSpacing
     : 0
-  return Math.max(1, resolvedTitleText.value.length * titleFontSize.value * TITLE_CHAR_WIDTH_RATIO + spacingWidth)
+  return Math.max(
+    1,
+    resolvedTitleText.value.length * titleFontSize.value * TITLE_CHAR_WIDTH_RATIO + spacingWidth,
+  )
 })
 const titleAvailableWidth = computed(() => {
   const measuredAvailableWidth = chartWidth.value - TITLE_AREA_HORIZONTAL_PADDING * 2
@@ -866,10 +878,14 @@ function clearZoomBindings() {
 
 function resolveMaximumZoomScale(domain: [number, number]): number {
   const minZoomSpan = props.minZoomSpan
-  if (!Number.isFinite(minZoomSpan) || (minZoomSpan ?? 0) <= 0) return ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
+  if (!Number.isFinite(minZoomSpan) || (minZoomSpan ?? 0) <= 0)
+    return ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
   const domainSpan = Math.abs(domain[1] - domain[0])
   if (!Number.isFinite(domainSpan) || domainSpan <= 0) return ZOOM_CONSTRAINTS.MIN_SCALE
-  return Math.min(ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE, Math.max(ZOOM_CONSTRAINTS.MIN_SCALE, domainSpan / (minZoomSpan ?? domainSpan)))
+  return Math.min(
+    ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE,
+    Math.max(ZOOM_CONSTRAINTS.MIN_SCALE, domainSpan / (minZoomSpan ?? domainSpan)),
+  )
 }
 
 function canZoomTrack(track: TrackLayout): boolean {
@@ -1929,6 +1945,7 @@ onBeforeUnmount(() => {
           :interaction-mode="activeInteractionMode"
           :frame-number="resolveFrameNumber(track.index)"
           :frame-style="frameStyle"
+          :axes="axes"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"

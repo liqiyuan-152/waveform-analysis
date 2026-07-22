@@ -17,6 +17,7 @@ export type {
   WaveformLegendOrientation,
   WaveformLegendOptions,
   WaveformFrameStyle,
+  WaveformAxesOptions,
   WaveformZeroLineOptions,
   WaveformPoint,
   WaveformSeries,

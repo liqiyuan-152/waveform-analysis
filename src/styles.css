@@ -130,6 +130,10 @@ body {
   font-size: 12px;
 }
 
+.grid-line-control--switch-only {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .grid-line-color-picker,
 .grid-line-color-picker .vc-color-wrap {
   width: 48px;

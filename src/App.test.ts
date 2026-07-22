@@ -46,6 +46,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(gridSizeInputs[1]?.props('value')).toBe(1)
     expect(panel.find('[aria-label="显示水平网格线"]').exists()).toBe(true)
     expect(panel.find('[aria-label="显示垂直网格线"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="显示横轴线"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="显示纵轴线"]').exists()).toBe(true)
     expect(panel.find('[aria-label="水平网格线颜色"]').exists()).toBe(true)
     expect(panel.find('[aria-label="垂直网格线颜色"]').exists()).toBe(true)
     expect(panel.find('[aria-label="净图模式"]').exists()).toBe(true)
@@ -62,6 +64,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(frameControls.text()).toContain('背景颜色')
     expect(frameControls.find('[aria-label="图框线宽"]').exists()).toBe(true)
     expect(frameControls.find('[aria-label="图框线型"]').exists()).toBe(true)
+    expect(
+      frameControls.get('[aria-label="图框线型"]').getComponent(Select).props('options'),
+    ).toContainEqual({ label: '点虚线', value: 'dotted' })
     expect(frameControls.find('[aria-label="显示图框水印"]').exists()).toBe(true)
     expect(frameControls.get('.frame-style-control--switch .ant-switch').classes()).toContain(
       'ant-switch-small',
@@ -126,6 +131,27 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
         }),
       ]),
     )
+    wrapper.unmount()
+  })
+
+  it('passes independent X and Y axis-line controls to the chart', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+    const chart = wrapper.getComponent(WaveformChart)
+
+    expect(chart.props('axes')).toEqual({
+      x: { lineVisible: true },
+      y: { lineVisible: true },
+    })
+
+    await wrapper.get('[aria-label="显示横轴线"]').trigger('click')
+    await wrapper.get('[aria-label="显示纵轴线"]').trigger('click')
+    await flushPromises()
+
+    expect(chart.props('axes')).toEqual({
+      x: { lineVisible: false },
+      y: { lineVisible: false },
+    })
     wrapper.unmount()
   })
 
