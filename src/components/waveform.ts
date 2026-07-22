@@ -17,6 +17,7 @@ export type {
   WaveformFrameStyle,
   SingleWaveformData,
   WaveformSeries,
+  WaveformLineStyle,
   WaveformData,
   NormalizedWaveformSeries,
 } from '../types'

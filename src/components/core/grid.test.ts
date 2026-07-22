@@ -39,6 +39,31 @@ describe('waveform grid helpers', () => {
     })
   })
 
+  it('preserves optional per-direction grid colors and ignores blank values', () => {
+    expect(
+      normalizeGridOptions({
+        trackLines: {
+          voltage: {
+            horizontalColor: '#ef4444',
+            verticalColor: '  #2563eb  ',
+          },
+          current: { horizontalColor: '  ' },
+        },
+      }).trackLines,
+    ).toEqual({
+      voltage: {
+        horizontal: true,
+        vertical: true,
+        horizontalColor: '#ef4444',
+        verticalColor: '  #2563eb  ',
+      },
+      current: {
+        horizontal: true,
+        vertical: true,
+      },
+    })
+  })
+
   it('falls back to visible grid lines for invalid runtime values', () => {
     const options = {
       trackLines: {

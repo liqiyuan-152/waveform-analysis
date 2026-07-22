@@ -9,6 +9,8 @@ export type WaveformLineType =
   /** Backward-compatible alias for `step-end`. */
   | 'step-after'
 
+export type WaveformLineStyle = 'solid' | 'dashed' | 'dash-dot'
+
 export type WaveformPointType = 'none' | 'circle' | 'square' | 'triangle' | 'diamond'
 
 export interface WaveformErrorBarOptions {
@@ -51,6 +53,7 @@ export interface WaveformSeries {
   unit?: string
   color?: string
   lineType?: WaveformLineType
+  lineStyle?: WaveformLineStyle
   pointType?: WaveformPointType
   errorBar?: WaveformErrorBarOptions
   data: SingleWaveformData
@@ -76,6 +79,7 @@ export interface NormalizedWaveformSeries {
   unit?: string
   color?: string
   lineType: WaveformLineType
+  lineStyle: WaveformLineStyle
   pointType: WaveformPointType
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]

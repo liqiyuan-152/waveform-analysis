@@ -116,6 +116,33 @@ body {
   width: 58px;
 }
 
+.grid-line-controls {
+  display: grid;
+  gap: 10px;
+}
+
+.grid-line-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 48px;
+  gap: 10px;
+  align-items: center;
+  color: #475467;
+  font-size: 12px;
+}
+
+.grid-line-color-picker,
+.grid-line-color-picker .vc-color-wrap {
+  width: 48px;
+  height: 24px;
+}
+
+.grid-line-color-picker .vc-color-wrap {
+  margin: 0;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
 .control-separator {
   color: #98a2b3;
   text-align: center;

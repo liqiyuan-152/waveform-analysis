@@ -10,7 +10,9 @@ import {
   type WaveformData,
   type WaveformDisplayMode,
   type WaveformFrameStyle,
+  type WaveformGridTrackLines,
   type WaveformInteractionMode,
+  type WaveformLineStyle,
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
   type WaveformOverlayMode,
@@ -20,7 +22,7 @@ import {
   type WaveformZeroLineOptions,
 } from './components'
 import chartWaveformsJson from './data/chartWaveforms.json'
-import demoWaveformsJson from './data/demoWaveforms.json'
+import frameTwoWaveformsJson from './data/frameTwoWaveforms.json'
 import { normalizeWaveformSeries } from './core'
 
 interface WaveformSourcePoint {
@@ -42,19 +44,33 @@ interface WaveformSourceRow {
   time_unit: 'ms'
 }
 
+interface FrameTwoWaveformRow {
+  chnl: string
+  chnl_id: number
+  dat_unit: string
+  data: number[]
+  time: number[]
+  time_unit: 'ms'
+}
+
 const sourceRows = chartWaveformsJson as unknown as WaveformSourceRow[]
 const displayMode = ref<WaveformDisplayMode>('independent')
 const overlayMode = ref<WaveformOverlayMode>('single-axis')
-const rowCount = ref(2)
+const rowCount = ref(4)
 const columnCount = ref(1)
 const frameBorderColor = ref('#1f2937')
 const frameBorderWidth = ref(1)
 const frameBorderStyle = ref<'solid' | 'dashed'>('solid')
 const frameBackgroundColor = ref('rgba(255, 255, 255, 0)')
 const frameWatermarkVisible = ref(true)
+const horizontalGridVisible = ref(true)
+const horizontalGridColor = ref('#dfe5ef')
+const verticalGridVisible = ref(true)
+const verticalGridColor = ref('#dfe5ef')
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
 const cleanView = ref(false)
+const showTooltip = ref(true)
 const zeroLineVisible = ref(false)
 const zeroLineColor = ref('#98a2b3')
 const zeroLineWidth = ref(1)
@@ -156,54 +172,32 @@ const waveformSeries: WaveformSeries[] = sourceRows.map((row, seriesIndex) => {
   }
 })
 
-const demoWaveforms = demoWaveformsJson as {
-  stepDemoValues: Array<{
-    id: string
-    name: string
-    color: string
-    lineType: 'step-start' | 'step-middle' | 'step-end'
-    values: number[]
-  }>
-  basicCurveDemoSeries: Array<{
-    id: string
-    name: string
-    color: string
-    lineType: 'none' | 'linear'
-    pointType: 'circle' | 'none'
-    points: Array<{ x: number; y: number }>
-  }>
-}
-
-const stepDemoSeries: WaveformSeries[] = demoWaveforms.stepDemoValues.map((series) => ({
-  id: series.id,
-  trackId: 'step-demo',
-  name: series.name,
-  color: series.color,
-  lineType: series.lineType,
-  pointType: 'circle',
+const frameTwoWaveforms = frameTwoWaveformsJson as FrameTwoWaveformRow[]
+const frameTwoSeries: WaveformSeries[] = frameTwoWaveforms.map((series) => ({
+  id: String(series.chnl_id),
+  trackId: `frame-two-${series.chnl_id}`,
+  name: series.chnl,
+  unit: series.dat_unit.trim(),
+  lineType: 'linear',
+  pointType: 'none',
   data: {
     kind: 'points',
-    points: series.values.map((y, index) => ({ x: index / 1000, y })),
+    points: series.data.flatMap((y, index) => {
+      const time = series.time[index]
+      return Number.isFinite(time) && Number.isFinite(y) ? [{ x: time! / 1000, y }] : []
+    }),
   },
 }))
 
 const frameOneTrackId = String(sourceRows[0]?.chnl_id ?? 'frame-one')
-const basicCurveDemoSeries: WaveformSeries[] = demoWaveforms.basicCurveDemoSeries.map((series) => ({
-  id: series.id,
-  trackId: frameOneTrackId,
-  name: series.name,
-  color: series.color,
-  lineType: series.lineType,
-  pointType: series.pointType,
-  data: { kind: 'points', points: series.points },
-}))
-const frameOneSeries = waveformSeries.filter(
+const frameOneCandidates = waveformSeries.filter(
   (series) => series.id === frameOneTrackId || series.trackId === frameOneTrackId,
 )
-const remainingSeries = waveformSeries.filter((series) => !frameOneSeries.includes(series))
+const frameOneSeries = frameOneCandidates.filter((series) => series.errorBar?.visible).slice(0, 1)
+const remainingSeries = waveformSeries.filter((series) => !frameOneCandidates.includes(series))
 const fullChartData: WaveformData = {
   kind: 'series',
-  series: [...frameOneSeries, ...basicCurveDemoSeries, ...stepDemoSeries, ...remainingSeries],
+  series: [...frameOneSeries, ...frameTwoSeries, ...remainingSeries],
 }
 const initialXValues = normalizeWaveformSeries(fullChartData).flatMap((series) =>
   series.points.map((point) => point.x),
@@ -222,6 +216,51 @@ const initialXDomainValue: [number, number] | undefined =
 // Keep the full source domain stable while viewport data windows are replaced.
 const initialXDomain = ref<[number, number] | undefined>(initialXDomainValue)
 const chartData = ref<WaveformData>(fullChartData)
+const lineStyleOverrides = ref<Record<string, WaveformLineStyle>>({})
+const selectedSeriesId = ref(String(sourceRows[0]?.chnl_id ?? ''))
+const lineStyleOptions: Array<{ label: string; value: WaveformLineStyle }> = [
+  { label: '实线', value: 'solid' },
+  { label: '虚线', value: 'dashed' },
+  { label: '点划线', value: 'dash-dot' },
+]
+const seriesStyleOptions = computed(() =>
+  normalizeWaveformSeries(chartData.value).map((series) => ({
+    label: series.name || series.id,
+    value: series.id,
+  })),
+)
+const selectedLineStyle = computed<WaveformLineStyle>({
+  get: () => lineStyleOverrides.value[selectedSeriesId.value] ?? 'solid',
+  set: (value) => {
+    if (!selectedSeriesId.value) return
+    lineStyleOverrides.value = { ...lineStyleOverrides.value, [selectedSeriesId.value]: value }
+  },
+})
+const displayChartData = computed<WaveformData>(() => {
+  if (chartData.value.kind !== 'series') return chartData.value
+  return {
+    ...chartData.value,
+    series: chartData.value.series.map((series) => ({
+      ...series,
+      ...(lineStyleOverrides.value[series.id ?? '']
+        ? { lineStyle: lineStyleOverrides.value[series.id ?? ''] }
+        : {}),
+    })),
+  }
+})
+const gridTrackLines = computed<WaveformGridTrackLines>(() =>
+  Object.fromEntries(
+    normalizeWaveformSeries(displayChartData.value).map((series) => [
+      series.trackId ?? series.id,
+      {
+        horizontal: horizontalGridVisible.value,
+        vertical: verticalGridVisible.value,
+        horizontalColor: horizontalGridColor.value,
+        verticalColor: verticalGridColor.value,
+      },
+    ]),
+  ),
+)
 const waveformChartRef = ref<{ resetViewport: (trackIndex?: number) => void }>()
 
 let zoomRequestSequence = 0
@@ -368,14 +407,54 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         </section>
 
         <section class="control-section">
+          <h2>叠加方式</h2>
+          <Radio.Group
+            v-model:value="overlayMode"
+            class="display-mode-control"
+            button-style="solid"
+            size="small"
+            aria-label="波形叠加方式"
+          >
+            <Radio.Button value="single-axis">单值轴</Radio.Button>
+            <Radio.Button value="multi-axis">多值轴</Radio.Button>
+          </Radio.Group>
+        </section>
+
+        <section class="control-section">
           <h2>视图</h2>
           <Button block aria-label="重置波形视图" @click="resetWaveformViewport">重置视图</Button>
           <div class="auxiliary-style-controls" style="margin-top: 10px">
+            <label class="frame-style-control frame-style-control--switch">
+              <span>数值 Tooltip</span>
+              <Switch v-model:checked="showTooltip" size="small" aria-label="显示数值 Tooltip" />
+            </label>
             <label class="frame-style-control frame-style-control--switch">
               <span>净图</span>
               <Switch v-model:checked="cleanView" size="small" aria-label="净图模式" />
             </label>
           </div>
+        </section>
+
+        <section class="control-section">
+          <h2>波形线型</h2>
+          <label class="select-control">
+            <span>波形</span>
+            <Select
+              v-model:value="selectedSeriesId"
+              :options="seriesStyleOptions"
+              size="small"
+              aria-label="选择波形线型"
+            />
+          </label>
+          <label class="select-control">
+            <span>线型</span>
+            <Select
+              v-model:value="selectedLineStyle"
+              :options="lineStyleOptions"
+              size="small"
+              aria-label="设置波形线型"
+            />
+          </label>
         </section>
 
         <section class="control-section">
@@ -420,20 +499,6 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         </section>
 
         <section class="control-section">
-          <h2>叠加方式</h2>
-          <Radio.Group
-            v-model:value="overlayMode"
-            class="display-mode-control"
-            button-style="solid"
-            size="small"
-            aria-label="波形叠加方式"
-          >
-            <Radio.Button value="single-axis">单值轴</Radio.Button>
-            <Radio.Button value="multi-axis">多值轴</Radio.Button>
-          </Radio.Group>
-        </section>
-
-        <section class="control-section">
           <h2>图框布局</h2>
           <div class="grid-size-control" aria-label="波形网格尺寸">
             <InputNumber v-model:value="rowCount" :min="1" :max="10" size="small" />
@@ -441,6 +506,48 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             <span class="control-separator">×</span>
             <InputNumber v-model:value="columnCount" :min="1" :max="10" size="small" />
             <span>列</span>
+          </div>
+        </section>
+
+        <section class="control-section">
+          <h2>网格线</h2>
+          <div class="grid-line-controls">
+            <div class="grid-line-control">
+              <span>水平网格</span>
+              <Switch
+                v-model:checked="horizontalGridVisible"
+                size="small"
+                aria-label="显示水平网格线"
+              />
+              <span class="grid-line-color-picker" role="group" aria-label="水平网格线颜色">
+                <ColorPicker
+                  v-model:pure-color="horizontalGridColor"
+                  use-type="pure"
+                  picker-type="chrome"
+                  format="hex"
+                  :disable-alpha="true"
+                  :blur-close="true"
+                />
+              </span>
+            </div>
+            <div class="grid-line-control">
+              <span>垂直网格</span>
+              <Switch
+                v-model:checked="verticalGridVisible"
+                size="small"
+                aria-label="显示垂直网格线"
+              />
+              <span class="grid-line-color-picker" role="group" aria-label="垂直网格线颜色">
+                <ColorPicker
+                  v-model:pure-color="verticalGridColor"
+                  use-type="pure"
+                  picker-type="chrome"
+                  format="hex"
+                  :disable-alpha="true"
+                  :blur-close="true"
+                />
+              </span>
+            </div>
           </div>
         </section>
 
@@ -651,13 +758,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
     <section class="chart-panel">
       <WaveformChart
         ref="waveformChartRef"
-        :data="chartData"
+        :data="displayChartData"
         :min-zoom-span="minZoomSpan"
         :min-visible-points="5"
         :initial-x-domain="initialXDomain"
         :display-mode="displayMode"
         :overlay-mode="overlayMode"
-        :grid="{ rowCount, columnCount, showPagination: true }"
+        :grid="{ rowCount, columnCount, showPagination: true, trackLines: gridTrackLines }"
         :title="titleOptions"
         :legend="{
           position: legendPosition,
@@ -667,6 +774,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         }"
         :frame-style="frameStyle"
         :clean-view="cleanView"
+        :show-tooltip="showTooltip"
         :zero-line="zeroLine"
         :frame-number="frameWatermarkVisible ? 1 : undefined"
         v-model:annotations="annotations"

@@ -25,6 +25,7 @@ export type {
 export type {
   SingleWaveformData,
   WaveformLineType,
+  WaveformLineStyle,
   WaveformPointType,
   WaveformErrorBarOptions,
   ResolvedWaveformErrorBarOptions,

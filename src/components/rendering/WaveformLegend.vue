@@ -6,6 +6,7 @@ import type { DisplaySeries } from '../core/types'
 import {
   waveformLegendErrorBarPath,
   waveformLegendLinePath,
+  waveformLineDasharray,
   waveformPointSymbolPath,
 } from './seriesStyle'
 
@@ -82,6 +83,7 @@ function toggleSeries(seriesId: string) {
             viewBox="0 0 26 16"
             aria-hidden="true"
             :data-line-type="item.lineType"
+            :data-line-style="item.lineStyle"
             :data-point-type="item.pointType"
             :data-error-bar-visible="item.errorBar.visible || undefined"
           >
@@ -90,6 +92,7 @@ function toggleSeries(seriesId: string) {
               class="waveform-legend__line"
               :d="waveformLegendLinePath(item.lineType) ?? undefined"
               :stroke="item.color"
+              :stroke-dasharray="waveformLineDasharray(item.lineStyle)"
               stroke-width="1.5"
               fill="none"
             />

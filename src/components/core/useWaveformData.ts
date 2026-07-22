@@ -5,6 +5,7 @@ import type {
   ResolvedWaveformErrorBarOptions,
   WaveformData,
   WaveformLineType,
+  WaveformLineStyle,
   WaveformPoint,
   WaveformPointType,
 } from '../../types'
@@ -17,6 +18,7 @@ export interface PreparedWaveformSeries {
   unit?: string
   color?: string
   lineType: WaveformLineType
+  lineStyle: WaveformLineStyle
   pointType: WaveformPointType
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]

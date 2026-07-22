@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from 'vitest'
 import { flushAnimationFrames, pendingAnimationFrameCount, resizeObservers } from '../test/setup'
 import WaveformChart from './WaveformChart.vue'
 import { prepareWaveformSeries } from './core/useWaveformData'
-import { waveformLegendErrorBarPath, waveformLegendLinePath } from './rendering/seriesStyle'
+import {
+  waveformLegendErrorBarPath,
+  waveformLegendLinePath,
+  waveformLineDasharray,
+} from './rendering/seriesStyle'
 import { normalizeWaveformData, normalizeWaveformSeries, type WaveformData } from './waveform'
 
 async function mountSizedChart(data: WaveformData, extraProps = {}) {
@@ -50,6 +54,29 @@ describe('normalizeWaveformData', () => {
 
   it('returns no points for an invalid sample rate', () => {
     expect(normalizeWaveformData({ kind: 'samples', values: [1, 2], sampleRate: 0 })).toEqual([])
+  })
+
+  it('keeps large-data error extrema in the prepared Y domain', () => {
+    const points = Array.from({ length: 10_001 }, (_, index) => ({
+      x: index,
+      y: 0,
+      ...(index === 5_555 ? { error: 10_000 } : {}),
+    }))
+    const [series] = prepareWaveformSeries({
+      kind: 'series',
+      series: [
+        {
+          name: 'errors',
+          errorBar: { visible: true },
+          data: { kind: 'points', points },
+        },
+      ],
+    })
+
+    expect(series?.points).toHaveLength(points.length)
+    expect(series?.hasErrorPoints).toBe(true)
+    expect(series?.yDomain[0]).toBeLessThanOrEqual(-10_000)
+    expect(series?.yDomain[1]).toBeGreaterThanOrEqual(10_000)
   })
 
   it('normalizes errors and preserves a pure error-bar series', () => {
@@ -152,6 +179,7 @@ describe('normalizeWaveformData', () => {
         unit: 'T',
         color: undefined,
         lineType: 'linear',
+        lineStyle: 'solid',
         pointType: 'none',
         errorBar: { visible: false, width: 1.5, capWidth: 8 },
         points: [{ x: 1, y: 2 }],
@@ -170,6 +198,9 @@ describe('legend series geometry', () => {
     expect(waveformLegendLinePath('none')).toBeNull()
     expect(waveformLegendErrorBarPath(10)).toBe('M8 2H18M13 2V14M8 14H18')
     expect(waveformLegendErrorBarPath(100)).toBe('M1 2H25M13 2V14M1 14H25')
+    expect(waveformLineDasharray('solid')).toBeUndefined()
+    expect(waveformLineDasharray('dashed')).toBe('8 5')
+    expect(waveformLineDasharray('dash-dot')).toBe('8 5 1.5 5')
   })
 })
 
@@ -219,6 +250,26 @@ describe('WaveformChart', () => {
 
     first.unmount()
     second.unmount()
+  })
+
+  it('does not reuse Y scales between chart instances with the same default series ID', async () => {
+    const first = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
+    })
+    const second = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 10_000 },
+        { x: 1, y: 20_000 },
+      ],
+    })
+
+    expect(first.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
+    expect(second.get('.waveform-chart__axis-exponent--y').text()).toBe('E+04')
   })
 
   it('renders a configurable zero line only when the Y domain contains zero', async () => {
@@ -478,6 +529,7 @@ describe('WaveformChart', () => {
           trackId: 'styled-track',
           name: '纯线',
           lineType: 'linear',
+          lineStyle: 'dashed',
           pointType: 'none',
           data: {
             kind: 'points',
@@ -492,6 +544,7 @@ describe('WaveformChart', () => {
           trackId: 'styled-track',
           name: '阶梯误差',
           lineType: 'step-after',
+          lineStyle: 'dash-dot',
           pointType: 'circle',
           errorBar: { visible: true, color: '#222222', width: 2, capWidth: 10 },
           data: {
@@ -525,6 +578,13 @@ describe('WaveformChart', () => {
     )
     const stepLine = wrapper.get('.waveform-chart__line[data-series-id="step-errors"]')
     expect(stepLine.attributes('data-line-type')).toBe('step-after')
+    expect(stepLine.attributes('data-line-style')).toBe('dash-dot')
+    expect(stepLine.attributes('stroke-dasharray')).toBe('8 5 1.5 5')
+    expect(
+      wrapper
+        .get('.waveform-chart__line[data-series-id="line-only"]')
+        .attributes('stroke-dasharray'),
+    ).toBe('8 5')
     expect(stepLine.attributes('d')).toMatch(/^M[\d.-]+,([\d.-]+)L[\d.-]+,\1L/)
     expect(
       wrapper
@@ -556,6 +616,16 @@ describe('WaveformChart', () => {
       'none',
     ])
     expect(swatches[0]?.attributes('data-error-bar-visible')).toBe('true')
+    expect(swatches.map((swatch) => swatch.attributes('data-line-style'))).toEqual([
+      'solid',
+      'dashed',
+      'dash-dot',
+      'solid',
+    ])
+    expect(swatches[1]?.get('.waveform-legend__line').attributes('stroke-dasharray')).toBe('8 5')
+    expect(swatches[2]?.get('.waveform-legend__line').attributes('stroke-dasharray')).toBe(
+      '8 5 1.5 5',
+    )
     expect(swatches[2]?.attributes('data-error-bar-visible')).toBe('true')
     expect(swatches[3]?.attributes('data-error-bar-visible')).toBe('true')
     expect(swatches[0]!.findAll('path').map((path) => path.classes())).toEqual([
@@ -2054,6 +2124,38 @@ describe('WaveformChart', () => {
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
   })
 
+  it('hides the numeric tooltip and crosshair when showTooltip is disabled', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { grid: { rowCount: 1, columnCount: 1 }, showTooltip: false },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
+    })
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__crosshair').exists()).toBe(false)
+
+    await wrapper.setProps({ showTooltip: true })
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
+    expect(wrapper.find('.waveform-chart__crosshair').exists()).toBe(true)
+  })
+
   it('coalesces pointer moves per frame and cancels pending hover work', async () => {
     const wrapper = await mountSizedChart(
       {
@@ -2515,6 +2617,139 @@ describe('WaveformChart', () => {
     expect(payload?.yStart).toBeDefined()
     expect(payload?.yEnd).toBeDefined()
     expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+  })
+
+  it('enables space-drag panning only when pannable is true and the pointer is inside', async () => {
+    const data: WaveformData = {
+      kind: 'points',
+      points: Array.from({ length: 5 }, (_, index) => ({ x: index, y: index })),
+    }
+    const disabled = await mountSizedChart(data)
+    const disabledOverlay = disabled.get('.waveform-chart__overlay--independent')
+    const disabledWidth = Number(disabledOverlay.attributes('width'))
+    const disabledHeight = Number(disabledOverlay.attributes('height'))
+    Object.defineProperty(disabledOverlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: disabledWidth, height: disabledHeight }),
+    })
+    await disabled.trigger('pointerenter')
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }))
+    const disabledDown = new MouseEvent('pointerdown', {
+      button: 0,
+      clientX: disabledWidth * 0.25,
+      clientY: disabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(disabledDown, 'pointerId', { value: 31 })
+    disabledOverlay.element.dispatchEvent(disabledDown)
+    const disabledMove = new MouseEvent('pointermove', {
+      clientX: disabledWidth * 0.75,
+      clientY: disabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(disabledMove, 'pointerId', { value: 31 })
+    disabledOverlay.element.dispatchEvent(disabledMove)
+    await flushPromises()
+    expect(disabled.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+
+    const enabled = await mountSizedChart(data, { pannable: true })
+    const enabledOverlay = enabled.get('.waveform-chart__overlay--independent')
+    const enabledWidth = Number(enabledOverlay.attributes('width'))
+    const enabledHeight = Number(enabledOverlay.attributes('height'))
+    Object.defineProperty(enabledOverlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: enabledWidth, height: enabledHeight }),
+    })
+    const boxDown = new MouseEvent('pointerdown', {
+      button: 0,
+      clientX: enabledWidth * 0.25,
+      clientY: enabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(boxDown, 'pointerId', { value: 30 })
+    enabledOverlay.element.dispatchEvent(boxDown)
+    const boxMove = new MouseEvent('pointermove', {
+      clientX: enabledWidth * 0.75,
+      clientY: enabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(boxMove, 'pointerId', { value: 30 })
+    enabledOverlay.element.dispatchEvent(boxMove)
+    const boxUp = new MouseEvent('pointerup', {
+      clientX: enabledWidth * 0.75,
+      clientY: enabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(boxUp, 'pointerId', { value: 30 })
+    enabledOverlay.element.dispatchEvent(boxUp)
+    await flushPromises()
+    const startBeforePan = enabled.get('.waveform-chart__axis-endpoint--start').text()
+
+    await enabled.trigger('pointerenter')
+    const spaceDown = new KeyboardEvent('keydown', { code: 'Space', cancelable: true })
+    window.dispatchEvent(spaceDown)
+    const enabledDown = new MouseEvent('pointerdown', {
+      button: 0,
+      clientX: enabledWidth / 2,
+      clientY: enabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(enabledDown, 'pointerId', { value: 32 })
+    enabledOverlay.element.dispatchEvent(enabledDown)
+    const enabledMove = new MouseEvent('pointermove', {
+      clientX: enabledWidth / 2 + 20,
+      clientY: enabledHeight / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(enabledMove, 'pointerId', { value: 32 })
+    enabledOverlay.element.dispatchEvent(enabledMove)
+    await flushPromises()
+
+    expect(spaceDown.defaultPrevented).toBe(true)
+    expect(enabled.classes()).toContain('waveform-chart--panning')
+    expect(enabled.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+    expect(enabled.get('.waveform-chart__axis-endpoint--start').text()).not.toBe(startBeforePan)
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
+  })
+
+  it('does not activate pannable on a chart that the pointer is outside', async () => {
+    const data: WaveformData = {
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
+    }
+    const active = await mountSizedChart(data, { pannable: true })
+    const inactive = await mountSizedChart(data, { pannable: true })
+    await active.trigger('pointerenter')
+
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }))
+
+    const inactiveOverlay = inactive.get('.waveform-chart__overlay--independent')
+    const width = Number(inactiveOverlay.attributes('width'))
+    const height = Number(inactiveOverlay.attributes('height'))
+    Object.defineProperty(inactiveOverlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height }),
+    })
+    const down = new MouseEvent('pointerdown', {
+      button: 0,
+      clientX: width * 0.25,
+      clientY: height / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(down, 'pointerId', { value: 33 })
+    inactiveOverlay.element.dispatchEvent(down)
+    const move = new MouseEvent('pointermove', {
+      clientX: width * 0.75,
+      clientY: height / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(move, 'pointerId', { value: 33 })
+    inactiveOverlay.element.dispatchEvent(move)
+    await flushPromises()
+
+    expect(inactive.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    expect(inactive.classes()).not.toContain('waveform-chart--panning')
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
   })
 
   it('limits box zoom to the configured minimum x span', async () => {

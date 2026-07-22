@@ -14,6 +14,10 @@ export interface WaveformGridOptions {
 export interface WaveformGridLineOptions {
   horizontal?: boolean
   vertical?: boolean
+  /** Optional stroke color for horizontal major and minor grid lines. */
+  horizontalColor?: string
+  /** Optional stroke color for vertical major and minor grid lines. */
+  verticalColor?: string
 }
 
 export type WaveformGridTrackLines = Record<string, WaveformGridLineOptions>
@@ -21,6 +25,8 @@ export type WaveformGridTrackLines = Record<string, WaveformGridLineOptions>
 export interface NormalizedWaveformGridLineOptions {
   horizontal: boolean
   vertical: boolean
+  horizontalColor?: string
+  verticalColor?: string
 }
 
 export interface NormalizedWaveformGridOptions {
@@ -57,6 +63,14 @@ export function normalizeGridOptions(options?: WaveformGridOptions): NormalizedW
       {
         horizontal: typeof lines?.horizontal === 'boolean' ? lines.horizontal : true,
         vertical: typeof lines?.vertical === 'boolean' ? lines.vertical : true,
+        horizontalColor:
+          typeof lines?.horizontalColor === 'string' && lines.horizontalColor.trim()
+            ? lines.horizontalColor
+            : undefined,
+        verticalColor:
+          typeof lines?.verticalColor === 'string' && lines.verticalColor.trim()
+            ? lines.verticalColor
+            : undefined,
       },
     ]),
   )

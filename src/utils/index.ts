@@ -29,3 +29,11 @@ export {
 
 // 几何计算工具
 export { resolveTrackGeometry, clamp, type TrackGeometry } from './geometry'
+
+// 数据抽样工具
+export {
+  downsampleLTTB,
+  downsampleMinMax,
+  adaptiveSampling,
+  calculateSamplingThreshold,
+} from './sampling'

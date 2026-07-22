@@ -41,7 +41,17 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(panel.find('[aria-label="波形展示方式"]').exists()).toBe(true)
     expect(panel.find('[aria-label="波形叠加方式"]').exists()).toBe(true)
     expect(panel.find('[aria-label="波形网格尺寸"]').exists()).toBe(true)
+    const gridSizeInputs = panel.get('[aria-label="波形网格尺寸"]').findAllComponents(InputNumber)
+    expect(gridSizeInputs[0]?.props('value')).toBe(4)
+    expect(gridSizeInputs[1]?.props('value')).toBe(1)
+    expect(panel.find('[aria-label="显示水平网格线"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="显示垂直网格线"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="水平网格线颜色"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="垂直网格线颜色"]').exists()).toBe(true)
     expect(panel.find('[aria-label="净图模式"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="显示数值 Tooltip"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="选择波形线型"]').exists()).toBe(true)
+    expect(panel.find('[aria-label="设置波形线型"]').exists()).toBe(true)
     expect(panel.find('[aria-label="显示零值参考线"]').exists()).toBe(true)
     const zeroLineControls = panel.get('.zero-line-controls')
     expect(zeroLineControls.findAllComponents(ColorPicker)).toHaveLength(1)
@@ -94,6 +104,59 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     wrapper.unmount()
   })
 
+  it('passes horizontal and vertical grid controls to every track', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+    const chart = wrapper.getComponent(WaveformChart)
+
+    await wrapper.get('[aria-label="显示水平网格线"]').trigger('click')
+    await flushPromises()
+
+    const grid = chart.props('grid')
+    const trackLines = grid?.trackLines
+    expect(trackLines).toBeTruthy()
+    expect(Object.keys(trackLines ?? {}).length).toBeGreaterThan(0)
+    expect(Object.values(trackLines ?? {})).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          horizontal: false,
+          vertical: true,
+          horizontalColor: '#dfe5ef',
+          verticalColor: '#dfe5ef',
+        }),
+      ]),
+    )
+    wrapper.unmount()
+  })
+
+  it('passes tooltip and per-series line-style controls to the chart', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+    const chart = wrapper.getComponent(WaveformChart)
+
+    expect(chart.props('showTooltip')).toBe(true)
+    await wrapper.get('[aria-label="显示数值 Tooltip"]').trigger('click')
+    await flushPromises()
+    expect(chart.props('showTooltip')).toBe(false)
+
+    const seriesSelect = wrapper.get('[aria-label="选择波形线型"]').getComponent(Select)
+    const lineStyleSelect = wrapper.get('[aria-label="设置波形线型"]').getComponent(Select)
+    const firstSeriesId = String(
+      (chart.props('data') as WaveformData).kind === 'series'
+        ? (chart.props('data') as Extract<WaveformData, { kind: 'series' }>).series[0]?.id
+        : '',
+    )
+    seriesSelect.vm.$emit('update:value', firstSeriesId)
+    lineStyleSelect.vm.$emit('update:value', 'dash-dot')
+    await flushPromises()
+
+    const currentData = chart.props('data') as Extract<WaveformData, { kind: 'series' }>
+    expect(currentData.series.find((series) => series.id === firstSeriesId)?.lineStyle).toBe(
+      'dash-dot',
+    )
+    wrapper.unmount()
+  })
+
   it('switches overlaid tracks between single-axis and multi-axis rendering', async () => {
     const wrapper = mount(App)
     await flushPromises()
@@ -112,7 +175,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     wrapper.unmount()
   })
 
-  it('renders the requested point-only and line-only examples in the first frame', async () => {
+  it('keeps only one error-bar series in the first frame', async () => {
     const wrapper = mount(App)
     await flushPromises()
 
@@ -121,30 +184,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     expect(firstFrameSeries.map((series) => series.attributes('data-series-name'))).toEqual([
       'BT2_2M',
-      'TEST_CH_1',
-      'TEST_CH_3',
-      'TEST_CH_4',
-      'TEST_CH_5',
-      '纯点无线',
-      '纯线无点',
     ])
-
-    const pointsOnlySeries = firstFrame.get('.waveform-chart__series[data-series-name="纯点无线"]')
-    expect(pointsOnlySeries.find('.waveform-chart__line').exists()).toBe(false)
-    expect(pointsOnlySeries.get('.waveform-chart__points').attributes('data-point-type')).toBe(
-      'circle',
-    )
-
-    const testChannelFour = firstFrame.get('.waveform-chart__series[data-series-name="TEST_CH_4"]')
-    expect(testChannelFour.get('.waveform-chart__line').attributes('data-line-type')).toBe('linear')
-    expect(testChannelFour.get('.waveform-chart__points').attributes('data-point-type')).toBe(
-      'circle',
-    )
-    expect(testChannelFour.find('.waveform-chart__error-bars').exists()).toBe(false)
-
-    const lineOnlySeries = firstFrame.get('.waveform-chart__series[data-series-name="纯线无点"]')
-    expect(lineOnlySeries.get('.waveform-chart__line').attributes('data-line-type')).toBe('linear')
-    expect(lineOnlySeries.find('.waveform-chart__points').exists()).toBe(false)
 
     const triangleSeries = firstFrame.get('.waveform-chart__series[data-series-name="BT2_2M"]')
     expect(triangleSeries.find('.waveform-chart__line').exists()).toBe(false)
@@ -153,59 +193,51 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     )
     expect(triangleSeries.get('.waveform-chart__error-bar').attributes('stroke')).toBe('#0960bd')
 
-    const firstFrameLegend = wrapper.get(
-      '.waveform-chart__legend-track[data-legend-track-index="0"]',
-    )
-    const triangleLegendItem = firstFrameLegend
-      .findAll('.waveform-chart__legend-item')
-      .find((item) => item.text().includes('BT2_2M'))
-    expect(triangleLegendItem).toBeDefined()
-    const triangleSwatch = triangleLegendItem!.get('.waveform-legend__swatch')
-    expect(triangleSwatch.find('.waveform-legend__line').exists()).toBe(false)
-    expect(triangleSwatch.get('.waveform-legend__error-bar').attributes()).toMatchObject({
-      d: 'M9 2H17M13 2V14M9 14H17',
-      stroke: '#0960bd',
-      'stroke-width': '1.5',
-    })
-    expect(triangleSwatch.get('.waveform-legend__point').attributes()).toMatchObject({
-      fill: '#0960bd',
-      transform: 'translate(13 8)',
-    })
-
     wrapper.unmount()
   })
 
-  it('renders the three ECharts-style step modes in frame two', async () => {
+  it('splits the attached ENG channels across the remaining first-page frames', async () => {
     const wrapper = mount(App)
     await flushPromises()
 
-    const secondFrame = wrapper.get('.waveform-chart__track[data-track-index="1"]')
-    const series = secondFrame.findAll('.waveform-chart__series')
-    expect(series.map((item) => item.attributes('data-series-name'))).toEqual([
-      'Step Start',
-      'Step Middle',
-      'Step End',
-    ])
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    expect(tracks).toHaveLength(4)
     expect(
-      secondFrame.findAll('.waveform-chart__line').map((line) => line.attributes('data-line-type')),
-    ).toEqual(['step-start', 'step-middle', 'step-end'])
-    expect(secondFrame.findAll('.waveform-chart__points')).toHaveLength(3)
-    const secondFrameLegend = wrapper.get(
-      '.waveform-chart__legend-track[data-legend-track-index="1"]',
-    )
-    const legendItems = secondFrameLegend.findAll('.waveform-chart__legend-item')
-    expect(legendItems).toHaveLength(3)
-    expect(legendItems.map((item) => item.get('.waveform-legend__line').attributes('d'))).toEqual([
-      'M1 8H25',
-      'M1 8H25',
-      'M1 8H25',
-    ])
+      tracks.map((track) =>
+        track.findAll('.waveform-chart__series').map((item) => item.attributes('data-series-name')),
+      ),
+    ).toEqual([['BT2_2M'], ['ENG6KV1'], ['ENG4F2YIb3'], ['ENG8KJXAc']])
     expect(
-      legendItems.map((item) => item.get('.waveform-legend__point').attributes('fill')),
-    ).toEqual(['#5470c6', '#91cc75', '#505372'])
+      tracks
+        .slice(1)
+        .map((track) => track.get('.waveform-chart__line').attributes('data-line-type')),
+    ).toEqual(['linear', 'linear', 'linear'])
+    tracks.slice(1).forEach((track) => {
+      expect(track.find('.waveform-chart__points').exists()).toBe(false)
+    })
+
+    const chartData = wrapper.getComponent(WaveformChart).props('data') as Extract<
+      WaveformData,
+      { kind: 'series' }
+    >
+    const frameTwoSeries = chartData.series.filter((item) => item.trackId?.startsWith('frame-two-'))
+    expect(frameTwoSeries.map((item) => item.name)).toEqual(['ENG6KV1', 'ENG4F2YIb3', 'ENG8KJXAc'])
+    expect(frameTwoSeries.map((item) => item.unit)).toEqual(['KV', 'KA', 'A'])
+    frameTwoSeries.forEach((item) => {
+      expect(item.data.kind).toBe('points')
+      if (item.data.kind === 'points') {
+        expect(item.data.points).toHaveLength(1000)
+        expect(item.data.points[0]?.x).toBe(-5)
+      }
+    })
+
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await flushPromises()
     expect(
-      legendItems.map((item) => item.get('.waveform-legend__point').attributes('transform')),
-    ).toEqual(['translate(13 8)', 'translate(13 8)', 'translate(13 8)'])
+      wrapper
+        .findAll('.waveform-chart__track')
+        .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
+    ).toEqual(['BT1_2M', 'TEST_CH_2'])
 
     wrapper.unmount()
   })
@@ -300,23 +332,6 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
     ).toEqual(initialFrameNumbers)
-
-    wrapper.unmount()
-  })
-
-  it('updates every visible legend from the alpha-enabled background picker', async () => {
-    const wrapper = mount(App)
-    await flushPromises()
-
-    const colorPicker = wrapper.get('.legend-color-control').getComponent(ColorPicker)
-    colorPicker.vm.$emit('update:pureColor', 'rgba(15, 118, 110, 0.35)')
-    await flushPromises()
-
-    const legendPanels = wrapper.findAll('.waveform-legend__panel')
-    expect(legendPanels.length).toBeGreaterThan(0)
-    legendPanels.forEach((panel) => {
-      expect(panel.attributes('style')).toContain('background-color: rgba(15, 118, 110, 0.35)')
-    })
 
     wrapper.unmount()
   })

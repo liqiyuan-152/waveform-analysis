@@ -3,7 +3,7 @@ import { computed } from 'vue'
 
 import { resolveWaveformPointErrors } from '../../core'
 import type { TrackLayout, TrackSeriesPath } from '../core/types'
-import { waveformPointSeriesPath } from './seriesStyle'
+import { waveformLineDasharray, waveformPointSeriesPath } from './seriesStyle'
 
 const props = defineProps<{
   track: TrackLayout
@@ -63,8 +63,10 @@ const renderedSeriesPaths = computed<RenderedSeriesPath[]>(() =>
         :data-series-name="seriesPath.series.name || undefined"
         :data-y-axis-index="seriesPath.yAxisIndex"
         :data-line-type="seriesPath.series.lineType"
+        :data-line-style="seriesPath.series.lineStyle"
         :d="seriesPath.path"
         :stroke="seriesPath.series.color"
+        :stroke-dasharray="waveformLineDasharray(seriesPath.series.lineStyle)"
       />
 
       <g

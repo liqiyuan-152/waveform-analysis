@@ -27,14 +27,16 @@ import {
   type NormalizedWaveformGridOptions,
 } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
+import { MAX_MULTI_Y_AXIS_COUNT, Y_AXIS_EXPONENT_GAP } from './constants'
 
-export const MAX_MULTI_Y_AXIS_COUNT = 4
+// 导出常量供外部使用
+export { MAX_MULTI_Y_AXIS_COUNT, Y_AXIS_EXPONENT_GAP } from './constants'
+
 const Y_AXIS_CHARACTER_WIDTH = 7
 const Y_AXIS_TICK_PADDING = 7
 const Y_AXIS_OUTER_PADDING = 4
 const Y_AXIS_LABEL_GAP = 6
 const Y_AXIS_LABEL_BAND_WIDTH = 24
-export const Y_AXIS_EXPONENT_GAP = 8
 
 interface YAxisSeriesGroup {
   index: number
@@ -50,39 +52,17 @@ function resolveAxisSides(axisCount: number): Array<'left' | 'right'> {
   return ['left']
 }
 
-// Cache across recreated track objects without reusing groups whose axis-relevant data changed.
-const yAxisGroupsCache = new Map<string, Map<WaveformOverlayMode, YAxisSeriesGroup[]>>()
-const MAX_CACHE_SIZE = 100
-
-function getCacheKey(track: DisplayTrack): string {
-  return JSON.stringify([
-    track.id,
-    track.yDomain,
-    track.visibleSeries.map((series) => [
-      series.id,
-      series.name,
-      series.unit,
-      series.color,
-      series.yDomain,
-    ]),
-  ])
-}
+// 使用 WeakMap 进行缓存优化，避免手动清理
+const yAxisGroupsCache = new WeakMap<DisplayTrack, Map<WaveformOverlayMode, YAxisSeriesGroup[]>>()
 
 export function buildYAxisSeriesGroups(
   track: DisplayTrack,
   overlayMode: WaveformOverlayMode,
 ): YAxisSeriesGroup[] {
-  const cacheKey = getCacheKey(track)
-  let trackCache = yAxisGroupsCache.get(cacheKey)
+  let trackCache = yAxisGroupsCache.get(track)
   if (!trackCache) {
     trackCache = new Map()
-    yAxisGroupsCache.set(cacheKey, trackCache)
-    if (yAxisGroupsCache.size > MAX_CACHE_SIZE) {
-      const firstKey = yAxisGroupsCache.keys().next().value
-      if (firstKey !== undefined) {
-        yAxisGroupsCache.delete(firstKey)
-      }
-    }
+    yAxisGroupsCache.set(track, trackCache)
   }
 
   const cached = trackCache.get(overlayMode)
@@ -181,6 +161,49 @@ interface SeriesGridCell extends GridCellGeometry {
   series?: DisplayTrack
 }
 
+type PositionedTrack = Pick<TrackLayout, 'left' | 'top' | 'width' | 'height'>
+
+export function findClosestTrackAtPointer<T extends PositionedTrack>(
+  tracks: readonly T[],
+  pointerX: number,
+  pointerY: number,
+): T | undefined {
+  const distanceToTrack = (track: T) => {
+    const xDistance =
+      pointerX < track.left
+        ? track.left - pointerX
+        : pointerX > track.left + track.width
+          ? pointerX - track.left - track.width
+          : 0
+    return pointerY < track.top
+      ? track.top - pointerY
+      : pointerY > track.top + track.height
+        ? pointerY - (track.top + track.height)
+        : xDistance
+  }
+
+  let closestTrack = tracks[0]
+  if (!closestTrack) return undefined
+  let closestDistance = distanceToTrack(closestTrack)
+  for (let index = 1; index < tracks.length; index += 1) {
+    const candidate = tracks[index]!
+    const distance = distanceToTrack(candidate)
+    if (distance < closestDistance) {
+      closestTrack = candidate
+      closestDistance = distance
+      continue
+    }
+    if (distance === closestDistance) {
+      const centerDistance = Math.abs(pointerY - (candidate.top + candidate.height / 2))
+      const closestCenterDistance = Math.abs(
+        pointerY - (closestTrack.top + closestTrack.height / 2),
+      )
+      if (centerDistance < closestCenterDistance) closestTrack = candidate
+    }
+  }
+  return closestTrack
+}
+
 export interface BuildTrackLayoutsOptions {
   cells: SeriesGridCell[]
   grid: NormalizedWaveformGridOptions
@@ -210,6 +233,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       name: '',
       color: 'transparent',
       lineType: 'linear',
+      lineStyle: 'solid',
       pointType: 'none',
       errorBar: { visible: false, width: 1.5, capWidth: 8 },
       points: [],

@@ -22,6 +22,7 @@ export type {
   WaveformZeroLineOptions,
   SingleWaveformData,
   WaveformLineType,
+  WaveformLineStyle,
   WaveformPointType,
   WaveformErrorBarOptions,
   ResolvedWaveformErrorBarOptions,

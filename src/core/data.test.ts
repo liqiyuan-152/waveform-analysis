@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { normalizeWaveformData } from './data'
+import { normalizeWaveformData, normalizeWaveformSeries } from './data'
 
 describe('waveform data normalization', () => {
   it('builds sample points in one pass while preserving source indexes', () => {
@@ -53,6 +53,53 @@ describe('waveform data normalization', () => {
       { x: 1, y: 10 },
       { x: 1, y: 11 },
       { x: 2, y: 20 },
+    ])
+  })
+
+  it('preserves every valid point in large data sets', () => {
+    const points = Array.from({ length: 10_001 }, (_, index) => ({
+      x: index,
+      y: index === 5_555 ? 1 : 0,
+      ...(index === 5_555 ? { error: 10_000 } : {}),
+    }))
+
+    const result = normalizeWaveformData({ kind: 'points', points })
+
+    expect(result).toHaveLength(points.length)
+    expect(result[5_555]).toEqual({ x: 5_555, y: 1, error: 10_000 })
+  })
+
+  it('defaults and normalizes per-series line styles', () => {
+    const data = {
+      kind: 'series' as const,
+      series: [
+        { id: 'solid', name: 'Solid', data: { kind: 'points' as const, points: [{ x: 0, y: 1 }] } },
+        {
+          id: 'dashed',
+          name: 'Dashed',
+          lineStyle: 'dashed' as const,
+          data: { kind: 'points' as const, points: [{ x: 0, y: 1 }] },
+        },
+        {
+          id: 'dash-dot',
+          name: 'Dash dot',
+          lineStyle: 'dash-dot' as const,
+          data: { kind: 'points' as const, points: [{ x: 0, y: 1 }] },
+        },
+        {
+          id: 'invalid',
+          name: 'Invalid',
+          lineStyle: 'zigzag' as never,
+          data: { kind: 'points' as const, points: [{ x: 0, y: 1 }] },
+        },
+      ],
+    }
+
+    expect(normalizeWaveformSeries(data).map((series) => series.lineStyle)).toEqual([
+      'solid',
+      'dashed',
+      'dash-dot',
+      'solid',
     ])
   })
 })

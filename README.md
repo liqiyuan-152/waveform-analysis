@@ -97,7 +97,8 @@ const data = ref<WaveformData>({
 | `overlayMode`                     | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                         | 叠加曲线的 Y 轴模式               |
 | `timeUnit`                        | `'s' \| 'ms'`                               | `'ms'`                                                  | 坐标轴和 tooltip 展示单位         |
 | `width` / `height`                | `number`                                    | 自适应                                                  | 组件总尺寸，单位为 CSS 像素       |
-| `zoomable` / `showTooltip`        | `boolean`                                   | `true` / `true`                                         | 缩放和 tooltip 开关               |
+| `zoomable` / `showTooltip`        | `boolean`                                   | `true` / `true`                                         | 缩放和数值 tooltip 开关           |
+| `pannable`                        | `boolean`                                   | `false`                                                 | 空格拖拽平移开关                  |
 | `minZoomSpan`                     | `number`                                    | 未设置                                                  | 最小缩放跨度，使用原始 X 数据单位 |
 | `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围             |
 | `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围   |
@@ -167,7 +168,8 @@ import { WaveformChart } from './index'
 ### 缩放后按可视区间加载数据
 
 组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放
-X/Y 轴；按住空格键拖拽可平移当前视口。鼠标滚轮仍可放大，双击恢复完整视口。
+X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽可平移当前视口。
+鼠标滚轮仍可放大，双击恢复完整视口。
 组件会在滚轮或框选缩放结束后触发 `zoom-end`，调用方可以使用端点请求后端，再通过
 `data` 传回新数据。独立分图模式还会包含 `trackIndex` 和稳定的 `seriesIds`。
 
@@ -177,6 +179,7 @@ X/Y 轴；按住空格键拖拽可平移当前视口。鼠标滚轮仍可放大�
   :data="chartData"
   :initial-x-domain="initialDomain"
   :min-zoom-span="initialDomainSpan / 40"
+  pannable
   @zoom-end="loadVisibleData"
   @zoom-reset="restoreInitialData"
 />
@@ -214,6 +217,7 @@ const series = {
   id: 'temperature',
   name: '温度',
   lineType: 'step-end',
+  lineStyle: 'dashed',
   pointType: 'circle',
   errorBar: { visible: true, width: 1.5, capWidth: 8 },
   data: {
@@ -226,9 +230,10 @@ const series = {
 } satisfies WaveformSeries
 ```
 
-`lineType` 支持 `none`、`linear`、`step-start`、`step-middle` 和 `step-end`；兼容值
+`lineType` 支持 `none`、`linear`、`step-start`、`step-middle` 和 `step-end`；它控制连接线的几何形态，兼容值
 `step-after` 与 `step-end` 等价。三个阶梯值分别在区间起点、中点和终点跳变。`pointType`
 支持 `none`、`circle`、`square`、`triangle` 和 `diamond`。默认使用普通直线且不显示数据点；
+`lineStyle` 控制连接线的描边样式，支持 `solid`、`dashed` 和 `dash-dot`，默认值为 `solid`；
 设置 `lineType: 'none'` 可以隐藏数据点之间的连接线，只保留点符号和误差棒；将其改为
 `linear` 或阶梯类型即可同时显示对应连接线。误差棒仅在 `errorBar.visible` 为 `true` 时显示，
 并参与 Y 轴范围计算；当误差棒可见时，`lineType` 和 `pointType` 可以同时为 `none`，用于展示
@@ -418,22 +423,40 @@ tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失
 `grid` 控制独立图框的行列数（范围 `1–10`）以及是否显示分页器。默认值为 `2` 行、
 `1` 列并开启分页；当图框数量超过网格容量时，分页器会显示在图表右下角。
 
+还可以通过 `trackLines` 按轨道 ID 分别控制水平/垂直网格线的显隐和颜色。颜色未配置时，
+继续使用组件默认的主/次网格颜色：
+
 ```vue
 <WaveformChart
   :data="chartData"
-  :grid="{ rowCount: 2, columnCount: 2, showPagination: true }"
+  :grid="{
+    rowCount: 2,
+    columnCount: 2,
+    showPagination: true,
+    trackLines: {
+      voltage: {
+        horizontal: false,
+        vertical: true,
+        verticalColor: '#2563eb',
+      },
+    },
+  }"
   :interaction-mode="interactionMode"
 />
 ```
 
 `interactionMode` 可选 `zoom` 或 `annotation`，默认使用缩放模式。右键绘图区可直接打开
-标注编辑器，无需切换交互模式。`zoomable` 和 `showTooltip` 可分别关闭缩放和 tooltip。
+标注编辑器，无需切换交互模式。`zoomable`、`pannable` 和 `showTooltip` 可分别控制缩放、
+空格拖拽平移和 tooltip；平移默认关闭。
 空数据或过滤后没有有效点时，组件会保留图框布局并显示“暂无有效波形数据”。
 
 ## 大数据渲染
 
 组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；
 原地修改已有数组不会触发缓存刷新。建议通过 `shallowRef` 保存大数据并整体替换引用。
+规范化始终保留所有有效点，坐标域、误差棒、tooltip 和标注均使用完整数据；绘制路径会根据
+当前视口和 `rendering` 配置自动降采样。如需在传入组件前主动压缩数据，可使用公开的
+`downsampleLTTB`、`downsampleMinMax` 或 `adaptiveSampling` 工具。
 
 默认在可见点超过 2,000 时进行降采样，每个像素最多渲染 4 个保峰点。可按业务调整：
 

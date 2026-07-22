@@ -2,6 +2,7 @@ import type { ScaleLinear } from 'd3'
 import type {
   ResolvedWaveformErrorBarOptions,
   WaveformLineType,
+  WaveformLineStyle,
   WaveformPoint,
   WaveformPointType,
 } from '../../types'
@@ -17,6 +18,7 @@ export interface DisplaySeries {
   unit?: string
   color: string
   lineType: WaveformLineType
+  lineStyle: WaveformLineStyle
   pointType: WaveformPointType
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]

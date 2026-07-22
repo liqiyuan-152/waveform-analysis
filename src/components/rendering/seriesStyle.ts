@@ -7,7 +7,7 @@ import {
   type SymbolType,
 } from 'd3'
 
-import type { WaveformLineType, WaveformPointType } from '../../types'
+import type { WaveformLineStyle, WaveformLineType, WaveformPointType } from '../../types'
 
 const LEGEND_SWATCH_CENTER_X = 13
 const LEGEND_ERROR_BAR_TOP = 2
@@ -80,6 +80,12 @@ export function waveformPointSeriesPath(
 export function waveformLegendLinePath(lineType: WaveformLineType): string | null {
   if (lineType === 'none') return null
   return 'M1 8H25'
+}
+
+export function waveformLineDasharray(lineStyle: WaveformLineStyle): string | undefined {
+  if (lineStyle === 'dashed') return '8 5'
+  if (lineStyle === 'dash-dot') return '8 5 1.5 5'
+  return undefined
 }
 
 export function waveformLegendErrorBarPath(capWidth: number): string {

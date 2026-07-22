@@ -63,6 +63,19 @@ import {
   channelColors,
   margin as chartMargin,
   minimumHeight as chartMinimumHeight,
+  Y_AXIS_CHARACTER_WIDTH,
+  Y_AXIS_TICK_PADDING,
+  Y_AXIS_OUTER_PADDING,
+  Y_AXIS_LABEL_GAP,
+  Y_AXIS_LABEL_BAND_WIDTH,
+  MINIMUM_PLOT_WIDTH,
+  WHEEL_ZOOM_DEBOUNCE_MS,
+  MINIMUM_SELECTION_SIZE,
+  ZOOM_CONSTRAINTS,
+  TITLE_DEFAULT_FONT_SIZE,
+  TITLE_CHAR_WIDTH_RATIO,
+  TITLE_LINE_HEIGHT,
+  ZERO_LINE_DEFAULTS,
 } from './core/constants'
 import {
   getGridGap,
@@ -75,11 +88,18 @@ import {
   type WaveformGridOptions,
 } from './core/grid'
 import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
-import { buildTrackLayouts, measureTrackYAxisClearance, Y_AXIS_EXPONENT_GAP } from './core/layout'
+import {
+  buildTrackLayouts,
+  findClosestTrackAtPointer,
+  measureTrackYAxisClearance,
+  Y_AXIS_EXPONENT_GAP,
+} from './core/layout'
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
 import { useWaveformInstanceId } from '../utils/waveformId'
+
+const xPointBisector = bisector<WaveformPoint, number>((point) => point.x)
 
 const props = withDefaults(
   defineProps<{
@@ -93,6 +113,7 @@ const props = withDefaults(
     lineColor?: string
     showTooltip?: boolean
     zoomable?: boolean
+    pannable?: boolean
     minZoomSpan?: number
     minVisiblePoints?: number
     initialXDomain?: [number, number]
@@ -119,6 +140,7 @@ const props = withDefaults(
     lineColor: '#0960bd',
     showTooltip: true,
     zoomable: true,
+    pannable: false,
     minVisiblePoints: 0,
     timeUnit: 'ms',
     frameNumber: undefined,
@@ -191,7 +213,7 @@ const lastIndependentZoomGestures = new Map<number, ZoomGestureKind>()
 const lastZoomedTrackIndexes = new Set<number>()
 const zoomThrottle = useAnimationFrameThrottle()
 const hoverThrottle = useAnimationFrameThrottle()
-const wheelZoomDebounceMs = 200
+const wheelZoomDebounceMs = WHEEL_ZOOM_DEBOUNCE_MS
 let wheelZoomEndTimer: ReturnType<typeof setTimeout> | undefined
 const preparedSeries = usePreparedWaveformSeries(() => props.data, handleDataReferenceChange)
 
@@ -211,6 +233,7 @@ interface SelectionState {
 
 const selection = ref<SelectionState | null>(null)
 const spacePressed = ref(false)
+const pointerInsideChart = ref(false)
 const selectionBox = computed(() => {
   const active = selection.value
   if (!active) return null
@@ -224,11 +247,22 @@ const selectionBox = computed(() => {
 })
 
 function handleInteractionKeyDown(event: KeyboardEvent) {
-  if (event.code === 'Space') spacePressed.value = true
+  if (event.code !== 'Space' || !props.pannable || !pointerInsideChart.value) return
+  const target = event.target
+  if (
+    target instanceof Element &&
+    target.closest('button, input, select, textarea, [contenteditable]:not([contenteditable="false"])')
+  ) {
+    return
+  }
+  spacePressed.value = true
+  event.preventDefault()
 }
 
 function handleInteractionKeyUp(event: KeyboardEvent) {
-  if (event.code === 'Space') spacePressed.value = false
+  if (event.code === 'Space') {
+    spacePressed.value = false
+  }
 }
 
 // 用于传递给 WaveformTooltip 的接口
@@ -262,9 +296,9 @@ const resolvedZeroLine = computed(() => {
   const width = props.zeroLine?.width
   return {
     visible: props.zeroLine?.visible === true,
-    color: props.zeroLine?.color || '#98a2b3',
-    width: typeof width === 'number' && Number.isFinite(width) && width > 0 ? width : 1,
-    dash: props.zeroLine?.dash ?? '6 4',
+    color: props.zeroLine?.color || ZERO_LINE_DEFAULTS.COLOR,
+    width: typeof width === 'number' && Number.isFinite(width) && width > 0 ? width : ZERO_LINE_DEFAULTS.WIDTH,
+    dash: props.zeroLine?.dash ?? ZERO_LINE_DEFAULTS.DASH,
   }
 })
 const legendBackgroundColor = computed(
@@ -292,7 +326,7 @@ const titleAreaReserved = computed(
 const titleVisible = computed(() => titleAreaReserved.value && !isCleanView.value)
 const titleFontSize = computed(() => {
   const fontSize = props.title?.textStyle?.fontSize
-  return Number.isFinite(fontSize) && (fontSize ?? 0) > 0 ? (fontSize as number) : 14
+  return Number.isFinite(fontSize) && (fontSize ?? 0) > 0 ? (fontSize as number) : TITLE_DEFAULT_FONT_SIZE
 })
 const titleRotation = computed(() => {
   const rotation = props.title?.textStyle?.rotation
@@ -310,14 +344,14 @@ const titlePresentationStyle = computed<CSSProperties>(() => ({
   fontStyle: props.title?.textStyle?.fontStyle ?? 'normal',
   textDecoration: props.title?.textStyle?.textDecoration ?? 'none',
   letterSpacing: props.title?.textStyle?.letterSpacing ?? 'normal',
-  lineHeight: '1.2',
+  lineHeight: String(TITLE_LINE_HEIGHT),
 }))
 const estimatedTitleWidth = computed(() => {
   const letterSpacing = Number.parseFloat(props.title?.textStyle?.letterSpacing ?? '')
   const spacingWidth = Number.isFinite(letterSpacing)
     ? Math.max(0, resolvedTitleText.value.length - 1) * letterSpacing
     : 0
-  return Math.max(1, resolvedTitleText.value.length * titleFontSize.value * 0.62 + spacingWidth)
+  return Math.max(1, resolvedTitleText.value.length * titleFontSize.value * TITLE_CHAR_WIDTH_RATIO + spacingWidth)
 })
 const titleAvailableWidth = computed(() => {
   const measuredAvailableWidth = chartWidth.value - TITLE_AREA_HORIZONTAL_PADDING * 2
@@ -333,7 +367,7 @@ const titleMeasureStyle = computed<CSSProperties>(() => ({
 const titleLayout = computed(() =>
   calculateRotatedTitleLayout({
     naturalWidth: measuredTitleWidth.value || estimatedTitleWidth.value,
-    naturalHeight: measuredTitleHeight.value || titleFontSize.value * 1.2,
+    naturalHeight: measuredTitleHeight.value || titleFontSize.value * TITLE_LINE_HEIGHT,
     availableWidth: titleAvailableWidth.value,
     rotation: titleRotation.value,
   }),
@@ -381,12 +415,18 @@ const chartTracks = computed<DisplayTrack[]>(() => {
   })
   return Array.from(groupedSeries, ([id, series]) => {
     const visibleSeries = series.filter((item) => !hiddenSeriesIdSet.value.has(item.id))
+    const xDomainValues: number[] = []
+    const yDomainValues: number[] = []
+    visibleSeries.forEach((item) => {
+      xDomainValues.push(item.xDomain[0], item.xDomain[1])
+      yDomainValues.push(item.yDomain[0], item.yDomain[1])
+    })
     return {
       id,
       series,
       visibleSeries,
-      xDomain: paddedDomain(visibleSeries.flatMap((item) => item.xDomain)),
-      yDomain: paddedDomain(visibleSeries.flatMap((item) => item.yDomain)),
+      xDomain: paddedDomain(xDomainValues),
+      yDomain: paddedDomain(yDomainValues),
     }
   })
 })
@@ -397,12 +437,13 @@ const pagedTracks = computed(() =>
   paginateSeries(chartTracks.value, currentPage.value, gridOptions.value),
 )
 
-const yAxisCharacterWidth = 7
-const yAxisTickPadding = 7
-const yAxisOuterPadding = 4
-const yAxisLabelGap = 6
-const yAxisLabelBandWidth = 24
-const minimumPlotWidth = 120
+// 使用从常量文件导入的值
+const yAxisCharacterWidth = Y_AXIS_CHARACTER_WIDTH
+const yAxisTickPadding = Y_AXIS_TICK_PADDING
+const yAxisOuterPadding = Y_AXIS_OUTER_PADDING
+const yAxisLabelGap = Y_AXIS_LABEL_GAP
+const yAxisLabelBandWidth = Y_AXIS_LABEL_BAND_WIDTH
+const minimumPlotWidth = MINIMUM_PLOT_WIDTH
 
 const yAxisMetrics = computed(() => {
   const axisText = chartTracks.value
@@ -533,11 +574,13 @@ const tooltipSeriesPoints = computed<TooltipSeriesPoint[]>(() => {
   }))
 })
 
-const sharedXDomain = computed(() =>
-  paddedDomain(
-    chartTracks.value.flatMap((track) => (track.visibleSeries.length ? track.xDomain : [])),
-  ),
-)
+const sharedXDomain = computed(() => {
+  const values: number[] = []
+  chartTracks.value.forEach((track) => {
+    if (track.visibleSeries.length) values.push(track.xDomain[0], track.xDomain[1])
+  })
+  return paddedDomain(values)
+})
 const initialXDomain = computed<[number, number]>(() => {
   const domain = props.initialXDomain
   if (
@@ -820,10 +863,10 @@ function clearZoomBindings() {
 
 function resolveMaximumZoomScale(domain: [number, number]): number {
   const minZoomSpan = props.minZoomSpan
-  if (!Number.isFinite(minZoomSpan) || (minZoomSpan ?? 0) <= 0) return 40
+  if (!Number.isFinite(minZoomSpan) || (minZoomSpan ?? 0) <= 0) return ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
   const domainSpan = Math.abs(domain[1] - domain[0])
-  if (!Number.isFinite(domainSpan) || domainSpan <= 0) return 1
-  return Math.min(40, Math.max(1, domainSpan / (minZoomSpan ?? domainSpan)))
+  if (!Number.isFinite(domainSpan) || domainSpan <= 0) return ZOOM_CONSTRAINTS.MIN_SCALE
+  return Math.min(ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE, Math.max(ZOOM_CONSTRAINTS.MIN_SCALE, domainSpan / (minZoomSpan ?? domainSpan)))
 }
 
 function canZoomTrack(track: TrackLayout): boolean {
@@ -978,7 +1021,7 @@ function consumeHoverSuppression(): boolean {
 }
 
 function nearestPoint(series: DisplaySeries, xValue: number): WaveformPoint | undefined {
-  const index = bisector((point: WaveformPoint) => point.x).center(series.points, xValue)
+  const index = xPointBisector.center(series.points, xValue)
   return series.points[index]
 }
 
@@ -1092,32 +1135,7 @@ function resolveTrackAtPointer(
     return track?.hasVisibleSeries ? track : undefined
   }
   const visibleTracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
-  if (!visibleTracks.length) return undefined
-
-  const distanceToTrack = (track: TrackLayout) => {
-    const xDistance =
-      pointerX < track.left
-        ? track.left - pointerX
-        : pointerX > track.left + track.width
-          ? pointerX - track.left - track.width
-          : 0
-    if (pointerY < track.top) return track.top - pointerY
-    if (pointerY > track.top + track.height) return pointerY - (track.top + track.height)
-    return xDistance
-  }
-  // 修复 O(n²) 问题：缓存距离计算结果
-  const trackDistances = new Map<TrackLayout, number>()
-  visibleTracks.forEach((track) => {
-    trackDistances.set(track, distanceToTrack(track))
-  })
-  return visibleTracks.reduce((closest, candidate) => {
-    const distance = trackDistances.get(candidate)!
-    const closestDistance = trackDistances.get(closest)!
-    if (distance !== closestDistance) return distance < closestDistance ? candidate : closest
-    const centerDistance = Math.abs(pointerY - (candidate.top + candidate.height / 2))
-    const closestCenterDistance = Math.abs(pointerY - (closest.top + closest.height / 2))
-    return centerDistance < closestCenterDistance ? candidate : closest
-  })
+  return findClosestTrackAtPointer(visibleTracks, pointerX, pointerY)
 }
 
 function resolveAnnotationCandidates(
@@ -1337,7 +1355,7 @@ function handleSharedPointerMove(event: PointerEvent) {
   })
 }
 
-const minimumSelectionSize = 6
+const minimumSelectionSize = MINIMUM_SELECTION_SIZE
 
 function transformForDomain(
   domain: [number, number],
@@ -1403,7 +1421,8 @@ function currentYDomains(): Record<string, [number, number]> {
 }
 
 function beginViewportDrag(event: PointerEvent, trackIndex: number, independent: boolean) {
-  if (!props.zoomable || !isZoomMode.value || event.button !== 0) return
+  const panRequested = props.pannable && spacePressed.value
+  if ((!props.zoomable && !panRequested) || !isZoomMode.value || event.button !== 0) return
   const overlay = event.currentTarget as SVGRectElement
   const track = trackLayouts.value.find((item) => item.index === trackIndex)
   if (!track) return
@@ -1419,7 +1438,7 @@ function beginViewportDrag(event: PointerEvent, trackIndex: number, independent:
     currentX: x,
     currentY: y,
     pointerId: event.pointerId,
-    mode: spacePressed.value ? 'pan' : 'box',
+    mode: panRequested ? 'pan' : 'box',
     xDomain: track.xScale.domain() as [number, number],
     yDomains: currentYDomains(),
   }
@@ -1804,6 +1823,8 @@ onBeforeUnmount(() => {
     :data-overlay-mode="overlayMode"
     :data-chart-left-margin="resolvedChartLeftMargin"
     :data-title-area-height="titleAreaHeight"
+    @pointerenter="pointerInsideChart = true"
+    @pointerleave="pointerInsideChart = false"
     @contextmenu.capture="handleNativeContextMenu"
   >
     <div

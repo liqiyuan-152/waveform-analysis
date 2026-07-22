@@ -2,11 +2,17 @@ import type {
   SingleWaveformData,
   WaveformData,
   WaveformPoint,
+  WaveformLineStyle,
   NormalizedWaveformSeries,
 } from '../types'
+import { ERROR_BAR_DEFAULTS } from '../components/core/constants'
 
-const DEFAULT_ERROR_BAR_WIDTH = 1.5
-const DEFAULT_ERROR_BAR_CAP_WIDTH = 8
+const DEFAULT_ERROR_BAR_WIDTH = ERROR_BAR_DEFAULTS.WIDTH
+const DEFAULT_ERROR_BAR_CAP_WIDTH = ERROR_BAR_DEFAULTS.CAP_WIDTH
+
+function normalizeLineStyle(value: unknown): WaveformLineStyle {
+  return value === 'dashed' || value === 'dash-dot' ? value : 'solid'
+}
 
 function normalizeError(value: number | undefined): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined
@@ -52,6 +58,7 @@ export function normalizeWaveformData(data: SingleWaveformData): WaveformPoint[]
       if (!Number.isFinite(value)) continue
       points.push({ x: startTime + index / data.sampleRate, y: value })
     }
+
     return points
   }
 
@@ -66,6 +73,7 @@ export function normalizeWaveformData(data: SingleWaveformData): WaveformPoint[]
     points.push(normalized)
   }
   if (!sorted) points.sort((left, right) => left.x - right.x)
+
   return points
 }
 
@@ -83,6 +91,7 @@ export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformS
             id: 'series-0',
             name: '',
             lineType: 'linear',
+            lineStyle: 'solid',
             pointType: 'none',
             errorBar: {
               visible: false,
@@ -111,6 +120,7 @@ export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformS
       usedIds.add(uniqueId)
 
       const requestedLineType = series.lineType ?? 'linear'
+      const lineStyle = normalizeLineStyle((series as { lineStyle?: unknown }).lineStyle)
       const requestedPointType = series.pointType ?? 'none'
       const errorBarVisible = series.errorBar?.visible === true
       const lineType =
@@ -127,6 +137,7 @@ export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformS
         unit: series.unit,
         color: series.color,
         lineType,
+        lineStyle,
         pointType: requestedPointType,
         errorBar: {
           visible: errorBarVisible,

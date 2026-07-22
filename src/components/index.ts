@@ -21,6 +21,7 @@ export type {
   WaveformPoint,
   WaveformSeries,
   WaveformLineType,
+  WaveformLineStyle,
   WaveformPointType,
   WaveformErrorBarOptions,
   WaveformGridOptions,

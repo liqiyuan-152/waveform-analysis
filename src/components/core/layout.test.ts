@@ -6,6 +6,7 @@ import type { DisplaySeries, DisplayTrack } from './types'
 import {
   buildTrackLayouts,
   buildYAxisSeriesGroups,
+  findClosestTrackAtPointer,
   MAX_MULTI_Y_AXIS_COUNT,
   measureYAxisGroupClearance,
 } from './layout'
@@ -16,6 +17,7 @@ function series(id: string, minimum: number, maximum: number): DisplaySeries {
     name: id,
     color: '#1677ff',
     lineType: 'linear',
+    lineStyle: 'solid',
     pointType: 'none',
     errorBar: { visible: false, width: 1.5, capWidth: 8 },
     points: [
@@ -77,6 +79,14 @@ function layoutForSeries(
 }
 
 describe('multi-value Y-axis grouping', () => {
+  it('rebuilds Y scales when the same track ID receives a different domain', () => {
+    const first = layoutForSeries(series('shared', 0, 1))
+    const second = layoutForSeries(series('shared', 10_000, 20_000))
+
+    expect(first.yScale.domain()).toEqual([0, 1])
+    expect(second.yScale.domain()).toEqual([10_000, 20_000])
+  })
+
   it('uses a configured visible Y domain for axis and series scales', () => {
     const source = series('a', 0, 100)
     const sourceTrack = track([source])
@@ -228,6 +238,18 @@ describe('multi-value Y-axis grouping', () => {
 
     expect(group).toBeDefined()
     expect(measureYAxisGroupClearance(group!)).toBe(119)
+  })
+})
+
+describe('track hit testing', () => {
+  const tracks = [
+    { id: 'first', left: 0, top: 0, width: 100, height: 40 },
+    { id: 'second', left: 0, top: 50, width: 100, height: 40 },
+  ]
+
+  it('switches tracks immediately across a boundary less than five pixels apart', () => {
+    expect(findClosestTrackAtPointer(tracks, 50, 44)?.id).toBe('first')
+    expect(findClosestTrackAtPointer(tracks, 50, 46)?.id).toBe('second')
   })
 })
 
