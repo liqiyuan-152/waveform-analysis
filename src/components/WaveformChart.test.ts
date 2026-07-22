@@ -387,7 +387,7 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-chart__label').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation-layer').exists()).toBe(false)
-    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
   })
 
   it('preserves every track geometry in a multi-column clean view', async () => {
@@ -804,11 +804,11 @@ describe('WaveformChart', () => {
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['channel-0', 'channel-1'])
-    const previousButton = () => wrapper.get('.ant-pagination-prev button')
-    const nextButton = () => wrapper.get('.ant-pagination-next button')
+    const previousButton = () => wrapper.get('[aria-label="上一页"]')
+    const nextButton = () => wrapper.get('[aria-label="下一页"]')
 
-    expect(wrapper.get('.ant-pagination-item-1').classes()).toContain('ant-pagination-item-active')
-    expect(wrapper.get('.ant-pagination-prev').classes()).toContain('ant-pagination-disabled')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('1')
+    expect(previousButton().attributes('disabled')).toBeDefined()
 
     await nextButton().trigger('click')
     expect(
@@ -817,7 +817,7 @@ describe('WaveformChart', () => {
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 3])
 
     await previousButton().trigger('click')
-    expect(wrapper.get('.ant-pagination-item-1').classes()).toContain('ant-pagination-item-active')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('1')
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([1, 3])
 
     await nextButton().trigger('click')
@@ -825,8 +825,8 @@ describe('WaveformChart', () => {
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['channel-4'])
-    expect(wrapper.get('.ant-pagination-item-3').classes()).toContain('ant-pagination-item-active')
-    expect(wrapper.get('.ant-pagination-next').classes()).toContain('ant-pagination-disabled')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('3')
+    expect(nextButton().attributes('disabled')).toBeDefined()
   })
 
   it('overlays series with the same track ID without changing the next frame', async () => {
@@ -905,7 +905,7 @@ describe('WaveformChart', () => {
       '1',
       '2',
     ])
-    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
 
     const firstTrackOverlay = tracks[0].get('.waveform-chart__overlay')
     const overlayWidth = Number(firstTrackOverlay.attributes('width'))
@@ -1362,7 +1362,7 @@ describe('WaveformChart', () => {
     const initialMargin = wrapper.attributes('data-chart-left-margin')
     const initialLabelX = wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
     expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe(
@@ -1467,12 +1467,12 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart(gridSeries(5), {
       grid: { rowCount: 1, columnCount: 1 },
     })
-    await wrapper.get('.ant-pagination-next button').trigger('click')
-    expect(wrapper.get('.ant-pagination-item-2').classes()).toContain('ant-pagination-item-active')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('2')
 
     await wrapper.setProps({ grid: { rowCount: 2, columnCount: 1 } })
     await flushPromises()
-    expect(wrapper.get('.ant-pagination-item-1').classes()).toContain('ant-pagination-item-active')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('1')
   })
 
   it('keeps the shared x domain stable while paging separated and compact grids', async () => {
@@ -1482,7 +1482,7 @@ describe('WaveformChart', () => {
         grid: { rowCount: 1, columnCount: 1 },
       })
       const initialEnd = wrapper.get('.waveform-chart__axis-endpoint--end').text()
-      await wrapper.get('.ant-pagination-next button').trigger('click')
+      await wrapper.get('[aria-label="下一页"]').trigger('click')
       expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe(initialEnd)
     }
   })
@@ -1564,7 +1564,7 @@ describe('WaveformChart', () => {
       ],
     })
     expect(wrapper.find('[data-annotation-id="channel-2-note"]').exists()).toBe(false)
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.find('[data-annotation-id="channel-2-note"]').exists()).toBe(true)
   })
   it('renders a path for sample data and responds to width changes', async () => {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Button, Input, InputNumber, Radio, Select, Switch } from 'ant-design-vue'
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
@@ -313,6 +312,12 @@ function resetTitleTextStyle() {
   titleUnderline.value = false
 }
 
+function clampNumber(value: unknown, min: number, max: number, fallback: number) {
+  const number = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(number)) return fallback
+  return Math.min(max, Math.max(min, number))
+}
+
 function handleWindowKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') closeControls()
 }
@@ -323,15 +328,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
 
 <template>
   <main class="workspace">
-    <Button
+    <button
+      type="button"
       class="mobile-control-toggle"
-      size="small"
       :aria-expanded="controlsOpen"
       aria-controls="waveform-control-panel"
       @click="controlsOpen = true"
     >
       控制面板
-    </Button>
+    </button>
 
     <button
       v-if="controlsOpen"
@@ -348,32 +353,50 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
       aria-label="波形图控制"
     >
       <div class="control-panel__scroll">
-        <Button class="control-panel__close" type="text" size="small" @click="closeControls">
-          关闭
-        </Button>
+        <button class="control-panel__close" type="button" @click="closeControls">关闭</button>
 
         <section class="control-section">
           <h2>显示方式</h2>
-          <Radio.Group
-            v-model:value="displayMode"
-            class="display-mode-control"
-            button-style="solid"
-            size="small"
-            aria-label="波形展示方式"
-          >
-            <Radio.Button value="independent">单独坐标</Radio.Button>
-            <Radio.Button value="separated">多道分离</Radio.Button>
-            <Radio.Button value="compact">多道紧凑</Radio.Button>
-          </Radio.Group>
+          <div class="display-mode-control" role="radiogroup" aria-label="波形展示方式">
+            <label
+              ><input v-model="displayMode" type="radio" value="independent" /><span
+                >单独坐标</span
+              ></label
+            >
+            <label
+              ><input v-model="displayMode" type="radio" value="separated" /><span
+                >多道分离</span
+              ></label
+            >
+            <label
+              ><input v-model="displayMode" type="radio" value="compact" /><span
+                >多道紧凑</span
+              ></label
+            >
+          </div>
         </section>
 
         <section class="control-section">
           <h2>视图</h2>
-          <Button block aria-label="重置波形视图" @click="resetWaveformViewport">重置视图</Button>
+          <button
+            type="button"
+            class="control-action control-action--block"
+            aria-label="重置波形视图"
+            @click="resetWaveformViewport"
+          >
+            重置视图
+          </button>
           <div class="auxiliary-style-controls" style="margin-top: 10px">
             <label class="frame-style-control frame-style-control--switch">
               <span>净图</span>
-              <Switch v-model:checked="cleanView" size="small" aria-label="净图模式" />
+              <input
+                v-model="cleanView"
+                class="native-switch"
+                type="checkbox"
+                role="switch"
+                aria-label="净图模式"
+                @click.stop
+              />
             </label>
           </div>
         </section>
@@ -381,7 +404,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         <section class="control-section">
           <div class="control-section__header">
             <h2>零值参考线</h2>
-            <Switch v-model:checked="zeroLineVisible" size="small" aria-label="显示零值参考线" />
+            <input
+              v-model="zeroLineVisible"
+              class="native-switch"
+              type="checkbox"
+              role="switch"
+              aria-label="显示零值参考线"
+              @click.stop
+            />
           </div>
           <div class="auxiliary-style-controls zero-line-controls" style="margin-top: 10px">
             <label class="frame-style-control">
@@ -398,48 +428,73 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             </label>
             <label class="frame-style-control">
               <span>线宽</span>
-              <InputNumber
-                v-model:value="zeroLineWidth"
+              <input
+                v-model.number="zeroLineWidth"
+                class="native-input"
+                type="number"
                 :min="0.5"
                 :max="10"
                 :step="0.5"
-                size="small"
                 aria-label="零值参考线线宽"
+                @blur="zeroLineWidth = clampNumber(zeroLineWidth, 0.5, 10, 1)"
               />
             </label>
             <label class="frame-style-control">
               <span>线型</span>
-              <Select
-                v-model:value="zeroLineDash"
-                :options="zeroLineDashOptions"
-                size="small"
-                aria-label="零值参考线线型"
-              />
+              <select v-model="zeroLineDash" class="native-select" aria-label="零值参考线线型">
+                <option
+                  v-for="option in zeroLineDashOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
             </label>
           </div>
         </section>
 
         <section class="control-section">
           <h2>叠加方式</h2>
-          <Radio.Group
-            v-model:value="overlayMode"
-            class="display-mode-control"
-            button-style="solid"
-            size="small"
-            aria-label="波形叠加方式"
-          >
-            <Radio.Button value="single-axis">单值轴</Radio.Button>
-            <Radio.Button value="multi-axis">多值轴</Radio.Button>
-          </Radio.Group>
+          <div class="display-mode-control" role="radiogroup" aria-label="波形叠加方式">
+            <label
+              ><input v-model="overlayMode" type="radio" value="single-axis" /><span
+                >单值轴</span
+              ></label
+            >
+            <label
+              ><input v-model="overlayMode" type="radio" value="multi-axis" /><span
+                >多值轴</span
+              ></label
+            >
+          </div>
         </section>
 
         <section class="control-section">
           <h2>图框布局</h2>
           <div class="grid-size-control" aria-label="波形网格尺寸">
-            <InputNumber v-model:value="rowCount" :min="1" :max="10" size="small" />
+            <input
+              v-model.number="rowCount"
+              class="native-input"
+              type="number"
+              min="1"
+              max="10"
+              step="1"
+              aria-label="波形网格行数"
+              @blur="rowCount = clampNumber(rowCount, 1, 10, 2)"
+            />
             <span>行</span>
             <span class="control-separator">×</span>
-            <InputNumber v-model:value="columnCount" :min="1" :max="10" size="small" />
+            <input
+              v-model.number="columnCount"
+              class="native-input"
+              type="number"
+              min="1"
+              max="10"
+              step="1"
+              aria-label="波形网格列数"
+              @blur="columnCount = clampNumber(columnCount, 1, 10, 1)"
+            />
             <span>列</span>
           </div>
         </section>
@@ -473,30 +528,38 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             </label>
             <label class="frame-style-control">
               <span>线宽</span>
-              <InputNumber
-                v-model:value="frameBorderWidth"
+              <input
+                v-model.number="frameBorderWidth"
+                class="native-input"
+                type="number"
                 :min="0"
                 :max="10"
                 :step="0.5"
-                size="small"
                 aria-label="图框线宽"
+                @blur="frameBorderWidth = clampNumber(frameBorderWidth, 0, 10, 1)"
               />
             </label>
             <label class="frame-style-control">
               <span>线型</span>
-              <Select
-                v-model:value="frameBorderStyle"
-                :options="frameBorderStyleOptions"
-                size="small"
-                aria-label="图框线型"
-              />
+              <select v-model="frameBorderStyle" class="native-select" aria-label="图框线型">
+                <option
+                  v-for="option in frameBorderStyleOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
             </label>
             <label class="frame-style-control frame-style-control--switch">
               <span>水印</span>
-              <Switch
-                v-model:checked="frameWatermarkVisible"
-                size="small"
+              <input
+                v-model="frameWatermarkVisible"
+                class="native-switch"
+                type="checkbox"
+                role="switch"
                 aria-label="显示图框水印"
+                @click.stop
               />
             </label>
           </div>
@@ -505,41 +568,56 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
         <section class="control-section title-control-section">
           <div class="control-section__header">
             <h2>标题</h2>
-            <Switch v-model:checked="titleVisible" size="small" aria-label="显示标题" />
+            <input
+              v-model="titleVisible"
+              class="native-switch"
+              type="checkbox"
+              role="switch"
+              aria-label="显示标题"
+              @click.stop
+            />
           </div>
 
           <div class="title-controls">
             <label class="title-control title-control--wide">
               <span>标题名称</span>
-              <Input v-model:value="titleText" size="small" aria-label="标题名称" />
+              <input v-model="titleText" class="native-input" type="text" aria-label="标题名称" />
             </label>
             <label class="title-control title-control--wide">
               <span>对齐方式</span>
-              <Select
-                v-model:value="titleAlign"
-                :options="titleAlignOptions"
-                size="small"
-                aria-label="标题对齐方式"
-              />
+              <select v-model="titleAlign" class="native-select" aria-label="标题对齐方式">
+                <option
+                  v-for="option in titleAlignOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
             </label>
             <label class="title-control">
               <span>字体</span>
-              <Select
-                v-model:value="titleFontFamily"
-                :options="titleFontFamilyOptions"
-                size="small"
-                aria-label="标题字体"
-              />
+              <select v-model="titleFontFamily" class="native-select" aria-label="标题字体">
+                <option
+                  v-for="option in titleFontFamilyOptions"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
             </label>
             <label class="title-control">
               <span>字号</span>
-              <InputNumber
-                v-model:value="titleFontSize"
+              <input
+                v-model.number="titleFontSize"
+                class="native-input"
+                type="number"
                 :min="8"
                 :max="72"
                 :step="1"
-                size="small"
                 aria-label="标题字号"
+                @blur="titleFontSize = clampNumber(titleFontSize, 8, 72, 14)"
               />
             </label>
             <div class="title-control">
@@ -587,14 +665,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
             </div>
             <label class="title-control">
               <span>旋转</span>
-              <InputNumber
-                v-model:value="titleRotation"
+              <input
+                v-model.number="titleRotation"
+                class="native-input"
+                type="number"
                 :min="-180"
                 :max="180"
                 :step="1"
-                addon-after="°"
-                size="small"
                 aria-label="标题旋转角度"
+                @blur="titleRotation = clampNumber(titleRotation, -180, 180, 0)"
               />
             </label>
             <div class="title-control title-control--color">
@@ -616,21 +695,27 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
           <h2>图例</h2>
           <label class="select-control">
             <span>位置</span>
-            <Select
-              v-model:value="legendPosition"
-              :options="legendPositionOptions"
-              size="small"
-              aria-label="图例位置"
-            />
+            <select v-model="legendPosition" class="native-select" aria-label="图例位置">
+              <option
+                v-for="option in legendPositionOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
           </label>
           <label class="select-control">
             <span>排列</span>
-            <Select
-              v-model:value="legendOrientation"
-              :options="legendOrientationOptions"
-              size="small"
-              aria-label="图例排列"
-            />
+            <select v-model="legendOrientation" class="native-select" aria-label="图例排列">
+              <option
+                v-for="option in legendOrientationOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
           </label>
           <label class="legend-color-control">
             <span>背景</span>

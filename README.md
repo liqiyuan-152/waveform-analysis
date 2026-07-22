@@ -28,23 +28,23 @@ pnpm install
 pnpm dev
 ```
 
-组件库将 Vue、D3、Ant Design Vue 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
+组件库将 Vue、D3 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
 安装这些依赖：
 
 ```bash
-pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
+pnpm add waveform-analysis vue d3 vue3-colorpicker
 ```
 
 ### 运行时版本要求
 
 组件库支持以下运行时版本：
 
-| 依赖           | 支持版本      |
-| -------------- | ------------- |
-| Vue            | `>=3.2.33 <4` |
-| Ant Design Vue | `>=3.2.20 <4` |
+| 依赖 | 支持版本      |
+| ---- | ------------- |
+| Vue  | `>=3.2.33 <4` |
+| D3   | `>=7.9.0 <8`  |
 
-安装时请确保业务项目中的 Vue 与 Ant Design Vue 版本满足上述范围。
+安装时请确保业务项目中的 Vue 与 D3 版本满足上述范围。
 
 ## 发布
 

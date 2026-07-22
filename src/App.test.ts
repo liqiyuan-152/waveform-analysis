@@ -1,5 +1,4 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { InputNumber, Select } from 'ant-design-vue'
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
 
@@ -53,9 +52,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(frameControls.find('[aria-label="图框线宽"]').exists()).toBe(true)
     expect(frameControls.find('[aria-label="图框线型"]').exists()).toBe(true)
     expect(frameControls.find('[aria-label="显示图框水印"]').exists()).toBe(true)
-    expect(frameControls.get('.frame-style-control--switch .ant-switch').classes()).toContain(
-      'ant-switch-small',
-    )
+    expect(
+      frameControls.get('.frame-style-control--switch .native-switch').attributes('role'),
+    ).toBe('switch')
     const titleControls = panel.get('.title-controls')
     expect(panel.find('[aria-label="显示标题"]').exists()).toBe(true)
     expect(titleControls.find('[aria-label="标题名称"]').exists()).toBe(true)
@@ -85,8 +84,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(chart.props('cleanView')).toBe(false)
     expect(chart.props('zeroLine')).toMatchObject({ visible: false, color: '#98a2b3', width: 1 })
 
-    await wrapper.get('[aria-label="净图模式"]').trigger('click')
-    await wrapper.get('[aria-label="显示零值参考线"]').trigger('click')
+    await wrapper.get('[aria-label="净图模式"]').setValue(true)
+    await wrapper.get('[aria-label="显示零值参考线"]').setValue(true)
     await flushPromises()
 
     expect(chart.props('cleanView')).toBe(true)
@@ -237,7 +236,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(renderedTitle().attributes('style')).toContain('font-style: normal')
     expect(renderedTitle().attributes('style')).toContain('text-decoration: none')
 
-    await wrapper.get('[aria-label="显示标题"]').trigger('click')
+    await wrapper.get('[aria-label="显示标题"]').setValue(false)
     await flushPromises()
     expect(wrapper.find('.waveform-chart__title-area').exists()).toBe(false)
 
@@ -250,17 +249,17 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     const frameControls = wrapper.get('.frame-style-controls')
     const colorPickers = frameControls.findAllComponents(ColorPicker)
-    const widthInput = frameControls.findAllComponents(InputNumber)[0]
-    const styleSelect = frameControls.findAllComponents(Select)[0]
+    const widthInput = frameControls.get('[aria-label="图框线宽"]')
+    const styleSelect = frameControls.get('[aria-label="图框线型"]')
 
     expect(colorPickers).toHaveLength(2)
-    expect(widthInput).toBeDefined()
-    expect(styleSelect).toBeDefined()
+    expect(widthInput.element.tagName).toBe('INPUT')
+    expect(styleSelect.element.tagName).toBe('SELECT')
 
     colorPickers[0].vm.$emit('update:pureColor', 'rgba(220, 38, 38, 0.8)')
     colorPickers[1].vm.$emit('update:pureColor', 'rgba(14, 165, 233, 0.25)')
-    widthInput?.vm.$emit('update:value', 3)
-    styleSelect?.vm.$emit('update:value', 'dashed')
+    await widthInput.setValue('3')
+    await styleSelect.setValue('dashed')
     await flushPromises()
 
     const frames = wrapper.findAll('.waveform-chart__plot-frame')
@@ -291,11 +290,11 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     expect(initialWatermarks.length).toBeGreaterThan(1)
 
-    await watermarkToggle.trigger('click')
+    await watermarkToggle.setValue(false)
     await flushPromises()
     expect(wrapper.findAll('.waveform-chart__watermark')).toHaveLength(0)
 
-    await watermarkToggle.trigger('click')
+    await watermarkToggle.setValue(true)
     await flushPromises()
     expect(
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),

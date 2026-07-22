@@ -3,7 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-const peerDependencies = ['vue', 'd3', 'ant-design-vue', 'vue3-colorpicker']
+const peerDependencies = ['vue', 'd3', 'vue3-colorpicker']
 
 export default defineConfig({
   plugins: [vue()],

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Pagination } from 'ant-design-vue'
 import {
   bisector,
   pointer,
@@ -66,7 +65,6 @@ import {
 import {
   getGridGap,
   getPageCount,
-  getPageSize,
   normalizeGridOptions,
   paginateSeries,
   resolveGridCellGeometry,
@@ -78,6 +76,7 @@ import { buildTrackLayouts, measureTrackYAxisClearance, Y_AXIS_EXPONENT_GAP } fr
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './core/title'
 import { usePreparedWaveformSeries } from './core/useWaveformData'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
+import WaveformPagination from './WaveformPagination.vue'
 import { useWaveformInstanceId } from '../utils/waveformId'
 
 const props = withDefaults(
@@ -1990,15 +1989,11 @@ onBeforeUnmount(() => {
       </text>
     </svg>
 
-    <Pagination
+    <WaveformPagination
       v-if="gridOptions.showPagination && pageCount > 1 && !isCleanView"
       class="waveform-chart__pagination"
-      aria-label="波形分页"
       :current="currentPage"
-      :page-size="getPageSize(gridOptions)"
-      :total="chartTracks.length"
-      :show-size-changer="false"
-      :show-quick-jumper="false"
+      :page-count="pageCount"
       @change="goToPage"
     />
 
@@ -2095,17 +2090,6 @@ onBeforeUnmount(() => {
   overflow: visible;
   line-height: 1.2;
   transform-origin: center;
-}
-
-.waveform-chart__pagination :deep(.ant-pagination-item),
-.waveform-chart__pagination :deep(.ant-pagination-prev .ant-pagination-item-link),
-.waveform-chart__pagination :deep(.ant-pagination-next .ant-pagination-item-link) {
-  background: #fff;
-  border-color: #d9d9d9;
-}
-
-.waveform-chart__pagination :deep(.ant-pagination-item-active) {
-  border-color: #1677ff;
 }
 
 .waveform-chart__grid-slot-placeholder {
