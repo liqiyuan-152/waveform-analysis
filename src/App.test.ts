@@ -140,8 +140,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const chart = wrapper.getComponent(WaveformChart)
 
     expect(chart.props('axes')).toEqual({
-      x: { lineVisible: true },
-      y: { lineVisible: true },
+      x: { lineVisible: false },
+      y: { lineVisible: false },
     })
 
     await wrapper.get('[aria-label="显示横轴线"]').trigger('click')
@@ -149,8 +149,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     await flushPromises()
 
     expect(chart.props('axes')).toEqual({
-      x: { lineVisible: false },
-      y: { lineVisible: false },
+      x: { lineVisible: true },
+      y: { lineVisible: true },
     })
     wrapper.unmount()
   })
