@@ -290,7 +290,6 @@ const containerStyle = computed(() => ({
   width: fixedWidth.value === undefined ? '100%' : `${fixedWidth.value}px`,
   height: fixedHeight.value === undefined ? '100%' : `${fixedHeight.value}px`,
 }))
-const legendPosition = computed<WaveformLegendPosition>(() => props.legend?.position ?? 'top-right')
 const isCleanView = computed(() => props.cleanView === true)
 const resolvedZeroLine = computed(() => {
   const width = props.zeroLine?.width
@@ -311,13 +310,17 @@ const hiddenSeriesIdSet = computed(() =>
     : new Set(props.hiddenSeriesIds),
 )
 const resolvedHiddenSeriesIds = computed(() => Array.from(hiddenSeriesIdSet.value))
-const legendOrientation = computed<Exclude<WaveformLegendOrientation, 'auto'>>(() => {
+function resolveLegendPosition(trackId: string): WaveformLegendPosition {
+  return props.legend?.trackPositions?.[trackId] ?? props.legend?.position ?? 'top-right'
+}
+
+function resolveLegendOrientation(
+  position: WaveformLegendPosition,
+): Exclude<WaveformLegendOrientation, 'auto'> {
   const orientation = props.legend?.orientation ?? 'auto'
   if (orientation !== 'auto') return orientation
-  return legendPosition.value === 'top' || legendPosition.value === 'bottom'
-    ? 'horizontal'
-    : 'vertical'
-})
+  return position === 'top' || position === 'bottom' ? 'horizontal' : 'vertical'
+}
 const resolvedTitleText = computed(() => props.title?.text.trim() ?? '')
 const titleAreaReserved = computed(
   () =>
@@ -1966,13 +1969,14 @@ onBeforeUnmount(() => {
             :key="`legend-${track.index}-${track.series.name}`"
             class="waveform-chart__legend-track"
             :data-legend-track-index="track.index"
+            :data-legend-track-id="track.id"
             :transform="`translate(${track.left}, ${track.top})`"
           >
             <WaveformLegend
               v-if="!track.isEmpty && track.legendSeries.length > 1"
               :series="track.legendSeries"
-              :position="legendPosition"
-              :orientation="legendOrientation"
+              :position="resolveLegendPosition(track.id)"
+              :orientation="resolveLegendOrientation(resolveLegendPosition(track.id))"
               :background-color="legendBackgroundColor"
               :interactive="legendInteractive"
               :hidden-series-ids="resolvedHiddenSeriesIds"

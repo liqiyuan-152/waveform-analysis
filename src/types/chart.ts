@@ -104,6 +104,8 @@ export type WaveformLegendOrientation = 'auto' | 'horizontal' | 'vertical'
 /** Options shared by legends in every multi-series track. */
 export interface WaveformLegendOptions {
   position?: WaveformLegendPosition
+  /** Per-track position overrides keyed by trackId, or by series id when trackId is omitted. */
+  trackPositions?: Record<string, WaveformLegendPosition>
   orientation?: WaveformLegendOrientation
   /** CSS color used by the legend panel; alpha controls background transparency. */
   backgroundColor?: string

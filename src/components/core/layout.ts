@@ -371,6 +371,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     })
 
     return {
+      id: displayTrack.id,
       index,
       series,
       seriesList: displayTrack.visibleSeries,

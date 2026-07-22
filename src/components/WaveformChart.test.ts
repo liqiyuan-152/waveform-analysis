@@ -1079,6 +1079,61 @@ describe('WaveformChart', () => {
     expect(wrapper.attributes('data-chart-left-margin')).toBe('64')
   })
 
+  it('resolves legend positions by stable track id across pages', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: Array.from({ length: 8 }, (_, index) => ({
+          id: `series-${index}`,
+          trackId: `frame-${Math.floor(index / 2)}`,
+          name: `series ${index}`,
+          data: {
+            kind: 'points' as const,
+            points: [
+              { x: 0, y: index },
+              { x: 1, y: index + 1 },
+            ],
+          },
+        })),
+      },
+      {
+        grid: { rowCount: 2, columnCount: 1, showPagination: true },
+        legend: {
+          position: 'left',
+          orientation: 'auto',
+          trackPositions: {
+            'frame-0': 'top',
+            'frame-1': 'bottom-right',
+            'frame-2': 'bottom',
+          },
+        },
+      },
+    )
+
+    const legendForTrack = (trackId: string) =>
+      wrapper.get(`[data-legend-track-id="${trackId}"] .waveform-chart__legend`)
+
+    expect(legendForTrack('frame-0').attributes('data-position')).toBe('top')
+    expect(legendForTrack('frame-0').attributes('data-orientation')).toBe('horizontal')
+    expect(legendForTrack('frame-1').attributes('data-position')).toBe('bottom-right')
+    expect(legendForTrack('frame-1').attributes('data-orientation')).toBe('vertical')
+
+    await wrapper.setProps({
+      legend: {
+        position: 'left',
+        orientation: 'vertical',
+        trackPositions: { 'frame-0': 'top', 'frame-1': 'bottom-right', 'frame-2': 'bottom' },
+      },
+    })
+    expect(legendForTrack('frame-0').attributes('data-orientation')).toBe('vertical')
+
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+    expect(legendForTrack('frame-2').attributes('data-position')).toBe('bottom')
+    expect(legendForTrack('frame-2').attributes('data-orientation')).toBe('vertical')
+    expect(legendForTrack('frame-3').attributes('data-position')).toBe('left')
+    expect(legendForTrack('frame-3').attributes('data-orientation')).toBe('vertical')
+  })
+
   it('applies a configurable alpha background to every visible legend', async () => {
     const wrapper = await mountSizedChart(
       {

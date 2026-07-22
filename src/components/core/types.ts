@@ -72,6 +72,8 @@ export interface HoveredSeriesPoint extends DisplaySeries {
  * 轨道布局
  */
 export interface TrackLayout {
+  /** Stable track key derived from trackId, or from the series id when trackId is omitted. */
+  id: string
   index: number
   series: DisplaySeries
   /** Visible series used by rendering and interaction code. */

@@ -3,6 +3,8 @@
 基于 Vue 3、TypeScript 和 D3 的响应式 SVG 波形图组件。适合展示单通道、多通道和大规模采样
 数据，内置缩放、tooltip、图例、误差棒、标注、分页和多 Y 轴叠加。
 
+当前稳定版本：`v0.1.15`。
+
 组件使用不可变数据模型：替换 `data` 引用后会重新计算数据域和视口；大数据会按当前可见范围
 和屏幕像素自动保峰降采样，而 tooltip、最近点查询和标注仍使用完整原始数据。
 
@@ -16,17 +18,15 @@
 - 采样值、显式坐标点和多系列数据模型
 - `independent`、`separated`、`compact` 三种布局模式
 - 曲线、阶梯线、点符号和对称/非对称误差棒
+- 实线、虚线和点划线，可按系列独立配置
 - 缩放过程事件、缩放结束按可视区间加载和视口重置
+- 可选的空格拖拽平移，默认关闭并隔离多图表实例
 - 多系列图例、受控显隐、网格分页和最多四根 Y 轴
+- 按轨道控制水平/垂直网格线的显隐与颜色
 - 受控标注、右键编辑、拖拽避让和自定义颜色
-- 标题、图框、坐标轴、时间单位和降采样参数可配置
+- 标题、图框、坐标轴、零值参考线、净图和渲染参数可配置
 
 ## 安装
-
-```bash
-pnpm install
-pnpm dev
-```
 
 组件库将 Vue、D3、Ant Design Vue 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
 安装这些依赖：
@@ -39,12 +39,14 @@ pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
 
 组件库支持以下运行时版本：
 
-| 依赖           | 支持版本      |
-| -------------- | ------------- |
-| Vue            | `>=3.2.33 <4` |
-| Ant Design Vue | `>=3.2.20 <4` |
+| 依赖             | 支持版本      |
+| ---------------- | ------------- |
+| Vue              | `>=3.2.33 <4` |
+| Ant Design Vue   | `>=3.2.20 <4` |
+| D3               | `>=7.9.0 <8`  |
+| vue3-colorpicker | `>=2.3.0 <3`  |
 
-安装时请确保业务项目中的 Vue 与 Ant Design Vue 版本满足上述范围。
+安装时请确保业务项目中的 peer dependency 版本均满足上述范围。
 
 ## 发布
 
@@ -96,24 +98,30 @@ const data = ref<WaveformData>({
 | `displayMode`                     | `'independent' \| 'separated' \| 'compact'` | `'independent'`                                         | 图框布局                          |
 | `overlayMode`                     | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                         | 叠加曲线的 Y 轴模式               |
 | `timeUnit`                        | `'s' \| 'ms'`                               | `'ms'`                                                  | 坐标轴和 tooltip 展示单位         |
+| `xLabel` / `yLabel`               | `string`                                    | `时间（timeUnit）` / `'幅值'`                           | 坐标轴名称                        |
+| `lineColor`                       | `string`                                    | `'#0960bd'`                                             | 单波形默认颜色                    |
 | `width` / `height`                | `number`                                    | 自适应                                                  | 组件总尺寸，单位为 CSS 像素       |
 | `zoomable` / `showTooltip`        | `boolean`                                   | `true` / `true`                                         | 缩放和数值 tooltip 开关           |
 | `pannable`                        | `boolean`                                   | `false`                                                 | 空格拖拽平移开关                  |
 | `minZoomSpan`                     | `number`                                    | 未设置                                                  | 最小缩放跨度，使用原始 X 数据单位 |
+| `minVisiblePoints`                | `number`                                    | `0`                                                     | 缩放后至少保留的不同 X 坐标数     |
 | `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围             |
 | `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围   |
 | `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                        |
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距             |
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式              |
+| `frameNumber`                     | `string \| number`                          | 未设置                                                  | 图框水印内容                      |
 | `zeroLine`                        | `WaveformZeroLineOptions`                   | `{ visible: false }`                                    | 零值参考线显隐与样式              |
 | `cleanView`                       | `boolean`                                   | `false`                                                 | 仅保留波形的净图模式              |
 | `annotations`                     | `WaveformAnnotation[]`                      | `[]`                                                    | 受控标注数据                      |
+| `annotationsVisible`              | `boolean`                                   | `true`                                                  | 标注图层显隐                      |
+| `interactionMode`                 | `'zoom' \| 'annotation'`                    | `'zoom'`                                                | 左键交互模式                      |
 | `hiddenSeriesIds`                 | `string[]`                                  | 未设置                                                  | 受控隐藏系列 ID                   |
 | `defaultHiddenSeriesIds`          | `string[]`                                  | `[]`                                                    | 非受控模式的初始隐藏系列          |
 
 所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
-`WaveformAnnotation`、`WaveformRenderingOptions`、`WaveformZeroLineOptions` 和
-`WaveformGridOptions`。
+`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
+`WaveformZeroLineOptions`、`WaveformGridOptions` 和 `WaveformGridTrackLines`。
 
 ### 数据结构
 
@@ -157,7 +165,8 @@ const chartData: WaveformData = {
 
 ```vue
 <script setup lang="ts">
-import { WaveformChart } from './index'
+import { WaveformChart } from 'waveform-analysis'
+import 'waveform-analysis/style.css'
 </script>
 
 <template>
@@ -311,28 +320,6 @@ const series = {
 `width` 和 `height` 始终表示组件总尺寸。标题显示后会从总高度中扣除标题区域，剩余高度
 用于 SVG 绘图区，因此启用标题不会扩大组件或破坏父容器布局。
 
-宿主已有全局标题配置时，可以在未来接入组件库绘图链路时按以下方式映射：
-
-```ts
-const waveformTitle = {
-  visible: hasQueried && !cleanViewEnabled && titleStyle.enabled,
-  text: titleStyle.titleName.trim() || defaultTitleText,
-  align: titleStyle.align,
-  textStyle: {
-    color: titleStyle.color,
-    fontSize: titleStyle.fontSize,
-    fontFamily: titleStyle.fontFamily,
-    rotation: titleStyle.rotation,
-    fontWeight: titleStyle.bold ? 700 : 400,
-    fontStyle: titleStyle.italic ? 'italic' : 'normal',
-    textDecoration: titleStyle.underline ? 'underline' : 'none',
-  },
-} satisfies WaveformTitleOptions
-```
-
-宿主的抽屉折叠状态不需要传给组件。替换绘图链路时应同步移除宿主外层标题，避免重复
-渲染；当前宿主实现无需修改。
-
 Demo 左侧控制面板提供标题实时预览，可配置标题名称、显隐、对齐、字体、字号、粗体、
 斜体、下划线、旋转和颜色。字号范围为 `8–72px`，旋转范围为 `-180–180°`；样式栏中的
 `A` 用于恢复常规字重、非斜体和无下划线，关闭标题不会清除已经填写的配置。
@@ -373,12 +360,21 @@ const hiddenSeriesIds = ref<string[]>([])
   v-model:hidden-series-ids="hiddenSeriesIds"
   :legend="{
     position: 'top-right',
+    trackPositions: {
+      'group-1': 'top-left',
+      'group-2': 'bottom',
+    },
     orientation: 'auto',
     backgroundColor: 'rgba(255, 255, 255, 0.45)',
     interactive: true,
   }"
 />
 ```
+
+`legend.trackPositions` 按图框 ID 单独覆盖图例位置；同一个 `trackId` 组成的图框以该
+`trackId` 为键，未设置 `trackId` 时以规范化后的 `series.id` 为键。未命中的图框继续使用
+`legend.position`，两者都未配置时使用 `top-right`。当 `orientation` 为 `auto` 时，每个图框
+会根据最终位置独立选择排列方向：`top`、`bottom` 为水平排列，其余位置为垂直排列。
 
 未配置或传入空字符串时，图例背景默认使用 `rgba(255, 255, 255, 0.7)`。
 `legend.interactive` 默认为 `false`；开启后可以单击或使用键盘操作图例项切换曲线显隐。
@@ -455,8 +451,8 @@ tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失
 组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；
 原地修改已有数组不会触发缓存刷新。建议通过 `shallowRef` 保存大数据并整体替换引用。
 规范化始终保留所有有效点，坐标域、误差棒、tooltip 和标注均使用完整数据；绘制路径会根据
-当前视口和 `rendering` 配置自动降采样。如需在传入组件前主动压缩数据，可使用公开的
-`downsampleLTTB`、`downsampleMinMax` 或 `adaptiveSampling` 工具。
+当前视口和 `rendering` 配置自动降采样。调用方如需在传入组件前主动压缩数据，应自行保留
+原始数据，以免影响 tooltip、标注和误差范围的精度。
 
 默认在可见点超过 2,000 时进行降采样，每个像素最多渲染 4 个保峰点。可按业务调整：
 
@@ -496,7 +492,8 @@ import {
   WaveformChart,
   type WaveformAnnotation,
   type WaveformInteractionMode,
-} from './index'
+} from 'waveform-analysis'
+import 'waveform-analysis/style.css'
 
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
@@ -542,7 +539,7 @@ X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01,
 | --------------------------------------------------------------- | -------------------------------------------------------------- |
 | `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
 | `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
-| `zoom-end`                                                      | 滚轮放大结束后触发；独立分图模式附带 `trackIndex`、`seriesIds` |
+| `zoom-end`                                                      | 滚轮或框选结束后触发；`gesture` 区分二者，独立模式附带轨道信息 |
 | `zoom-reset`                                                    | 双击重置视口时触发，调用方应恢复首次完整数据                   |
 | `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
 | `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
@@ -585,7 +582,7 @@ pnpm build
 发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再创建同版本 tag：
 
 ```bash
-git tag -a v0.1.7 -m "Release v0.1.7"
+git tag -a v0.1.15 -m "Release v0.1.15"
 git push origin main --follow-tags
 ```
 
