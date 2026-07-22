@@ -9,11 +9,9 @@ import {
 } from 'd3'
 
 import {
-  selectDecorationPoints,
-  selectRenderablePoints,
-  resolveWaveformPointErrors,
+  selectSeriesRenderPoints,
   type ResolvedWaveformRenderingOptions,
-} from '../../core'
+} from '../../core/rendering'
 import type { WaveformDisplayMode, WaveformOverlayMode, WaveformPoint } from '../../types'
 import {
   buildMinorTicks,
@@ -217,6 +215,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       points: [],
       xDomain: [0, 1],
       yDomain: [0, 1],
+      hasErrorPoints: false,
     }
     const displayTrack: DisplayTrack = cell.series ?? {
       id: emptySeries.id,
@@ -317,51 +316,18 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         axis.seriesList.some((series) => series.id === trackSeries.id),
       )
       const seriesYScale = yAxis?.scale ?? yScale
-      const pathPoints = selectRenderablePoints(
+      const renderPoints = selectSeriesRenderPoints(
         trackSeries.points,
         domain,
         cell.width,
         options.rendering,
+        {
+          lineVisible: !isEmpty && trackSeries.lineType !== 'none',
+          pointVisible: trackSeries.pointType !== 'none',
+          errorBarVisible: trackSeries.errorBar.visible,
+          hasErrorPoints: trackSeries.hasErrorPoints,
+        },
       )
-      const hasError = (point: WaveformPoint) => {
-        const { lower, upper } = resolveWaveformPointErrors(point)
-        return lower !== 0 || upper !== 0
-      }
-      const hasErrorPoints = trackSeries.errorBar.visible && trackSeries.points.some(hasError)
-      const sharesDecorationPoints = trackSeries.pointType !== 'none' && hasErrorPoints
-      const sharedDecorationPoints = sharesDecorationPoints
-        ? selectDecorationPoints(
-            trackSeries.points,
-            domain,
-            cell.width,
-            Math.max(options.rendering.pointMinSpacing, options.rendering.errorBarMinSpacing),
-            options.rendering.downsample,
-            undefined,
-            hasError,
-          )
-        : undefined
-      const pointRenderPoints =
-        trackSeries.pointType === 'none'
-          ? []
-          : (sharedDecorationPoints ??
-            selectDecorationPoints(
-              trackSeries.points,
-              domain,
-              cell.width,
-              options.rendering.pointMinSpacing,
-              options.rendering.downsample,
-            ))
-      const errorBarRenderPoints = trackSeries.errorBar.visible
-        ? (sharedDecorationPoints?.filter(hasError) ??
-          selectDecorationPoints(
-            trackSeries.points,
-            domain,
-            cell.width,
-            options.rendering.errorBarMinSpacing,
-            options.rendering.downsample,
-            hasError,
-          ))
-        : []
       const pathGenerator = line<WaveformPoint>()
         .x((point) => xScale(point.x))
         .y((point) => seriesYScale(point.y))
@@ -372,9 +338,9 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       }
       return {
         series: trackSeries,
-        path: isEmpty || trackSeries.lineType === 'none' ? null : pathGenerator(pathPoints),
-        pointRenderPoints,
-        errorBarRenderPoints,
+        path: renderPoints.linePoints.length ? pathGenerator(renderPoints.linePoints) : null,
+        pointRenderPoints: renderPoints.pointRenderPoints,
+        errorBarRenderPoints: renderPoints.errorBarRenderPoints,
         yScale: seriesYScale,
         yAxisIndex: yAxis?.index ?? 0,
       }
@@ -407,6 +373,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       xAxisExponent,
       path: seriesPaths[0]?.path ?? null,
       seriesPaths,
+      gridLines: options.grid.trackLines[displayTrack.id] ?? {
+        horizontal: true,
+        vertical: true,
+      },
       showXAxis:
         (isEmpty || hasVisibleSeries) &&
         (options.displayMode === 'independent' ||

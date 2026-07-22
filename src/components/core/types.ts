@@ -5,6 +5,7 @@ import type {
   WaveformPoint,
   WaveformPointType,
 } from '../../types'
+import type { NormalizedWaveformGridLineOptions } from './grid'
 
 /**
  * 显示系列
@@ -21,6 +22,7 @@ export interface DisplaySeries {
   points: WaveformPoint[]
   xDomain: [number, number]
   yDomain: [number, number]
+  hasErrorPoints: boolean
 }
 
 export interface DisplayTrack {
@@ -97,6 +99,7 @@ export interface TrackLayout {
   path: string | null
   seriesPaths: TrackSeriesPath[]
   showXAxis: boolean
+  gridLines: NormalizedWaveformGridLineOptions
 }
 
 // 重新导出 WaveformPoint 方便使用

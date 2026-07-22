@@ -22,34 +22,42 @@ export interface PreparedWaveformSeries {
   points: WaveformPoint[]
   xDomain: [number, number]
   yDomain: [number, number]
+  hasErrorPoints: boolean
 }
 
-function pointDomain(
+function pointMetrics(
   points: WaveformPoint[],
-  key: 'x' | 'y',
   includeErrors = false,
-): [number, number] {
-  let minimum = Number.POSITIVE_INFINITY
-  let maximum = Number.NEGATIVE_INFINITY
-  points.forEach((point) => {
-    const value = point[key]
-    if (value < minimum) minimum = value
-    if (value > maximum) maximum = value
-    if (key === 'y' && includeErrors) {
+): { xDomain: [number, number]; yDomain: [number, number]; hasErrorPoints: boolean } {
+  let xMinimum = Number.POSITIVE_INFINITY
+  let xMaximum = Number.NEGATIVE_INFINITY
+  let yMinimum = Number.POSITIVE_INFINITY
+  let yMaximum = Number.NEGATIVE_INFINITY
+  let hasErrorPoints = false
+  for (const point of points) {
+    if (point.x < xMinimum) xMinimum = point.x
+    if (point.x > xMaximum) xMaximum = point.x
+    if (point.y < yMinimum) yMinimum = point.y
+    if (point.y > yMaximum) yMaximum = point.y
+    if (includeErrors) {
       const errors = resolveWaveformPointErrors(point)
-      minimum = Math.min(minimum, point.y - errors.lower)
-      maximum = Math.max(maximum, point.y + errors.upper)
+      if (errors.lower !== 0 || errors.upper !== 0) hasErrorPoints = true
+      yMinimum = Math.min(yMinimum, point.y - errors.lower)
+      yMaximum = Math.max(yMaximum, point.y + errors.upper)
     }
-  })
-  return paddedDomain(Number.isFinite(minimum) ? [minimum, maximum] : [])
+  }
+  return {
+    xDomain: paddedDomain(Number.isFinite(xMinimum) ? [xMinimum, xMaximum] : []),
+    yDomain: paddedDomain(Number.isFinite(yMinimum) ? [yMinimum, yMaximum] : []),
+    hasErrorPoints,
+  }
 }
 
 export function prepareWaveformSeries(data: WaveformData): PreparedWaveformSeries[] {
-  return normalizeWaveformSeries(data).map((series) => ({
-    ...series,
-    xDomain: pointDomain(series.points, 'x'),
-    yDomain: pointDomain(series.points, 'y', series.errorBar.visible),
-  }))
+  return normalizeWaveformSeries(data).map((series) => {
+    const metrics = pointMetrics(series.points, series.errorBar.visible)
+    return { ...series, ...metrics }
+  })
 }
 
 export function usePreparedWaveformSeries(data: () => WaveformData, onDataChange: () => void) {

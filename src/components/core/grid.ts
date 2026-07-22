@@ -8,12 +8,26 @@ export interface WaveformGridOptions {
   rowCount?: number
   columnCount?: number
   showPagination?: boolean
+  trackLines?: WaveformGridTrackLines
+}
+
+export interface WaveformGridLineOptions {
+  horizontal?: boolean
+  vertical?: boolean
+}
+
+export type WaveformGridTrackLines = Record<string, WaveformGridLineOptions>
+
+export interface NormalizedWaveformGridLineOptions {
+  horizontal: boolean
+  vertical: boolean
 }
 
 export interface NormalizedWaveformGridOptions {
   rowCount: number
   columnCount: number
   showPagination: boolean
+  trackLines: Record<string, NormalizedWaveformGridLineOptions>
 }
 
 export interface GridCellGeometry {
@@ -37,10 +51,20 @@ const normalizeCount = (value: unknown, fallback: number) => {
 }
 
 export function normalizeGridOptions(options?: WaveformGridOptions): NormalizedWaveformGridOptions {
+  const trackLines = Object.fromEntries(
+    Object.entries(options?.trackLines ?? {}).map(([trackId, lines]) => [
+      trackId,
+      {
+        horizontal: typeof lines?.horizontal === 'boolean' ? lines.horizontal : true,
+        vertical: typeof lines?.vertical === 'boolean' ? lines.vertical : true,
+      },
+    ]),
+  )
   return {
     rowCount: normalizeCount(options?.rowCount, 2),
     columnCount: normalizeCount(options?.columnCount, 1),
     showPagination: options?.showPagination ?? true,
+    trackLines,
   }
 }
 

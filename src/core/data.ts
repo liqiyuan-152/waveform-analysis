@@ -46,15 +46,27 @@ export function normalizeWaveformData(data: SingleWaveformData): WaveformPoint[]
     if (!Number.isFinite(data.sampleRate) || data.sampleRate <= 0) return []
 
     const startTime = Number.isFinite(data.startTime) ? (data.startTime ?? 0) : 0
-    return data.values.flatMap((value, index) =>
-      Number.isFinite(value) ? [{ x: startTime + index / data.sampleRate, y: value }] : [],
-    )
+    const points: WaveformPoint[] = []
+    for (let index = 0; index < data.values.length; index += 1) {
+      const value = data.values[index]
+      if (!Number.isFinite(value)) continue
+      points.push({ x: startTime + index / data.sampleRate, y: value })
+    }
+    return points
   }
 
-  return data.points
-    .filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y))
-    .map(normalizeWaveformPoint)
-    .sort((left, right) => left.x - right.x)
+  const points: WaveformPoint[] = []
+  let previousX = Number.NEGATIVE_INFINITY
+  let sorted = true
+  for (const point of data.points) {
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) continue
+    const normalized = normalizeWaveformPoint(point)
+    if (normalized.x < previousX) sorted = false
+    previousX = normalized.x
+    points.push(normalized)
+  }
+  if (!sorted) points.sort((left, right) => left.x - right.x)
+  return points
 }
 
 /**

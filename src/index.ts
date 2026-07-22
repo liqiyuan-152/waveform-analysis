@@ -35,7 +35,11 @@ export type {
   NormalizedWaveformSeries,
 } from './types'
 
-export type { WaveformGridOptions } from './components/core/grid'
+export type {
+  WaveformGridOptions,
+  WaveformGridLineOptions,
+  WaveformGridTrackLines,
+} from './components/core/grid'
 
 // 核心功能
 export { normalizeWaveformData, normalizeWaveformSeries } from './core'

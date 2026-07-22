@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import type { WaveformPoint } from '../types'
 import {
+  hasMinimumVisibleXValues,
   resolveWaveformRenderingOptions,
   selectDecorationPoints,
   selectRenderablePoints,
+  selectSeriesRenderPoints,
 } from './rendering'
 
 describe('waveform rendering selection', () => {
@@ -121,5 +123,67 @@ describe('waveform rendering selection', () => {
 
     expect(selected.filter(hasError)).toEqual(priorityPoints.filter(hasError))
     expect(selected.length).toBeLessThanOrEqual(Math.ceil(100 / 20) + 2)
+  })
+
+  it('shares visible-range selection for a dense 100k-point series', () => {
+    const densePoints = Array.from({ length: 100_000 }, (_, index): WaveformPoint => ({
+      x: index,
+      y: index === 50_001 ? 10_000 : Math.sin(index / 20),
+      error: index % 1_000 === 0 ? 1 : undefined,
+    }))
+    const selected = selectSeriesRenderPoints(
+      densePoints,
+      [99_999, 0],
+      500,
+      resolveWaveformRenderingOptions({ downsampleThreshold: 100 }),
+      {
+        lineVisible: true,
+        pointVisible: true,
+        errorBarVisible: true,
+        hasErrorPoints: true,
+      },
+    )
+
+    expect(selected.linePoints.length).toBeLessThanOrEqual(2_002)
+    expect(selected.linePoints).toContain(densePoints[50_001])
+    expect(selected.linePoints[0]).toBe(densePoints[0])
+    expect(selected.linePoints.at(-1)).toBe(densePoints.at(-1))
+    expect(selected.pointRenderPoints.length).toBeLessThanOrEqual(52)
+    expect(selected.errorBarRenderPoints.every((point) => (point.error ?? 0) > 0)).toBe(true)
+  })
+
+  it('counts unique visible x values across series and reversed domains', () => {
+    const first = {
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 1 },
+      ],
+    }
+    const second = {
+      points: [
+        { x: 0, y: 2 },
+        { x: 1, y: 3 },
+        { x: 2, y: 4 },
+      ],
+    }
+
+    expect(hasMinimumVisibleXValues([first, second], [2, 0], 3)).toBe(true)
+    expect(hasMinimumVisibleXValues([first, second], [0, 2], 4)).toBe(false)
+    expect(hasMinimumVisibleXValues([first, second], [1, 1], 1)).toBe(true)
+    expect(hasMinimumVisibleXValues([first, second], [3, 4], 1)).toBe(false)
+  })
+
+  it('stops scanning a 100k-point series after reaching the minimum', () => {
+    const source = Array.from({ length: 100_000 }, (_, index) => ({ x: index, y: index }))
+    let pointReads = 0
+    const points = new Proxy(source, {
+      get(target, property, receiver) {
+        if (typeof property === 'string' && /^\d+$/.test(property)) pointReads += 1
+        return Reflect.get(target, property, receiver)
+      },
+    })
+
+    expect(hasMinimumVisibleXValues([{ points }], [0, 99_999], 5)).toBe(true)
+    expect(pointReads).toBeLessThan(100)
   })
 })

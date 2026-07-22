@@ -24,6 +24,7 @@ function series(id: string, minimum: number, maximum: number): DisplaySeries {
     ],
     xDomain: [0, 1],
     yDomain: [minimum, maximum],
+    hasErrorPoints: false,
   }
 }
 
@@ -61,7 +62,7 @@ function layoutForSeries(
         series: sourceTrack,
       },
     ],
-    grid: { rowCount: 1, columnCount: 1, showPagination: false },
+    grid: { rowCount: 1, columnCount: 1, showPagination: false, trackLines: {} },
     displayMode: 'independent',
     overlayMode: 'single-axis',
     independentTransforms: [transform],
@@ -95,7 +96,7 @@ describe('multi-value Y-axis grouping', () => {
           series: sourceTrack,
         },
       ],
-      grid: { rowCount: 1, columnCount: 1, showPagination: false },
+      grid: { rowCount: 1, columnCount: 1, showPagination: false, trackLines: {} },
       displayMode: 'independent',
       overlayMode: 'single-axis',
       independentTransforms: [zoomIdentity],
@@ -198,7 +199,7 @@ describe('multi-value Y-axis grouping', () => {
           series: track([series('left', 0, 254), series('right', 0, 254)]),
         },
       ],
-      grid: { rowCount: 1, columnCount: 1, showPagination: false },
+      grid: { rowCount: 1, columnCount: 1, showPagination: false, trackLines: {} },
       displayMode: 'independent',
       overlayMode: 'multi-axis',
       independentTransforms: [zoomIdentity],
@@ -241,6 +242,7 @@ describe('decoration sampling', () => {
       error: index % 200 === 1 ? 0.1 : 0,
     })),
     xDomain: [0, 999],
+    hasErrorPoints: true,
   })
 
   it('shares prioritized source points between dense symbols and error bars', () => {
@@ -262,6 +264,7 @@ describe('decoration sampling', () => {
   it('keeps standalone, zero-error, and non-downsampled decoration behavior', () => {
     const noErrors = denseSeries()
     noErrors.points = noErrors.points.map((point) => ({ x: point.x, y: point.y }))
+    noErrors.hasErrorPoints = false
     const zeroErrorPath = layoutForSeries(noErrors)
     expect(zeroErrorPath.errorBarRenderPoints).toEqual([])
     expect(zeroErrorPath.pointRenderPoints.length).toBeLessThanOrEqual(Math.ceil(120 / 10) + 2)

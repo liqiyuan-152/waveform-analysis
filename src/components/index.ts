@@ -24,6 +24,8 @@ export type {
   WaveformPointType,
   WaveformErrorBarOptions,
   WaveformGridOptions,
+  WaveformGridLineOptions,
+  WaveformGridTrackLines,
 } from './data/types'
 
 export type { WaveformGridOptions as WaveformGridConfig } from './core/grid'

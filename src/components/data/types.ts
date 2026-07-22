@@ -30,7 +30,11 @@ export type {
   NormalizedWaveformSeries,
 } from '../../types'
 
-export type { WaveformGridOptions } from '../core/grid'
+export type {
+  WaveformGridOptions,
+  WaveformGridLineOptions,
+  WaveformGridTrackLines,
+} from '../core/grid'
 
 // 重新导出数据处理函数
 export { normalizeWaveformData, normalizeWaveformSeries } from '../../core'

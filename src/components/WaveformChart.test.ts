@@ -124,6 +124,7 @@ describe('normalizeWaveformData', () => {
 
     expect(series?.yDomain[0]).toBeLessThanOrEqual(-1)
     expect(series?.yDomain[1]).toBeGreaterThanOrEqual(6)
+    expect(series?.hasErrorPoints).toBe(true)
   })
 
   it('normalizes multiple named series and removes empty series', () => {
@@ -2134,6 +2135,49 @@ describe('WaveformChart', () => {
       'none',
     )
     expect(wrapper.get('.waveform-chart__line').attributes('stroke')).toBe('#0960bd')
+  })
+
+  it('controls horizontal and vertical grid lines independently by track ID', async () => {
+    const data = gridSeries(2)
+    if (data.kind === 'series') {
+      data.series[0].trackId = 'frame-a'
+      data.series[1].trackId = 'frame-b'
+    }
+    const wrapper = await mountSizedChart(data, {
+      grid: {
+        rowCount: 1,
+        columnCount: 2,
+        trackLines: {
+          'frame-a': { horizontal: false },
+          'frame-b': { vertical: false },
+        },
+      },
+    })
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    expect(tracks).toHaveLength(2)
+    expect(tracks[0].findAll('[data-grid-direction="horizontal"]')).toHaveLength(0)
+    expect(tracks[0].findAll('[data-grid-direction="vertical"]').length).not.toBe(0)
+    expect(tracks[1].findAll('[data-grid-direction="vertical"]')).toHaveLength(0)
+    expect(tracks[1].findAll('[data-grid-direction="horizontal"]').length).not.toBe(0)
+  })
+
+  it('keeps per-track grid line visibility attached across pagination', async () => {
+    const wrapper = await mountSizedChart(gridSeries(3), {
+      grid: {
+        rowCount: 1,
+        columnCount: 1,
+        trackLines: {
+          'channel-1': { horizontal: false, vertical: false },
+        },
+      },
+    })
+
+    expect(wrapper.findAll('[data-grid-direction]')).not.toHaveLength(0)
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+    expect(wrapper.findAll('[data-grid-direction]')).toHaveLength(0)
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+    expect(wrapper.findAll('[data-grid-direction]')).not.toHaveLength(0)
   })
 
   it('applies one custom frame style to every non-empty track', async () => {

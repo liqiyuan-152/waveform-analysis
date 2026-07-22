@@ -12,6 +12,7 @@ import {
   type ZoomTransform,
 } from 'd3'
 import { resolveWaveformRenderingOptions } from '../core'
+import { hasMinimumVisibleXValues } from '../core/rendering'
 import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../utils'
 import { useAnimationFrameThrottle } from './utils/useAnimationFrameThrottle'
 import {
@@ -825,20 +826,13 @@ function resolveMaximumZoomScale(domain: [number, number]): number {
   return Math.min(40, Math.max(1, domainSpan / (minZoomSpan ?? domainSpan)))
 }
 
-function visiblePointCount(track: TrackLayout): number {
-  const [start, end] = track.xScale.domain()
-  const xValues = new Set<number>()
-  track.seriesList.forEach((series) => {
-    series.points.forEach((point) => {
-      if (point.x >= start && point.x <= end) xValues.add(point.x)
-    })
-  })
-  return xValues.size
-}
-
 function canZoomTrack(track: TrackLayout): boolean {
   const minimum = Number(props.minVisiblePoints)
-  return !Number.isFinite(minimum) || minimum <= 0 || visiblePointCount(track) >= minimum
+  return hasMinimumVisibleXValues(
+    track.seriesList,
+    track.xScale.domain() as [number, number],
+    minimum,
+  )
 }
 
 function canZoomSharedTracks(): boolean {

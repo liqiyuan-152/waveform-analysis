@@ -11,11 +11,44 @@ import {
 
 describe('waveform grid helpers', () => {
   it('normalizes grid counts and uses a two by one default', () => {
-    expect(normalizeGridOptions()).toEqual({ rowCount: 2, columnCount: 1, showPagination: true })
+    expect(normalizeGridOptions()).toEqual({
+      rowCount: 2,
+      columnCount: 1,
+      showPagination: true,
+      trackLines: {},
+    })
     expect(normalizeGridOptions({ rowCount: 0, columnCount: 99 })).toEqual({
       rowCount: 1,
       columnCount: 10,
       showPagination: true,
+      trackLines: {},
+    })
+  })
+
+  it('normalizes per-track grid line visibility with visible defaults', () => {
+    expect(
+      normalizeGridOptions({
+        trackLines: {
+          voltage: { horizontal: false },
+          current: { vertical: false },
+        },
+      }).trackLines,
+    ).toEqual({
+      voltage: { horizontal: false, vertical: true },
+      current: { horizontal: true, vertical: false },
+    })
+  })
+
+  it('falls back to visible grid lines for invalid runtime values', () => {
+    const options = {
+      trackLines: {
+        voltage: { horizontal: 'invalid', vertical: null },
+      },
+    } as unknown as Parameters<typeof normalizeGridOptions>[0]
+
+    expect(normalizeGridOptions(options).trackLines.voltage).toEqual({
+      horizontal: true,
+      vertical: true,
     })
   })
 
