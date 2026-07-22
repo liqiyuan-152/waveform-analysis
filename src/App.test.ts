@@ -201,7 +201,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     wrapper.unmount()
   })
 
-  it('keeps only one error-bar series in the first frame', async () => {
+  it('keeps the primary simulated signal in the first frame', async () => {
     const wrapper = mount(App)
     await flushPromises()
 
@@ -209,10 +209,10 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const firstFrameSeries = firstFrame.findAll('.waveform-chart__series')
 
     expect(firstFrameSeries.map((series) => series.attributes('data-series-name'))).toEqual([
-      'BT2_2M',
+      '正弦基波',
     ])
 
-    const triangleSeries = firstFrame.get('.waveform-chart__series[data-series-name="BT2_2M"]')
+    const triangleSeries = firstFrame.get('.waveform-chart__series[data-series-name="正弦基波"]')
     expect(triangleSeries.find('.waveform-chart__line').exists()).toBe(false)
     expect(triangleSeries.get('.waveform-chart__points').attributes('data-point-type')).toBe(
       'triangle',
@@ -222,7 +222,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     wrapper.unmount()
   })
 
-  it('splits the attached ENG channels across the remaining first-page frames', async () => {
+  it('keeps the simulated channels across the paginated frames', async () => {
     const wrapper = mount(App)
     await flushPromises()
 
@@ -232,7 +232,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       tracks.map((track) =>
         track.findAll('.waveform-chart__series').map((item) => item.attributes('data-series-name')),
       ),
-    ).toEqual([['BT2_2M'], ['ENG6KV1'], ['ENG4F2YIb3'], ['ENG8KJXAc']])
+    ).toEqual([['正弦基波'], ['谐波扰动'], ['阻尼振荡'], ['阶跃响应']])
     expect(
       tracks
         .slice(1)
@@ -246,10 +246,16 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       WaveformData,
       { kind: 'series' }
     >
-    const frameTwoSeries = chartData.series.filter((item) => item.trackId?.startsWith('frame-two-'))
-    expect(frameTwoSeries.map((item) => item.name)).toEqual(['ENG6KV1', 'ENG4F2YIb3', 'ENG8KJXAc'])
-    expect(frameTwoSeries.map((item) => item.unit)).toEqual(['KV', 'KA', 'A'])
-    frameTwoSeries.forEach((item) => {
+    const simulatedSeries = chartData.series
+    expect(simulatedSeries.map((item) => item.name)).toEqual([
+      '正弦基波',
+      '谐波扰动',
+      '阻尼振荡',
+      '阶跃响应',
+      '脉冲响应',
+      '带噪信号',
+    ])
+    simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
       if (item.data.kind === 'points') {
         expect(item.data.points).toHaveLength(1000)
@@ -263,7 +269,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       wrapper
         .findAll('.waveform-chart__track')
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
-    ).toEqual(['BT1_2M', 'TEST_CH_2'])
+    ).toEqual(['脉冲响应', '带噪信号'])
 
     wrapper.unmount()
   })
@@ -273,7 +279,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     await flushPromises()
 
     const renderedTitle = () => wrapper.get('.waveform-chart__title-text')
-    expect(renderedTitle().text()).toMatch(/^Shot:\d+$/)
+    expect(renderedTitle().text()).toBe('模拟波形分析')
     expect(renderedTitle().attributes('style')).toContain('Microsoft YaHei')
     expect(renderedTitle().attributes('style')).toContain('font-size: 14px')
     expect(renderedTitle().attributes('style')).toContain('font-weight: 400')

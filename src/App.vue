@@ -17,44 +17,14 @@ import {
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
   type WaveformOverlayMode,
-  type WaveformSeries,
   type WaveformTitleOptions,
   type WaveformZoomEndPayload,
   type WaveformZeroLineOptions,
 } from './components'
-import chartWaveformsJson from './data/chartWaveforms.json'
-import frameTwoWaveformsJson from './data/frameTwoWaveforms.json'
 import { normalizeWaveformSeries } from './core'
+import { createSimulatedWaveformData } from './data/simulatedWaveforms'
 
-interface WaveformSourcePoint {
-  x: number
-  y: number
-  error?: number
-  lowerError?: number
-  upperError?: number
-}
-
-interface WaveformSourceRow {
-  chnl: string
-  chnl_id: number
-  dat_unit: string
-  data: WaveformSourcePoint[]
-  dev: number
-  shot: number
-  time?: number[]
-  time_unit: 'ms'
-}
-
-interface FrameTwoWaveformRow {
-  chnl: string
-  chnl_id: number
-  dat_unit: string
-  data: number[]
-  time: number[]
-  time_unit: 'ms'
-}
-
-const sourceRows = chartWaveformsJson as unknown as WaveformSourceRow[]
+const fullChartData = createSimulatedWaveformData()
 const displayMode = ref<WaveformDisplayMode>('independent')
 const overlayMode = ref<WaveformOverlayMode>('single-axis')
 const rowCount = ref(4)
@@ -84,7 +54,7 @@ const legendOrientation = ref<WaveformLegendOrientation>('auto')
 const legendBackgroundColor = ref('rgba(255, 255, 255, 0.7)')
 const hiddenSeriesIds = ref<string[]>([])
 const titleVisible = ref(true)
-const titleText = ref(`Shot:${sourceRows[0]?.shot ?? 4712}`)
+const titleText = ref('模拟波形分析')
 const titleAlign = ref<NonNullable<WaveformTitleOptions['align']>>('center')
 const titleFontFamily = ref('"Microsoft YaHei", "微软雅黑", sans-serif')
 const titleFontSize = ref(14)
@@ -151,62 +121,6 @@ const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   dash: zeroLineDash.value,
 }))
 
-const seriesStylePresets: Array<Pick<WaveformSeries, 'lineType' | 'pointType' | 'errorBar'>> = [
-  { lineType: 'none', pointType: 'triangle', errorBar: { visible: true } },
-  { lineType: 'linear', pointType: 'none' },
-  { lineType: 'step-after', pointType: 'circle', errorBar: { visible: true } },
-  { lineType: 'linear', pointType: 'diamond', errorBar: { visible: true } },
-]
-
-const waveformSeries: WaveformSeries[] = sourceRows.map((row, seriesIndex) => {
-  const presetStyle = seriesStylePresets[seriesIndex % seriesStylePresets.length]!
-  const style: Pick<WaveformSeries, 'lineType' | 'pointType' | 'errorBar'> =
-    row.chnl === 'TEST_CH_4'
-      ? { lineType: 'linear', pointType: 'circle', errorBar: { visible: false } }
-      : presetStyle
-  return {
-    id: String(row.chnl_id),
-    trackId:
-      row.chnl.startsWith('TEST_CH_') && row.chnl !== 'TEST_CH_2'
-        ? String(sourceRows[0]?.chnl_id ?? row.chnl_id)
-        : undefined,
-    name: row.chnl,
-    unit: row.dat_unit,
-    ...style,
-    data: {
-      kind: 'points',
-      points: row.data,
-    },
-  }
-})
-
-const frameTwoWaveforms = frameTwoWaveformsJson as FrameTwoWaveformRow[]
-const frameTwoSeries: WaveformSeries[] = frameTwoWaveforms.map((series) => ({
-  id: String(series.chnl_id),
-  trackId: `frame-two-${series.chnl_id}`,
-  name: series.chnl,
-  unit: series.dat_unit.trim(),
-  lineType: 'linear',
-  pointType: 'none',
-  data: {
-    kind: 'points',
-    points: series.data.flatMap((y, index) => {
-      const time = series.time[index]
-      return Number.isFinite(time) && Number.isFinite(y) ? [{ x: time! / 1000, y }] : []
-    }),
-  },
-}))
-
-const frameOneTrackId = String(sourceRows[0]?.chnl_id ?? 'frame-one')
-const frameOneCandidates = waveformSeries.filter(
-  (series) => series.id === frameOneTrackId || series.trackId === frameOneTrackId,
-)
-const frameOneSeries = frameOneCandidates.filter((series) => series.errorBar?.visible).slice(0, 1)
-const remainingSeries = waveformSeries.filter((series) => !frameOneCandidates.includes(series))
-const fullChartData: WaveformData = {
-  kind: 'series',
-  series: [...frameOneSeries, ...frameTwoSeries, ...remainingSeries],
-}
 const initialXValues = normalizeWaveformSeries(fullChartData).flatMap((series) =>
   series.points.map((point) => point.x),
 )
@@ -225,7 +139,9 @@ const initialXDomainValue: [number, number] | undefined =
 const initialXDomain = ref<[number, number] | undefined>(initialXDomainValue)
 const chartData = ref<WaveformData>(fullChartData)
 const lineStyleOverrides = ref<Record<string, WaveformLineStyle>>({})
-const selectedSeriesId = ref(String(sourceRows[0]?.chnl_id ?? ''))
+const selectedSeriesId = ref(
+  fullChartData.kind === 'series' ? (fullChartData.series[0]?.id ?? '') : '',
+)
 const lineStyleOptions: Array<{ label: string; value: WaveformLineStyle }> = [
   { label: '实线', value: 'solid' },
   { label: '虚线', value: 'dashed' },
