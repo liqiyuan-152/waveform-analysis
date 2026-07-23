@@ -77,7 +77,7 @@ function formatError(point: WaveformPoint): string | null {
     >
       <i :style="{ backgroundColor: seriesPoint.color }" />
       <strong v-if="seriesPoint.name">{{ seriesPoint.name }}:</strong>
-      <span>
+      <span class="waveform-tooltip__value">
         {{ formatTooltipNumber(seriesPoint.point.y)
         }}{{ seriesPoint.unit ? ` ${seriesPoint.unit}` : '' }}
         <small v-if="formatError(seriesPoint.point)">{{ formatError(seriesPoint.point) }}</small>
@@ -116,7 +116,7 @@ function formatError(point: WaveformPoint): string | null {
 
 .waveform-tooltip__series {
   display: grid;
-  grid-template-columns: 8px auto minmax(0, 1fr);
+  grid-template-columns: 8px minmax(0, 1fr) auto;
   gap: 6px;
   align-items: center;
 }
@@ -131,6 +131,10 @@ function formatError(point: WaveformPoint): string | null {
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waveform-tooltip__value {
   white-space: nowrap;
 }
 

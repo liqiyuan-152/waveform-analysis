@@ -66,6 +66,31 @@ describe('WaveformTooltip', () => {
     expect(wrapper.get('.waveform-tooltip__series small').text()).toBe('(+2 / -1)')
   })
 
+  it('keeps a formatted value and its unit in one value container', () => {
+    const hoveredPoint = { x: 1, y: -1405.4932 }
+    const wrapper = mount(WaveformTooltip, {
+      props: {
+        visible: true,
+        position: { x: 10, y: 10 },
+        timeUnit: 'ms',
+        hoveredPoint,
+        seriesPoints: [
+          {
+            trackIndex: 0,
+            name: 'ENG8KJXAc(10001)',
+            color: '#ffb43b',
+            unit: 'A',
+            point: hoveredPoint,
+          },
+        ],
+        containerWidth: 400,
+        containerHeight: 300,
+      },
+    })
+
+    expect(wrapper.get('.waveform-tooltip__value').text()).toBe('-1,405.4932 A')
+  })
+
   it('omits the error label when both resolved errors are zero', () => {
     const point = { x: 1, y: 12 }
     const wrapper = mount(WaveformTooltip, {
