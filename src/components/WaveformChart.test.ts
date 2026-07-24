@@ -2332,6 +2332,44 @@ describe('WaveformChart', () => {
     expect(pendingAnimationFrameCount()).toBe(0)
   })
 
+  it('isolates hover rendering from the chart, track, and waveform path subtrees', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { grid: { rowCount: 1, columnCount: 1 } },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
+    })
+
+    const track = wrapper.getComponent({ name: 'WaveformTrack' })
+    const seriesLayer = wrapper.getComponent({ name: 'WaveformSeriesLayer' })
+    const chartUpdate = vi.spyOn(wrapper.vm.$, 'update')
+    const trackUpdate = vi.spyOn(track.vm.$, 'update')
+    const seriesLayerUpdate = vi.spyOn(seriesLayer.vm.$, 'update')
+    const pathBeforeHover = wrapper.get('.waveform-chart__line').element
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(wrapper.get('.waveform-chart__tooltip').text()).toContain('ms: 1,000.0000')
+    expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(1)
+    expect(wrapper.get('.waveform-chart__line').element).toBe(pathBeforeHover)
+    expect(chartUpdate).not.toHaveBeenCalled()
+    expect(trackUpdate).not.toHaveBeenCalled()
+    expect(seriesLayerUpdate).not.toHaveBeenCalled()
+  })
+
   it('renders reference grid styling and an optional frame watermark', async () => {
     const wrapper = await mountSizedChart(
       {

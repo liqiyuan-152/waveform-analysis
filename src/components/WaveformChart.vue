@@ -21,6 +21,7 @@ import {
   onBeforeUnmount,
   onMounted,
   ref,
+  shallowReactive,
   shallowRef,
   watch,
   type CSSProperties,
@@ -58,8 +59,8 @@ import {
   type AnnotationSeriesInfo,
   type AnnotationTrackLayout,
 } from './annotation'
-import { WaveformTooltip } from './interaction'
-import { WaveformLegend, WaveformTrack } from './rendering'
+import { WaveformHoverHost } from './interaction'
+import { WaveformHoverLayer, WaveformLegend, WaveformTrack } from './rendering'
 import {
   channelColors,
   margin as chartMargin,
@@ -88,7 +89,13 @@ import {
   X_AXIS_BAND,
   type WaveformGridOptions,
 } from './core/grid'
-import type { DisplaySeries, DisplayTrack, HoveredSeriesPoint, TrackLayout } from './core/types'
+import type {
+  DisplaySeries,
+  DisplayTrack,
+  HoveredSeriesPoint,
+  TrackLayout,
+  WaveformHoverState,
+} from './core/types'
 import {
   buildTrackLayouts,
   findClosestTrackAtPointer,
@@ -192,9 +199,11 @@ const sharedTransform = shallowRef<ZoomTransform>(zoomIdentity)
 const independentTransforms = shallowRef<ZoomTransform[]>([])
 const sharedYDomains = ref<Record<string, [number, number]>>({})
 const independentYDomains = ref<Record<number, [number, number]>>({})
-const hoveredSeriesPoints = ref<HoveredSeriesPoint[]>([])
-const hoveredTrackIndex = ref<number | null>(null)
-const hoverPosition = ref({ x: 0, y: 0 })
+const hoverState = shallowReactive<WaveformHoverState>({
+  points: [],
+  trackIndex: null,
+  position: { x: 0, y: 0 },
+})
 const suppressHoverUntilMove = ref(false)
 const currentPage = ref(1)
 const resizeObserver = shallowRef<ResizeObserver>()
@@ -267,15 +276,6 @@ function handleInteractionKeyUp(event: KeyboardEvent) {
   if (event.code === 'Space') {
     spacePressed.value = false
   }
-}
-
-// 用于传递给 WaveformTooltip 的接口
-interface TooltipSeriesPoint {
-  trackIndex: number
-  name: string
-  color: string
-  unit?: string
-  point: WaveformPoint
 }
 
 const fixedWidth = computed(() =>
@@ -569,7 +569,6 @@ const yAxisLayout = computed(() => {
   }
 })
 const hasWaveformData = computed(() => chartSeries.value.length > 0)
-const hoveredPoint = computed(() => hoveredSeriesPoints.value[0]?.point ?? null)
 const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
 const resolvedXLabel = computed(() => props.xLabel ?? `时间（${props.timeUnit}）`)
 const activeInteractionMode = computed(() => props.interactionMode)
@@ -577,17 +576,6 @@ const activeInteractionMode = computed(() => props.interactionMode)
 const isZoomMode = computed(
   () => activeInteractionMode.value === 'zoom' || activeInteractionMode.value === undefined,
 )
-
-// 转换为 Tooltip 组件需要的格式
-const tooltipSeriesPoints = computed<TooltipSeriesPoint[]>(() => {
-  return hoveredSeriesPoints.value.map((item) => ({
-    trackIndex: item.trackIndex,
-    name: item.name,
-    color: item.color,
-    unit: item.unit,
-    point: item.point,
-  }))
-})
 
 const sharedXDomain = computed(() => {
   const values: number[] = []
@@ -986,9 +974,9 @@ function scheduleHover(update: () => void) {
 
 function hoveredPointsMatch(nextPoints: HoveredSeriesPoint[]): boolean {
   return (
-    hoveredSeriesPoints.value.length === nextPoints.length &&
+    hoverState.points.length === nextPoints.length &&
     nextPoints.every((point, index) => {
-      const current = hoveredSeriesPoints.value[index]
+      const current = hoverState.points[index]
       return (
         current?.id === point.id &&
         current.trackIndex === point.trackIndex &&
@@ -1003,18 +991,32 @@ function commitHover(
   trackIndex: number | null,
   position: { x: number; y: number },
 ) {
-  if (!hoveredPointsMatch(nextPoints)) hoveredSeriesPoints.value = nextPoints
-  hoveredTrackIndex.value = trackIndex
-  hoverPosition.value = position
-  // Emit using the updated hoveredSeriesPoints to avoid race condition
-  emit('point-hover', hoveredSeriesPoints.value[0]?.point ?? null)
+  if (!hoveredPointsMatch(nextPoints)) hoverState.points = nextPoints
+  hoverState.trackIndex = trackIndex
+  hoverState.position = position
+  emit('point-hover', hoverState.points[0]?.point ?? null)
 }
 
 function clearHover() {
   cancelPendingHover()
-  hoveredSeriesPoints.value = []
-  hoveredTrackIndex.value = null
+  hoverState.points = []
+  hoverState.trackIndex = null
   emit('point-hover', null)
+}
+
+function createHoveredSeriesPoint(
+  series: DisplaySeries,
+  trackIndex: number,
+  point: WaveformPoint,
+): HoveredSeriesPoint {
+  return {
+    id: series.id,
+    name: series.name,
+    color: series.color,
+    unit: series.unit,
+    trackIndex,
+    point,
+  }
 }
 
 function beginAnnotationDrag() {
@@ -1334,7 +1336,7 @@ function handleIndependentPointerMove(event: PointerEvent, trackIndex: number) {
     const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
     const nextPoints = track.seriesList.flatMap((series) => {
       const point = nearestPoint(series, xValue)
-      return point ? [{ ...series, trackIndex, point }] : []
+      return point ? [createHoveredSeriesPoint(series, trackIndex, point)] : []
     })
     commitHover(nextPoints, trackIndex, {
       x: resolvedChartLeftMargin.value + track.left + pointerX,
@@ -1364,7 +1366,7 @@ function handleSharedPointerMove(event: PointerEvent) {
     const nextPoints = trackLayouts.value.flatMap((track) =>
       track.seriesList.flatMap((series) => {
         const point = nearestPoint(series, xValue)
-        return point ? [{ ...series, trackIndex: track.index, point }] : []
+        return point ? [createHoveredSeriesPoint(series, track.index, point)] : []
       }),
     )
     commitHover(nextPoints, null, {
@@ -1939,7 +1941,6 @@ onBeforeUnmount(() => {
           :track="track"
           :clip-path-id="clipPathId"
           :inner-width="innerWidth"
-          :show-tooltip="showTooltip"
           :zoomable="zoomable"
           :display-mode="displayMode"
           :interaction-mode="activeInteractionMode"
@@ -1950,7 +1951,6 @@ onBeforeUnmount(() => {
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"
           :y-label="yLabel"
-          :hovered-point="hoveredSeriesPoints.find((p) => p.trackIndex === track.index)"
           @pointer-move="handleIndependentPointerMove($event, track.index)"
           @pointer-down="beginViewportDrag($event, track.index, true)"
           @pointer-up="finishViewportDrag"
@@ -1958,6 +1958,13 @@ onBeforeUnmount(() => {
           @pointer-leave="clearHover"
           @click="handleAnnotationClick($event, track.index)"
           @contextmenu="handleAnnotationContextMenu($event, track.index)"
+        />
+
+        <WaveformHoverLayer
+          :state="hoverState"
+          :tracks="trackLayouts"
+          :clip-path-id="clipPathId"
+          :visible="showTooltip"
         />
 
         <rect
@@ -2061,13 +2068,10 @@ onBeforeUnmount(() => {
       @close="annotationInteraction.closeContextMenu"
     />
 
-    <!-- Tooltip -->
-    <WaveformTooltip
-      :visible="showTooltip && hoveredPoint !== null"
-      :position="hoverPosition"
+    <WaveformHoverHost
+      :state="hoverState"
+      :visible="showTooltip"
       :time-unit="timeUnit"
-      :hovered-point="hoveredPoint"
-      :series-points="tooltipSeriesPoints"
       :container-width="chartWidth"
       :container-height="chartHeight"
     />

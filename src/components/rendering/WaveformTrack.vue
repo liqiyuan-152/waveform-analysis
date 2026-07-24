@@ -4,12 +4,7 @@ import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import { formatAxisTime, formatScientificAxisLabel } from '../../utils'
 import type { WaveformAxesOptions, WaveformFrameStyle, WaveformZeroLineOptions } from '../../types'
 import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
-import type {
-  DisplaySeries,
-  HoveredSeriesPoint,
-  TrackLayout,
-  WaveformYAxisLayout,
-} from '../core/types'
+import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
 import WaveformSeriesLayer from './WaveformSeriesLayer.vue'
 
 interface Props {
@@ -19,8 +14,6 @@ interface Props {
   clipPathId: string
   /** 内部宽度 */
   innerWidth: number
-  /** 是否显示 tooltip */
-  showTooltip: boolean
   /** 是否可缩放 */
   zoomable: boolean
   /** 显示模式 */
@@ -35,8 +28,6 @@ interface Props {
   axes?: WaveformAxesOptions
   /** 时间单位 */
   timeUnit: 's' | 'ms'
-  /** 悬浮点（用于显示十字线） */
-  hoveredPoint?: HoveredSeriesPoint
   /** Y 轴标签回退值 */
   yLabel?: string
   /** Hide visual aids while keeping chart interaction active. */
@@ -108,20 +99,6 @@ function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean 
 
   const labelSpacing = Math.ceil(MIN_HEIGHT_FOR_LABEL / trackHeight)
   return trackIndex % labelSpacing === 0
-}
-
-function crosshairX(): number {
-  return props.hoveredPoint && props.hoveredPoint.trackIndex === props.track.index
-    ? props.track.xScale(props.hoveredPoint.point.x)
-    : 0
-}
-
-function hasCrosshair(): boolean {
-  return (
-    props.showTooltip &&
-    props.hoveredPoint !== undefined &&
-    props.hoveredPoint.trackIndex === props.track.index
-  )
 }
 
 function zeroLineY(axis: WaveformYAxisLayout): number | null {
@@ -472,15 +449,6 @@ watch(
     <!-- 波形系列隔离在静态子组件中，避免 hover 更新遍历大量 SVG 节点。 -->
     <WaveformSeriesLayer :track="track" :clip-path-id="clipPathId" />
 
-    <!-- 十字线 -->
-    <g
-      v-if="!track.isEmpty && track.hasVisibleSeries && hasCrosshair()"
-      class="waveform-track__crosshair waveform-chart__crosshair"
-      :clip-path="`url(#${clipPathId}-${track.index})`"
-    >
-      <line :x1="crosshairX()" :x2="crosshairX()" y1="0" :y2="track.height" />
-    </g>
-
     <!-- 交互覆盖层（仅在独立模式下） -->
     <rect
       v-if="!track.isEmpty && track.hasVisibleSeries && displayMode === 'independent'"
@@ -585,16 +553,6 @@ watch(
 
 .waveform-track__overlay.is-annotating {
   cursor: crosshair;
-}
-
-.waveform-track__crosshair {
-  pointer-events: none;
-}
-
-.waveform-track__crosshair line {
-  stroke: #57617b;
-  stroke-width: 1;
-  stroke-dasharray: 4 3;
 }
 
 .waveform-track__zero-line {

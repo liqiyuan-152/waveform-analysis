@@ -63,9 +63,19 @@ export interface WaveformYAxisLayout {
 /**
  * 悬浮的系列点
  */
-export interface HoveredSeriesPoint extends DisplaySeries {
+export interface HoveredSeriesPoint {
+  id: string
+  name: string
+  unit?: string
+  color: string
   trackIndex: number
   point: WaveformPoint
+}
+
+export interface WaveformHoverState {
+  points: HoveredSeriesPoint[]
+  trackIndex: number | null
+  position: { x: number; y: number }
 }
 
 /**
