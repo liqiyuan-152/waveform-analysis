@@ -10,5 +10,5 @@
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.lib.tsbuildinfo"
   },
   "include": ["src/**/*.ts", "src/**/*.vue"],
-  "exclude": ["src/**/*.test.ts", "src/test/**", "src/App.vue", "src/main.ts"]
+  "exclude": ["src/**/*.test.ts", "src/test/**", "src/demo/**", "src/App.vue", "src/main.ts"]
 }

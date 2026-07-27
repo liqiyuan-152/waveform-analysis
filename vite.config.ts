@@ -34,5 +34,37 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist-demo',
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'framework',
+              test: /node_modules[\\/](?:@vue|vue)[\\/]/,
+              priority: 4,
+              includeDependenciesRecursively: false,
+            },
+            {
+              name: 'visualization',
+              test: /node_modules[\\/]d3(?:-[^\\/]+)?[\\/]/,
+              priority: 3,
+              includeDependenciesRecursively: false,
+            },
+            {
+              name: 'ui',
+              test: /node_modules[\\/](?:@ant-design|@popperjs|@vueuse|ant-design-vue|vue3-colorpicker)[\\/]/,
+              priority: 2,
+              includeDependenciesRecursively: false,
+            },
+            {
+              name: 'vendor',
+              test: /node_modules[\\/]/,
+              priority: 1,
+              includeDependenciesRecursively: false,
+            },
+          ],
+        },
+      },
+    },
   },
 })

@@ -22,8 +22,8 @@ export class ResizeObserverMock {
     this.target = target
   })
 
-  unobserve = vi.fn()
-  disconnect = vi.fn()
+  unobserve: () => void = vi.fn()
+  disconnect: () => void = vi.fn()
 
   resize(width: number, height = 400) {
     if (!this.target) return

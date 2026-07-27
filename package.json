@@ -14,7 +14,6 @@
   },
   "files": [
     "dist",
-    "src",
     "README.md"
   ],
   "sideEffects": [
@@ -25,19 +24,20 @@
     "dev": "vite",
     "build": "pnpm typecheck && pnpm build:lib && pnpm build:types && pnpm build:demo",
     "build:lib": "vite build --config vite.lib.config.ts",
-    "build:types": "vue-tsc -p tsconfig.lib.json",
+    "build:types": "node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json",
     "build:demo": "vite build",
     "preview": "vite preview --outDir dist-demo",
     "typecheck": "vue-tsc -b",
+    "check:file-length": "node scripts/check-file-length.mjs",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "ant-design-vue": "3.2.20",
     "d3": "^7.9.0",
-    "vue3-colorpicker": "^2.3.0",
-    "ant-design-vue": "4.2.6"
+    "vue3-colorpicker": "^2.3.0"
   },
   "peerDependencies": {
     "ant-design-vue": ">=3.2.20 <4",
