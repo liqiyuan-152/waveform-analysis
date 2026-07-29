@@ -294,6 +294,31 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
   })
 
+  it('reacts to exact fixed Y-domain props and returns to automatic bounds', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 100 },
+      ],
+    })
+    const yTickLabels = () =>
+      wrapper
+        .get('.waveform-chart__axis--y')
+        .findAll('.tick text')
+        .map((tick) => tick.text())
+
+    await wrapper.setProps({ yDomain: [3, 97] })
+    await flushPromises()
+    expect(yTickLabels()).toContain('3.00')
+    expect(yTickLabels()).toContain('97.00')
+
+    await wrapper.setProps({ yDomain: undefined })
+    await flushPromises()
+    expect(yTickLabels()).not.toContain('3.00')
+    expect(yTickLabels()).not.toContain('97.00')
+  })
+
   it('keeps annotations bound to their channel while paging', async () => {
     const wrapper = await mountSizedChart(gridSeries(3), {
       grid: { rowCount: 1, columnCount: 1 },

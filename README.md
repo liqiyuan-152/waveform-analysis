@@ -12,6 +12,9 @@
 
 最新稳定版 Demo：<https://lqycustomsite.online/waveform-analysis/>
 
+本地运行 `pnpm dev` 后，可通过
+<http://127.0.0.1:5173/#/fixed-y-domain> 查看固定振幅上下限示例。
+
 ## 特性
 
 - Vue 3 Composition API + TypeScript，支持按需导入 `WaveformChart`
@@ -22,6 +25,7 @@
 - 缩放过程事件、缩放结束按可视区间加载和视口重置
 - 可选的空格拖拽平移，默认关闭并隔离多图表实例
 - 多系列图例、受控显隐、网格分页和最多四根 Y 轴
+- 自动 Y 轴范围，以及全局、按轨道或按系列配置的固定振幅范围
 - 按轨道控制水平/垂直网格线的显隐与颜色
 - 受控标注、右键编辑、拖拽避让和自定义颜色
 - 标题、图框、坐标轴、零值参考线、净图和渲染参数可配置
@@ -107,6 +111,8 @@ const data = ref<WaveformData>({
 | `minVisiblePoints`                | `number`                                    | `0`                                                     | 缩放后至少保留的不同 X 坐标数     |
 | `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围             |
 | `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围   |
+| `yDomain`                         | `[number, number]`                          | 未设置                                                  | 所有波形的固定 Y 轴范围           |
+| `yDomains`                        | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置固定范围   |
 | `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                        |
 | `axes`                            | `WaveformAxesOptions`                       | 轴线均显示                                              | X/Y 轴基线显隐                    |
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距             |
@@ -176,6 +182,38 @@ import 'waveform-analysis/style.css'
   <WaveformChart :data="chartData" />
 </template>
 ```
+
+### 固定振幅上下限
+
+未传入 Y 轴范围时，组件继续根据当前可见系列及其误差棒自动计算范围。传入 `yDomain`
+后，所有波形使用同一个固定范围；超出范围的部分只在绘图区裁剪，不会过滤或修改原始数据：
+
+```vue
+<WaveformChart :data="chartData" :y-domain="[-80, 80]" />
+```
+
+多通道可以通过 `yDomains` 按稳定的 `trackId` 或 `seriesId` 分别配置：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :y-domain="[-100, 100]"
+  :y-domains="{
+    voltage: [-65, 65],
+    current: [-260, 260],
+  }"
+/>
+```
+
+范围优先级为 `trackId` 配置、`seriesId` 配置、全局 `yDomain`、数据自动范围。上下限必须
+是两个有限且不相等的数字；倒序范围会自动调整为升序，无效配置会回退到下一优先级。
+固定范围会精确作为坐标域使用，不会经过 D3 的 `nice()` 扩展。
+
+单值轴叠加模式会合并同一根轴上所有可见系列的有效范围；多值轴模式按系列分别使用配置，
+超过四根轴后复用第 4 根轴的系列会取范围并集。隐藏系列不参与公共范围合并。
+
+固定范围存在时，对应图框的 Y 轴不会被平移或视口重置覆盖；X 轴缩放、平移和重置保持原有
+行为。运行时更新或移除 `yDomain` / `yDomains` 会立即重新布局，移除后恢复自动范围。
 
 ### 缩放后按可视区间加载数据
 
@@ -589,7 +627,8 @@ X、Y 轴会根据各自完整显示域选择格式：最大绝对值在 `[0.01,
 - `src/index.ts`：组件库公开入口和工具函数导出
 - `src/components/WaveformChart.vue`：图表容器、缩放、tooltip、图例和标注编排
 - `src/components/{core,data,rendering,interaction,annotation}`：数据、布局、渲染和交互模块
-- `src/App.vue`：可交互 demo，`src/data` 中提供示例波形数据
+- `src/App.vue`：综合可交互 demo，`src/data` 中提供示例波形数据
+- `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 为固定振幅范围示例
 
 ## 本地开发
 

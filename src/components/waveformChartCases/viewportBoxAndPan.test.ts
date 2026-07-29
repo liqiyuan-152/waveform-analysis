@@ -224,6 +224,56 @@ describe('WaveformChart', () => {
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
   })
 
+  it('keeps a fixed Y domain through panning and viewport reset', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 100 },
+        ],
+      },
+      { pannable: true, yDomain: [3, 97] },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const width = Number(overlay.attributes('width'))
+    const height = Number(overlay.attributes('height'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height }),
+    })
+    const yTickLabels = () =>
+      wrapper
+        .get('.waveform-chart__axis--y')
+        .findAll('.tick text')
+        .map((tick) => tick.text())
+    const initialLabels = yTickLabels()
+
+    await wrapper.trigger('pointerenter')
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }))
+    const down = new MouseEvent('pointerdown', {
+      button: 0,
+      clientX: width / 2,
+      clientY: height / 2,
+      bubbles: true,
+    })
+    Object.defineProperty(down, 'pointerId', { value: 34 })
+    overlay.element.dispatchEvent(down)
+    const move = new MouseEvent('pointermove', {
+      clientX: width / 2 + 20,
+      clientY: height / 2 + 40,
+      bubbles: true,
+    })
+    Object.defineProperty(move, 'pointerId', { value: 34 })
+    overlay.element.dispatchEvent(move)
+    await flushPromises()
+
+    expect(yTickLabels()).toEqual(initialLabels)
+    ;(wrapper.vm as unknown as { resetViewport: () => void }).resetViewport()
+    await flushPromises()
+    expect(yTickLabels()).toEqual(initialLabels)
+    window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
+  })
+
   it('does not activate pannable on a chart that the pointer is outside', async () => {
     const data: WaveformData = {
       kind: 'points',

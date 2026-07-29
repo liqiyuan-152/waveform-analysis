@@ -31,6 +31,8 @@ export interface WaveformChartProps {
   minVisiblePoints?: number
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
+  yDomain?: [number, number]
+  yDomains?: Record<string, [number, number]>
   timeUnit?: 's' | 'ms'
   frameNumber?: string | number
   frameStyle?: WaveformFrameStyle

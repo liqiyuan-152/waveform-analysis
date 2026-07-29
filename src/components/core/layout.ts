@@ -4,6 +4,12 @@ import type { WaveformOverlayMode } from '../../types'
 import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../../utils'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { MAX_MULTI_Y_AXIS_COUNT, Y_AXIS_EXPONENT_GAP } from './constants'
+import {
+  mergeYDomains,
+  resolveSeriesFixedYDomain,
+  resolveTrackFixedYDomain,
+  type WaveformYDomain,
+} from './yDomain'
 
 // 导出常量供外部使用
 export { MAX_MULTI_Y_AXIS_COUNT, Y_AXIS_EXPONENT_GAP } from './constants'
@@ -14,11 +20,12 @@ const Y_AXIS_OUTER_PADDING = 4
 const Y_AXIS_LABEL_GAP = 6
 const Y_AXIS_LABEL_BAND_WIDTH = 24
 
-interface YAxisSeriesGroup {
+export interface YAxisSeriesGroup {
   index: number
   side: 'left' | 'right'
   seriesList: DisplaySeries[]
   domain: [number, number]
+  fixed: boolean
 }
 
 function resolveAxisSides(axisCount: number): Array<'left' | 'right'> {
@@ -53,6 +60,7 @@ export function buildYAxisSeriesGroups(
     side: sides[index],
     seriesList: [] as DisplaySeries[],
     domain: [0, 1] as [number, number],
+    fixed: false,
   }))
 
   track.visibleSeries.forEach((series, index) => {
@@ -72,12 +80,35 @@ export function buildYAxisSeriesGroups(
   return grouped
 }
 
-export function axisTextMetrics(domain: [number, number]): {
+export function resolveYAxisSeriesGroups(
+  track: DisplayTrack,
+  overlayMode: WaveformOverlayMode,
+  yDomain?: WaveformYDomain,
+  yDomains?: Record<string, WaveformYDomain>,
+): YAxisSeriesGroup[] {
+  const trackDomain = resolveTrackFixedYDomain(track, yDomains)
+  return buildYAxisSeriesGroups(track, overlayMode).map((group) => {
+    if (trackDomain) return { ...group, domain: trackDomain, fixed: true }
+    const seriesDomains = group.seriesList.map(
+      (series) => resolveSeriesFixedYDomain(series, yDomain, yDomains) ?? series.yDomain,
+    )
+    const fixed = group.seriesList.some((series) =>
+      resolveSeriesFixedYDomain(series, yDomain, yDomains),
+    )
+    return fixed ? { ...group, domain: mergeYDomains(seriesDomains), fixed } : group
+  })
+}
+
+export function axisTextMetrics(
+  domain: [number, number],
+  nice = true,
+): {
   exponentLabel: string | null
   exponentWidth: number
   tickTextWidth: number
 } {
-  const scale = scaleLinear(domain, [1, 0]).nice()
+  const scale = scaleLinear(domain, [1, 0])
+  if (nice) scale.nice()
   const [axisMin, axisMax] = scale.domain()
   const values = scale.ticks(10)
   const maximumTickCharacters = Math.max(
@@ -92,15 +123,15 @@ export function axisTextMetrics(domain: [number, number]): {
   }
 }
 
-function axisExponentClearance(domain: [number, number]): number {
-  const { exponentLabel, exponentWidth } = axisTextMetrics(domain)
+function axisExponentClearance(domain: [number, number], nice: boolean): number {
+  const { exponentLabel, exponentWidth } = axisTextMetrics(domain, nice)
   return exponentLabel ? exponentWidth + Y_AXIS_EXPONENT_GAP : 0
 }
 
 export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
   return (
-    axisTextMetrics(group.domain).tickTextWidth +
-    axisExponentClearance(group.domain) +
+    axisTextMetrics(group.domain, !group.fixed).tickTextWidth +
+    axisExponentClearance(group.domain, !group.fixed) +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_LABEL_GAP +
     Y_AXIS_LABEL_BAND_WIDTH +
@@ -110,8 +141,8 @@ export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
 
 function measureYAxisGroupTickClearance(group: YAxisSeriesGroup): number {
   return (
-    axisTextMetrics(group.domain).tickTextWidth +
-    axisExponentClearance(group.domain) +
+    axisTextMetrics(group.domain, !group.fixed).tickTextWidth +
+    axisExponentClearance(group.domain, !group.fixed) +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_OUTER_PADDING
   )
@@ -120,8 +151,10 @@ function measureYAxisGroupTickClearance(group: YAxisSeriesGroup): number {
 export function measureTrackYAxisClearance(
   track: DisplayTrack,
   overlayMode: WaveformOverlayMode,
+  yDomain?: WaveformYDomain,
+  yDomains?: Record<string, WaveformYDomain>,
 ): { left: number; right: number } {
-  return buildYAxisSeriesGroups(track, overlayMode).reduce(
+  return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).reduce(
     (clearance, group) => {
       clearance[group.side] +=
         overlayMode === 'multi-axis' || track.visibleSeries.length === 1

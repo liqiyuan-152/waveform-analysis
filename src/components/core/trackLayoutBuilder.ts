@@ -19,7 +19,7 @@ import {
   type GridCellGeometry,
   type NormalizedWaveformGridOptions,
 } from './grid'
-import { axisTextMetrics, buildYAxisSeriesGroups } from './layout'
+import { axisTextMetrics, resolveYAxisSeriesGroups } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { Y_AXIS_EXPONENT_GAP } from './constants'
 import {
@@ -42,6 +42,8 @@ export interface BuildTrackLayoutsOptions {
   sharedZoomDomain: [number, number]
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
+  fixedYDomain?: [number, number]
+  fixedYDomains?: Record<string, [number, number]>
   yDomains?: Record<string, [number, number]>
   timeUnit: 's' | 'ms'
   rendering: ResolvedWaveformRenderingOptions
@@ -94,13 +96,18 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         : zoomIdentity
     const xScale = transform.rescaleX(baseXScale)
     const configuredYDomain = options.yDomains?.[displayTrack.id]
-    const yAxisGroups = buildYAxisSeriesGroups(displayTrack, options.overlayMode).map((group) => ({
-      ...group,
-      domain: configuredYDomain ?? group.domain,
-    }))
+    const yAxisGroups = resolveYAxisSeriesGroups(
+      displayTrack,
+      options.overlayMode,
+      options.fixedYDomain,
+      options.fixedYDomains,
+    ).map((group) =>
+      !group.fixed && configuredYDomain ? { ...group, domain: configuredYDomain } : group,
+    )
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
-      const scale = scaleLinear(group.domain, [cell.plotHeight, 0]).nice()
+      const scale = scaleLinear(group.domain, [cell.plotHeight, 0])
+      if (!group.fixed) scale.nice()
       const majorTicks = scale.ticks(Math.max(2, Math.floor(cell.plotHeight / 55)))
       const [axisStart, axisEnd] = scale.domain()
       const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
@@ -110,7 +117,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const tickValues = Array.from(
         new Set([axisStart, ...visibleMajorTicks, ...(showAxisEnd ? [axisEnd] : [])]),
       )
-      const { exponentLabel, exponentWidth, tickTextWidth } = axisTextMetrics(group.domain)
+      const { exponentLabel, exponentWidth, tickTextWidth } = axisTextMetrics(
+        group.domain,
+        !group.fixed,
+      )
       const exponentClearance = exponentLabel ? exponentWidth + Y_AXIS_EXPONENT_GAP : 0
       const clearance =
         tickTextWidth +

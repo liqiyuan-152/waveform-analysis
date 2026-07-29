@@ -3,6 +3,7 @@ import { computed, nextTick, type ComputedRef, type Ref, type ShallowRef } from 
 
 import { MINIMUM_SELECTION_SIZE } from '../core/constants'
 import type { DisplayTrack, TrackLayout } from '../core/types'
+import { hasFixedYDomainForTrack } from '../core/yDomain'
 import type {
   ResolvedWaveformChartProps,
   ViewportSelectionState,
@@ -190,9 +191,13 @@ export function useWaveformViewport(context: ViewportContext) {
     const nextIndependentDomains = { ...independentYDomains.value }
     const nextSharedDomains = { ...sharedYDomains.value }
     targets.forEach((target) => {
+      const chartTrack = chartTracks.value.find((item) => item.id === target.id)
+      if (chartTrack && hasFixedYDomainForTrack(chartTrack, props.yDomain, props.yDomains)) {
+        return
+      }
       const key = target.series.trackId ?? target.series.id
       const source = active.yDomains[key] ?? (target.yScale.domain() as [number, number])
-      const boundary = chartTracks.value.find((item) => item.id === key)?.yDomain ?? source
+      const boundary = chartTrack?.yDomain ?? source
       const ySpan = source[1] - source[0]
       const nextY = clampDomain(
         [source[0] + (dy / height) * ySpan, source[1] + (dy / height) * ySpan],

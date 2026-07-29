@@ -6,6 +6,7 @@ import {
   shallowReactive,
   shallowRef,
   toRefs,
+  watch,
   watchEffect,
   type ComponentPublicInstance,
   type Ref,
@@ -68,6 +69,15 @@ export function useWaveformChartController(
   const annotationInteraction = useWaveformAnnotationInteraction()
   const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
   const hoverThrottle = useAnimationFrameThrottle()
+
+  watch(
+    [() => props.yDomain, () => props.yDomains],
+    () => {
+      sharedYDomains.value = {}
+      independentYDomains.value = {}
+    },
+    { deep: true },
+  )
   const selection = ref<ViewportSelectionState | null>(null)
   const spacePressed = ref(false)
   const pointerInsideChart = ref(false)

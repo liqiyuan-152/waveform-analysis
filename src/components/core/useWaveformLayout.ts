@@ -26,7 +26,12 @@ import {
   resolveGridCellGeometry,
   X_AXIS_BAND,
 } from './grid'
-import { buildTrackLayouts, measureTrackYAxisClearance, Y_AXIS_EXPONENT_GAP } from './layout'
+import {
+  buildTrackLayouts,
+  measureTrackYAxisClearance,
+  resolveYAxisSeriesGroups,
+  Y_AXIS_EXPONENT_GAP,
+} from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
@@ -104,8 +109,12 @@ export function useWaveformLayout(context: LayoutContext) {
   const yAxisMetrics = computed(() => {
     const axisText = chartTracks.value
       .filter((track) => track.visibleSeries.length > 0)
-      .map((track) => {
-        const scale = scaleLinear(track.yDomain, [1, 0]).nice()
+      .flatMap((track) =>
+        resolveYAxisSeriesGroups(track, props.overlayMode, props.yDomain, props.yDomains),
+      )
+      .map((group) => {
+        const scale = scaleLinear(group.domain, [1, 0])
+        if (!group.fixed) scale.nice()
         const [axisMin, axisMax] = scale.domain()
         return {
           exponentLabel: formatScientificAxisExponent(axisMin, axisMax),
@@ -165,7 +174,12 @@ export function useWaveformLayout(context: LayoutContext) {
   const multiAxisClearance = computed(() =>
     chartTracks.value.reduce(
       (maximum, track) => {
-        const clearance = measureTrackYAxisClearance(track, props.overlayMode)
+        const clearance = measureTrackYAxisClearance(
+          track,
+          props.overlayMode,
+          props.yDomain,
+          props.yDomains,
+        )
         return {
           left: Math.max(maximum.left, clearance.left),
           right: Math.max(maximum.right, clearance.right),
@@ -281,6 +295,8 @@ export function useWaveformLayout(context: LayoutContext) {
       sharedZoomDomain: sharedZoomDomain.value,
       initialXDomain: props.initialXDomain ? initialXDomain.value : undefined,
       initialXDomains: props.initialXDomains,
+      fixedYDomain: props.yDomain,
+      fixedYDomains: props.yDomains,
       yDomains:
         props.displayMode === 'independent'
           ? Object.fromEntries(
