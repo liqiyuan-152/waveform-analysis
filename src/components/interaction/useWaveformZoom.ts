@@ -29,6 +29,7 @@ interface ZoomContext {
   innerHeight: ComputedRef<number>
   hasChartArea: ComputedRef<boolean>
   isZoomMode: ComputedRef<boolean>
+  isPresentationMode: ComputedRef<boolean>
   resolveInitialTrackDomain: (track: TrackLayout) => [number, number]
   cancelPendingHover: () => void
 }
@@ -50,6 +51,7 @@ export function useWaveformZoom(context: ZoomContext) {
     innerHeight,
     hasChartArea,
     isZoomMode,
+    isPresentationMode,
     resolveInitialTrackDomain,
     cancelPendingHover,
   } = context
@@ -67,7 +69,7 @@ export function useWaveformZoom(context: ZoomContext) {
 
   const scheduleZoomCommit = () => zoomThrottle.schedule(commitPendingZoom)
   const handleSharedZoom = (event: D3ZoomEvent<SVGRectElement, unknown>) => {
-    if (synchronizingZoomTransform) return
+    if (synchronizingZoomTransform || isPresentationMode.value) return
     cancelPendingHover()
     pendingSharedZoomTransform = event.transform
     pendingSharedZoomGesture = 'wheel'
@@ -78,7 +80,7 @@ export function useWaveformZoom(context: ZoomContext) {
     event: D3ZoomEvent<SVGRectElement, unknown>,
     trackIndex: number,
   ) => {
-    if (synchronizingZoomTransform) return
+    if (synchronizingZoomTransform || isPresentationMode.value) return
     cancelPendingHover()
     pendingIndependentZoomTransforms.set(trackIndex, event.transform)
     pendingIndependentZoomGestures.set(trackIndex, 'wheel')
@@ -86,6 +88,10 @@ export function useWaveformZoom(context: ZoomContext) {
     scheduleWheelZoomEnd()
   }
   function commitPendingZoom() {
+    if (isPresentationMode.value) {
+      cancelPendingZoom()
+      return
+    }
     if (pendingSharedZoomTransform) {
       const transform = pendingSharedZoomTransform
       pendingSharedZoomTransform = null
@@ -233,7 +239,13 @@ export function useWaveformZoom(context: ZoomContext) {
   }
   const configureZoom = () => {
     clearZoomBindings()
-    if (!props.zoomable || !isZoomMode.value || !hasChartArea.value || !trackLayouts.value.length) {
+    if (
+      isPresentationMode.value ||
+      !props.zoomable ||
+      !isZoomMode.value ||
+      !hasChartArea.value ||
+      !trackLayouts.value.length
+    ) {
       return
     }
     if (props.displayMode === 'independent') {

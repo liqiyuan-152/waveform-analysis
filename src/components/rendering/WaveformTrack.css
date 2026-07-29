@@ -70,6 +70,11 @@
   cursor: crosshair;
 }
 
+.waveform-track__overlay.is-presentation {
+  cursor: default;
+  pointer-events: none;
+}
+
 .waveform-track__zero-line {
   fill: none;
   pointer-events: none;

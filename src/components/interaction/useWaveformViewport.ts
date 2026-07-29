@@ -26,6 +26,7 @@ interface ViewportContext {
   sharedYDomains: Ref<Record<string, [number, number]>>
   independentYDomains: Ref<Record<number, [number, number]>>
   isZoomMode: ComputedRef<boolean>
+  isPresentationMode: ComputedRef<boolean>
   editorSeriesOptions: Ref<AnnotationSeriesCandidate[]>
   resolveInitialTrackDomain: (track: TrackLayout) => [number, number]
   canZoomTrack: (track: TrackLayout) => boolean
@@ -53,6 +54,7 @@ export function useWaveformViewport(context: ViewportContext) {
     sharedYDomains,
     independentYDomains,
     isZoomMode,
+    isPresentationMode,
     editorSeriesOptions,
     resolveInitialTrackDomain,
     canZoomTrack,
@@ -131,6 +133,7 @@ export function useWaveformViewport(context: ViewportContext) {
       ]),
     )
   const beginViewportDrag = (event: PointerEvent, trackIndex: number, independent: boolean) => {
+    if (isPresentationMode.value) return
     const panRequested = props.pannable && spacePressed.value
     if ((!props.zoomable && !panRequested) || !isZoomMode.value || event.button !== 0) return
     const overlay = event.currentTarget as SVGRectElement
@@ -203,6 +206,7 @@ export function useWaveformViewport(context: ViewportContext) {
     emit('zoom-change', nextX)
   }
   const updateViewportDrag = (event: PointerEvent) => {
+    if (isPresentationMode.value) return
     const active = selection.value
     if (!active || event.pointerId !== active.pointerId) return
     const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
@@ -285,6 +289,10 @@ export function useWaveformViewport(context: ViewportContext) {
     void nextTick(configureZoom)
   }
   const finishViewportDrag = (event: PointerEvent) => {
+    if (isPresentationMode.value) {
+      cancelViewportDrag()
+      return
+    }
     const active = selection.value
     if (!active || event.pointerId !== active.pointerId) return
     updateViewportDrag(event)
@@ -319,7 +327,7 @@ export function useWaveformViewport(context: ViewportContext) {
     void nextTick(configureZoom)
   }
   const requestViewportReset = (event: MouseEvent) => {
-    if (!props.zoomable || !isZoomMode.value) return
+    if (isPresentationMode.value || !props.zoomable || !isZoomMode.value) return
     event.preventDefault()
     resetViewport()
     emit('zoom-reset')

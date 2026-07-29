@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   legend: () => ({ position: 'top-right', orientation: 'auto' }),
   defaultHiddenSeriesIds: () => [],
   cleanView: false,
+  presentationMode: false,
   zeroLine: () => ({ visible: false }),
 })
 const emit = defineEmits<WaveformChartEmit>()

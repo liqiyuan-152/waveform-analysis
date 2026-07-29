@@ -13,6 +13,7 @@ const {
   displayMode,
   activeInteractionMode,
   isCleanView,
+  isPresentationMode,
   selection,
   containerStyle,
   overlayMode,
@@ -45,7 +46,7 @@ const {
   beginSharedViewportDrag,
   finishViewportDrag,
   cancelViewportDrag,
-  clearHover,
+  handlePointerLeave,
   handleAnnotationClick,
   handleAnnotationContextMenu,
   resolveFrameNumber,
@@ -107,12 +108,14 @@ const {
       `waveform-chart--interaction-${activeInteractionMode}`,
       {
         'waveform-chart--clean': isCleanView,
+        'waveform-chart--presentation': isPresentationMode,
         'waveform-chart--panning': selection?.mode === 'pan',
       },
     ]"
     :style="containerStyle"
     :data-display-mode="displayMode"
     :data-interaction-mode="activeInteractionMode"
+    :data-presentation-mode="isPresentationMode"
     :data-overlay-mode="overlayMode"
     :data-chart-left-margin="resolvedChartLeftMargin"
     :data-title-area-height="titleAreaHeight"
@@ -192,8 +195,8 @@ const {
           :ref="setSharedOverlayElement"
           class="waveform-chart__overlay waveform-chart__overlay--shared"
           :class="{
-            'is-zoomable': zoomable && isZoomMode,
-            'is-annotating': activeInteractionMode === 'annotation',
+            'is-zoomable': !isPresentationMode && zoomable && isZoomMode,
+            'is-annotating': !isPresentationMode && activeInteractionMode === 'annotation',
           }"
           :width="innerWidth"
           :height="innerHeight"
@@ -201,7 +204,7 @@ const {
           @pointerdown="beginSharedViewportDrag"
           @pointerup="finishViewportDrag"
           @pointercancel="cancelViewportDrag"
-          @pointerleave="clearHover"
+          @pointerleave="handlePointerLeave"
           @click="handleAnnotationClick"
           @contextmenu="handleAnnotationContextMenu"
         />
@@ -214,6 +217,7 @@ const {
           :clip-path-id="clipPathId"
           :inner-width="innerWidth"
           :zoomable="zoomable"
+          :interactive="!isPresentationMode"
           :display-mode="displayMode"
           :interaction-mode="activeInteractionMode"
           :frame-number="resolveFrameNumber(track.index)"
@@ -227,7 +231,7 @@ const {
           @pointer-down="beginViewportDrag($event, track.index, true)"
           @pointer-up="finishViewportDrag"
           @pointer-cancel="cancelViewportDrag"
-          @pointer-leave="clearHover"
+          @pointer-leave="handlePointerLeave"
           @click="handleAnnotationClick($event, track.index)"
           @contextmenu="handleAnnotationContextMenu($event, track.index)"
         />
@@ -236,7 +240,7 @@ const {
           :state="hoverState"
           :tracks="trackLayouts"
           :clip-path-id="clipPathId"
-          :visible="showTooltip"
+          :visible="showTooltip && !isPresentationMode"
         />
 
         <rect
@@ -253,6 +257,7 @@ const {
           v-if="!isCleanView"
           :annotations="renderedAnnotations"
           :visible="annotationsVisible"
+          :interactive="!isPresentationMode"
           @contextmenu="handleExistingAnnotationContextMenu"
           @drag-start="beginAnnotationDrag"
           @move="handleAnnotationMove"
@@ -318,7 +323,7 @@ const {
     />
 
     <WaveformAnnotationEditor
-      v-if="editorDraft && !isCleanView"
+      v-if="editorDraft && !isCleanView && !isPresentationMode"
       :annotation="editorDraft.annotation"
       :mode="editorDraft.mode"
       :series="editorSeries"
@@ -330,7 +335,7 @@ const {
     />
 
     <WaveformAnnotationContextMenu
-      v-if="!isCleanView"
+      v-if="!isCleanView && !isPresentationMode"
       :visible="contextMenu !== null"
       :x="contextMenu?.x || 0"
       :y="contextMenu?.y || 0"
@@ -342,7 +347,7 @@ const {
 
     <WaveformHoverHost
       :state="hoverState"
-      :visible="showTooltip"
+      :visible="showTooltip && !isPresentationMode"
       :time-unit="timeUnit"
       :container-width="chartWidth"
       :container-height="chartHeight"

@@ -38,6 +38,7 @@ interface AnnotationContext {
   titleAreaHeight: ComputedRef<number>
   chartTopMargin: ComputedRef<number>
   activeInteractionMode: ComputedRef<WaveformInteractionMode | undefined>
+  isPresentationMode: ComputedRef<boolean>
 }
 
 interface AnnotationCandidateContext {
@@ -75,6 +76,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
     titleAreaHeight,
     chartTopMargin,
     activeInteractionMode,
+    isPresentationMode,
   } = context
 
   function toggleSeriesVisibility(seriesId: string) {
@@ -140,6 +142,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function changeDraftSeries(seriesId: string) {
+    if (isPresentationMode.value) return
     const draft = annotationInteraction.editorDraft.value
     const candidate = editorSeriesOptions.value.find((item) => item.seriesId === seriesId)
     const track = trackLayouts.value.find((item) =>
@@ -216,7 +219,13 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function handleAnnotationClick(event: MouseEvent, trackIndex?: number) {
-    if (!props.annotationsVisible || activeInteractionMode.value !== 'annotation') return
+    if (
+      isPresentationMode.value ||
+      !props.annotationsVisible ||
+      activeInteractionMode.value !== 'annotation'
+    ) {
+      return
+    }
     const candidateContext = resolveAnnotationCandidates(event, trackIndex)
     if (!candidateContext) return
     const nearby = nearbyCandidates(candidateContext.candidates)
@@ -238,7 +247,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function handleAnnotationContextMenu(event: MouseEvent, trackIndex?: number) {
-    if (!props.annotationsVisible) return
+    if (isPresentationMode.value || !props.annotationsVisible) return
     event.preventDefault()
     event.stopPropagation()
     const candidateContext = resolveAnnotationCandidates(event, trackIndex)
@@ -252,7 +261,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function handleExistingAnnotationContextMenu(annotationId: string, event: MouseEvent) {
-    if (!props.annotationsVisible || !container.value) return
+    if (isPresentationMode.value || !props.annotationsVisible || !container.value) return
     editorSeriesOptions.value = []
     const annotation = props.annotations.find((item) => item.id === annotationId)
     if (!annotation) return
@@ -270,6 +279,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function handleAnnotationMove(annotationId: string, offsetX: number, offsetY: number) {
+    if (isPresentationMode.value) return
     const annotation = props.annotations.find((item) => item.id === annotationId)
     if (!annotation || !Number.isFinite(offsetX) || !Number.isFinite(offsetY)) return
     emit(
@@ -281,6 +291,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function editContextAnnotation() {
+    if (isPresentationMode.value) return
     const menu = annotationInteraction.contextMenu.value
     const annotation = props.annotations.find((item) => item.id === menu?.annotationId)
     if (!annotation) return
@@ -302,6 +313,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function deleteContextAnnotation() {
+    if (isPresentationMode.value) return
     const annotationId = annotationInteraction.contextMenu.value?.annotationId
     const annotation = props.annotations.find((item) => item.id === annotationId)
     if (!annotation) return
@@ -314,6 +326,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function confirmAnnotation(annotation: WaveformAnnotation) {
+    if (isPresentationMode.value) return
     const draft = annotationInteraction.editorDraft.value
     if (!draft) return
     if (draft.mode === 'add') {

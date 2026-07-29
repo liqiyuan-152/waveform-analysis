@@ -23,6 +23,7 @@ interface HoverContext {
   titleAreaHeight: ComputedRef<number>
   chartTopMargin: ComputedRef<number>
   sharedOverlayElement: ShallowRef<SVGRectElement | undefined>
+  isPresentationMode: ComputedRef<boolean>
   updateViewportDrag: (event: PointerEvent) => void
   resolveTrackAtPointer: (pointerX: number, pointerY: number) => TrackLayout | undefined
 }
@@ -42,6 +43,7 @@ export function useWaveformHover(context: HoverContext) {
     titleAreaHeight,
     chartTopMargin,
     sharedOverlayElement,
+    isPresentationMode,
     updateViewportDrag,
     resolveTrackAtPointer,
   } = context
@@ -62,6 +64,7 @@ export function useWaveformHover(context: HoverContext) {
     trackIndex: number | null,
     position: { x: number; y: number },
   ) => {
+    if (isPresentationMode.value) return
     if (!hoveredPointsMatch(nextPoints)) hoverState.points = nextPoints
     hoverState.trackIndex = trackIndex
     hoverState.position = position
@@ -72,6 +75,9 @@ export function useWaveformHover(context: HoverContext) {
     hoverState.points = []
     hoverState.trackIndex = null
     emit('point-hover', null)
+  }
+  const handlePointerLeave = () => {
+    if (!isPresentationMode.value) clearHover()
   }
   const createHoveredSeriesPoint = (
     series: DisplaySeries,
@@ -103,6 +109,7 @@ export function useWaveformHover(context: HoverContext) {
     series.points[pointBisector.center(series.points, xValue)]
 
   const handleIndependentPointerMove = (event: PointerEvent, trackIndex: number) => {
+    if (isPresentationMode.value) return
     if (selection.value?.trackIndex === trackIndex && selection.value.independent) {
       updateViewportDrag(event)
       return
@@ -128,6 +135,7 @@ export function useWaveformHover(context: HoverContext) {
     })
   }
   const handleSharedPointerMove = (event: PointerEvent) => {
+    if (isPresentationMode.value) return
     if (selection.value?.overlay === event.currentTarget) {
       updateViewportDrag(event)
       return
@@ -161,6 +169,7 @@ export function useWaveformHover(context: HoverContext) {
   return {
     cancelPendingHover,
     clearHover,
+    handlePointerLeave,
     beginAnnotationDrag,
     endAnnotationDrag,
     handleIndependentPointerMove,

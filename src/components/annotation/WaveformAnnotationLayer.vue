@@ -7,9 +7,12 @@ import { ANNOTATION_TEXT_FONT, ANNOTATION_TEXT_LINE_HEIGHT } from './markup'
 interface Props {
   annotations: RenderedAnnotation[]
   visible: boolean
+  interactive?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  interactive: true,
+})
 const emit = defineEmits<{
   (event: 'contextmenu', annotationId: string, mouseEvent: MouseEvent): void
   (event: 'drag-start'): void
@@ -79,7 +82,7 @@ function scheduleDragFrame() {
 }
 
 function handlePointerDown(rendered: RenderedAnnotation, event: PointerEvent) {
-  if (event.button !== 0 || dragState) return
+  if (!props.interactive || event.button !== 0 || dragState) return
   event.preventDefault()
   event.stopPropagation()
   const target = event.currentTarget as SVGGElement | null
@@ -108,6 +111,7 @@ function handlePointerDown(rendered: RenderedAnnotation, event: PointerEvent) {
 }
 
 function handlePointerMove(event: PointerEvent) {
+  if (!props.interactive) return
   event.stopPropagation()
   if (!dragState || event.pointerId !== dragState.pointerId) return
   const deltaX = event.clientX - dragState.startX
@@ -119,6 +123,7 @@ function handlePointerMove(event: PointerEvent) {
 }
 
 function finishPointerDrag(event: PointerEvent) {
+  if (!props.interactive) return
   event.preventDefault()
   event.stopPropagation()
   if (!dragState || event.pointerId !== dragState.pointerId) return
@@ -181,6 +186,11 @@ function handlePointerCancel(event: PointerEvent) {
   event.preventDefault()
   event.stopPropagation()
   if (!dragState || event.pointerId !== dragState.pointerId) return
+  cancelActiveDrag()
+}
+
+function cancelActiveDrag() {
+  if (!dragState) return
   const state = dragState
   dragState = null
   dragOffsets.value = new Map(dragOffsets.value).set(state.annotationId, { x: 0, y: 0 })
@@ -188,10 +198,21 @@ function handlePointerCancel(event: PointerEvent) {
     cancelAnimationFrame(dragFrame)
     dragFrame = null
   }
+  if (state.target.hasPointerCapture(state.pointerId)) {
+    state.target.releasePointerCapture(state.pointerId)
+  }
   emit('drag-end', true)
 }
 
+watch(
+  () => props.interactive,
+  (interactive) => {
+    if (!interactive) cancelActiveDrag()
+  },
+)
+
 function handleContextMenu(annotationId: string, event: MouseEvent) {
+  if (!props.interactive) return
   event.preventDefault()
   event.stopPropagation()
   // 使用时间戳比较：如果 contextmenu 在拖动结束后 100ms 内触发，则抑制
@@ -206,7 +227,11 @@ function markerId(annotationId: string) {
 </script>
 
 <template>
-  <g v-if="props.visible" class="waveform-annotation-layer">
+  <g
+    v-if="props.visible"
+    class="waveform-annotation-layer"
+    :class="{ 'waveform-annotation-layer--interactive': props.interactive }"
+  >
     <g
       v-for="rendered in props.annotations"
       :key="rendered.annotation.id"
@@ -281,13 +306,13 @@ function markerId(annotationId: string) {
   pointer-events: none;
 }
 
-.waveform-annotation {
+.waveform-annotation-layer--interactive .waveform-annotation {
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
 }
 
-.waveform-annotation:active {
+.waveform-annotation-layer--interactive .waveform-annotation:active {
   cursor: grabbing;
 }
 
@@ -300,6 +325,9 @@ function markerId(annotationId: string) {
 .waveform-annotation__box {
   stroke-width: 1;
   rx: 3;
+}
+
+.waveform-annotation-layer--interactive .waveform-annotation__box {
   pointer-events: auto;
 }
 

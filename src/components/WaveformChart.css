@@ -104,6 +104,11 @@
   cursor: crosshair;
 }
 
+.waveform-chart--presentation .waveform-chart__overlay {
+  cursor: default;
+  pointer-events: none;
+}
+
 .waveform-chart__label,
 .waveform-chart__empty {
   fill: #595959;

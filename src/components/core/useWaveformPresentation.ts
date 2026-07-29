@@ -49,6 +49,7 @@ export function useWaveformPresentation(context: PresentationContext) {
     height: fixedHeight.value === undefined ? '100%' : `${fixedHeight.value}px`,
   }))
   const isCleanView = computed(() => props.cleanView === true)
+  const isPresentationMode = computed(() => props.presentationMode === true)
   const resolvedZeroLine = computed(() => {
     const width = props.zeroLine.width
     return {
@@ -178,6 +179,7 @@ export function useWaveformPresentation(context: PresentationContext) {
     chartHeight,
     containerStyle,
     isCleanView,
+    isPresentationMode,
     resolvedZeroLine,
     legendBackgroundColor,
     legendInteractive,

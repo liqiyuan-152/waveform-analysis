@@ -114,6 +114,7 @@ const data = ref<WaveformData>({
 | `frameNumber`                     | `string \| number`                          | 未设置                                                  | 图框水印内容                      |
 | `zeroLine`                        | `WaveformZeroLineOptions`                   | `{ visible: false }`                                    | 零值参考线显隐与样式              |
 | `cleanView`                       | `boolean`                                   | `false`                                                 | 仅保留波形的净图模式              |
+| `presentationMode`                | `boolean`                                   | `false`                                                 | 禁用绘图区交互的展示模式          |
 | `annotations`                     | `WaveformAnnotation[]`                      | `[]`                                                    | 受控标注数据                      |
 | `annotationsVisible`              | `boolean`                                   | `true`                                                  | 标注图层显隐                      |
 | `interactionMode`                 | `'zoom' \| 'annotation'`                    | `'zoom'`                                                | 左键交互模式                      |
@@ -471,6 +472,14 @@ tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失
 `interactionMode` 可选 `zoom` 或 `annotation`，默认使用缩放模式。右键绘图区可直接打开
 标注编辑器，无需切换交互模式。`zoomable`、`pannable` 和 `showTooltip` 可分别控制缩放、
 空格拖拽平移和 tooltip；平移默认关闭。
+
+展示场景可启用 `presentationMode`，统一禁用绘图区的 tooltip、缩放、平移、双击复位和
+标注交互。该模式不会隐藏任何图形内容，也不会禁用图例切换或分页；关闭后恢复原交互配置。
+
+```vue
+<WaveformChart :data="chartData" :presentation-mode="true" />
+```
+
 空数据或过滤后没有有效点时，组件会保留图框布局并显示“暂无有效波形数据”。
 
 ## 大数据渲染

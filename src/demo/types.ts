@@ -26,6 +26,7 @@ export interface DemoControlPanelModel {
   overlayMode: WaveformOverlayMode
   showTooltip: boolean
   cleanView: boolean
+  presentationMode: boolean
   selectedSeriesId: string
   selectedLineStyle: WaveformLineStyle
   lineStyleOptions: Array<SelectOption<WaveformLineStyle>>
@@ -87,6 +88,7 @@ export interface DemoChartModel {
   frameStyle: WaveformFrameStyle
   axes: WaveformAxesOptions
   cleanView: boolean
+  presentationMode: boolean
   showTooltip: boolean
   zeroLine: WaveformZeroLineOptions
   frameWatermarkVisible: boolean

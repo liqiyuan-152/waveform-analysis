@@ -90,6 +90,7 @@ export function useWaveformChartController(
     chartWidth,
     chartHeight,
     isCleanView,
+    isPresentationMode,
     hiddenSeriesIdSet,
     resolvedTitleText,
     titleAreaReserved,
@@ -151,6 +152,7 @@ export function useWaveformChartController(
     innerHeight,
     hasChartArea,
     isZoomMode,
+    isPresentationMode,
     resolveInitialTrackDomain,
     cancelPendingHover: () => hover.cancelPendingHover(),
   })
@@ -174,6 +176,7 @@ export function useWaveformChartController(
     titleAreaHeight,
     chartTopMargin,
     activeInteractionMode,
+    isPresentationMode,
   })
 
   const viewport = useWaveformViewport({
@@ -192,6 +195,7 @@ export function useWaveformChartController(
     sharedYDomains,
     independentYDomains,
     isZoomMode,
+    isPresentationMode,
     editorSeriesOptions,
     resolveInitialTrackDomain,
     canZoomTrack: zoom.canZoomTrack,
@@ -214,6 +218,7 @@ export function useWaveformChartController(
     titleAreaHeight,
     chartTopMargin,
     sharedOverlayElement,
+    isPresentationMode,
     updateViewportDrag: viewport.updateViewportDrag,
     resolveTrackAtPointer: annotations.resolveTrackAtPointer,
   })
@@ -248,10 +253,12 @@ export function useWaveformChartController(
     independentYDomains,
     annotationInteraction,
     editorSeriesOptions,
+    isPresentationMode,
     clearHover: hover.clearHover,
     cancelAnnotation: annotations.cancelAnnotation,
     configureZoom: zoom.configureZoom,
     resetViewport: viewport.resetViewport,
+    cancelViewportDrag: viewport.cancelViewportDrag,
     cancelPendingHover: hover.cancelPendingHover,
     clearZoomBindings: zoom.clearZoomBindings,
   })

@@ -45,6 +45,7 @@ export interface WaveformChartProps {
   hiddenSeriesIds?: string[]
   defaultHiddenSeriesIds?: string[]
   cleanView?: boolean
+  presentationMode?: boolean
   zeroLine?: WaveformZeroLineOptions
 }
 
@@ -65,6 +66,7 @@ type DefaultedProp =
   | 'legend'
   | 'defaultHiddenSeriesIds'
   | 'cleanView'
+  | 'presentationMode'
   | 'zeroLine'
 
 export type ResolvedWaveformChartProps = Readonly<

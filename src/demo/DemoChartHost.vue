@@ -43,6 +43,7 @@ defineExpose({ resetViewport })
       :frame-style="model.frameStyle"
       :axes="model.axes"
       :clean-view="model.cleanView"
+      :presentation-mode="model.presentationMode"
       :show-tooltip="model.showTooltip"
       :zero-line="model.zeroLine"
       :frame-number="model.frameWatermarkVisible ? 1 : undefined"

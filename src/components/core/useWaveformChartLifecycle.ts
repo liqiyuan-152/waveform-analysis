@@ -44,10 +44,12 @@ interface LifecycleContext {
   independentYDomains: Ref<Record<number, [number, number]>>
   annotationInteraction: ReturnType<typeof useWaveformAnnotationInteraction>
   editorSeriesOptions: Ref<AnnotationSeriesCandidate[]>
+  isPresentationMode: ComputedRef<boolean>
   clearHover: () => void
   cancelAnnotation: () => void
   configureZoom: () => void
   resetViewport: () => void
+  cancelViewportDrag: () => void
   cancelPendingHover: () => void
   clearZoomBindings: () => void
 }
@@ -94,16 +96,25 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     independentYDomains,
     annotationInteraction,
     editorSeriesOptions,
+    isPresentationMode,
     clearHover,
     cancelAnnotation,
     configureZoom,
     resetViewport,
+    cancelViewportDrag,
     cancelPendingHover,
     clearZoomBindings,
   } = context
 
   function handleInteractionKeyDown(event: KeyboardEvent) {
-    if (event.code !== 'Space' || !props.pannable || !pointerInsideChart.value) return
+    if (
+      isPresentationMode.value ||
+      event.code !== 'Space' ||
+      !props.pannable ||
+      !pointerInsideChart.value
+    ) {
+      return
+    }
     if (isEditableTarget(event.target)) return
     spacePressed.value = true
     event.preventDefault()
@@ -145,6 +156,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
       innerWidth,
       innerHeight,
       () => props.zoomable,
+      isPresentationMode,
       () => props.minZoomSpan,
       () => props.initialXDomain,
       () => props.initialXDomains,
@@ -189,6 +201,16 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
 
   watch(activeInteractionMode, () => {
     editorSeriesOptions.value = []
+  })
+
+  watch(isPresentationMode, (enabled) => {
+    spacePressed.value = false
+    if (!enabled) return
+    cancelViewportDrag()
+    clearZoomBindings()
+    clearHover()
+    annotationInteraction.closeContextMenu()
+    cancelAnnotation()
   })
 
   watch(

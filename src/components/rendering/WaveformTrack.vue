@@ -13,6 +13,7 @@ interface Props {
   clipPathId: string
   innerWidth: number
   zoomable: boolean
+  interactive?: boolean
   displayMode: WaveformDisplayMode
   interactionMode?: WaveformInteractionMode
   frameNumber?: string | number
@@ -38,6 +39,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
+  interactive: true,
   cleanView: false,
   zeroLine: () => ({ visible: false, color: '#98a2b3', width: 1, dash: '6 4' }),
 })
@@ -116,9 +118,11 @@ const resolvedFrameStyle = computed(() => {
       v-if="!track.isEmpty && track.hasVisibleSeries && displayMode === 'independent'"
       class="waveform-track__overlay waveform-track__overlay--independent waveform-chart__overlay waveform-chart__overlay--independent"
       :class="{
-        'is-zoomable': zoomable && interactionMode === 'zoom',
-        'is-annotating': interactionMode === 'annotation',
+        'is-zoomable': interactive && zoomable && interactionMode === 'zoom',
+        'is-annotating': interactive && interactionMode === 'annotation',
+        'is-presentation': !interactive,
       }"
+      :data-interactive="interactive"
       :data-independent-overlay-index="track.index"
       :width="track.width ?? innerWidth"
       :height="track.height"

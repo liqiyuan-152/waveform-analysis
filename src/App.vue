@@ -43,6 +43,7 @@ const yAxisLineVisible = ref(false)
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
 const cleanView = ref(false)
+const presentationMode = ref(false)
 const showTooltip = ref(true)
 const zeroLineVisible = ref(false)
 const zeroLineColor = ref('#98a2b3')
@@ -289,6 +290,7 @@ const controlPanelModel = reactive({
   overlayMode,
   showTooltip,
   cleanView,
+  presentationMode,
   selectedSeriesId,
   selectedLineStyle,
   lineStyleOptions,
@@ -350,6 +352,7 @@ const chartModel = reactive({
   frameStyle,
   axes,
   cleanView,
+  presentationMode,
   showTooltip,
   zeroLine,
   frameWatermarkVisible,

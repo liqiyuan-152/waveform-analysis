@@ -46,6 +46,10 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         <span>净图</span>
         <Switch v-model:checked="model.cleanView" size="small" aria-label="净图模式" />
       </label>
+      <label class="frame-style-control frame-style-control--switch">
+        <span>展示模式</span>
+        <Switch v-model:checked="model.presentationMode" size="small" aria-label="展示模式" />
+      </label>
     </div>
   </section>
   <section class="control-section">
