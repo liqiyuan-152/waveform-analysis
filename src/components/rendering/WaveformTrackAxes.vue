@@ -103,14 +103,14 @@ watch(
 
 <template>
   <g
-    v-if="track.showXAxis && !cleanView"
+    v-if="track.showXAxis"
     ref="xAxisElement"
     class="waveform-track__axis waveform-track__axis--x waveform-chart__axis waveform-chart__axis--x"
     :class="{ 'waveform-track__axis--line-hidden': axes?.x?.lineVisible === false }"
     :transform="`translate(0, ${track.height})`"
   />
   <g
-    v-if="track.showXAxis && !cleanView"
+    v-if="track.showXAxis"
     class="waveform-track__axis-endpoints waveform-chart__axis-endpoints"
     :transform="`translate(0, ${track.height})`"
     font-family="sans-serif"
@@ -137,7 +137,7 @@ watch(
     </text>
   </g>
   <text
-    v-if="track.showXAxis && track.xAxisExponent && !cleanView"
+    v-if="track.showXAxis && track.xAxisExponent"
     class="waveform-track__axis-exponent waveform-track__axis-exponent--x waveform-chart__axis-exponent waveform-chart__axis-exponent--x"
     :x="track.width ?? innerWidth"
     :y="track.height + 27"
@@ -148,7 +148,7 @@ watch(
   </text>
 
   <g
-    v-for="axis in track.isEmpty || cleanView ? [] : track.yAxes"
+    v-for="axis in track.isEmpty ? [] : track.yAxes"
     :key="`y-axis-${track.index}-${axis.index}`"
     :ref="(element) => setYAxisElement(element, axis.index)"
     class="waveform-track__axis waveform-track__axis--y waveform-chart__axis waveform-chart__axis--y"
@@ -161,9 +161,7 @@ watch(
     :transform="`translate(${axis.x}, 0)`"
   />
   <text
-    v-for="axis in track.isEmpty || cleanView
-      ? []
-      : track.yAxes.filter((item) => item.exponentLabel)"
+    v-for="axis in track.isEmpty ? [] : track.yAxes.filter((item) => item.exponentLabel)"
     :key="`y-axis-exponent-${track.index}-${axis.index}`"
     class="waveform-track__axis-exponent waveform-track__axis-exponent--y waveform-chart__axis-exponent waveform-chart__axis-exponent--y"
     :data-y-axis-index="axis.index"

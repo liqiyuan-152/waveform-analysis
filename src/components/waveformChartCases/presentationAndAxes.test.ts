@@ -146,7 +146,7 @@ describe('WaveformChart', () => {
             kind: 'points',
             points: [
               { x: 0, y: -1 },
-              { x: 1, y: 1 },
+              { x: 10_000, y: 1 },
             ],
           },
         },
@@ -227,8 +227,8 @@ describe('WaveformChart', () => {
           data: {
             kind: 'points',
             points: [
-              { x: 0, y: 1 },
-              { x: 1, y: 2 },
+              { x: 0, y: 10_000 },
+              { x: 10_000, y: 20_000 },
             ],
           },
         },
@@ -239,7 +239,7 @@ describe('WaveformChart', () => {
             kind: 'points',
             points: [
               { x: 0, y: 2 },
-              { x: 1, y: 3 },
+              { x: 10_000, y: 3 },
             ],
           },
         },
@@ -252,6 +252,8 @@ describe('WaveformChart', () => {
       annotations: [{ id: 'note', seriesId: 'first', x: 0.5, y: 0, text: 'hidden note' }],
       zeroLine: { visible: true },
       title: { text: 'hidden title' },
+      axes: { x: { lineVisible: false }, y: { lineVisible: false } },
+      frameStyle: { borderColor: '#dc2626', borderWidth: 2, borderStyle: 'dashed' as const },
     }
     const regularWrapper = await mountSizedChart(data, sharedProps)
     const wrapper = await mountSizedChart(data, {
@@ -285,13 +287,31 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-chart__overlay--independent').exists()).toBe(true)
     expect(wrapper.get('.waveform-chart__title-area').attributes('aria-hidden')).toBe('true')
     expect(wrapper.find('.waveform-chart__title-visual').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__axis').exists()).toBe(false)
+    const xAxis = wrapper.get('.waveform-chart__axis--x')
+    const yAxes = wrapper.findAll('.waveform-chart__axis--y')
+    expect(yAxes).toHaveLength(2)
+    expect(xAxis.findAll('.tick line').length).toBeGreaterThan(0)
+    expect(xAxis.findAll('.tick text').length).toBeGreaterThan(0)
+    yAxes.forEach((axis) => {
+      expect(axis.findAll('.tick line').length).toBeGreaterThan(0)
+      expect(axis.findAll('.tick text').length).toBeGreaterThan(0)
+      expect(axis.get('path.domain').attributes('display')).toBe('none')
+    })
+    expect(xAxis.get('path.domain').attributes('display')).toBe('none')
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint')).toHaveLength(2)
+    expect(wrapper.get('.waveform-chart__axis-exponent--x').text()).not.toBe('')
+    expect(wrapper.get('.waveform-chart__axis-exponent--y').text()).not.toBe('')
     expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
+      stroke: '#dc2626',
+      'stroke-width': '2',
+      'stroke-dasharray': '6 4',
+    })
     expect(wrapper.find('.waveform-chart__plot-background').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__watermark').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__legend-layer').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__label').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation-layer').exists()).toBe(false)
     expect(wrapper.find('.ant-pagination').exists()).toBe(false)

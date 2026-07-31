@@ -119,7 +119,7 @@ const data = ref<WaveformData>({
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式              |
 | `frameNumber`                     | `string \| number`                          | 未设置                                                  | 图框水印内容                      |
 | `zeroLine`                        | `WaveformZeroLineOptions`                   | `{ visible: false }`                                    | 零值参考线显隐与样式              |
-| `cleanView`                       | `boolean`                                   | `false`                                                 | 仅保留波形的净图模式              |
+| `cleanView`                       | `boolean`                                   | `false`                                                 | 保留波形、图框和刻度的净图模式    |
 | `presentationMode`                | `boolean`                                   | `false`                                                 | 禁用绘图区交互的展示模式          |
 | `annotations`                     | `WaveformAnnotation[]`                      | `[]`                                                    | 受控标注数据                      |
 | `annotationsVisible`              | `boolean`                                   | `true`                                                  | 标注图层显隐                      |
@@ -449,9 +449,10 @@ scale 定位零线：
 `dash` 直接对应 SVG 的 `stroke-dasharray`；传入空字符串可显示实线。无效或非正数的
 `width` 会回退到 `1`。
 
-设置 `cleanView` 后，组件隐藏标题内容、图例、网格、坐标轴、轴标签、图框背景与边框、帧水印、
-零值参考线、标注和分页器，同时保留原图的标题区域、边距和波形尺寸。缩放、悬浮、十字线和
-tooltip 仍然可用，切换回普通模式后原有配置和标注不会丢失：
+设置 `cleanView` 后，组件保留波形、图框边框、X/Y 轴刻度及刻度值，并隐藏标题内容、图例、
+网格、轴标签、图框背景、帧水印、零值参考线、标注和分页器。原图的标题区域、边距和波形
+尺寸保持不变；缩放、悬浮、十字线和 tooltip 仍然可用，切换回普通模式后原有配置和标注
+不会丢失：
 
 ```vue
 <WaveformChart :data="chartData" :clean-view="cleanViewEnabled" />

@@ -94,7 +94,7 @@ const resolvedFrameStyle = computed(() => {
     />
 
     <rect
-      v-if="!track.isEmpty && !cleanView"
+      v-if="!track.isEmpty"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
       :width="track.width ?? innerWidth"
       :height="track.height"
