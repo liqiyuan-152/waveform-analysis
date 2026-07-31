@@ -3,6 +3,7 @@ import {
   select,
   zoom,
   zoomIdentity,
+  zoomTransform,
   type D3ZoomEvent,
   type ZoomBehavior,
   type ZoomTransform,
@@ -237,6 +238,15 @@ export function useWaveformZoom(context: ZoomContext) {
     const tracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
     return tracks.length > 0 && tracks.every(canZoomTrack)
   }
+  const canHandleWheelZoom = (event: Event, canZoomIn: boolean): boolean => {
+    if (event.type !== 'wheel') return false
+    const deltaY = (event as WheelEvent).deltaY
+    if (deltaY < 0) return canZoomIn
+    if (deltaY > 0) {
+      return zoomTransform(event.currentTarget as Element).k > ZOOM_CONSTRAINTS.MIN_SCALE
+    }
+    return false
+  }
   const configureZoom = () => {
     clearZoomBindings()
     if (
@@ -256,10 +266,7 @@ export function useWaveformZoom(context: ZoomContext) {
         if (!overlay) return
         const dataDomain = resolveInitialTrackDomain(track)
         const behavior = zoom<SVGRectElement, unknown>()
-          .filter(
-            (event) =>
-              event.type === 'wheel' && (event as WheelEvent).deltaY < 0 && canZoomTrack(track),
-          )
+          .filter((event) => canHandleWheelZoom(event, canZoomTrack(track)))
           .scaleExtent([1, resolveMaximumZoomScale(dataDomain)])
           .extent([
             [0, 0],
@@ -287,10 +294,7 @@ export function useWaveformZoom(context: ZoomContext) {
     const overlay = sharedOverlayElement.value
     if (!overlay) return
     const behavior = zoom<SVGRectElement, unknown>()
-      .filter(
-        (event) =>
-          event.type === 'wheel' && (event as WheelEvent).deltaY < 0 && canZoomSharedTracks(),
-      )
+      .filter((event) => canHandleWheelZoom(event, canZoomSharedTracks()))
       .scaleExtent([1, resolveMaximumZoomScale(initialXDomain.value)])
       .extent([
         [0, 0],

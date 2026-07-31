@@ -86,6 +86,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         ? scaleLinear(
             options.initialXDomains?.[displayTrack.id] ??
               options.initialXDomains?.[series.id] ??
+              options.initialXDomain ??
               displayTrack.xDomain,
             [0, cell.width],
           )

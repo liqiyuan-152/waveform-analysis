@@ -241,7 +241,7 @@ describe('WaveformChart presentation mode', () => {
     await flushPromises()
     overlay.element.dispatchEvent(
       new WheelEvent('wheel', {
-        deltaY: -200,
+        deltaY: 200,
         clientX: width / 2,
         clientY: height / 2,
         bubbles: true,

@@ -207,7 +207,7 @@ describe('WaveformChart', () => {
     expect(secondDomain[1] - secondDomain[0]).toBeCloseTo(10)
   })
 
-  it('keeps one global domain while loading narrower and wider windows', async () => {
+  it('zooms a shared viewport back out after loading a narrower data window', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'points',
@@ -256,9 +256,57 @@ describe('WaveformChart', () => {
 
     const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
     await dispatchWheel(4000)
-    const currentDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    const zoomedOutDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount + 1)
+    expect(zoomedOutDomain[1] - zoomedOutDomain[0]).toBeCloseTo(100)
+
+    const fullDomainEventCount = wrapper.emitted('zoom-change')?.length ?? 0
+    await dispatchWheel(4000)
+    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(fullDomainEventCount)
+  })
+
+  it('allows zooming out when the minimum visible point count blocks zooming in', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: 0 },
+        { x: 1, y: 10 },
+        { x: 2, y: 20 },
+      ],
+    })
+    const overlay = wrapper.get('.waveform-chart__overlay--independent')
+    const width = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width, height: 290 }),
+    })
+    const dispatchWheel = async (deltaY: number) => {
+      overlay.element.dispatchEvent(
+        new WheelEvent('wheel', {
+          deltaY,
+          clientX: width / 2,
+          clientY: 145,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      flushAnimationFrames()
+      await flushPromises()
+    }
+
+    await dispatchWheel(-4000)
+    const zoomedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(0.05)
+
+    await wrapper.setProps({ minVisiblePoints: 10 })
+    await flushPromises()
+    const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
+    await dispatchWheel(-1000)
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount)
-    expect(currentDomain[1] - currentDomain[0]).toBeCloseTo(2.5)
+
+    await dispatchWheel(4000)
+    const zoomedOutDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount + 1)
+    expect(zoomedOutDomain).toEqual([0, 2])
   })
 
   it('resets a shared viewport on double-click and emits zoom-reset', async () => {

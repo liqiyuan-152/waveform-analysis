@@ -38,6 +38,21 @@ describe('WaveformChart', () => {
     expect(domain[1]).toBeLessThanOrEqual(1)
     expect(endpoints()[0]).not.toBe(initialEndpoints[0])
     expect(endpoints()[1]).toBe(initialEndpoints[1])
+
+    overlays[0].element.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY: 4_000,
+        clientX: firstWidth - 1,
+        clientY: 130,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+
+    expect(endpoints()[0]).toBe(initialEndpoints[0])
+    expect(endpoints()[1]).toBe(initialEndpoints[1])
   })
 
   it('emits one zoom-end payload after a shared zoom gesture completes', async () => {

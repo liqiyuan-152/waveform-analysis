@@ -225,7 +225,7 @@ describe('WaveformChart', () => {
     }
   })
 
-  it('uses each track x domain in independent mode instead of the shared initial domain', async () => {
+  it('uses the shared initial x domain for every independent track by default', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -262,7 +262,9 @@ describe('WaveformChart', () => {
     )
 
     const tracks = wrapper.findAll('.waveform-chart__track')
-    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('6.00')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-8.00')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5.00')
+    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-8.00')
     expect(tracks[1]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5.00')
   })
 
