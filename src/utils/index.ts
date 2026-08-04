@@ -11,7 +11,6 @@ export {
   endpointFractionDigits,
   formatEndpointTime,
   formatAxisTime,
-  formatAxisTimeExponent,
   formatTooltipTime,
   formatAnnotationTime,
   formatPlainNumber,

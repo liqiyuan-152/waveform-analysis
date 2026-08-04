@@ -30,7 +30,7 @@ describe('WaveformChart', () => {
               kind: 'points',
               points: [
                 { x: 0, y: 0 },
-                { x: 1, y: 254 },
+                { x: 1, y: 2540 },
               ],
             },
           },
@@ -51,13 +51,13 @@ describe('WaveformChart', () => {
     )
 
     expect(
-      wrapper
-        .findAll('.waveform-chart__axis-exponent--y')
-        .map((label) => [label.attributes('data-y-axis-index'), label.text()]),
-    ).toEqual([
-      ['1', 'E+02'],
-      ['2', 'E-04'],
-    ])
+      wrapper.findAll('.waveform-chart__axis--y').map((axis) =>
+        axis
+          .findAll('.tick text')
+          .map((label) => label.text())
+          .filter((label) => label.startsWith('E')),
+      ),
+    ).toEqual([[], [expect.stringMatching(/^E\+03 /)], [expect.stringMatching(/^E-04 /)]])
   })
 
   it('reprojects annotations with the Y axis assigned to their series', async () => {

@@ -4,21 +4,27 @@
 export type TimeUnit = 'ms' | 's'
 
 export interface ScientificAxisLabelOptions {
+  /** @deprecated Y-axis labels always use five significant digits before localization. */
   precision?: number
   axisMin?: number
   axisMax?: number
-}
-
-/** @deprecated Use ScientificAxisLabelOptions. */
-export type ScientificYAxisLabelOptions = ScientificAxisLabelOptions & {
   topTickValue?: number
 }
 
-const DEFAULT_Y_AXIS_PRECISION = 2
-const SCIENTIFIC_MIN_ABSOLUTE_VALUE = 0.01
-const SCIENTIFIC_MAX_PLAIN_ABSOLUTE_VALUE = 100
+/** @deprecated Use ScientificAxisLabelOptions. */
+export type ScientificYAxisLabelOptions = ScientificAxisLabelOptions
+
+const SCIENTIFIC_MIN_ABSOLUTE_VALUE = 0.001
+const SCIENTIFIC_MAX_PLAIN_ABSOLUTE_VALUE = 1000
+const Y_AXIS_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
+  maximumFractionDigits: 4,
+})
 const TOOLTIP_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 4,
+})
+const X_AXIS_TIME_FORMATTER = new Intl.NumberFormat('zh-CN', {
+  maximumFractionDigits: 0,
+  useGrouping: false,
 })
 
 function formatFixedNumber(value: number, precision: number): string {
@@ -38,15 +44,23 @@ export function shouldUseScientificAxisLabel(maxAbsoluteValue: number): boolean 
 export function resolveScientificAxisExponent(axisMin?: number, axisMax?: number): number | null {
   if (typeof axisMin !== 'number' || typeof axisMax !== 'number') return null
 
-  const maxAbsoluteValue = Math.max(Math.abs(axisMin), Math.abs(axisMax))
-  return shouldUseScientificAxisLabel(maxAbsoluteValue)
-    ? Math.floor(Math.log10(maxAbsoluteValue))
+  const maxValue = Math.max(axisMin, axisMax)
+  const absoluteMaxValue = Math.abs(maxValue)
+  return shouldUseScientificAxisLabel(absoluteMaxValue)
+    ? Math.floor(Math.log10(absoluteMaxValue))
     : null
 }
 
 function formatExponent(exponent: number): string {
   const sign = exponent >= 0 ? '+' : '-'
   return `E${sign}${Math.abs(exponent).toString().padStart(2, '0')}`
+}
+
+function formatYAxisNumber(value: number): string {
+  if (Object.is(value, -0)) return '0'
+  const roundedValue = value === 0 ? 0 : Number(value.toPrecision(5))
+  const formatted = Y_AXIS_NUMBER_FORMATTER.format(roundedValue)
+  return formatted === '-0' ? '0' : formatted
 }
 
 /** Format a Y-axis tick, sharing one exponent derived from the complete axis domain. */
@@ -56,10 +70,13 @@ export function formatScientificAxisLabel(
 ): string {
   if (!Number.isFinite(value)) return String(value)
 
-  const precision = options.precision ?? DEFAULT_Y_AXIS_PRECISION
   const exponent = resolveScientificAxisExponent(options.axisMin, options.axisMax)
   const scaledValue = exponent === null ? value : value / 10 ** exponent
-  return formatFixedNumber(scaledValue, precision)
+  const formattedValue = formatYAxisNumber(scaledValue)
+  const topTickValue = options.topTickValue ?? options.axisMax
+  return exponent !== null && value === topTickValue
+    ? `${formatExponent(exponent)} ${formattedValue}`
+    : formattedValue
 }
 
 /** Return the shared E-style multiplier for an axis, or null for a plain axis. */
@@ -84,6 +101,13 @@ export function formatTooltipNumber(value: number): string {
   if (!Number.isFinite(value)) return String(value)
   if (Object.is(value, -0)) return '0'
   return TOOLTIP_NUMBER_FORMATTER.format(value)
+}
+
+/** Format an X-axis time value as a plain integer without grouping separators. */
+function formatAxisTimeValue(value: number): string {
+  if (!Number.isFinite(value)) return String(value)
+  const formatted = X_AXIS_TIME_FORMATTER.format(value)
+  return formatted === '-0' ? '0' : formatted
 }
 
 /** Convert a number to complete plain decimal text without forcing exponential notation. */
@@ -134,54 +158,34 @@ export function endpointFractionDigits(domain: [number, number], timeUnit: TimeU
 }
 
 /**
- * 按完整 X 轴显示域格式化端点时间
+ * 将 X 轴端点时间格式化为当前显示单位下的普通整数
  * @param value 时间值（秒）
- * @param domain 数据域
+ * @param _domain 数据域（为保持现有调用签名而保留）
  * @param timeUnit 时间单位
  * @returns 格式化的时间字符串
  */
 export function formatEndpointTime(
   value: number,
-  domain: [number, number],
+  _domain: [number, number],
   timeUnit: TimeUnit,
 ): string {
-  const [axisMin, axisMax] = domain.map((domainValue) => displayTime(domainValue, timeUnit)) as [
-    number,
-    number,
-  ]
-  return formatScientificAxisLabel(displayTime(value, timeUnit), {
-    axisMin,
-    axisMax,
-  })
+  return formatAxisTimeValue(displayTime(value, timeUnit))
 }
 
 /**
- * 按完整 X 轴显示域格式化时间刻度
+ * 将 X 轴时间刻度格式化为当前显示单位下的普通整数
  * @param value 时间值（秒）
  * @param timeUnit 时间单位
+ * @param _domain 数据域（为保持现有调用签名而保留）
  * @returns 格式化的时间字符串
  */
 export function formatAxisTime(
   value: number,
   timeUnit: TimeUnit,
-  domain?: [number, number],
+  _domain?: [number, number],
 ): string {
-  const displayValue = displayTime(value, timeUnit)
-  const displayDomain = domain?.map((domainValue) => displayTime(domainValue, timeUnit)) as
-    [number, number] | undefined
-  return formatScientificAxisLabel(displayValue, {
-    axisMin: displayDomain?.[0],
-    axisMax: displayDomain?.[1],
-  })
-}
-
-/** Return the shared multiplier for an X-axis domain in its selected display unit. */
-export function formatAxisTimeExponent(
-  domain: [number, number],
-  timeUnit: TimeUnit,
-): string | null {
-  const [axisMin, axisMax] = domain.map((value) => displayTime(value, timeUnit)) as [number, number]
-  return formatScientificAxisExponent(axisMin, axisMax)
+  void _domain
+  return formatAxisTimeValue(displayTime(value, timeUnit))
 }
 
 /**
@@ -191,11 +195,7 @@ export function formatAxisTimeExponent(
  * @returns 格式化的时间字符串
  */
 export function formatTooltipTime(value: number, timeUnit: TimeUnit): string {
-  const displayValue = displayTime(value, timeUnit)
-  return displayValue.toLocaleString('zh-CN', {
-    minimumFractionDigits: 4,
-    maximumFractionDigits: 4,
-  })
+  return formatTooltipNumber(displayTime(value, timeUnit))
 }
 
 /** Format an annotation X coordinate in the selected display time unit. */

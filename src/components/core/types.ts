@@ -51,8 +51,6 @@ export interface WaveformYAxisLayout {
   side: 'left' | 'right'
   x: number
   labelX: number
-  exponentX: number
-  exponentLabel: string | null
   scale: ScaleLinear<number, number>
   majorTicks: number[]
   minorTicks: number[]
@@ -109,7 +107,6 @@ export interface TrackLayout {
   yAxisTickValues: number[]
   xAxisTickValues: number[]
   endpointLabels: { start: string; end: string }
-  xAxisExponent: string | null
   path: string | null
   seriesPaths: TrackSeriesPath[]
   showXAxis: boolean

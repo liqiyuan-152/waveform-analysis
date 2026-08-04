@@ -91,6 +91,22 @@ describe('WaveformTooltip', () => {
     expect(wrapper.get('.waveform-tooltip__value').text()).toBe('-1,405.4932 A')
   })
 
+  it('formats tooltip time with at most four decimal places', () => {
+    const wrapper = mount(WaveformTooltip, {
+      props: {
+        visible: true,
+        position: { x: 10, y: 10 },
+        timeUnit: 's',
+        hoveredPoint: { x: 1.234567, y: 12 },
+        seriesPoints: [],
+        containerWidth: 400,
+        containerHeight: 300,
+      },
+    })
+
+    expect(wrapper.get('.waveform-tooltip__time').text()).toBe('s: 1.2346')
+  })
+
   it('omits the error label when both resolved errors are zero', () => {
     const point = { x: 1, y: 12 }
     const wrapper = mount(WaveformTooltip, {

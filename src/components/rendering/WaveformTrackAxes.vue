@@ -43,8 +43,11 @@ function renderAxes() {
     const element = yAxisElements.value[index]
     if (!element) return
     const [axisMin, axisMax] = axis.scale.domain()
+    const topTickValue = Math.max(...axis.tickValues)
     const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
-      .tickFormat((value) => formatScientificAxisLabel(Number(value), { axisMin, axisMax }))
+      .tickFormat((value) =>
+        formatScientificAxisLabel(Number(value), { axisMin, axisMax, topTickValue }),
+      )
       .tickSize(-4)
       .tickPadding(7)
       .tickSizeOuter(0)
@@ -136,17 +139,6 @@ watch(
       {{ track.endpointLabels.end }}
     </text>
   </g>
-  <text
-    v-if="track.showXAxis && track.xAxisExponent"
-    class="waveform-track__axis-exponent waveform-track__axis-exponent--x waveform-chart__axis-exponent waveform-chart__axis-exponent--x"
-    :x="track.width ?? innerWidth"
-    :y="track.height + 27"
-    text-anchor="end"
-    aria-hidden="true"
-  >
-    {{ track.xAxisExponent }}
-  </text>
-
   <g
     v-for="axis in track.isEmpty ? [] : track.yAxes"
     :key="`y-axis-${track.index}-${axis.index}`"
@@ -160,20 +152,6 @@ watch(
     :data-y-axis-side="axis.side"
     :transform="`translate(${axis.x}, 0)`"
   />
-  <text
-    v-for="axis in track.isEmpty ? [] : track.yAxes.filter((item) => item.exponentLabel)"
-    :key="`y-axis-exponent-${track.index}-${axis.index}`"
-    class="waveform-track__axis-exponent waveform-track__axis-exponent--y waveform-chart__axis-exponent waveform-chart__axis-exponent--y"
-    :data-y-axis-index="axis.index"
-    :x="axis.exponentX"
-    y="0"
-    dy="0.32em"
-    :text-anchor="axis.side === 'left' ? 'end' : 'start'"
-    aria-hidden="true"
-  >
-    {{ axis.exponentLabel }}
-  </text>
-
   <g
     v-if="
       !cleanView &&

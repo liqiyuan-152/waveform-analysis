@@ -54,8 +54,9 @@ describe('WaveformChart', () => {
       ],
     })
 
-    expect(first.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
-    expect(second.get('.waveform-chart__axis-exponent--y').text()).toBe('E+04')
+    expect(first.get('.waveform-chart__axis--y').text()).not.toContain('E')
+    expect(second.get('.waveform-chart__axis--y').text()).toContain('E+04 ')
+    expect(second.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
   })
 
   it('renders a configurable zero line only when the Y domain contains zero', async () => {
@@ -299,8 +300,9 @@ describe('WaveformChart', () => {
     })
     expect(xAxis.get('path.domain').attributes('display')).toBe('none')
     expect(wrapper.findAll('.waveform-chart__axis-endpoint')).toHaveLength(2)
-    expect(wrapper.get('.waveform-chart__axis-exponent--x').text()).not.toBe('')
-    expect(wrapper.get('.waveform-chart__axis-exponent--y').text()).not.toBe('')
+    expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
+    expect(yAxes.some((axis) => axis.text().includes('E+04 '))).toBe(true)
+    expect(wrapper.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
       stroke: '#dc2626',

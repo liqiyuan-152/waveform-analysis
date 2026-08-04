@@ -72,7 +72,7 @@ describe('WaveformChart', () => {
     expect(endTicks[3]).toHaveLength(0)
   })
 
-  it('keeps one separate shared exponent for every compact Y axis', async () => {
+  it('prefixes one shared exponent to the largest visible tick on every compact Y axis', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -83,7 +83,7 @@ describe('WaveformChart', () => {
               kind: 'points',
               points: [
                 { x: 0, y: 0 },
-                { x: 1, y: 254 },
+                { x: 1, y: 2540 },
               ],
             },
           },
@@ -103,14 +103,14 @@ describe('WaveformChart', () => {
     )
 
     const axes = wrapper.findAll('.waveform-chart__axis--y')
-    const exponents = wrapper.findAll('.waveform-chart__axis-exponent--y')
     expect(axes).toHaveLength(2)
-    expect(exponents.map((label) => label.text())).toEqual(['E+02', 'E-04'])
-    axes.forEach((axis) => {
+    axes.forEach((axis, index) => {
       const labels = axis.findAll('.tick text').map((tick) => tick.text())
-      expect(labels.every((label) => !label.startsWith('E'))).toBe(true)
-      expect(labels.every((label) => /^-?\d+\.\d{2}$/.test(label))).toBe(true)
+      const exponentLabels = labels.filter((label) => label.startsWith('E'))
+      expect(exponentLabels).toHaveLength(1)
+      expect(exponentLabels[0]).toMatch(index === 0 ? /^E\+03 / : /^E-04 /)
     })
+    expect(wrapper.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
   })
 
   it('prefers a trimmed series name and falls back to yLabel for unnamed data', async () => {

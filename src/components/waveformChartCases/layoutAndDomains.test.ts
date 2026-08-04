@@ -33,10 +33,10 @@ describe('WaveformChart', () => {
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
 
-    expect(labelX).toBe(-103)
+    expect(labelX).toBe(-74)
     expect(labelBackgroundX).toBe(labelX - 12)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(119)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(119)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(90)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(90)
   })
 
   it('keeps a tick-only gutter when channel labels are empty', async () => {
@@ -62,8 +62,8 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(89)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(89)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(64)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(60)
   })
 
   it('keeps the Y-axis label gutter stable while paging between value ranges', async () => {
@@ -122,7 +122,7 @@ describe('WaveformChart', () => {
     const tracks = wrapper.findAll('.waveform-chart__track')
     const firstWidth = Number(tracks[0].attributes('data-track-width'))
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(39)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(32)
   })
 
   it('uses one shared overlay and bottom-row x axes for separated and compact grids', async () => {
@@ -262,10 +262,10 @@ describe('WaveformChart', () => {
     )
 
     const tracks = wrapper.findAll('.waveform-chart__track')
-    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-8.00')
-    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5.00')
-    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-8.00')
-    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5.00')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-8000')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5000')
+    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-8000')
+    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('5000')
   })
 
   it('uses an explicit initial x domain override for an independent track', async () => {
@@ -293,7 +293,7 @@ describe('WaveformChart', () => {
       },
     )
 
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
   })
 
   it('reacts to exact fixed Y-domain props and returns to automatic bounds', async () => {
@@ -312,13 +312,13 @@ describe('WaveformChart', () => {
 
     await wrapper.setProps({ yDomain: [3, 97] })
     await flushPromises()
-    expect(yTickLabels()).toContain('3.00')
-    expect(yTickLabels()).toContain('97.00')
+    expect(yTickLabels()).toContain('3')
+    expect(yTickLabels()).toContain('97')
 
     await wrapper.setProps({ yDomain: undefined })
     await flushPromises()
-    expect(yTickLabels()).not.toContain('3.00')
-    expect(yTickLabels()).not.toContain('97.00')
+    expect(yTickLabels()).not.toContain('3')
+    expect(yTickLabels()).not.toContain('97')
   })
 
   it('keeps annotations bound to their channel while paging', async () => {

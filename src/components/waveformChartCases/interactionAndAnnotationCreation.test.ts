@@ -59,7 +59,7 @@ describe('WaveformChart', () => {
     await flushPromises()
 
     expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
   it('updates rendering props and disables zoom interaction', async () => {

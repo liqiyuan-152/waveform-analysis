@@ -162,35 +162,42 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').attributes('x')).toBe(
       String(trackWidth),
     )
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4.99')
-    expect(wrapper.get('.waveform-chart__axis-exponent--x').text()).toBe('E+03')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4990')
+    expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
   })
 
   it('uses one shared scientific exponent only for large and tiny Y-axis domains', async () => {
     const cases = [
-      { values: [0, 50], exponent: null },
-      { values: [0, 254], exponent: 'E+02' },
-      { values: [0, 0.0002], exponent: 'E-04' },
+      { values: [0, 50], yDomain: [0, 50] as [number, number], exponent: null },
+      { values: [1000, 3000], yDomain: [1000, 3000] as [number, number], exponent: 'E+03' },
+      {
+        values: [0.0001, 0.0003],
+        yDomain: [0.0001, 0.0003] as [number, number],
+        exponent: 'E-04',
+      },
     ]
 
-    for (const { values, exponent } of cases) {
-      const wrapper = await mountSizedChart({
-        kind: 'points',
+    for (const { values, yDomain, exponent } of cases) {
+      const data = {
+        kind: 'points' as const,
         points: values.map((y, x) => ({ x, y })),
-      })
+      }
+      const originalValues = data.points.map((point) => point.y)
+      const wrapper = await mountSizedChart(data, { yDomain })
       const labels = wrapper
         .get('.waveform-chart__axis--y')
         .findAll('.tick text')
         .map((tick) => tick.text())
-      const exponentLabel = wrapper.find('.waveform-chart__axis-exponent--y')
+      const exponentLabels = labels.filter((label) => label.startsWith('E'))
 
       if (exponent === null) {
-        expect(exponentLabel.exists()).toBe(false)
+        expect(exponentLabels).toHaveLength(0)
       } else {
-        expect(exponentLabel.text()).toBe(exponent)
-        expect(labels.every((label) => !label.startsWith('E'))).toBe(true)
-        expect(labels.every((label) => /^-?\d+\.\d{2}$/.test(label))).toBe(true)
+        expect(exponentLabels).toHaveLength(1)
+        expect(exponentLabels[0]).toMatch(new RegExp(`^${exponent.replace('+', '\\+')} `))
       }
+      expect(wrapper.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
+      expect(data.points.map((point) => point.y)).toEqual(originalValues)
 
       wrapper.unmount()
     }
@@ -212,13 +219,13 @@ describe('WaveformChart', () => {
 
     expect(millisecondsChart.text()).toContain('时间（ms）')
     expect(millisecondTicks.length).toBeGreaterThan(0)
-    expect(millisecondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
-    expect(millisecondsChart.get('.waveform-chart__axis-exponent--x').text()).toBe('E+03')
+    expect(millisecondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
+    expect(millisecondsChart.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
     expect(millisecondsChart.find('.waveform-chart__watermark').exists()).toBe(false)
 
     const secondsChart = await mountSizedChart(data, { timeUnit: 's', xLabel: 'Elapsed time' })
     expect(secondsChart.text()).toContain('Elapsed time')
-    expect(secondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+    expect(secondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1')
     expect(secondsChart.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
   })
 
@@ -237,15 +244,15 @@ describe('WaveformChart', () => {
 
     expect(start.attributes('x')).toBe('0')
     expect(start.attributes('text-anchor')).toBe('start')
-    expect(start.text()).toBe('0.00')
+    expect(start.text()).toBe('0')
     expect(end.attributes('x')).toBe(
       wrapper.get('.waveform-chart__track').attributes('data-track-width'),
     )
     expect(end.attributes('text-anchor')).toBe('end')
-    expect(end.text()).toBe('2.00')
+    expect(end.text()).toBe('1999')
     expect(middleTickLabels.length).toBeGreaterThan(0)
-    expect(middleTickLabels).not.toContain('0.00')
-    expect(wrapper.get('.waveform-chart__axis-exponent--x').text()).toBe('E+03')
+    expect(middleTickLabels).not.toContain('0')
+    expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
     expect(wrapper.findAll('.waveform-chart__grid--major line').length).toBeGreaterThan(
       middleTickLabels.length,
     )
@@ -300,6 +307,6 @@ describe('WaveformChart', () => {
     )
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe(initialStart)
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).not.toBe(initialEnd)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toContain('.')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toMatch(/^-?\d+$/)
   })
 })

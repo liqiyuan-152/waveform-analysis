@@ -79,8 +79,8 @@ describe('WaveformChart', () => {
 
     expect(wrapper.emitted('zoom-change')).toBeUndefined()
     expect(wrapper.emitted('zoom-end')).toBeUndefined()
-    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0.00')
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
   it('ignores independent viewport dragging', async () => {
@@ -333,14 +333,14 @@ describe('WaveformChart', () => {
     )
     flushAnimationFrames()
     await flushPromises()
-    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe('0.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe('0')
 
     overlay.element.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }))
     await flushPromises()
 
     expect(wrapper.emitted('zoom-reset')).toHaveLength(1)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0.00')
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
   it('exposes resetViewport for independent tracks', async () => {
@@ -364,13 +364,13 @@ describe('WaveformChart', () => {
     )
     flushAnimationFrames()
     await flushPromises()
-    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).not.toBe('0.00')
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).not.toBe('0')
 
     const chart = wrapper.vm as unknown as { resetViewport: () => void }
     chart.resetViewport()
     await flushPromises()
 
-    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe('0.00')
-    expect(wrapper.findAll('.waveform-chart__axis-endpoint--end')[0].text()).toBe('1.00')
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe('0')
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--end')[0].text()).toBe('1000')
   })
 })

@@ -62,15 +62,15 @@ describe('WaveformChart', () => {
       ],
     }
     const wrapper = await mountSizedChart(firstData)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
 
     firstData.points.push({ x: 2, y: 2 })
     await flushPromises()
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
 
     await wrapper.setProps({ data: { ...firstData, points: [...firstData.points] } })
     await flushPromises()
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2.00')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
   it('keeps controlled annotations when replacing the loaded data window', async () => {
@@ -170,7 +170,7 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__track-label')).toHaveLength(0)
     expect(
       wrapper.findAll('.waveform-chart__axis-endpoint--end').map((item) => item.text()),
-    ).toEqual(['1.00', '2.00'])
+    ).toEqual(['1000', '2000'])
   })
 
   it('keeps the zero Y-axis label on upper compact tracks', async () => {

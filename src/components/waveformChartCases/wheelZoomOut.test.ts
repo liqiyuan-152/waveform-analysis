@@ -49,15 +49,15 @@ describe('WaveformChart wheel zoom out', () => {
       end: wrapper.get('.waveform-chart__axis-endpoint--end').text(),
     })
 
-    expect(endpoints()).toEqual({ start: '-5.00', end: '5.00' })
+    expect(endpoints()).toEqual({ start: '-5000', end: '5000' })
     await dispatchWheel(-4000)
-    expect(endpoints()).not.toEqual({ start: '-5.00', end: '5.00' })
+    expect(endpoints()).not.toEqual({ start: '-5000', end: '5000' })
 
     await wrapper.setProps({ data: createData(-0.125, 0.125) })
     await flushPromises()
     await dispatchWheel(4000)
 
-    expect(endpoints()).toEqual({ start: '-5.00', end: '5.00' })
+    expect(endpoints()).toEqual({ start: '-5000', end: '5000' })
   })
 
   it('emits one zoom-end payload after zooming a shared viewport out', async () => {

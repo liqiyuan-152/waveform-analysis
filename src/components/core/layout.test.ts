@@ -192,7 +192,7 @@ describe('multi-value Y-axis grouping', () => {
     ])
   })
 
-  it('places left and right scientific exponents eight pixels outside their tick labels', () => {
+  it('reserves label clearance for exponent-prefixed ticks on both axis sides', () => {
     const layout = buildTrackLayouts({
       cells: [
         {
@@ -206,7 +206,7 @@ describe('multi-value Y-axis grouping', () => {
           plotHeight: 300,
           cellHeight: 330,
           xAxisBand: 30,
-          series: track([series('left', 0, 254), series('right', 0, 254)]),
+          series: track([series('left', 1000, 3000), series('right', 1000, 3000)]),
         },
       ],
       grid: { rowCount: 1, columnCount: 1, showPagination: false, trackLines: {} },
@@ -222,14 +222,13 @@ describe('multi-value Y-axis grouping', () => {
     })[0]
 
     expect(
-      layout?.yAxes.map(({ side, x, exponentX, exponentLabel }) => ({
+      layout?.yAxes.map(({ side, x, labelX }) => ({
         side,
-        offset: Math.abs(exponentX - x),
-        exponentLabel,
+        labelOffset: Math.abs(labelX - x),
       })),
     ).toEqual([
-      { side: 'left', offset: 43, exponentLabel: 'E+02' },
-      { side: 'right', offset: 43, exponentLabel: 'E+02' },
+      { side: 'left', labelOffset: 67 },
+      { side: 'right', labelOffset: 67 },
     ])
   })
 
@@ -237,7 +236,7 @@ describe('multi-value Y-axis grouping', () => {
     const [group] = buildYAxisSeriesGroups(track([series('long', -1e120, 1e120)]), 'multi-axis')
 
     expect(group).toBeDefined()
-    expect(measureYAxisGroupClearance(group!)).toBe(119)
+    expect(measureYAxisGroupClearance(group!)).toBe(90)
   })
 })
 

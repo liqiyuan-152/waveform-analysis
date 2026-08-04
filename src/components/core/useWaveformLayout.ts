@@ -2,7 +2,7 @@ import { scaleLinear, type ZoomTransform } from 'd3'
 import { computed, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 
 import { resolveWaveformRenderingOptions } from '../../core'
-import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../../utils'
+import { paddedDomain } from '../../utils'
 import {
   layoutAnnotations,
   type AnnotationSeriesInfo,
@@ -28,9 +28,9 @@ import {
 } from './grid'
 import {
   buildTrackLayouts,
+  axisTextMetrics,
   measureTrackYAxisClearance,
   resolveYAxisSeriesGroups,
-  Y_AXIS_EXPONENT_GAP,
 } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { PreparedWaveformSeries } from './useWaveformData'
@@ -112,40 +112,18 @@ export function useWaveformLayout(context: LayoutContext) {
       .flatMap((track) =>
         resolveYAxisSeriesGroups(track, props.overlayMode, props.yDomain, props.yDomains),
       )
-      .map((group) => {
-        const scale = scaleLinear(group.domain, [1, 0])
-        if (!group.fixed) scale.nice()
-        const [axisMin, axisMax] = scale.domain()
-        return {
-          exponentLabel: formatScientificAxisExponent(axisMin, axisMax),
-          tickLabels: scale
-            .ticks(10)
-            .map((value) => formatScientificAxisLabel(value, { axisMin, axisMax })),
-        }
-      })
-    const maximumCharacters = Math.max(
-      1,
-      ...axisText.flatMap(({ tickLabels }) => tickLabels).map((label) => label.length),
-    )
-    const tickTextWidth = maximumCharacters * Y_AXIS_CHARACTER_WIDTH
-    const maximumExponentWidth = Math.max(
-      0,
-      ...axisText.map(({ exponentLabel }) => (exponentLabel?.length ?? 0) * Y_AXIS_CHARACTER_WIDTH),
-    )
-    const exponentClearance = maximumExponentWidth ? maximumExponentWidth + Y_AXIS_EXPONENT_GAP : 0
-    const tickClearance =
-      tickTextWidth + Y_AXIS_TICK_PADDING + exponentClearance + Y_AXIS_OUTER_PADDING
+      .map((group) => axisTextMetrics(group.domain, !group.fixed).tickTextWidth)
+    const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)
+    const tickClearance = tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_OUTER_PADDING
     const labelCenterX = -(
       Y_AXIS_TICK_PADDING +
       tickTextWidth +
-      exponentClearance +
       Y_AXIS_LABEL_GAP +
       Y_AXIS_LABEL_BAND_WIDTH / 2
     )
     const fullClearance =
       tickTextWidth +
       Y_AXIS_TICK_PADDING +
-      exponentClearance +
       Y_AXIS_LABEL_GAP +
       Y_AXIS_LABEL_BAND_WIDTH +
       Y_AXIS_OUTER_PADDING

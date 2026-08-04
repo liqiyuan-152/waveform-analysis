@@ -13,7 +13,7 @@ import {
   type ResolvedWaveformRenderingOptions,
 } from '../../core/rendering'
 import type { WaveformDisplayMode, WaveformOverlayMode, WaveformPoint } from '../../types'
-import { buildMinorTicks, formatAxisTimeExponent, formatEndpointTime } from '../../utils'
+import { buildMinorTicks, formatEndpointTime } from '../../utils'
 import {
   getBottomRowCellIndexes,
   type GridCellGeometry,
@@ -21,7 +21,6 @@ import {
 } from './grid'
 import { axisTextMetrics, resolveYAxisSeriesGroups } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
-import { Y_AXIS_EXPONENT_GAP } from './constants'
 import {
   Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
@@ -118,31 +117,16 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const tickValues = Array.from(
         new Set([axisStart, ...visibleMajorTicks, ...(showAxisEnd ? [axisEnd] : [])]),
       )
-      const { exponentLabel, exponentWidth, tickTextWidth } = axisTextMetrics(
-        group.domain,
-        !group.fixed,
-      )
-      const exponentClearance = exponentLabel ? exponentWidth + Y_AXIS_EXPONENT_GAP : 0
+      const { tickTextWidth } = axisTextMetrics(group.domain, !group.fixed, tickValues)
       const clearance =
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
-        exponentClearance +
         Y_AXIS_LABEL_GAP +
         Y_AXIS_LABEL_BAND_WIDTH +
         Y_AXIS_OUTER_PADDING
       const x = group.side === 'left' ? -sideOffsets.left : cell.width + sideOffsets.right
-      const exponentX =
-        x +
-        (group.side === 'left'
-          ? -(Y_AXIS_TICK_PADDING + tickTextWidth + Y_AXIS_EXPONENT_GAP)
-          : Y_AXIS_TICK_PADDING + tickTextWidth + Y_AXIS_EXPONENT_GAP)
       const labelDistance =
-        tickTextWidth +
-        Y_AXIS_TICK_PADDING +
-        exponentClearance +
-        exponentWidth +
-        Y_AXIS_LABEL_GAP +
-        Y_AXIS_LABEL_BAND_WIDTH / 2
+        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
       const labelX = x + (group.side === 'left' ? -labelDistance : labelDistance)
       sideOffsets[group.side] += clearance
       return {
@@ -150,8 +134,6 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         side: group.side,
         x,
         labelX,
-        exponentX,
-        exponentLabel,
         scale,
         majorTicks,
         minorTicks: buildMinorTicks(majorTicks),
@@ -168,7 +150,6 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       start: formatEndpointTime(domain[0], domain, options.timeUnit),
       end: formatEndpointTime(domain[1], domain, options.timeUnit),
     }
-    const xAxisExponent = formatAxisTimeExponent(domain, options.timeUnit)
     const leftClearance = endpointLabels.start.length * 7 + 10
     const rightClearance = endpointLabels.end.length * 7 + 10
     const xAxisTickValues = xMajorTicks.filter((tick) => {
@@ -235,7 +216,6 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       yAxisTickValues,
       xAxisTickValues,
       endpointLabels,
-      xAxisExponent,
       path: seriesPaths[0]?.path ?? null,
       seriesPaths,
       gridLines: options.grid.trackLines[displayTrack.id] ?? {

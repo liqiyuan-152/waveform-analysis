@@ -1,9 +1,9 @@
 import { scaleLinear } from 'd3'
 
 import type { WaveformOverlayMode } from '../../types'
-import { formatScientificAxisExponent, formatScientificAxisLabel, paddedDomain } from '../../utils'
+import { formatScientificAxisLabel, paddedDomain } from '../../utils'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
-import { MAX_MULTI_Y_AXIS_COUNT, Y_AXIS_EXPONENT_GAP } from './constants'
+import { MAX_MULTI_Y_AXIS_COUNT } from './constants'
 import {
   mergeYDomains,
   resolveSeriesFixedYDomain,
@@ -12,7 +12,7 @@ import {
 } from './yDomain'
 
 // 导出常量供外部使用
-export { MAX_MULTI_Y_AXIS_COUNT, Y_AXIS_EXPONENT_GAP } from './constants'
+export { MAX_MULTI_Y_AXIS_COUNT } from './constants'
 
 const Y_AXIS_CHARACTER_WIDTH = 7
 const Y_AXIS_TICK_PADDING = 7
@@ -102,36 +102,27 @@ export function resolveYAxisSeriesGroups(
 export function axisTextMetrics(
   domain: [number, number],
   nice = true,
-): {
-  exponentLabel: string | null
-  exponentWidth: number
-  tickTextWidth: number
-} {
+  tickValues?: number[],
+): { tickTextWidth: number } {
   const scale = scaleLinear(domain, [1, 0])
   if (nice) scale.nice()
   const [axisMin, axisMax] = scale.domain()
-  const values = scale.ticks(10)
+  const values = tickValues ?? Array.from(new Set([axisMin, ...scale.ticks(10), axisMax]))
+  const topTickValue = Math.max(...values)
   const maximumTickCharacters = Math.max(
     1,
-    ...values.map((value) => formatScientificAxisLabel(value, { axisMin, axisMax }).length),
+    ...values.map(
+      (value) => formatScientificAxisLabel(value, { axisMin, axisMax, topTickValue }).length,
+    ),
   )
-  const exponentLabel = formatScientificAxisExponent(axisMin, axisMax)
   return {
-    exponentLabel,
-    exponentWidth: exponentLabel ? exponentLabel.length * Y_AXIS_CHARACTER_WIDTH : 0,
     tickTextWidth: maximumTickCharacters * Y_AXIS_CHARACTER_WIDTH,
   }
-}
-
-function axisExponentClearance(domain: [number, number], nice: boolean): number {
-  const { exponentLabel, exponentWidth } = axisTextMetrics(domain, nice)
-  return exponentLabel ? exponentWidth + Y_AXIS_EXPONENT_GAP : 0
 }
 
 export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
   return (
     axisTextMetrics(group.domain, !group.fixed).tickTextWidth +
-    axisExponentClearance(group.domain, !group.fixed) +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_LABEL_GAP +
     Y_AXIS_LABEL_BAND_WIDTH +
@@ -142,7 +133,6 @@ export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
 function measureYAxisGroupTickClearance(group: YAxisSeriesGroup): number {
   return (
     axisTextMetrics(group.domain, !group.fixed).tickTextWidth +
-    axisExponentClearance(group.domain, !group.fixed) +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_OUTER_PADDING
   )
