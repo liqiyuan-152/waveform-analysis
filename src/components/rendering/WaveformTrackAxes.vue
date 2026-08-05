@@ -3,7 +3,7 @@ import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import { nextTick, onMounted, ref, watch } from 'vue'
 
 import type { WaveformAxesOptions } from '../../types'
-import { formatAxisTime, formatScientificAxisLabel } from '../../utils'
+import { formatScientificAxisLabel, formatXAxisLabel } from '../../utils'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
 
 interface Props {
@@ -66,10 +66,12 @@ function renderAxes() {
     axisBottom(props.track.xScale)
       .tickValues(props.track.xAxisTickValues)
       .tickFormat((value) =>
-        formatAxisTime(
+        formatXAxisLabel(
           Number(value),
-          props.timeUnit,
           props.track.xScale.domain() as [number, number],
+          props.timeUnit,
+          'tick',
+          props.axes?.x?.labelFormatter,
         ),
       )
       .tickSize(-4)
@@ -93,6 +95,7 @@ watch(
     () => props.track.xAxisTickValues,
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
+    () => props.axes?.x?.labelFormatter,
     () => props.axes?.x?.lineVisible,
     () => props.axes?.y?.lineVisible,
   ],

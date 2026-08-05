@@ -1,7 +1,8 @@
 import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames } from '../../test/setup'
+import type { WaveformXAxisLabelFormatter } from '../../types'
 import { type WaveformData } from '../waveform'
 
 import { gridSeries, mountSizedChart } from '../../test/waveformChart'
@@ -162,7 +163,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').attributes('x')).toBe(
       String(trackWidth),
     )
-    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4990')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('4990.3')
     expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
   })
 
@@ -267,6 +268,70 @@ describe('WaveformChart', () => {
     expect(endpointGroup.attributes('font-size')).toBe(xAxis.attributes('font-size'))
   })
 
+  it('formats X-axis ticks and endpoints with display-unit values and source context', async () => {
+    const data: WaveformData = {
+      kind: 'points',
+      points: [
+        { x: 0.125, y: 0 },
+        { x: 1.875, y: 1 },
+      ],
+    }
+    const originalPoints = data.points.map((point) => ({ ...point }))
+    const labelFormatter: WaveformXAxisLabelFormatter = (value, context) =>
+      `${context.kind}:${value / 10}`
+    const formatter = vi.fn(labelFormatter)
+    const wrapper = await mountSizedChart(data, {
+      timeUnit: 'ms',
+      axes: { x: { labelFormatter: formatter } },
+    })
+
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('start:12.5')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('end:187.5')
+    expect(
+      wrapper
+        .get('.waveform-chart__axis--x')
+        .findAll('.tick text')
+        .every((tick) => tick.text().startsWith('tick:')),
+    ).toBe(true)
+
+    const startCall = formatter.mock.calls.find(([, context]) => context.kind === 'start')
+    const tickCall = formatter.mock.calls.find(([, context]) => context.kind === 'tick')
+    const endCall = formatter.mock.calls.find(([, context]) => context.kind === 'end')
+    expect(startCall).toEqual([
+      125,
+      {
+        kind: 'start',
+        rawValue: 0.125,
+        timeUnit: 'ms',
+        domain: [0.125, 1.875],
+        displayDomain: [125, 1875],
+      },
+    ])
+    expect(tickCall?.[0]).toBeTypeOf('number')
+    expect(tickCall?.[1]).toMatchObject({
+      kind: 'tick',
+      timeUnit: 'ms',
+      domain: [0.125, 1.875],
+      displayDomain: [125, 1875],
+    })
+    expect(endCall?.[1]).toMatchObject({ kind: 'end', rawValue: 1.875 })
+    expect(data.points).toEqual(originalPoints)
+
+    await wrapper.setProps({
+      axes: { x: { labelFormatter: (value: number) => `updated:${value}` } },
+    })
+    await flushPromises()
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('updated:125')
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('updated:1875')
+    expect(
+      wrapper
+        .get('.waveform-chart__axis--x')
+        .findAll('.tick text')
+        .every((tick) => tick.text().startsWith('updated:')),
+    ).toBe(true)
+    expect(data.points).toEqual(originalPoints)
+  })
+
   it('keeps zoom-change domains in source seconds', async () => {
     const wrapper = await mountSizedChart({
       kind: 'points',
@@ -307,6 +372,8 @@ describe('WaveformChart', () => {
     )
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe(initialStart)
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).not.toBe(initialEnd)
-    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toMatch(/^-?\d+$/)
+    expect(
+      Number.isFinite(Number(wrapper.get('.waveform-chart__axis-endpoint--start').text())),
+    ).toBe(true)
   })
 })

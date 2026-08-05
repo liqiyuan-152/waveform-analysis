@@ -96,6 +96,76 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         <Switch v-model:checked="model.yAxisLineVisible" size="small" aria-label="显示纵轴线" />
       </div>
     </div>
+    <div class="x-axis-label-controls">
+      <label class="frame-style-control frame-style-control--switch">
+        <span>自定义 Label</span>
+        <Switch
+          v-model:checked="model.xAxisLabelFormatterEnabled"
+          size="small"
+          aria-label="自定义 X 轴 Label"
+        />
+      </label>
+      <label v-if="model.xAxisLabelFormatterEnabled" class="frame-style-control">
+        <span>格式类型</span>
+        <Select
+          v-model:value="model.xAxisLabelFormat"
+          :options="model.xAxisLabelFormatOptions"
+          size="small"
+          aria-label="X 轴 Label 格式类型"
+        />
+      </label>
+      <label
+        v-if="model.xAxisLabelFormatterEnabled && model.xAxisLabelFormat === 'number'"
+        class="frame-style-control"
+      >
+        <span>运算倍率</span>
+        <InputNumber
+          v-model:value="model.xAxisLabelMultiplier"
+          :min="-1000000"
+          :max="1000000"
+          :step="0.1"
+          size="small"
+          aria-label="X 轴 Label 运算倍率"
+        />
+      </label>
+      <label
+        v-if="model.xAxisLabelFormatterEnabled && model.xAxisLabelFormat === 'number'"
+        class="frame-style-control"
+      >
+        <span>小数位数</span>
+        <InputNumber
+          v-model:value="model.xAxisLabelFractionDigits"
+          :min="0"
+          :max="12"
+          :step="1"
+          size="small"
+          aria-label="X 轴 Label 小数位数"
+        />
+      </label>
+      <label
+        v-if="model.xAxisLabelFormatterEnabled && model.xAxisLabelFormat === 'datetime'"
+        class="frame-style-control"
+      >
+        <span>时区</span>
+        <Select
+          v-model:value="model.xAxisLabelTimeZone"
+          :options="model.xAxisLabelTimeZoneOptions"
+          size="small"
+          aria-label="X 轴 Label 时区"
+        />
+      </label>
+      <label
+        v-if="model.xAxisLabelFormatterEnabled && model.xAxisLabelFormat === 'datetime'"
+        class="frame-style-control frame-style-control--switch"
+      >
+        <span>显示毫秒</span>
+        <Switch
+          v-model:checked="model.xAxisLabelShowMilliseconds"
+          size="small"
+          aria-label="X 轴 Label 显示毫秒"
+        />
+      </label>
+    </div>
   </section>
   <section class="control-section">
     <h2>图框样式</h2>

@@ -23,6 +23,7 @@ import { createSimulatedWaveformData } from './data/simulatedWaveforms'
 import DemoChartHost from './demo/DemoChartHost.vue'
 import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'
+import { useDemoXAxisLabelControls } from './demo/useDemoXAxisLabelControls'
 
 const fullChartData = createSimulatedWaveformData()
 const displayMode = ref<WaveformDisplayMode>('independent')
@@ -40,6 +41,7 @@ const verticalGridVisible = ref(true)
 const verticalGridColor = ref('#dfe5ef')
 const xAxisLineVisible = ref(false)
 const yAxisLineVisible = ref(false)
+const { controlModel: xAxisLabelControlModel, xAxisLabelFormatter } = useDemoXAxisLabelControls()
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
 const cleanView = ref(false)
@@ -112,7 +114,10 @@ const frameStyle = computed<WaveformFrameStyle>(() => ({
   backgroundColor: frameBackgroundColor.value,
 }))
 const axes = computed<WaveformAxesOptions>(() => ({
-  x: { lineVisible: xAxisLineVisible.value },
+  x: {
+    lineVisible: xAxisLineVisible.value,
+    ...(xAxisLabelFormatter.value ? { labelFormatter: xAxisLabelFormatter.value } : {}),
+  },
   y: { lineVisible: yAxisLineVisible.value },
 }))
 const zeroLine = computed<WaveformZeroLineOptions>(() => ({
@@ -308,6 +313,7 @@ const controlPanelModel = reactive({
   verticalGridColor,
   xAxisLineVisible,
   yAxisLineVisible,
+  ...xAxisLabelControlModel,
   frameBorderColor,
   frameBackgroundColor,
   frameBorderWidth,

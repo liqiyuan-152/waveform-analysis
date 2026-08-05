@@ -12,8 +12,13 @@ import {
   selectSeriesRenderPoints,
   type ResolvedWaveformRenderingOptions,
 } from '../../core/rendering'
-import type { WaveformDisplayMode, WaveformOverlayMode, WaveformPoint } from '../../types'
-import { buildMinorTicks, formatEndpointTime } from '../../utils'
+import type {
+  WaveformDisplayMode,
+  WaveformOverlayMode,
+  WaveformPoint,
+  WaveformXAxisLabelFormatter,
+} from '../../types'
+import { buildMinorTicks, formatXAxisLabel } from '../../utils'
 import {
   getBottomRowCellIndexes,
   type GridCellGeometry,
@@ -45,6 +50,7 @@ export interface BuildTrackLayoutsOptions {
   fixedYDomains?: Record<string, [number, number]>
   yDomains?: Record<string, [number, number]>
   timeUnit: 's' | 'ms'
+  xAxisLabelFormatter?: WaveformXAxisLabelFormatter
   rendering: ResolvedWaveformRenderingOptions
   hideSecondaryLabels: boolean
   yAxisLabelX: number
@@ -147,8 +153,20 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const yAxisTickValues = yAxes[0]?.tickValues ?? []
     const domain = xScale.domain() as [number, number]
     const endpointLabels = {
-      start: formatEndpointTime(domain[0], domain, options.timeUnit),
-      end: formatEndpointTime(domain[1], domain, options.timeUnit),
+      start: formatXAxisLabel(
+        domain[0],
+        domain,
+        options.timeUnit,
+        'start',
+        options.xAxisLabelFormatter,
+      ),
+      end: formatXAxisLabel(
+        domain[1],
+        domain,
+        options.timeUnit,
+        'end',
+        options.xAxisLabelFormatter,
+      ),
     }
     const leftClearance = endpointLabels.start.length * 7 + 10
     const rightClearance = endpointLabels.end.length * 7 + 10

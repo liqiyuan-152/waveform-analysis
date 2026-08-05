@@ -1,3 +1,5 @@
+import type { WaveformXAxisLabelFormatter, WaveformXAxisLabelKind } from '../types'
+
 /**
  * 时间单位类型
  */
@@ -21,10 +23,6 @@ const Y_AXIS_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
 })
 const TOOLTIP_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 4,
-})
-const X_AXIS_TIME_FORMATTER = new Intl.NumberFormat('zh-CN', {
-  maximumFractionDigits: 0,
-  useGrouping: false,
 })
 
 function formatFixedNumber(value: number, precision: number): string {
@@ -103,13 +101,6 @@ export function formatTooltipNumber(value: number): string {
   return TOOLTIP_NUMBER_FORMATTER.format(value)
 }
 
-/** Format an X-axis time value as a plain integer without grouping separators. */
-function formatAxisTimeValue(value: number): string {
-  if (!Number.isFinite(value)) return String(value)
-  const formatted = X_AXIS_TIME_FORMATTER.format(value)
-  return formatted === '-0' ? '0' : formatted
-}
-
 /** Convert a number to complete plain decimal text without forcing exponential notation. */
 export function formatPlainNumber(value: number): string {
   if (!Number.isFinite(value)) return String(value)
@@ -143,6 +134,26 @@ export function displayTime(value: number, timeUnit: TimeUnit): number {
   return timeUnit === 'ms' ? value * 1000 : value
 }
 
+/** Format an X-axis value without changing its source coordinate. */
+export function formatXAxisLabel(
+  rawValue: number,
+  domain: [number, number],
+  timeUnit: TimeUnit,
+  kind: WaveformXAxisLabelKind,
+  formatter?: WaveformXAxisLabelFormatter,
+): string {
+  const value = displayTime(rawValue, timeUnit)
+  if (!formatter) return formatPlainNumber(value)
+
+  return formatter(value, {
+    kind,
+    rawValue,
+    timeUnit,
+    domain: [domain[0], domain[1]],
+    displayDomain: [displayTime(domain[0], timeUnit), displayTime(domain[1], timeUnit)],
+  })
+}
+
 /**
  * 计算端点标签的小数位数
  * @param domain 数据域 [最小值, 最大值]
@@ -158,7 +169,7 @@ export function endpointFractionDigits(domain: [number, number], timeUnit: TimeU
 }
 
 /**
- * 将 X 轴端点时间格式化为当前显示单位下的普通整数
+ * 将 X 轴端点时间格式化为当前显示单位下的普通十进制文本
  * @param value 时间值（秒）
  * @param _domain 数据域（为保持现有调用签名而保留）
  * @param timeUnit 时间单位
@@ -169,11 +180,11 @@ export function formatEndpointTime(
   _domain: [number, number],
   timeUnit: TimeUnit,
 ): string {
-  return formatAxisTimeValue(displayTime(value, timeUnit))
+  return formatXAxisLabel(value, _domain, timeUnit, 'end')
 }
 
 /**
- * 将 X 轴时间刻度格式化为当前显示单位下的普通整数
+ * 将 X 轴时间刻度格式化为当前显示单位下的普通十进制文本
  * @param value 时间值（秒）
  * @param timeUnit 时间单位
  * @param _domain 数据域（为保持现有调用签名而保留）
@@ -184,8 +195,7 @@ export function formatAxisTime(
   timeUnit: TimeUnit,
   _domain?: [number, number],
 ): string {
-  void _domain
-  return formatAxisTimeValue(displayTime(value, timeUnit))
+  return formatXAxisLabel(value, _domain ?? [value, value], timeUnit, 'tick')
 }
 
 /**

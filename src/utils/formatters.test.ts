@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import type { WaveformXAxisLabelFormatter, WaveformXAxisLabelFormatterContext } from '../types'
 import {
   formatAnnotationTime,
   formatAxisTime,
@@ -9,6 +10,7 @@ import {
   formatScientificAxisLabel,
   formatTooltipNumber,
   formatTooltipTime,
+  formatXAxisLabel,
   resolveScientificAxisExponent,
   shouldUseScientificAxisLabel,
 } from './formatters'
@@ -55,18 +57,48 @@ describe('waveform number formatters', () => {
     expect(formatScientificAxisExponent(0, 0)).toBeNull()
   })
 
-  it('formats X-axis ticks and endpoints as plain integers in the selected display unit', () => {
+  it('formats X-axis ticks and endpoints as complete plain values in the display unit', () => {
     const domain: [number, number] = [0, 1]
-    expect(formatAxisTime(0.5004, 'ms', domain)).toBe('500')
+    expect(formatAxisTime(0.5004, 'ms', domain)).toBe('500.4')
     expect(formatEndpointTime(1, domain, 'ms')).toBe('1000')
-    expect(formatAxisTime(0.5, 's', domain)).toBe('1')
+    expect(formatAxisTime(0.5, 's', domain)).toBe('0.5')
     expect(formatEndpointTime(1, domain, 's')).toBe('1')
 
     const tinyDomain: [number, number] = [0, 0.000001]
-    expect(formatEndpointTime(0.000001, tinyDomain, 's')).toBe('0')
-    expect(formatAxisTime(-0.000001, 's', tinyDomain)).toBe('0')
+    expect(formatEndpointTime(0.000001, tinyDomain, 's')).toBe('0.000001')
+    expect(formatAxisTime(-0.000001, 's', tinyDomain)).toBe('-0.000001')
+    expect(formatAxisTime(-0, 's')).toBe('0')
     expect(formatAxisTime(1e21, 's')).toBe('1000000000000000000000')
     expect(formatAxisTime(Number.POSITIVE_INFINITY, 's')).toBe('Infinity')
+  })
+
+  it('passes display values and complete source context to X-axis label formatters', () => {
+    const domain: [number, number] = [0.125, 1.875]
+    const formatter: WaveformXAxisLabelFormatter = (value, context) =>
+      `${context.kind}:${value / 10}`
+
+    expect(formatXAxisLabel(0.5, domain, 'ms', 'tick', formatter)).toBe('tick:50')
+    expect(formatXAxisLabel(domain[0], domain, 'ms', 'start', formatter)).toBe('start:12.5')
+    expect(formatXAxisLabel(domain[1], domain, 'ms', 'end', formatter)).toBe('end:187.5')
+
+    let receivedContext: WaveformXAxisLabelFormatterContext | undefined
+    formatXAxisLabel(0.5, domain, 'ms', 'tick', (value, context) => {
+      receivedContext = context
+      return String(value)
+    })
+    expect(receivedContext).toEqual({
+      kind: 'tick',
+      rawValue: 0.5,
+      timeUnit: 'ms',
+      domain: [0.125, 1.875],
+      displayDomain: [125, 1875],
+    })
+
+    expect(() =>
+      formatXAxisLabel(0.5, domain, 's', 'tick', () => {
+        throw new Error('formatter failed')
+      }),
+    ).toThrow('formatter failed')
   })
 
   it('formats tooltip and raw values for their display contexts', () => {

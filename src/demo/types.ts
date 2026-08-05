@@ -14,6 +14,7 @@ import type {
   WaveformZeroLineOptions,
   WaveformZoomEndPayload,
 } from '../components'
+import type { DemoXAxisLabelFormat, DemoXAxisLabelTimeZone } from './useDemoXAxisLabelControls'
 
 interface SelectOption<T> {
   label: string
@@ -44,6 +45,14 @@ export interface DemoControlPanelModel {
   verticalGridColor: string
   xAxisLineVisible: boolean
   yAxisLineVisible: boolean
+  xAxisLabelFormatterEnabled: boolean
+  xAxisLabelFormat: DemoXAxisLabelFormat
+  xAxisLabelFormatOptions: Array<SelectOption<DemoXAxisLabelFormat>>
+  xAxisLabelMultiplier: number
+  xAxisLabelFractionDigits: number
+  xAxisLabelTimeZone: DemoXAxisLabelTimeZone
+  xAxisLabelTimeZoneOptions: Array<SelectOption<DemoXAxisLabelTimeZone>>
+  xAxisLabelShowMilliseconds: boolean
   frameBorderColor: string
   frameBackgroundColor: string
   frameBorderWidth: number

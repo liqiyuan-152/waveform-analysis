@@ -23,6 +23,9 @@ export type {
   WaveformLegendOrientation,
   WaveformLegendOptions,
   WaveformFrameStyle,
+  WaveformXAxisLabelKind,
+  WaveformXAxisLabelFormatterContext,
+  WaveformXAxisLabelFormatter,
   WaveformAxesOptions,
   WaveformZeroLineOptions,
   // 数据类型

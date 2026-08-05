@@ -121,10 +121,31 @@ export interface WaveformFrameStyle {
   backgroundColor?: string
 }
 
+export type WaveformXAxisLabelKind = 'tick' | 'start' | 'end'
+
+/** Context passed to custom X-axis label formatters. */
+export interface WaveformXAxisLabelFormatterContext {
+  kind: WaveformXAxisLabelKind
+  /** X coordinate in the source data, before time-unit conversion. */
+  rawValue: number
+  timeUnit: 's' | 'ms'
+  /** Current visible X domain in source coordinates. */
+  domain: [number, number]
+  /** Current visible X domain converted to the selected display unit. */
+  displayDomain: [number, number]
+}
+
+export type WaveformXAxisLabelFormatter = (
+  value: number,
+  context: WaveformXAxisLabelFormatterContext,
+) => string
+
 /** Controls axis baseline visibility while preserving tick marks and axis text. */
 export interface WaveformAxesOptions {
   x?: {
     lineVisible?: boolean
+    /** Formats display-unit X values for ticks and visible-range endpoints. */
+    labelFormatter?: WaveformXAxisLabelFormatter
   }
   y?: {
     lineVisible?: boolean

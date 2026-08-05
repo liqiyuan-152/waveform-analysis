@@ -285,6 +285,7 @@ export function useWaveformLayout(context: LayoutContext) {
             )
           : sharedYDomains.value,
       timeUnit: props.timeUnit,
+      xAxisLabelFormatter: props.axes?.x?.labelFormatter,
       rendering: renderingOptions.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
       yAxisLabelX: yAxisMetrics.value.labelCenterX,
