@@ -105,6 +105,65 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('300')
   })
 
+  it('configures plot top and bottom margins and reacts to updates', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      {
+        displayMode: 'compact',
+        grid: { rowCount: 1, columnCount: 1 },
+        plotMargin: { top: 30, bottom: 70 },
+      },
+    )
+
+    expect(wrapper.attributes('data-plot-margin-top')).toBe('30')
+    expect(wrapper.attributes('data-plot-margin-bottom')).toBe('70')
+    expect(wrapper.get('.waveform-chart__overlay').attributes('height')).toBe('260')
+    expect(wrapper.get('.waveform-chart__svg > g').attributes('transform')).toContain(', 30)')
+
+    await wrapper.setProps({ plotMargin: { top: 12 } })
+
+    expect(wrapper.attributes('data-plot-margin-top')).toBe('12')
+    expect(wrapper.attributes('data-plot-margin-bottom')).toBe('52')
+    expect(wrapper.get('.waveform-chart__overlay').attributes('height')).toBe('296')
+  })
+
+  it('falls back to default plot margins for invalid values', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      {
+        displayMode: 'compact',
+        grid: { rowCount: 1, columnCount: 1 },
+        plotMargin: { top: -1, bottom: Number.NaN },
+      },
+    )
+
+    expect(wrapper.attributes('data-plot-margin-top')).toBe('18')
+    expect(wrapper.attributes('data-plot-margin-bottom')).toBe('52')
+    expect(wrapper.get('.waveform-chart__overlay').attributes('height')).toBe('290')
+  })
+
+  it('keeps the chart title and X-axis title fixed when plot margins change', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'samples', values: [0, 1], sampleRate: 1 },
+      {
+        displayMode: 'compact',
+        grid: { rowCount: 1, columnCount: 1 },
+        title: { text: '固定标题' },
+      },
+    )
+    const titleAreaStyle = wrapper.get('.waveform-chart__title-area').attributes('style')
+    const xAxisTitle = wrapper.get('.waveform-chart__x-label')
+    const initialX = xAxisTitle.attributes('x')
+    const initialY = xAxisTitle.attributes('y')
+
+    await wrapper.setProps({ plotMargin: { top: 60, bottom: 90 } })
+
+    expect(wrapper.get('.waveform-chart__title-area').attributes('style')).toBe(titleAreaStyle)
+    expect(wrapper.get('.waveform-chart__x-label').attributes('x')).toBe(initialX)
+    expect(wrapper.get('.waveform-chart__x-label').attributes('y')).toBe(initialY)
+    expect(wrapper.get('.waveform-chart__svg > g').attributes('transform')).toContain(', 60)')
+  })
+
   it('does not render or reserve space for missing, hidden, or blank titles', async () => {
     for (const title of [undefined, { visible: false, text: '隐藏标题' }, { text: '   ' }]) {
       const wrapper = await mountSizedChart(

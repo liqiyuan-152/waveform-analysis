@@ -12,6 +12,7 @@ export type {
   WaveformAnnotationStyle,
   WaveformAnnotation,
   WaveformRenderingOptions,
+  WaveformPlotMargin,
   WaveformTitleTextStyle,
   WaveformTitleOptions,
   WaveformFrameStyle,

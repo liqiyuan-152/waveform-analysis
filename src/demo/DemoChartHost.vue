@@ -45,6 +45,7 @@ defineExpose({ resetViewport })
       :clean-view="model.cleanView"
       :presentation-mode="model.presentationMode"
       :show-tooltip="model.showTooltip"
+      :plot-margin="model.plotMargin"
       :zero-line="model.zeroLine"
       :frame-number="model.frameWatermarkVisible ? 1 : undefined"
       :annotations-visible="model.annotationsVisible"

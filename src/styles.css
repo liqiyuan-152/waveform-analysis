@@ -195,6 +195,7 @@ body {
 }
 
 .frame-style-controls,
+.plot-margin-controls,
 .auxiliary-style-controls {
   display: grid;
   gap: 10px;

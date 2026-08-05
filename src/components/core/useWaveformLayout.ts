@@ -24,7 +24,6 @@ import {
   normalizeGridOptions,
   paginateSeries,
   resolveGridCellGeometry,
-  X_AXIS_BAND,
 } from './grid'
 import {
   buildTrackLayouts,
@@ -316,7 +315,6 @@ export function useWaveformLayout(context: LayoutContext) {
         )
       : [],
   )
-  const xAxisTitleY = computed(() => innerHeight.value + X_AXIS_BAND + 10)
   const editorSeries = computed<AnnotationSeriesInfo | undefined>(() => {
     const seriesId = annotationInteraction.editorDraft.value?.annotation.seriesId
     const series = chartSeries.value.find((item) => item.id === seriesId)
@@ -360,7 +358,6 @@ export function useWaveformLayout(context: LayoutContext) {
     resolveSeriesYScale,
     annotationTrackLayouts,
     renderedAnnotations,
-    xAxisTitleY,
     editorSeries,
     resolveFrameNumber,
   }

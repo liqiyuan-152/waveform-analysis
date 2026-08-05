@@ -19,6 +19,7 @@ const {
   overlayMode,
   resolvedChartLeftMargin,
   titleAreaHeight,
+  resolvedPlotMargin,
   pointerInsideChart,
   handleNativeContextMenu,
   titleAreaReserved,
@@ -118,6 +119,8 @@ const {
     :data-presentation-mode="isPresentationMode"
     :data-overlay-mode="overlayMode"
     :data-chart-left-margin="resolvedChartLeftMargin"
+    :data-plot-margin-top="resolvedPlotMargin.top"
+    :data-plot-margin-bottom="resolvedPlotMargin.bottom"
     :data-title-area-height="titleAreaHeight"
     @pointerenter="pointerInsideChart = true"
     @pointerleave="pointerInsideChart = false"
@@ -287,17 +290,17 @@ const {
             />
           </g>
         </g>
-
-        <text
-          v-if="resolvedXLabel && !isCleanView"
-          class="waveform-chart__label waveform-chart__x-label"
-          :x="innerWidth / 2"
-          :y="xAxisTitleY"
-          text-anchor="middle"
-        >
-          {{ resolvedXLabel }}
-        </text>
       </g>
+
+      <text
+        v-if="resolvedXLabel && !isCleanView"
+        class="waveform-chart__label waveform-chart__x-label"
+        :x="resolvedChartLeftMargin + innerWidth / 2"
+        :y="xAxisTitleY"
+        text-anchor="middle"
+      >
+        {{ resolvedXLabel }}
+      </text>
 
       <text
         v-if="hasChartArea && !hasWaveformData"

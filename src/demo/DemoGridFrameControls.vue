@@ -9,6 +9,35 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
 
 <template>
   <section class="control-section">
+    <h2>绘图区边距</h2>
+    <div class="plot-margin-controls">
+      <label class="frame-style-control">
+        <span>上边距</span>
+        <InputNumber
+          v-model:value="model.plotMarginTop"
+          :min="0"
+          :max="300"
+          :step="1"
+          addon-after="px"
+          size="small"
+          aria-label="绘图区上边距"
+        />
+      </label>
+      <label class="frame-style-control">
+        <span>下边距</span>
+        <InputNumber
+          v-model:value="model.plotMarginBottom"
+          :min="0"
+          :max="300"
+          :step="1"
+          addon-after="px"
+          size="small"
+          aria-label="绘图区下边距"
+        />
+      </label>
+    </div>
+  </section>
+  <section class="control-section">
     <div class="control-section__header">
       <h2>零值参考线</h2>
       <Switch v-model:checked="model.zeroLineVisible" size="small" aria-label="显示零值参考线" />

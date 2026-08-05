@@ -10,6 +10,7 @@ import type {
   WaveformLegendPosition,
   WaveformLineStyle,
   WaveformOverlayMode,
+  WaveformPlotMargin,
   WaveformTitleOptions,
   WaveformZeroLineOptions,
   WaveformZoomEndPayload,
@@ -26,6 +27,8 @@ export interface DemoControlPanelModel {
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
   showTooltip: boolean
+  plotMarginTop: number
+  plotMarginBottom: number
   cleanView: boolean
   presentationMode: boolean
   selectedSeriesId: string
@@ -99,6 +102,7 @@ export interface DemoChartModel {
   cleanView: boolean
   presentationMode: boolean
   showTooltip: boolean
+  plotMargin: WaveformPlotMargin
   zeroLine: WaveformZeroLineOptions
   frameWatermarkVisible: boolean
   annotations: WaveformAnnotation[]

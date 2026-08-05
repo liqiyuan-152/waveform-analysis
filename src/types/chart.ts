@@ -74,6 +74,14 @@ export interface WaveformRenderingOptions {
   errorBarMinSpacing?: number
 }
 
+/** Pixel margins reserved above and below the waveform plotting area. */
+export interface WaveformPlotMargin {
+  /** Space between the top of the drawing SVG and the plotting area. Defaults to 18. */
+  top?: number
+  /** Space between the plotting area and the bottom of the drawing SVG. Defaults to 52. */
+  bottom?: number
+}
+
 /** Text styling for the chart-level title. */
 export interface WaveformTitleTextStyle {
   color?: string

@@ -7,6 +7,7 @@ import {
   TITLE_CHAR_WIDTH_RATIO,
   TITLE_DEFAULT_FONT_SIZE,
   TITLE_LINE_HEIGHT,
+  X_AXIS_TITLE_BOTTOM_OFFSET,
   ZERO_LINE_DEFAULTS,
 } from './constants'
 import { calculateRotatedTitleLayout, TITLE_AREA_HORIZONTAL_PADDING } from './title'
@@ -144,11 +145,23 @@ export function useWaveformPresentation(context: PresentationContext) {
   const titleAreaHeight = computed(() =>
     titleAreaReserved.value ? titleLayout.value.areaHeight : 0,
   )
-  const chartTopMargin = computed(() => margin.top)
+  const resolvePlotMargin = (value: number | undefined, fallback: number) =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback
+  const resolvedPlotMargin = computed(() => ({
+    top: resolvePlotMargin(props.plotMargin.top, margin.top),
+    bottom: resolvePlotMargin(props.plotMargin.bottom, margin.bottom),
+  }))
+  const chartTopMargin = computed(() => resolvedPlotMargin.value.top)
   const drawingHeight = computed(() =>
     Math.max(0, chartHeight.value - titleAreaHeight.value - paginationBandHeight.value),
   )
-  const innerHeight = computed(() => Math.max(0, drawingHeight.value - margin.top - margin.bottom))
+  const xAxisTitleY = computed(() => Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET))
+  const innerHeight = computed(() =>
+    Math.max(
+      0,
+      drawingHeight.value - resolvedPlotMargin.value.top - resolvedPlotMargin.value.bottom,
+    ),
+  )
   const titleAreaStyle = computed<CSSProperties>(() => ({
     height: `${titleAreaHeight.value}px`,
     justifyContent:
@@ -193,8 +206,10 @@ export function useWaveformPresentation(context: PresentationContext) {
     titleMeasureStyle,
     titleLayout,
     titleAreaHeight,
+    resolvedPlotMargin,
     chartTopMargin,
     drawingHeight,
+    xAxisTitleY,
     innerHeight,
     titleAreaStyle,
     titleVisualStyle,

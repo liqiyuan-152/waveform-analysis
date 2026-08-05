@@ -23,6 +23,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   interactionMode: undefined,
   grid: () => ({ rowCount: 2, columnCount: 1, showPagination: true }),
   rendering: () => ({}),
+  plotMargin: () => ({}),
   legend: () => ({ position: 'top-right', orientation: 'auto' }),
   defaultHiddenSeriesIds: () => [],
   cleanView: false,

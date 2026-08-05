@@ -7,6 +7,9 @@
 /** 图表边距 */
 export const margin = { top: 18, right: 24, bottom: 52, left: 64 }
 
+/** Distance from the drawing SVG bottom edge to the X-axis title baseline. */
+export const X_AXIS_TITLE_BOTTOM_OFFSET = 12
+
 /**
  * 图表最小高度（像素）
  */

@@ -14,6 +14,7 @@ import {
   type WaveformLegendOrientation,
   type WaveformLegendPosition,
   type WaveformOverlayMode,
+  type WaveformPlotMargin,
   type WaveformTitleOptions,
   type WaveformZoomEndPayload,
   type WaveformZeroLineOptions,
@@ -47,6 +48,8 @@ const annotationsVisible = ref(true)
 const cleanView = ref(false)
 const presentationMode = ref(false)
 const showTooltip = ref(true)
+const plotMarginTop = ref(18)
+const plotMarginBottom = ref(52)
 const zeroLineVisible = ref(false)
 const zeroLineColor = ref('#98a2b3')
 const zeroLineWidth = ref(1)
@@ -125,6 +128,10 @@ const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   color: zeroLineColor.value,
   width: zeroLineWidth.value,
   dash: zeroLineDash.value,
+}))
+const plotMargin = computed<WaveformPlotMargin>(() => ({
+  top: plotMarginTop.value,
+  bottom: plotMarginBottom.value,
 }))
 
 const initialXValues = normalizeWaveformSeries(fullChartData).flatMap((series) =>
@@ -294,6 +301,8 @@ const controlPanelModel = reactive({
   displayMode,
   overlayMode,
   showTooltip,
+  plotMarginTop,
+  plotMarginBottom,
   cleanView,
   presentationMode,
   selectedSeriesId,
@@ -360,6 +369,7 @@ const chartModel = reactive({
   cleanView,
   presentationMode,
   showTooltip,
+  plotMargin,
   zeroLine,
   frameWatermarkVisible,
   annotations,

@@ -7,6 +7,7 @@ import type {
   WaveformInteractionMode,
   WaveformLegendOptions,
   WaveformOverlayMode,
+  WaveformPlotMargin,
   WaveformPoint,
   WaveformRenderingOptions,
   WaveformTitleOptions,
@@ -42,6 +43,7 @@ export interface WaveformChartProps {
   interactionMode?: WaveformInteractionMode
   grid?: WaveformGridOptions
   rendering?: WaveformRenderingOptions
+  plotMargin?: WaveformPlotMargin
   title?: WaveformTitleOptions
   legend?: WaveformLegendOptions
   hiddenSeriesIds?: string[]
@@ -65,6 +67,7 @@ type DefaultedProp =
   | 'annotationsVisible'
   | 'grid'
   | 'rendering'
+  | 'plotMargin'
   | 'legend'
   | 'defaultHiddenSeriesIds'
   | 'cleanView'
