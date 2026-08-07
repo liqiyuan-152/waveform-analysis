@@ -136,7 +136,7 @@ export function useWaveformHover(context: HoverContext) {
   }
   const handleSharedPointerMove = (event: PointerEvent) => {
     if (isPresentationMode.value) return
-    if (selection.value?.overlay === event.currentTarget) {
+    if (selection.value && !selection.value.independent) {
       updateViewportDrag(event)
       return
     }

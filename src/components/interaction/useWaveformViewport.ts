@@ -1,5 +1,5 @@
 import { pointer, scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
-import { computed, nextTick, type ComputedRef, type Ref, type ShallowRef } from 'vue'
+import { computed, nextTick, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 
 import { MINIMUM_SELECTION_SIZE } from '../core/constants'
 import type { DisplayTrack, TrackLayout } from '../core/types'
@@ -10,11 +10,13 @@ import type {
   WaveformChartEmit,
 } from '../core/waveformChartTypes'
 import type { AnnotationSeriesCandidate } from '../annotation'
+import type { ViewportInteractionStateMachine } from './viewportInteractionState'
 
 interface ViewportContext {
   props: ResolvedWaveformChartProps
   emit: WaveformChartEmit
   selection: Ref<ViewportSelectionState | null>
+  viewportInteraction: ShallowRef<ViewportInteractionStateMachine>
   spacePressed: Ref<boolean>
   trackLayouts: ComputedRef<TrackLayout[]>
   chartTracks: ComputedRef<DisplayTrack[]>
@@ -43,6 +45,7 @@ export function useWaveformViewport(context: ViewportContext) {
     props,
     emit,
     selection,
+    viewportInteraction,
     spacePressed,
     trackLayouts,
     chartTracks,
@@ -65,6 +68,10 @@ export function useWaveformViewport(context: ViewportContext) {
     clearHover,
     resolveTrackAtPointer,
   } = context
+  const activeOverlay = shallowRef<SVGRectElement>()
+  const syncSelection = () => {
+    selection.value = viewportInteraction.value.state
+  }
   const selectionBox = computed(() => {
     const active = selection.value
     if (!active) return null
@@ -143,19 +150,19 @@ export function useWaveformViewport(context: ViewportContext) {
     const [rawX, rawY] = pointer(event, overlay)
     const x = Math.max(0, Math.min(independent ? track.width : innerWidth.value, rawX))
     const y = Math.max(0, Math.min(independent ? track.height : innerHeight.value, rawY))
-    selection.value = {
+    const started = viewportInteraction.value.begin({
       trackIndex,
       independent,
-      overlay,
       startX: x,
       startY: y,
-      currentX: x,
-      currentY: y,
       pointerId: event.pointerId,
-      mode: panRequested ? 'pan' : 'box',
+      kind: panRequested ? 'pan' : 'box',
       xDomain: track.xScale.domain() as [number, number],
       yDomains: currentYDomains(),
-    }
+    })
+    if (!started) return
+    activeOverlay.value = overlay
+    syncSelection()
     overlay.setPointerCapture?.(event.pointerId)
     clearHover()
     event.preventDefault()
@@ -213,27 +220,33 @@ export function useWaveformViewport(context: ViewportContext) {
   const updateViewportDrag = (event: PointerEvent) => {
     if (isPresentationMode.value) return
     const active = selection.value
-    if (!active || event.pointerId !== active.pointerId) return
+    const overlay = activeOverlay.value
+    if (!active || !overlay || event.pointerId !== active.pointerId) return
     const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
     if (!track) return
-    const [rawX, rawY] = pointer(event, active.overlay)
-    active.currentX = Math.max(
+    const [rawX, rawY] = pointer(event, overlay)
+    const currentX = Math.max(
       0,
       Math.min(active.independent ? track.width : innerWidth.value, rawX),
     )
-    active.currentY = Math.max(
+    const currentY = Math.max(
       0,
       Math.min(active.independent ? track.height : innerHeight.value, rawY),
     )
-    selection.value = { ...active }
-    if (active.mode === 'pan') applyPan(active, track)
+    const next = viewportInteraction.value.move(event.pointerId, { currentX, currentY })
+    if (!next) return
+    selection.value = next
+    if (next.kind === 'pan') applyPan(next, track)
     event.preventDefault()
   }
   const cancelViewportDrag = (event?: PointerEvent) => {
     const active = selection.value
     if (!active || (event && event.pointerId !== active.pointerId)) return
-    active.overlay.releasePointerCapture?.(active.pointerId)
-    selection.value = null
+    activeOverlay.value?.releasePointerCapture?.(active.pointerId)
+    if (viewportInteraction.value.cancel(event?.pointerId)) {
+      activeOverlay.value = undefined
+      syncSelection()
+    }
   }
   const applyBoxZoom = (active: ViewportSelectionState) => {
     const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
@@ -300,15 +313,32 @@ export function useWaveformViewport(context: ViewportContext) {
     }
     const active = selection.value
     if (!active || event.pointerId !== active.pointerId) return
-    updateViewportDrag(event)
-    active.overlay.releasePointerCapture?.(active.pointerId)
-    selection.value = null
-    if (active.mode === 'pan') {
+    const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
+    if (!track) return
+    const overlay = activeOverlay.value
+    if (!overlay) return
+    const [rawX, rawY] = pointer(event, overlay)
+    const currentX = Math.max(
+      0,
+      Math.min(active.independent ? track.width : innerWidth.value, rawX),
+    )
+    const currentY = Math.max(
+      0,
+      Math.min(active.independent ? track.height : innerHeight.value, rawY),
+    )
+    const completed = viewportInteraction.value.finish(event.pointerId, { currentX, currentY })
+    if (!completed) return
+    overlay.releasePointerCapture?.(completed.pointerId)
+    activeOverlay.value = undefined
+    syncSelection()
+    event.preventDefault()
+    if (completed.kind === 'pan') {
+      applyPan(completed, track)
       void nextTick(configureZoom)
       return
     }
-    if (Math.abs(active.currentX - active.startX) >= MINIMUM_SELECTION_SIZE) {
-      applyBoxZoom(active)
+    if (Math.abs(completed.currentX - completed.startX) >= MINIMUM_SELECTION_SIZE) {
+      applyBoxZoom(completed)
     }
   }
   const resetViewport = (trackIndex?: number) => {
