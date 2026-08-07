@@ -110,7 +110,7 @@ const {
       {
         'waveform-chart--clean': isCleanView,
         'waveform-chart--presentation': isPresentationMode,
-        'waveform-chart--panning': selection?.mode === 'pan',
+        'waveform-chart--panning': selection?.kind === 'pan',
       },
     ]"
     :style="containerStyle"
@@ -247,7 +247,7 @@ const {
         />
 
         <rect
-          v-if="selectionBox && selection?.mode === 'box'"
+          v-if="selectionBox && selection?.kind === 'box'"
           class="waveform-chart__zoom-selection"
           :x="selectionBox.x"
           :y="selectionBox.y"

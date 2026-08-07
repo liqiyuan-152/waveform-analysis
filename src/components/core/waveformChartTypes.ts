@@ -95,16 +95,17 @@ export interface WaveformChartEmit {
   (event: 'page-change', page: number, pageCount: number): void
 }
 
-export interface ViewportSelectionState {
+interface ViewportSelectionBase {
   trackIndex: number
   independent: boolean
-  overlay: SVGRectElement
   startX: number
   startY: number
   currentX: number
   currentY: number
   pointerId: number
-  mode: 'box' | 'pan'
   xDomain: [number, number]
   yDomains: Record<string, [number, number]>
 }
+
+export type ViewportSelectionState =
+  (ViewportSelectionBase & { kind: 'box' }) | (ViewportSelectionBase & { kind: 'pan' })
