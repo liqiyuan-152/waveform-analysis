@@ -668,11 +668,19 @@ pnpm dev
 
 ```bash
 pnpm typecheck
+pnpm lint:oxlint
 pnpm lint
+pnpm lint:all
+pnpm format:check
 pnpm test
 pnpm test:coverage
 pnpm build
 ```
+
+`pnpm lint:oxlint` 使用 Oxlint 的默认 correctness 检查及内置 TypeScript、Unicorn 和 Oxc
+插件，自动忽略 `dist/`、`dist-demo/`、`coverage/` 和 `node_modules/`。`pnpm lint` 继续负责
+ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 会依次运行两者。
+`pnpm format:check` 只读检查 Prettier 格式，`pnpm format` 保持原有的写入行为。
 
 `pnpm build` 同时生成 `dist/` 组件库产物和 `dist-demo/` 演示应用。正式公开入口为
 `src/index.ts`，样式入口为 `src/styles.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。

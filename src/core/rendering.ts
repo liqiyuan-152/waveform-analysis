@@ -75,7 +75,7 @@ function selectRenderablePointsInRange(
   const end = Math.min(points.length, range.end + 1)
   const visibleCount = end - start
   if (visibleCount <= 0) return []
-  return resolveRenderablePointSelectionStrategy({ visibleCount, width, options }).select({
+  return resolveRenderablePointSelectionStrategy({ visibleCount, width, options })({
     points,
     range,
     domain,

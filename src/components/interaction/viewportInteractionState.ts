@@ -16,65 +16,74 @@ export interface ViewportGesturePosition {
   currentY: number
 }
 
-function cloneState(state: ViewportSelectionState | null): ViewportSelectionState | null {
-  if (!state) return null
+export type ViewportInteractionEvent =
+  | { type: 'begin'; gesture: ViewportGestureStart }
+  | { type: 'move'; pointerId: number; position: ViewportGesturePosition }
+  | { type: 'finish'; pointerId: number; position: ViewportGesturePosition }
+  | { type: 'cancel'; pointerId?: number }
+  | { type: 'reset' }
+
+export interface ViewportInteractionTransition {
+  state: ViewportSelectionState | null
+  accepted: boolean
+  completed: ViewportSelectionState | null
+}
+
+function createSelectionState(input: ViewportGestureStart): ViewportSelectionState {
   return {
-    ...state,
-    xDomain: [...state.xDomain],
+    ...input,
+    currentX: input.startX,
+    currentY: input.startY,
+    xDomain: [...input.xDomain],
     yDomains: Object.fromEntries(
-      Object.entries(state.yDomains).map(([key, domain]) => [key, [...domain] as [number, number]]),
+      Object.entries(input.yDomains).map(([key, domain]) => [key, [...domain] as [number, number]]),
     ),
   }
 }
 
-/** Owns the legal lifecycle of one active viewport pointer gesture. */
-export class ViewportInteractionStateMachine {
-  private current: ViewportSelectionState | null = null
+function withPosition(
+  state: ViewportSelectionState,
+  position: ViewportGesturePosition,
+): ViewportSelectionState {
+  return { ...state, ...position }
+}
 
-  get state(): ViewportSelectionState | null {
-    return cloneState(this.current)
-  }
+function rejectedTransition(state: ViewportSelectionState | null): ViewportInteractionTransition {
+  return { state, accepted: false, completed: null }
+}
 
-  begin(input: ViewportGestureStart): boolean {
-    if (this.current) return false
-    this.current = {
-      ...input,
-      currentX: input.startX,
-      currentY: input.startY,
-      xDomain: [...input.xDomain],
-      yDomains: Object.fromEntries(
-        Object.entries(input.yDomains).map(([key, domain]) => [
-          key,
-          [...domain] as [number, number],
-        ]),
-      ),
-    }
-    return true
+export function transitionViewportInteraction(
+  state: ViewportSelectionState | null,
+  event: ViewportInteractionEvent,
+): ViewportInteractionTransition {
+  switch (event.type) {
+    case 'begin':
+      return state
+        ? rejectedTransition(state)
+        : { state: createSelectionState(event.gesture), accepted: true, completed: null }
+    case 'move':
+      if (!state || state.pointerId !== event.pointerId) return rejectedTransition(state)
+      return { state: withPosition(state, event.position), accepted: true, completed: null }
+    case 'finish':
+      if (!state || state.pointerId !== event.pointerId) return rejectedTransition(state)
+      return {
+        state: null,
+        accepted: true,
+        completed: withPosition(state, event.position),
+      }
+    case 'cancel':
+      if (!state || (event.pointerId !== undefined && state.pointerId !== event.pointerId)) {
+        return rejectedTransition(state)
+      }
+      return { state: null, accepted: true, completed: null }
+    case 'reset':
+      return { state: null, accepted: true, completed: null }
   }
+}
 
-  move(pointerId: number, position: ViewportGesturePosition): ViewportSelectionState | null {
-    if (!this.current || this.current.pointerId !== pointerId) return null
-    this.current = { ...this.current, ...position }
-    return this.state
-  }
-
-  finish(pointerId: number, position: ViewportGesturePosition): ViewportSelectionState | null {
-    if (!this.current || this.current.pointerId !== pointerId) return null
-    this.current = { ...this.current, ...position }
-    const completed = this.state
-    this.current = null
-    return completed
-  }
-
-  cancel(pointerId?: number): boolean {
-    if (!this.current || (pointerId !== undefined && this.current.pointerId !== pointerId)) {
-      return false
-    }
-    this.current = null
-    return true
-  }
-
-  reset(): void {
-    this.current = null
-  }
+export function reduceViewportInteraction(
+  state: ViewportSelectionState | null,
+  event: ViewportInteractionEvent,
+): ViewportSelectionState | null {
+  return transitionViewportInteraction(state, event).state
 }

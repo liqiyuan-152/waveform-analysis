@@ -37,7 +37,8 @@ export function downsampleLTTB(data: WaveformPoint[], threshold: number): Wavefo
 
   // 确保阈值至少为 3
   const sampledLength = Math.max(3, Math.floor(threshold))
-  const sampled: WaveformPoint[] = new Array(sampledLength)
+  const sampled: WaveformPoint[] = []
+  sampled.length = sampledLength
 
   // 始终保留第一个和最后一个点
   sampled[0] = data[0]!

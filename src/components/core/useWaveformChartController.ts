@@ -18,7 +18,6 @@ import { useWaveformChartAnnotations } from '../annotation/useWaveformChartAnnot
 import { useWaveformHover } from '../interaction/useWaveformHover'
 import { useWaveformViewport } from '../interaction/useWaveformViewport'
 import { useWaveformZoom } from '../interaction/useWaveformZoom'
-import { ViewportInteractionStateMachine } from '../interaction/viewportInteractionState'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
 import { margin } from './constants'
 import { getPageSize } from './grid'
@@ -80,7 +79,6 @@ export function useWaveformChartController(
     { deep: true },
   )
   const selection = shallowRef<ViewportSelectionState | null>(null)
-  const viewportInteraction = shallowRef(markRaw(new ViewportInteractionStateMachine()))
   const spacePressed = ref(false)
   const pointerInsideChart = ref(false)
   let handleDataReferenceChange: () => void = () => undefined
@@ -195,7 +193,6 @@ export function useWaveformChartController(
     props,
     emit,
     selection,
-    viewportInteraction,
     spacePressed,
     trackLayouts,
     chartTracks,

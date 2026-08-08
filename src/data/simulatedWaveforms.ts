@@ -6,16 +6,15 @@ const END_TIME = 5
 const TWO_PI = Math.PI * 2
 
 type SignalGenerator = (time: number, noise: number) => number
-type ErrorGenerator = (time: number, value: number) => Pick<
-  WaveformPoint,
-  'error' | 'lowerError' | 'upperError'
->
+type ErrorGenerator = (
+  time: number,
+  value: number,
+) => Pick<WaveformPoint, 'error' | 'lowerError' | 'upperError'>
 
-interface SimulatedSeriesDefinition
-  extends Pick<
-    WaveformSeries,
-    'id' | 'name' | 'unit' | 'lineType' | 'pointType' | 'errorBar'
-  > {
+interface SimulatedSeriesDefinition extends Pick<
+  WaveformSeries,
+  'id' | 'name' | 'unit' | 'lineType' | 'pointType' | 'errorBar'
+> {
   signal: SignalGenerator
   errors?: ErrorGenerator
 }
@@ -39,7 +38,7 @@ function createPoints(
     return {
       x: time,
       y: value,
-      ...(errors?.(time, value) ?? {}),
+      ...errors?.(time, value),
     }
   })
 }

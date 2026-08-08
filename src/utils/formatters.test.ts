@@ -40,10 +40,11 @@ describe('waveform number formatters', () => {
     expect(formatScientificAxisExponent(0.0001, 0.0003)).toBe('E-04')
   })
 
-  it('derives the exponent from Math.max(axisMin, axisMax)', () => {
+  it('derives the exponent from the largest absolute endpoint', () => {
     expect(resolveScientificAxisExponent(-9000, -1000)).toBe(3)
-    expect(resolveScientificAxisExponent(-10_000, 3000)).toBe(3)
-    expect(resolveScientificAxisExponent(-1000, 0)).toBeNull()
+    expect(resolveScientificAxisExponent(-100_000, -3000)).toBe(5)
+    expect(resolveScientificAxisExponent(-10_000, 3000)).toBe(4)
+    expect(resolveScientificAxisExponent(-1000, 0)).toBe(3)
     expect(resolveScientificAxisExponent(0, 0)).toBeNull()
   })
 

@@ -38,7 +38,46 @@ describe('WaveformTooltip', () => {
     const tooltip = mountTooltip(100, 200).get('.waveform-tooltip')
 
     expect(tooltip.attributes('style')).toContain('left: 8px')
+    expect(tooltip.attributes('style')).toContain('max-width: 184px')
     expect(tooltip.attributes('style')).not.toContain('right:')
+  })
+
+  it('keeps short content content-sized while exposing the available width cap', () => {
+    const tooltip = mountTooltip(100).get('.waveform-tooltip')
+
+    expect(tooltip.attributes('style')).toContain('left: 112px')
+    expect(tooltip.attributes('style')).toContain('max-width: 280px')
+  })
+
+  it('keeps long series content in a wrapping content container', () => {
+    const longName = 'ENG8KJXAc-very-long-series-name-10001'
+    const pointWithErrors = { x: 1, y: 12, error: 1, upperError: 2 }
+    const wrapper = mount(WaveformTooltip, {
+      props: {
+        visible: true,
+        position: { x: 100, y: 100 },
+        timeUnit: 'ms',
+        hoveredPoint: pointWithErrors,
+        seriesPoints: [
+          {
+            trackIndex: 0,
+            name: longName,
+            color: '#f00',
+            unit: 'very-long-unit',
+            point: pointWithErrors,
+          },
+        ],
+        containerWidth: 400,
+        containerHeight: 300,
+      },
+    })
+
+    const tooltip = wrapper.get('.waveform-tooltip')
+    expect(tooltip.get('.waveform-tooltip__series-content').text()).toContain(longName)
+    expect(tooltip.get('.waveform-tooltip__series-content').classes()).toContain(
+      'waveform-tooltip__series-content',
+    )
+    expect(tooltip.attributes('style')).toContain('max-width: 280px')
   })
 
   it('shows resolved asymmetric errors beside the hovered value', () => {

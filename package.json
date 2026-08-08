@@ -31,7 +31,10 @@
     "typecheck": "vue-tsc -b",
     "check:file-length": "node scripts/check-file-length.mjs",
     "lint": "eslint . --max-warnings=0",
+    "lint:oxlint": "oxlint . --deny-warnings",
+    "lint:all": "pnpm lint:oxlint && pnpm lint",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
@@ -57,6 +60,7 @@
     "eslint-plugin-vue": "10.9.2",
     "globals": "17.7.0",
     "jsdom": "29.1.1",
+    "oxlint": "1.77.0",
     "prettier": "3.9.5",
     "typescript": "~6.0.0",
     "typescript-eslint": "8.64.0",

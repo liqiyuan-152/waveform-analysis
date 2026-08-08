@@ -42,8 +42,7 @@ export function shouldUseScientificAxisLabel(maxAbsoluteValue: number): boolean 
 export function resolveScientificAxisExponent(axisMin?: number, axisMax?: number): number | null {
   if (typeof axisMin !== 'number' || typeof axisMax !== 'number') return null
 
-  const maxValue = Math.max(axisMin, axisMax)
-  const absoluteMaxValue = Math.abs(maxValue)
+  const absoluteMaxValue = Math.max(Math.abs(axisMin), Math.abs(axisMax))
   return shouldUseScientificAxisLabel(absoluteMaxValue)
     ? Math.floor(Math.log10(absoluteMaxValue))
     : null
