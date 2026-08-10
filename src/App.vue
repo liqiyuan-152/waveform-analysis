@@ -141,9 +141,6 @@ const [initialXMinimum, initialXMaximum] = initialXValues.reduce<[number, number
   ([minimum, maximum], value) => [Math.min(minimum, value), Math.max(maximum, value)],
   [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY],
 )
-const initialXSpan = initialXMaximum - initialXMinimum
-const minZoomSpan =
-  Number.isFinite(initialXSpan) && initialXSpan > 0 ? initialXSpan / 40 : undefined
 const initialXDomainValue: [number, number] | undefined =
   Number.isFinite(initialXMinimum) && Number.isFinite(initialXMaximum)
     ? [initialXMinimum, initialXMaximum]
@@ -353,7 +350,6 @@ const controlPanelModel = reactive({
 
 const chartModel = reactive({
   data: displayChartData,
-  minZoomSpan,
   initialXDomain,
   displayMode,
   overlayMode,

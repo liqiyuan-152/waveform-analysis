@@ -1,4 +1,4 @@
-import { pointer, scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
+import { pointer, zoomIdentity, type ZoomTransform } from 'd3'
 import { computed, nextTick, shallowRef, type ComputedRef, type Ref, type ShallowRef } from 'vue'
 import { MINIMUM_SELECTION_SIZE } from '../core/constants'
 import type { DisplayTrack, TrackLayout } from '../core/types'
@@ -11,6 +11,7 @@ import type {
 import type { AnnotationSeriesCandidate } from '../annotation'
 import { tryReleasePointerCapture } from './pointerCapture'
 import { transitionViewportInteraction } from './viewportInteractionState'
+import { constrainZoomDomain, transformForDomain } from './zoomConstraints'
 interface ViewportContext {
   props: ResolvedWaveformChartProps
   emit: WaveformChartEmit
@@ -92,48 +93,6 @@ export function useWaveformViewport(context: ViewportContext) {
       height: Math.abs(active.currentY - active.startY),
     }
   })
-  const transformForDomain = (
-    domain: [number, number],
-    baseDomain: [number, number],
-    width: number,
-  ): ZoomTransform => {
-    const baseSpan = baseDomain[1] - baseDomain[0]
-    const span = domain[1] - domain[0]
-    if (!Number.isFinite(baseSpan) || !Number.isFinite(span) || baseSpan <= 0 || span <= 0) {
-      return zoomIdentity
-    }
-    const scale = baseSpan / span
-    const baseScale = scaleLinear(baseDomain, [0, width])
-    return zoomIdentity.translate(-scale * baseScale(domain[0]), 0).scale(scale)
-  }
-  const resolveMinimumZoomSpan = (boundary: [number, number]): number => {
-    const boundarySpan = Math.abs(boundary[1] - boundary[0])
-    if (!Number.isFinite(boundarySpan) || boundarySpan <= 0) return 0
-    const configured = props.minZoomSpan
-    if (Number.isFinite(configured) && (configured ?? 0) > 0) {
-      return Math.min(boundarySpan, configured as number)
-    }
-    return boundarySpan / 40
-  }
-  const constrainZoomDomain = (
-    domain: [number, number],
-    boundary: [number, number],
-  ): [number, number] => {
-    const normalizedBoundary: [number, number] =
-      boundary[0] <= boundary[1] ? [...boundary] : [boundary[1], boundary[0]]
-    const boundarySpan = normalizedBoundary[1] - normalizedBoundary[0]
-    if (!Number.isFinite(boundarySpan) || boundarySpan <= 0) return normalizedBoundary
-    const requestedStart = Math.min(domain[0], domain[1])
-    const requestedEnd = Math.max(domain[0], domain[1])
-    const minimumSpan = resolveMinimumZoomSpan(normalizedBoundary)
-    const span = Math.max(minimumSpan, Math.min(boundarySpan, requestedEnd - requestedStart))
-    const center = (requestedStart + requestedEnd) / 2
-    const start = Math.max(
-      normalizedBoundary[0],
-      Math.min(center - span / 2, normalizedBoundary[1] - span),
-    )
-    return [start, start + span]
-  }
   const clampDomain = (domain: [number, number], boundary: [number, number]): [number, number] => {
     const span = domain[1] - domain[0]
     const boundarySpan = boundary[1] - boundary[0]
@@ -275,9 +234,14 @@ export function useWaveformViewport(context: ViewportContext) {
     )
     if (right - left < MINIMUM_SELECTION_SIZE) return
     const baseXDomain = active.independent ? resolveInitialTrackDomain(track) : initialXDomain.value
+    const groups = active.independent
+      ? [track.seriesList]
+      : trackLayouts.value.filter((item) => item.hasVisibleSeries).map((item) => item.seriesList)
     const xDomain = constrainZoomDomain(
       [track.xScale.invert(left), track.xScale.invert(right)],
       baseXDomain,
+      groups,
+      props,
     )
     if (active.independent) {
       const next = [...independentTransforms.value]

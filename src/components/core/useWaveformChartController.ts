@@ -81,9 +81,11 @@ export function useWaveformChartController(
   const selection = shallowRef<ViewportSelectionState | null>(null)
   const spacePressed = ref(false)
   const pointerInsideChart = ref(false)
+  let handleBeforeDataReferenceChange: () => void = () => undefined
   let handleDataReferenceChange: () => void = () => undefined
   const preparedSeries = usePreparedWaveformSeries(
     () => props.data,
+    () => handleBeforeDataReferenceChange(),
     () => handleDataReferenceChange(),
   )
 
@@ -127,6 +129,7 @@ export function useWaveformChartController(
   const {
     chartSeries,
     chartTracks,
+    trackLayouts,
     gridOptions,
     pageCount,
     pagedTracks,
@@ -138,7 +141,6 @@ export function useWaveformChartController(
     initialXDomain,
     sharedZoomDomain,
     resolveInitialTrackDomain,
-    trackLayouts,
     annotationLayoutsForTrack,
     resolveSeriesYScale,
   } = layout
@@ -254,6 +256,7 @@ export function useWaveformChartController(
     gridOptions,
     chartSeries,
     chartTracks,
+    trackLayouts,
     innerWidth,
     innerHeight,
     activeInteractionMode,
@@ -261,6 +264,7 @@ export function useWaveformChartController(
     internalHiddenSeriesIds,
     independentTransforms,
     independentYDomains,
+    resolveInitialTrackDomain,
     annotationInteraction,
     editorSeriesOptions,
     isPresentationMode,
@@ -272,6 +276,7 @@ export function useWaveformChartController(
     cancelPendingHover: hover.cancelPendingHover,
     clearZoomBindings: zoom.clearZoomBindings,
   })
+  handleBeforeDataReferenceChange = lifecycle.handleBeforeDataReferenceChange
   handleDataReferenceChange = lifecycle.handleDataReferenceChange
 
   return reactive({

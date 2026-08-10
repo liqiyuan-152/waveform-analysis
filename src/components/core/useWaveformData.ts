@@ -62,9 +62,14 @@ export function prepareWaveformSeries(data: WaveformData): PreparedWaveformSerie
   })
 }
 
-export function usePreparedWaveformSeries(data: () => WaveformData, onDataChange: () => void) {
+export function usePreparedWaveformSeries(
+  data: () => WaveformData,
+  onBeforeDataChange: () => void,
+  onDataChange: () => void,
+) {
   const preparedSeries = shallowRef<PreparedWaveformSeries[]>(prepareWaveformSeries(data()))
   watch(data, (nextData) => {
+    onBeforeDataChange()
     preparedSeries.value = prepareWaveformSeries(nextData)
     onDataChange()
   })

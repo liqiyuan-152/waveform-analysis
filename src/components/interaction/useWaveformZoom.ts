@@ -15,6 +15,12 @@ import { WHEEL_ZOOM_DEBOUNCE_MS, ZOOM_CONSTRAINTS } from '../core/constants'
 import type { TrackLayout } from '../core/types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from '../core/waveformChartTypes'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
+import {
+  constrainZoomDomain,
+  resolveMinimumZoomSpan,
+  transformForDomain,
+  type ZoomSeriesGroup,
+} from './zoomConstraints'
 
 interface ZoomContext {
   props: ResolvedWaveformChartProps
@@ -216,24 +222,38 @@ export function useWaveformZoom(context: ZoomContext) {
       .forEach((overlay) => select(overlay).on('.zoom', null))
     zoomBehaviors.clear()
   }
-  const resolveMaximumZoomScale = (domain: [number, number]): number => {
-    const minZoomSpan = props.minZoomSpan
-    if (!Number.isFinite(minZoomSpan) || (minZoomSpan ?? 0) <= 0) {
-      return ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
-    }
+  const resolveMaximumZoomScale = (
+    domain: [number, number],
+    groups: readonly ZoomSeriesGroup[],
+  ): number => {
     const domainSpan = Math.abs(domain[1] - domain[0])
     if (!Number.isFinite(domainSpan) || domainSpan <= 0) return ZOOM_CONSTRAINTS.MIN_SCALE
-    return Math.min(
-      ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE,
-      Math.max(ZOOM_CONSTRAINTS.MIN_SCALE, domainSpan / (minZoomSpan ?? domainSpan)),
+    const minimumSpan = resolveMinimumZoomSpan(domain, groups, props)
+    return Math.max(
+      ZOOM_CONSTRAINTS.MIN_SCALE,
+      minimumSpan > 0 ? domainSpan / minimumSpan : ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE,
     )
   }
-  const canZoomTrack = (track: TrackLayout): boolean =>
-    hasMinimumVisibleXValues(
+  const constrainTransform = (
+    transform: ZoomTransform,
+    domain: [number, number],
+    width: number,
+    groups: readonly ZoomSeriesGroup[],
+  ): ZoomTransform => {
+    const requested = transform.rescaleX(scaleLinear(domain, [0, width])).domain() as [
+      number,
+      number,
+    ]
+    return transformForDomain(constrainZoomDomain(requested, domain, groups, props), domain, width)
+  }
+  const canZoomTrack = (track: TrackLayout): boolean => {
+    const minimum = Number(props.minVisiblePoints)
+    return hasMinimumVisibleXValues(
       track.seriesList,
       track.xScale.domain() as [number, number],
-      Number(props.minVisiblePoints),
+      Number.isFinite(minimum) && minimum > 0 ? Math.ceil(minimum) + 1 : minimum,
     )
+  }
   const canZoomSharedTracks = (): boolean => {
     const tracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
     return tracks.length > 0 && tracks.every(canZoomTrack)
@@ -265,9 +285,15 @@ export function useWaveformZoom(context: ZoomContext) {
         )
         if (!overlay) return
         const dataDomain = resolveInitialTrackDomain(track)
+        const groups = [track.seriesList]
         const behavior = zoom<SVGRectElement, unknown>()
-          .filter((event) => canHandleWheelZoom(event, canZoomTrack(track)))
-          .scaleExtent([1, resolveMaximumZoomScale(dataDomain)])
+          .filter((event) => {
+            const currentTrack =
+              trackLayouts.value.find((item) => item.index === track.index) ?? track
+            return canHandleWheelZoom(event, canZoomTrack(currentTrack))
+          })
+          .scaleExtent([1, resolveMaximumZoomScale(dataDomain, groups)])
+          .constrain((transform) => constrainTransform(transform, dataDomain, track.width, groups))
           .extent([
             [0, 0],
             [track.width, track.height],
@@ -293,9 +319,15 @@ export function useWaveformZoom(context: ZoomContext) {
     }
     const overlay = sharedOverlayElement.value
     if (!overlay) return
+    const groups = trackLayouts.value
+      .filter((track) => track.hasVisibleSeries)
+      .map((track) => track.seriesList)
     const behavior = zoom<SVGRectElement, unknown>()
       .filter((event) => canHandleWheelZoom(event, canZoomSharedTracks()))
-      .scaleExtent([1, resolveMaximumZoomScale(initialXDomain.value)])
+      .scaleExtent([1, resolveMaximumZoomScale(initialXDomain.value, groups)])
+      .constrain((transform) =>
+        constrainTransform(transform, initialXDomain.value, innerWidth.value, groups),
+      )
       .extent([
         [0, 0],
         [innerWidth.value, innerHeight.value],

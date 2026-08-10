@@ -86,7 +86,6 @@ export interface DemoControlPanelModel {
 
 export interface DemoChartModel {
   data: WaveformData
-  minZoomSpan?: number
   initialXDomain?: [number, number]
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode

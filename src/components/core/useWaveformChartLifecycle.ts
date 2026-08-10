@@ -11,8 +11,9 @@ import {
 
 import type { AnnotationSeriesCandidate } from '../annotation'
 import type { useWaveformAnnotationInteraction } from '../annotation'
-import type { DisplaySeries, DisplayTrack } from './types'
+import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
+import { constrainZoomDomain, transformForDomain } from '../interaction/zoomConstraints'
 
 interface LifecycleContext {
   props: ResolvedWaveformChartProps
@@ -35,6 +36,7 @@ interface LifecycleContext {
   gridOptions: ComputedRef<{ rowCount: number; columnCount: number }>
   chartSeries: ComputedRef<DisplaySeries[]>
   chartTracks: ComputedRef<DisplayTrack[]>
+  trackLayouts: ComputedRef<TrackLayout[]>
   innerWidth: ComputedRef<number>
   innerHeight: ComputedRef<number>
   activeInteractionMode: ComputedRef<string | undefined>
@@ -42,6 +44,7 @@ interface LifecycleContext {
   internalHiddenSeriesIds: Ref<Set<string>>
   independentTransforms: ShallowRef<ZoomTransform[]>
   independentYDomains: Ref<Record<number, [number, number]>>
+  resolveInitialTrackDomain: (track: TrackLayout) => [number, number]
   annotationInteraction: ReturnType<typeof useWaveformAnnotationInteraction>
   editorSeriesOptions: Ref<AnnotationSeriesCandidate[]>
   isPresentationMode: ComputedRef<boolean>
@@ -87,6 +90,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     gridOptions,
     chartSeries,
     chartTracks,
+    trackLayouts,
     innerWidth,
     innerHeight,
     activeInteractionMode,
@@ -94,6 +98,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     internalHiddenSeriesIds,
     independentTransforms,
     independentYDomains,
+    resolveInitialTrackDomain,
     annotationInteraction,
     editorSeriesOptions,
     isPresentationMode,
@@ -139,6 +144,27 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     emit('page-change', nextPage, pageCount.value)
   }
 
+  let pendingIndependentXDomains: Array<[number, number] | undefined> | undefined
+
+  function handleBeforeDataReferenceChange() {
+    if (props.displayMode !== 'independent') return
+    pendingIndependentXDomains = trackLayouts.value.map((track) => {
+      const configuredDomain =
+        props.initialXDomains?.[track.series.trackId ?? track.series.id] ??
+        props.initialXDomains?.[track.series.id] ??
+        props.initialXDomain
+      if (
+        !configuredDomain ||
+        !Number.isFinite(configuredDomain[0]) ||
+        !Number.isFinite(configuredDomain[1]) ||
+        configuredDomain[0] === configuredDomain[1]
+      ) {
+        return undefined
+      }
+      return track.xScale.domain() as [number, number]
+    })
+  }
+
   function handleDataReferenceChange() {
     if (props.displayMode === 'independent') {
       const currentTransforms = independentTransforms.value
@@ -148,7 +174,24 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     }
     clearHover()
     editorSeriesOptions.value = []
-    void nextTick(configureZoom)
+    void nextTick(() => {
+      if (props.displayMode === 'independent' && pendingIndependentXDomains) {
+        const nextTransforms = chartTracks.value.map(() => zoomIdentity)
+        trackLayouts.value.forEach((track) => {
+          const previousDomain = pendingIndependentXDomains?.[track.index]
+          if (!previousDomain) return
+          const boundary = resolveInitialTrackDomain(track)
+          const domain = constrainZoomDomain(previousDomain, boundary, [track.seriesList], props)
+          nextTransforms[track.index] = transformForDomain(domain, boundary, track.width)
+        })
+        independentTransforms.value = nextTransforms
+        pendingIndependentXDomains = undefined
+        void nextTick(configureZoom)
+        return
+      }
+      pendingIndependentXDomains = undefined
+      configureZoom()
+    })
   }
 
   watch(
@@ -158,6 +201,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
       () => props.zoomable,
       isPresentationMode,
       () => props.minZoomSpan,
+      () => props.minVisiblePoints,
       () => props.initialXDomain,
       () => props.initialXDomains,
       () => props.displayMode,
@@ -324,5 +368,5 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     editorSeriesOptions.value = []
   })
 
-  return { goToPage, handleDataReferenceChange }
+  return { goToPage, handleBeforeDataReferenceChange, handleDataReferenceChange }
 }
