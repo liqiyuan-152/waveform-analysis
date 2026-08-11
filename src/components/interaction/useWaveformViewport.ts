@@ -346,9 +346,23 @@ export function useWaveformViewport(context: ViewportContext) {
   }
   const requestViewportReset = (event: MouseEvent) => {
     if (isPresentationMode.value || !props.zoomable || !isZoomMode.value) return
+    if (props.displayMode === 'independent') {
+      const target = event.target instanceof Element ? event.target : null
+      const overlay = target?.closest('[data-independent-overlay-index]')
+      const trackIndex = Number(overlay?.getAttribute('data-independent-overlay-index'))
+      const track = trackLayouts.value.find((item) => item.index === trackIndex)
+      if (!track) return
+      event.preventDefault()
+      resetViewport(trackIndex)
+      emit('zoom-reset', {
+        trackIndex,
+        seriesIds: track.legendSeries.map((series) => series.id),
+      })
+      return
+    }
     event.preventDefault()
     resetViewport()
-    emit('zoom-reset')
+    emit('zoom-reset', {})
   }
   return {
     selectionBox,

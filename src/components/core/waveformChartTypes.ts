@@ -13,6 +13,7 @@ import type {
   WaveformTitleOptions,
   WaveformZeroLineOptions,
   WaveformZoomEndPayload,
+  WaveformZoomResetPayload,
 } from '../data/types'
 import type { WaveformGridOptions } from './grid'
 
@@ -82,7 +83,7 @@ export interface WaveformChartEmit {
   (event: 'point-hover', point: WaveformPoint | null): void
   (event: 'zoom-change', domain: [number, number]): void
   (event: 'zoom-end', payload: WaveformZoomEndPayload): void
-  (event: 'zoom-reset'): void
+  (event: 'zoom-reset', payload: WaveformZoomResetPayload): void
   (event: 'update:annotations', annotations: WaveformAnnotation[]): void
   (event: 'update:hidden-series-ids', ids: string[]): void
   (

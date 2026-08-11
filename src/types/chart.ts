@@ -38,6 +38,12 @@ export interface WaveformZoomEndPayload {
   gesture?: 'wheel' | 'box'
 }
 
+/** Identifies the viewport reset by a double-click gesture. */
+export interface WaveformZoomResetPayload {
+  trackIndex?: number
+  seriesIds?: string[]
+}
+
 /** 标注颜色样式 */
 export interface WaveformAnnotationStyle {
   borderColor?: string

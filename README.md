@@ -253,7 +253,9 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。
 
 独立坐标模式下，回填响应应只替换 `seriesIds` 对应的系列，并调用
-`resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。
+`resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。独立模式下双击图框触发的
+`zoom-reset` payload 会包含该图框的 `trackIndex` 和 `seriesIds`；共享 X 范围模式的 payload
+不包含这两个字段，表示全局复位。忽略事件参数的既有监听器可以继续使用。
 
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
@@ -639,7 +641,7 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
 | `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
 | `zoom-end`                                                      | 滚轮或框选结束后触发；`gesture` 区分二者，独立模式附带轨道信息 |
-| `zoom-reset`                                                    | 双击重置视口时触发，调用方应恢复首次完整数据                   |
+| `zoom-reset`                                                    | 双击重置视口时触发；独立模式 payload 标识目标图框              |
 | `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
 | `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
 | `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                           |
