@@ -19,7 +19,9 @@ jobs:
           tag_name="${{ gitea.ref_name }}"
           git init .
           git remote add origin "$repository_url"
-          git fetch --depth 1 origin "refs/tags/$tag_name:refs/tags/$tag_name"
+          # Gitea can return an invalid shallow pack for tag-only fetches.
+          # Fetch the tag without depth limiting and force protocol v0 for compatibility.
+          git -c protocol.version=0 fetch --no-tags origin "refs/tags/$tag_name:refs/tags/$tag_name"
           git checkout --detach "$tag_name^{commit}"
 
       - name: Set up pnpm
