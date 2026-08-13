@@ -111,6 +111,7 @@ const data = ref<WaveformData>({
 | `minVisiblePoints`                | `number`                                    | `0`                                                     | 缩放后至少保留的不同 X 坐标数      |
 | `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围              |
 | `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围    |
+| `xDomainStrategy`                 | `WaveformXDomainStrategy`                   | `{ type: 'data' }`                                      | 自动 X 轴视口范围策略              |
 | `yDomain`                         | `[number, number]`                          | 未设置                                                  | 所有波形的固定 Y 轴范围            |
 | `yDomains`                        | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置固定范围    |
 | `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                         |
@@ -129,7 +130,7 @@ const data = ref<WaveformData>({
 
 所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
 `WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
-`WaveformAxesOptions`、`WaveformXAxisLabelFormatter`、`WaveformZeroLineOptions`、
+`WaveformAxesOptions`、`WaveformXAxisLabelFormatter`、`WaveformXDomainStrategy`、`WaveformZeroLineOptions`、
 `WaveformGridOptions` 和 `WaveformGridTrackLines`。
 
 ### 数据结构
@@ -251,6 +252,26 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 可防止每次区间数据回填后重新累计放大。双击图框会
 重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。
 外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。
+
+没有显式配置初始范围时，可以通过 `xDomainStrategy` 将数据范围扩展为便于阅读的视口端点。
+默认的 `{ type: 'data' }` 保持数据最小值和最大值不变；`type: 'nice'` 使用固定刻度数量计算
+易读边界，且只扩展视口，不修改原始点位、tooltip、标注或缩放事件值：
+
+```vue
+<WaveformChart
+  :data="chartData"
+  :x-domain-strategy="{ type: 'nice', bounds: 'end', tickCount: 10, includeExplicit: true }"
+/>
+```
+
+例如秒坐标数据范围为 `[0, 4.999999]` 且 `timeUnit='ms'` 时，上述配置会使用
+`[0, 5]` 作为初始及重置视口，两端 label 显示 `0` 和 `5000`。`bounds: 'end'`
+只扩展右端；默认的 `bounds: 'both'`
+会同时扩展两端。`tickCount` 默认为 `10`，只参与边界计算，不随组件宽度变化。
+`initialXDomains`、`initialXDomain` 的显式配置默认保持原值；仅当 `includeExplicit: true` 时
+也应用 nice 扩展。独立模式在未配置显式范围时
+按图框分别计算，共享 X 轴模式则合并所有可见图框后计算。所有范围仍使用原始秒坐标，
+`timeUnit` 只影响显示。
 
 独立坐标模式下，回填响应应只替换 `seriesIds` 对应的系列，并调用
 `resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。独立模式下双击图框触发的

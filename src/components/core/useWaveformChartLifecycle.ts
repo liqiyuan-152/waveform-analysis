@@ -204,6 +204,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
       () => props.minVisiblePoints,
       () => props.initialXDomain,
       () => props.initialXDomains,
+      () => props.xDomainStrategy,
       () => props.displayMode,
       () => chartTracks.value.length,
       currentPage,

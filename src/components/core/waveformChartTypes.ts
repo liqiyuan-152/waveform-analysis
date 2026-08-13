@@ -11,6 +11,7 @@ import type {
   WaveformPoint,
   WaveformRenderingOptions,
   WaveformTitleOptions,
+  WaveformXDomainStrategy,
   WaveformZeroLineOptions,
   WaveformZoomEndPayload,
   WaveformZoomResetPayload,
@@ -33,6 +34,7 @@ export interface WaveformChartProps {
   minVisiblePoints?: number
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
+  xDomainStrategy?: WaveformXDomainStrategy
   yDomain?: [number, number]
   yDomains?: Record<string, [number, number]>
   timeUnit?: 's' | 'ms'
@@ -63,6 +65,7 @@ type DefaultedProp =
   | 'zoomable'
   | 'pannable'
   | 'minVisiblePoints'
+  | 'xDomainStrategy'
   | 'timeUnit'
   | 'annotations'
   | 'annotationsVisible'

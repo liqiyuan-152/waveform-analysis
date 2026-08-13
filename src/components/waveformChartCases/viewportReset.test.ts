@@ -5,6 +5,13 @@ import { flushAnimationFrames } from '../../test/setup'
 import { gridSeries, mountSizedChart } from '../../test/waveformChart'
 
 describe('WaveformChart viewport reset', () => {
+  const niceExplicitStrategy = {
+    type: 'nice' as const,
+    bounds: 'end' as const,
+    tickCount: 10,
+    includeExplicit: true,
+  }
+
   it('resets a shared viewport on double-click and emits a global payload', async () => {
     const wrapper = await mountSizedChart(
       {
@@ -110,5 +117,33 @@ describe('WaveformChart viewport reset', () => {
 
     expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe('0')
     expect(wrapper.findAll('.waveform-chart__axis-endpoint--end')[0].text()).toBe('1000')
+  })
+
+  it('resets shared and independent explicit domains to their included nice bounds', async () => {
+    const shared = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 4.999999, y: 1 },
+        ],
+      },
+      { initialXDomain: [0, 4.999999], xDomainStrategy: niceExplicitStrategy },
+    )
+    const independent = await mountSizedChart(gridSeries(2), {
+      displayMode: 'independent',
+      initialXDomains: { 'channel-0': [0, 4.999999] },
+      xDomainStrategy: niceExplicitStrategy,
+    })
+
+    ;(shared.vm as unknown as { resetViewport: () => void }).resetViewport()
+    ;(independent.vm as unknown as { resetViewport: () => void }).resetViewport()
+    await flushPromises()
+
+    expect(shared.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
+    expect(shared.get('.waveform-chart__axis-endpoint--end').text()).toBe('5000')
+    const firstTrack = independent.findAll('.waveform-chart__track')[0]
+    expect(firstTrack.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
+    expect(firstTrack.get('.waveform-chart__axis-endpoint--end').text()).toBe('5000')
   })
 })

@@ -34,6 +34,7 @@ import {
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
+import { applyXDomainStrategy } from './xDomain'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 
 interface LayoutContext {
@@ -224,9 +225,13 @@ export function useWaveformLayout(context: LayoutContext) {
       Number.isFinite(domain[1]) &&
       domain[0] !== domain[1]
     ) {
-      return domain[0] < domain[1] ? domain : [domain[1], domain[0]]
+      return applyXDomainStrategy(
+        domain[0] < domain[1] ? domain : [domain[1], domain[0]],
+        props.xDomainStrategy,
+        true,
+      )
     }
-    return sharedXDomain.value
+    return applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy)
   })
   const resolveInitialTrackDomain = (track: TrackLayout): [number, number] => {
     const configuredDomain =
@@ -239,11 +244,18 @@ export function useWaveformLayout(context: LayoutContext) {
       Number.isFinite(configuredDomain[1]) &&
       configuredDomain[0] !== configuredDomain[1]
     ) {
-      return configuredDomain[0] < configuredDomain[1]
-        ? configuredDomain
-        : [configuredDomain[1], configuredDomain[0]]
+      return applyXDomainStrategy(
+        configuredDomain[0] < configuredDomain[1]
+          ? configuredDomain
+          : [configuredDomain[1], configuredDomain[0]],
+        props.xDomainStrategy,
+        true,
+      )
     }
-    return paddedDomain(track.seriesList.flatMap((series) => series.xDomain))
+    return applyXDomainStrategy(
+      paddedDomain(track.seriesList.flatMap((series) => series.xDomain)),
+      props.xDomainStrategy,
+    )
   }
   const sharedZoomDomain = computed(
     () =>
@@ -272,6 +284,7 @@ export function useWaveformLayout(context: LayoutContext) {
       sharedZoomDomain: sharedZoomDomain.value,
       initialXDomain: props.initialXDomain ? initialXDomain.value : undefined,
       initialXDomains: props.initialXDomains,
+      xDomainStrategy: props.xDomainStrategy,
       fixedYDomain: props.yDomain,
       fixedYDomains: props.yDomains,
       yDomains:

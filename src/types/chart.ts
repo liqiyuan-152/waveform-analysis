@@ -26,6 +26,17 @@ export type WaveformOverlayMode = 'single-axis' | 'multi-axis'
 /** 标注工具模式 */
 export type WaveformInteractionMode = 'zoom' | 'annotation'
 
+/** Controls how the initial X viewport is derived when no explicit domain is configured. */
+export interface WaveformXDomainStrategy {
+  type: 'data' | 'nice'
+  /** Selects which bounds are expanded when type is `nice`. Defaults to `both`. */
+  bounds?: 'both' | 'end'
+  /** Stable tick count used to calculate nice bounds. Defaults to 10. */
+  tickCount?: number
+  /** Applies the strategy to explicit initial domains. Defaults to false. */
+  includeExplicit?: boolean
+}
+
 /** Describes the X-axis viewport after a zoom gesture completes. */
 export interface WaveformZoomEndPayload {
   start: number

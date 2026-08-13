@@ -16,6 +16,7 @@ import type {
   WaveformDisplayMode,
   WaveformOverlayMode,
   WaveformPoint,
+  WaveformXDomainStrategy,
   WaveformXAxisLabelFormatter,
 } from '../../types'
 import { buildMinorTicks, formatXAxisLabel } from '../../utils'
@@ -26,6 +27,7 @@ import {
 } from './grid'
 import { axisTextMetrics, resolveYAxisSeriesGroups } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
+import { applyXDomainStrategy } from './xDomain'
 import {
   Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
@@ -46,6 +48,7 @@ export interface BuildTrackLayoutsOptions {
   sharedZoomDomain: [number, number]
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
+  xDomainStrategy?: WaveformXDomainStrategy
   fixedYDomain?: [number, number]
   fixedYDomains?: Record<string, [number, number]>
   yDomains?: Record<string, [number, number]>
@@ -55,6 +58,21 @@ export interface BuildTrackLayoutsOptions {
   hideSecondaryLabels: boolean
   yAxisLabelX: number
   showCompactEmptyTracks: boolean
+}
+
+function resolveIndependentXDomain(
+  track: DisplayTrack,
+  seriesId: string,
+  options: BuildTrackLayoutsOptions,
+): [number, number] {
+  const strategy = options.xDomainStrategy ?? { type: 'data' }
+  const explicitDomain =
+    options.initialXDomains?.[track.id] ??
+    options.initialXDomains?.[seriesId] ??
+    options.initialXDomain
+  return explicitDomain
+    ? applyXDomainStrategy(explicitDomain, strategy, true)
+    : applyXDomainStrategy(track.xDomain, strategy)
 }
 
 export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayout[] {
@@ -88,13 +106,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const series = displayTrack.visibleSeries[0] ?? displayTrack.series[0] ?? emptySeries
     const baseXScale =
       options.displayMode === 'independent'
-        ? scaleLinear(
-            options.initialXDomains?.[displayTrack.id] ??
-              options.initialXDomains?.[series.id] ??
-              options.initialXDomain ??
-              displayTrack.xDomain,
-            [0, cell.width],
-          )
+        ? scaleLinear(resolveIndependentXDomain(displayTrack, series.id, options), [0, cell.width])
         : scaleLinear(options.sharedZoomDomain, [0, cell.width])
     const transform =
       options.displayMode === 'independent'

@@ -9,6 +9,7 @@ export type {
   WaveformDisplayMode,
   WaveformOverlayMode,
   WaveformInteractionMode,
+  WaveformXDomainStrategy,
   WaveformZoomEndPayload,
   WaveformZoomResetPayload,
   WaveformAnnotationStyle,
