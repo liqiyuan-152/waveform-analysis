@@ -15,14 +15,13 @@ jobs:
         run: |
           set -euo pipefail
           server_url="${{ gitea.server_url }}"
-          repository_url="${server_url%/}/${{ gitea.repository }}.git"
           tag_name="${{ gitea.ref_name }}"
-          git init .
-          git remote add origin "$repository_url"
-          # Gitea can return an invalid shallow pack for tag-only fetches.
-          # Fetch the tag without depth limiting and force protocol v0 for compatibility.
-          git -c protocol.version=0 fetch --no-tags origin "refs/tags/$tag_name:refs/tags/$tag_name"
-          git checkout --detach "$tag_name^{commit}"
+          archive_url="${server_url%/}/api/v1/repos/${{ gitea.repository }}/archive/$tag_name.tar.gz"
+          curl --fail --show-error --silent --location "$archive_url" --output source.tar.gz
+          mkdir source
+          tar -xzf source.tar.gz --strip-components=1 -C source
+          cp -a source/. .
+          rm -rf source source.tar.gz
 
       - name: Set up pnpm
         run: |
@@ -216,7 +215,7 @@ jobs:
           : "${RELEASE_TOKEN:?RELEASE_TOKEN is required}"
           server_url="${{ gitea.server_url }}"
           api_url="$server_url/api/v1/repos/${{ gitea.repository }}/releases"
-          target_commitish="$(git rev-parse HEAD)"
+          target_commitish="$TAG_NAME"
 
           node - "$TAG_NAME" "$PACKAGE_VERSION" "$target_commitish" "$IS_PRERELEASE" > release.json <<'NODE'
           const [tagName, packageVersion, targetCommitish, prerelease] = process.argv.slice(2)
