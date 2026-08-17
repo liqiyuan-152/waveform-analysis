@@ -47,6 +47,8 @@ export type SingleWaveformData =
  */
 export interface WaveformSeries {
   id?: string
+  /** 炮号，未提供时 Tooltip 显示“未配置炮号”。 */
+  shotNo?: string
   /** 相同 trackId 的系列叠加在同一图框中；默认每个系列独占一个图框。 */
   trackId?: string
   name: string
@@ -74,6 +76,7 @@ export type WaveformData =
  */
 export interface NormalizedWaveformSeries {
   id: string
+  shotNo?: string
   trackId?: string
   name: string
   unit?: string

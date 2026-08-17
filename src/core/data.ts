@@ -132,6 +132,7 @@ export function normalizeWaveformSeries(data: WaveformData): NormalizedWaveformS
 
       return {
         id: uniqueId,
+        shotNo: series.shotNo?.trim() || undefined,
         trackId: series.trackId?.trim() || undefined,
         name: series.name,
         unit: series.unit,

@@ -85,6 +85,7 @@ export function useWaveformHover(context: HoverContext) {
     point: WaveformPoint,
   ): HoveredSeriesPoint => ({
     id: series.id,
+    shotNo: series.shotNo,
     name: series.name,
     color: series.color,
     unit: series.unit,

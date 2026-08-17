@@ -13,6 +13,7 @@ import type { NormalizedWaveformGridLineOptions } from './grid'
  */
 export interface DisplaySeries {
   id: string
+  shotNo?: string
   trackId?: string
   name: string
   unit?: string
@@ -63,6 +64,7 @@ export interface WaveformYAxisLayout {
  */
 export interface HoveredSeriesPoint {
   id: string
+  shotNo?: string
   name: string
   unit?: string
   color: string

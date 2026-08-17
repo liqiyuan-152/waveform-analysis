@@ -163,8 +163,8 @@ const points: WaveformData = {
 const chartData: WaveformData = {
   kind: 'series',
   series: [
-    { id: 'ch-a', name: '通道 A', trackId: 'group-1', data: samples },
-    { id: 'ch-b', name: '通道 B', trackId: 'group-1', data: points },
+    { id: 'ch-a', shotNo: '13300', name: '通道 A', trackId: 'group-1', data: samples },
+    { id: 'ch-b', shotNo: '13300', name: '通道 B', trackId: 'group-1', data: points },
   ],
 }
 ```
@@ -281,6 +281,9 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
 
+Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`WaveformSeries.shotNo` 为空或未提供时，
+炮号显示为“未配置炮号”；Tooltip 不显示单位和误差附加文本。
+
 ### 线型、点型与误差棒
 
 每条序列可以独立设置连线方式、数据点符号和误差棒：
@@ -288,6 +291,7 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 ```ts
 const series = {
   id: 'temperature',
+  shotNo: '13300',
   name: '温度',
   lineType: 'step-end',
   lineStyle: 'dashed',

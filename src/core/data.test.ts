@@ -102,4 +102,26 @@ describe('waveform data normalization', () => {
       'solid',
     ])
   })
+
+  it('preserves trimmed shot numbers and omits blank values', () => {
+    const result = normalizeWaveformSeries({
+      kind: 'series',
+      series: [
+        {
+          id: 'with-shot',
+          shotNo: '  13300  ',
+          name: '通道 A',
+          data: { kind: 'points', points: [{ x: 0, y: 1 }] },
+        },
+        {
+          id: 'without-shot',
+          shotNo: '   ',
+          name: '通道 B',
+          data: { kind: 'points', points: [{ x: 0, y: 2 }] },
+        },
+      ],
+    })
+
+    expect(result.map((series) => series.shotNo)).toEqual(['13300', undefined])
+  })
 })

@@ -80,7 +80,7 @@ describe('WaveformTooltip', () => {
     expect(tooltip.attributes('style')).toContain('max-width: 280px')
   })
 
-  it('shows resolved asymmetric errors beside the hovered value', () => {
+  it('omits units and errors from the strict x/y value format', () => {
     const pointWithErrors = { x: 1, y: 12, error: 1, upperError: 2 }
     const wrapper = mount(WaveformTooltip, {
       props: {
@@ -102,10 +102,12 @@ describe('WaveformTooltip', () => {
       },
     })
 
-    expect(wrapper.get('.waveform-tooltip__series small').text()).toBe('(+2 / -1)')
+    expect(wrapper.get('.waveform-tooltip__value').text()).toBe('(x:1 y:12)')
+    expect(wrapper.get('.waveform-tooltip__value').text()).not.toContain('C')
+    expect(wrapper.get('.waveform-tooltip__value').text()).not.toContain('+2')
   })
 
-  it('keeps a formatted value and its unit in one value container', () => {
+  it('renders the configured shot number, channel, and formatted coordinates', () => {
     const hoveredPoint = { x: 1, y: -1405.4932 }
     const wrapper = mount(WaveformTooltip, {
       props: {
@@ -117,6 +119,7 @@ describe('WaveformTooltip', () => {
           {
             trackIndex: 0,
             name: 'ENG8KJXAc(10001)',
+            shotNo: '炮 7',
             color: '#ffb43b',
             unit: 'A',
             point: hoveredPoint,
@@ -127,26 +130,31 @@ describe('WaveformTooltip', () => {
       },
     })
 
-    expect(wrapper.get('.waveform-tooltip__value').text()).toBe('-1,405.4932 A')
+    expect(wrapper.get('.waveform-tooltip__series-label').text()).toBe('炮 7： ENG8KJXAc(10001)(A)')
+    expect(wrapper.get('.waveform-tooltip__value').text()).toBe('(x:1,000 y:-1,405.4932)')
   })
 
-  it('formats tooltip time with at most four decimal places', () => {
+  it('renders each series row with the formatted x coordinate and series label', () => {
     const wrapper = mount(WaveformTooltip, {
       props: {
         visible: true,
         position: { x: 10, y: 10 },
         timeUnit: 's',
         hoveredPoint: { x: 1.234567, y: 12 },
-        seriesPoints: [],
+        seriesPoints: [
+          { trackIndex: 0, name: '温度', color: '#f00', point: { x: 1.234567, y: 12 } },
+        ],
         containerWidth: 400,
         containerHeight: 300,
       },
     })
 
-    expect(wrapper.get('.waveform-tooltip__time').text()).toBe('s: 1.2346')
+    expect(wrapper.find('.waveform-tooltip__time').exists()).toBe(false)
+    expect(wrapper.get('.waveform-tooltip__series-label').text()).toBe('未配置炮号： 温度')
+    expect(wrapper.get('.waveform-tooltip__value').text()).toBe('(x:1.2346 y:12)')
   })
 
-  it('omits the error label when both resolved errors are zero', () => {
+  it('uses the fallback shot number when shotNo is blank', () => {
     const point = { x: 1, y: 12 }
     const wrapper = mount(WaveformTooltip, {
       props: {
@@ -160,6 +168,6 @@ describe('WaveformTooltip', () => {
       },
     })
 
-    expect(wrapper.find('.waveform-tooltip__series small').exists()).toBe(false)
+    expect(wrapper.get('.waveform-tooltip__series-label').text()).toBe('未配置炮号： 温度')
   })
 })

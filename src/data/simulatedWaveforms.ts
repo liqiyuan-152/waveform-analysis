@@ -13,7 +13,7 @@ type ErrorGenerator = (
 
 interface SimulatedSeriesDefinition extends Pick<
   WaveformSeries,
-  'id' | 'name' | 'unit' | 'lineType' | 'pointType' | 'errorBar'
+  'id' | 'shotNo' | 'name' | 'unit' | 'lineType' | 'pointType' | 'errorBar'
 > {
   signal: SignalGenerator
   errors?: ErrorGenerator
@@ -46,6 +46,7 @@ function createPoints(
 const seriesDefinitions: SimulatedSeriesDefinition[] = [
   {
     id: 'simulated-sine',
+    shotNo: '13300',
     name: '正弦基波',
     unit: 'V',
     lineType: 'none',
@@ -59,6 +60,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-harmonic',
+    shotNo: '13300',
     name: '谐波扰动',
     unit: 'V',
     lineType: 'linear',
@@ -68,6 +70,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-damped',
+    shotNo: '13300',
     name: '阻尼振荡',
     unit: 'A',
     lineType: 'linear',
@@ -79,6 +82,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-step',
+    shotNo: '13300',
     name: '阶跃响应',
     unit: 'V',
     lineType: 'linear',
@@ -87,6 +91,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-pulse',
+    shotNo: '13300',
     name: '脉冲响应',
     unit: 'V',
     lineType: 'linear',
@@ -95,6 +100,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-noise',
+    shotNo: '13300',
     name: '带噪信号',
     unit: 'A',
     lineType: 'linear',

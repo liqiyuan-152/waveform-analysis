@@ -19,6 +19,7 @@ const chartData: WaveformData = {
   series: [
     {
       id: 'voltage',
+      shotNo: '13300',
       name: '电压',
       unit: 'V',
       color: '#1677ff',
@@ -33,6 +34,7 @@ const chartData: WaveformData = {
     },
     {
       id: 'current',
+      shotNo: '13300',
       name: '电流',
       unit: 'mA',
       color: '#d4380d',

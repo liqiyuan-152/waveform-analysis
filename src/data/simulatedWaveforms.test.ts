@@ -13,6 +13,7 @@ describe('simulated waveform data', () => {
 
     expect(first.series).toHaveLength(6)
     expect(new Set(first.series.map((series) => series.id)).size).toBe(6)
+    expect(new Set(first.series.map((series) => series.shotNo))).toEqual(new Set(['13300']))
     first.series.forEach((series) => {
       expect(series.data.kind).toBe('points')
       if (series.data.kind !== 'points') return

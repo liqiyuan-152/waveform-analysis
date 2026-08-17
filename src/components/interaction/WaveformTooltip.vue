@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { resolveWaveformPointErrors } from '../../core'
 import { formatTooltipNumber, formatTooltipTime } from '../../utils'
 import type { WaveformPoint } from '../data/types'
 
 interface SeriesPoint {
   trackIndex: number
   name: string
+  shotNo?: string
   color: string
   unit?: string
   point: WaveformPoint
@@ -34,7 +34,7 @@ const props = defineProps<Props>()
 const tooltipGap = 12
 const containerPadding = 8
 const tooltipPlacementWidth = 238
-const tooltipMaxWidth = 320
+const tooltipMaxWidth = 560
 const tooltipHorizontalPadding = 20
 const tooltipLineHeight = 20
 
@@ -45,18 +45,18 @@ function estimateLineCount(text: string, width: number): number {
 }
 
 function formatSeriesText(seriesPoint: SeriesPoint): string {
-  const error = formatError(seriesPoint.point)
-  return `${seriesPoint.name ? `${seriesPoint.name}: ` : ''}${formatTooltipNumber(seriesPoint.point.y)}${
-    seriesPoint.unit ? ` ${seriesPoint.unit}` : ''
-  }${error ? ` ${error}` : ''}`
+  const timeText = formatTooltipTime(props.hoveredPoint?.x ?? seriesPoint.point.x, props.timeUnit)
+  return `${seriesPoint.shotNo?.trim() || '未配置炮号'}： ${seriesPoint.name}${
+    seriesPoint.unit ? `(${seriesPoint.unit})` : ''
+  }  (x:${timeText} y:${formatTooltipNumber(seriesPoint.point.y)})`
 }
 
-function estimateTooltipHeight(width: number, timeText: string): number {
+function estimateTooltipHeight(width: number): number {
   const seriesLines = props.seriesPoints.reduce(
     (total, seriesPoint) => total + estimateLineCount(formatSeriesText(seriesPoint), width),
     0,
   )
-  return 16 + tooltipLineHeight * (estimateLineCount(timeText, width) + seriesLines) + 5
+  return 16 + tooltipLineHeight * seriesLines + 5
 }
 
 const tooltipStyle = computed(() => {
@@ -84,25 +84,18 @@ const tooltipStyle = computed(() => {
         : { left: `${containerPadding}px`, maxWidth: `${availableWidth}px` }
 
   const maxWidth = Number.parseFloat(horizontalStyle.maxWidth)
-  const timeText = `${props.timeUnit}: ${formatTooltipTime(props.hoveredPoint.x, props.timeUnit)}`
-
   return {
     ...horizontalStyle,
     top: `${Math.max(
       8,
       Math.min(
         props.position.y - 18,
-        props.containerHeight - estimateTooltipHeight(maxWidth, timeText) - 8,
+        props.containerHeight - estimateTooltipHeight(maxWidth) - 8,
       ),
     )}px`,
   }
 })
 
-function formatError(point: WaveformPoint): string | null {
-  const { lower, upper } = resolveWaveformPointErrors(point)
-  if (lower === 0 && upper === 0) return null
-  return `(+${formatTooltipNumber(upper)} / -${formatTooltipNumber(lower)})`
-}
 </script>
 
 <template>
@@ -111,9 +104,6 @@ function formatError(point: WaveformPoint): string | null {
     class="waveform-tooltip waveform-chart__tooltip"
     :style="tooltipStyle"
   >
-    <span class="waveform-tooltip__time waveform-chart__tooltip-time">
-      {{ timeUnit }}: {{ formatTooltipTime(hoveredPoint.x, timeUnit) }}
-    </span>
     <span
       v-for="seriesPoint in seriesPoints"
       :key="`${seriesPoint.trackIndex}-${seriesPoint.name}`"
@@ -121,12 +111,12 @@ function formatError(point: WaveformPoint): string | null {
     >
       <i :style="{ backgroundColor: seriesPoint.color }" />
       <span class="waveform-tooltip__series-content">
-        <strong v-if="seriesPoint.name">{{ seriesPoint.name }}:</strong>
-        <span class="waveform-tooltip__value">
-          {{ formatTooltipNumber(seriesPoint.point.y)
-          }}{{ seriesPoint.unit ? ` ${seriesPoint.unit}` : '' }}
-          <small v-if="formatError(seriesPoint.point)">{{ formatError(seriesPoint.point) }}</small>
-        </span>
+        <span class="waveform-tooltip__series-label">{{ seriesPoint.shotNo?.trim() || '未配置炮号' }}： {{
+          seriesPoint.name
+        }}<template v-if="seriesPoint.unit">({{ seriesPoint.unit }})</template></span>
+        <span class="waveform-tooltip__value">(x:{{ formatTooltipTime(hoveredPoint.x, timeUnit) }} y:{{
+          formatTooltipNumber(seriesPoint.point.y)
+        }})</span>
       </span>
     </span>
   </div>
@@ -138,26 +128,17 @@ function formatError(point: WaveformPoint): string | null {
   position: absolute;
   z-index: 2;
   display: grid;
-  gap: 3px;
+  gap: 2px;
   width: max-content;
-  max-width: min(320px, calc(100% - 16px));
-  padding: 8px 10px;
-  color: #333;
-  font:
-    12px/1.45 ui-monospace,
-    SFMono-Regular,
-    Consolas,
-    monospace;
+  max-width: min(560px, calc(100% - 16px));
+  padding: 9px 12px;
+  color: #505050;
+  font: 14px/1.35 Arial, sans-serif;
   pointer-events: none;
   background: #fff;
-  border: 1px solid #d9d9d9;
-  border-radius: 2px;
-  box-shadow: 0 4px 12px rgb(16 24 40 / 12%);
-}
-
-.waveform-tooltip__time {
-  padding-bottom: 4px;
-  border-bottom: 1px solid #f0f0f0;
+  border: 1px solid #e3e7eb;
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgb(16 24 40 / 15%);
 }
 
 .waveform-tooltip__series {
@@ -176,9 +157,24 @@ function formatError(point: WaveformPoint): string | null {
 }
 
 .waveform-tooltip__series-content {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 12px;
+  align-items: baseline;
   min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
+}
+
+.waveform-tooltip__series-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.waveform-tooltip__value {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .waveform-tooltip__series strong {
@@ -186,7 +182,7 @@ function formatError(point: WaveformPoint): string | null {
 }
 
 .waveform-tooltip__value {
-  overflow-wrap: anywhere;
+  color: #555;
 }
 
 .waveform-tooltip__series small {

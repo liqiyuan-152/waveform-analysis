@@ -179,10 +179,10 @@ describe('WaveformChart', () => {
     await flushPromises()
 
     const tooltip = wrapper.get('.waveform-chart__tooltip')
-    expect(tooltip.text()).toContain('BT2_2M:')
-    expect(tooltip.text()).toContain('2 T')
-    expect(tooltip.text()).toContain('BT1_2M:')
-    expect(tooltip.text()).toContain('4 T')
+    expect(tooltip.text()).toContain('未配置炮号： BT2_2M')
+    expect(tooltip.text()).toContain('(x:1,000 y:2)')
+    expect(tooltip.text()).toContain('未配置炮号： BT1_2M')
+    expect(tooltip.text()).toContain('(x:1,000 y:4)')
     const crosshairLines = wrapper.findAll('.waveform-chart__crosshair line')
     expect(crosshairLines).toHaveLength(2)
     crosshairLines.forEach((line) => {

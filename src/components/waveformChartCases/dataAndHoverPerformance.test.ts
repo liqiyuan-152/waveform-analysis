@@ -178,7 +178,7 @@ describe('WaveformChart', () => {
     await flushPromises()
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 5 }])
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
-    expect(wrapper.get('.waveform-chart__tooltip-time').text()).toBe('ms: 1,000')
+    expect(wrapper.get('.waveform-tooltip__series-label').text()).toContain('未配置炮号：')
     const crosshairLines = wrapper.findAll('.waveform-chart__crosshair line')
     expect(crosshairLines).toHaveLength(1)
     expect(crosshairLines[0].attributes('x1')).toBe(crosshairLines[0].attributes('x2'))
@@ -303,7 +303,7 @@ describe('WaveformChart', () => {
     flushAnimationFrames()
     await flushPromises()
 
-    expect(wrapper.get('.waveform-chart__tooltip-time').text()).toBe('ms: 1,000')
+    expect(wrapper.get('.waveform-tooltip__series-label').text()).toContain('未配置炮号：')
     expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(1)
     expect(wrapper.get('.waveform-chart__line').element).toBe(pathBeforeHover)
     expect(chartUpdate).not.toHaveBeenCalled()
