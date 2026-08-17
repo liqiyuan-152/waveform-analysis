@@ -1,9 +1,17 @@
-import { flushPromises } from '@vue/test-utils'
+import { DOMWrapper, flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames, pendingAnimationFrameCount } from '../../test/setup'
 
 import { mountSizedChart } from '../../test/waveformChart'
+
+function getAnnotationEditor() {
+  const editor = Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]'))
+    .filter((element) => element.closest('.waveform-annotation-editor'))
+    .at(-1)
+  if (!editor) throw new Error('Expected annotation editor modal to be mounted')
+  return new DOMWrapper(editor)
+}
 
 describe('WaveformChart', () => {
   it('zooms only the active independent track and resets when the mode changes', async () => {
@@ -172,9 +180,10 @@ describe('WaveformChart', () => {
     )
     await flushPromises()
 
-    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(true)
-    await wrapper.get('textarea[aria-label="标注文本"]').setValue('峰值点')
-    await wrapper.get('.waveform-annotation-editor button.is-primary').trigger('click')
+    const editor = getAnnotationEditor()
+    await editor.get('textarea[aria-label="标注文本"]').setValue('峰值点')
+    await editor.get('button.ant-btn-primary').trigger('click')
+    await flushPromises()
 
     const annotations = wrapper.emitted('update:annotations')?.at(-1)?.[0] as
       Array<{ seriesId: string; x: number; y: number; text: string }> | undefined
@@ -209,10 +218,10 @@ describe('WaveformChart', () => {
       }),
     )
     await flushPromises()
-    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(true)
-    expect(wrapper.get('.waveform-annotation-editor').attributes('aria-modal')).toBe('true')
-    expect(wrapper.find('.waveform-annotation-editor__panel').exists()).toBe(true)
-    const textarea = wrapper.get('textarea[aria-label="标注文本"]')
+    const editor = getAnnotationEditor()
+    expect(editor.attributes('role')).toBe('dialog')
+    expect(editor.find('.waveform-annotation-editor__content').exists()).toBe(true)
+    const textarea = editor.get('textarea[aria-label="标注文本"]')
     const textareaContextMenu = new MouseEvent('contextmenu', {
       bubbles: true,
       cancelable: true,
@@ -220,7 +229,8 @@ describe('WaveformChart', () => {
     expect(textarea.element.dispatchEvent(textareaContextMenu)).toBe(true)
     expect(textareaContextMenu.defaultPrevented).toBe(false)
     await textarea.setValue('右键标注')
-    await wrapper.get('.waveform-annotation-editor button.is-primary').trigger('click')
+    await editor.get('button.ant-btn-primary').trigger('click')
+    await flushPromises()
 
     // Annotation snaps to nearest sample point (x=1, y=5)
     expect(wrapper.emitted('update:annotations')?.at(-1)?.[0]).toMatchObject([
@@ -278,20 +288,20 @@ describe('WaveformChart', () => {
     )
     await flushPromises()
     expect(
-      wrapper
-        .find('select[aria-label="选择标注波形"]')
+      getAnnotationEditor()
+        .get('select[aria-label="选择标注波形"]')
         .findAll('option')
         .map((item) => item.text()),
     ).toEqual(['通道 A'])
 
-    await wrapper.get('button[aria-label="关闭标注编辑器"]').trigger('click')
+    await getAnnotationEditor().get('.ant-modal-close').trigger('click')
     overlays[0].element.dispatchEvent(
       new MouseEvent('contextmenu', { clientX: 356, clientY: 230, bubbles: true }),
     )
     await flushPromises()
     expect(
-      wrapper
-        .find('select[aria-label="选择标注波形"]')
+      getAnnotationEditor()
+        .get('select[aria-label="选择标注波形"]')
         .findAll('option')
         .map((item) => item.text()),
     ).toEqual(['通道 B'])

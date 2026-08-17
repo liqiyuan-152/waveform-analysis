@@ -5,6 +5,14 @@ import { flushAnimationFrames } from '../../test/setup'
 import { mountSizedChart } from '../../test/waveformChart'
 import type { WaveformData, WaveformDisplayMode } from '../data/types'
 
+function annotationEditorExists() {
+  return Boolean(
+    Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]'))
+      .filter((element) => element.closest('.waveform-annotation-editor'))
+      .at(-1),
+  )
+}
+
 const presentationData: WaveformData = {
   kind: 'series',
   series: [
@@ -282,13 +290,13 @@ describe('WaveformChart presentation mode', () => {
       }),
     )
     await flushPromises()
-    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(true)
+    expect(annotationEditorExists()).toBe(true)
 
     await wrapper.setProps({ presentationMode: true })
     await flushPromises()
 
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
-    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(false)
+    expect(annotationEditorExists()).toBe(false)
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
 
     await wrapper.setProps({ presentationMode: false })

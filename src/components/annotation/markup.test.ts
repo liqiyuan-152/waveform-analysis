@@ -56,6 +56,20 @@ describe('waveform annotation markup', () => {
     ).toBeNull()
   })
 
+  it('snaps outside and between samples to the nearest complete-data point', () => {
+    const points = [
+      { x: 1, y: 10 },
+      { x: 2, y: 20 },
+      { x: 4, y: 40 },
+    ]
+    expect(findNearestPointByX(points, -10)).toEqual(points[0])
+    expect(findNearestPointByX(points, 3.1)).toEqual(points[2])
+    expect(findNearestPointByX(points, 10)).toEqual(points[2])
+    expect(findNearestPointByX(points, 2)).toEqual(points[1])
+    expect(findNearestPointByX([{ x: 2, y: 20 }], 2.1)).toEqual({ x: 2, y: 20 })
+    expect(findNearestPointByX(points, Number.NaN)).toBeNull()
+  })
+
   it('snaps annotations to nearest sample points while using interpolation for distance calculation', () => {
     const track = createTrack(0, 'series', 0, [
       { x: 0, y: 0 },
@@ -89,14 +103,16 @@ describe('waveform annotation markup', () => {
     expect(interpolateAnnotationPoint(points, 2, 'none')).toEqual({ x: 2, y: 10 })
   })
 
-  it('omits interpolated candidates for point-only series between samples', () => {
+  it('uses the nearest screen-space sample for point-only series', () => {
     const pointOnly = createTrack(0, 'points', 0, [
       { x: 0, y: 2 },
       { x: 2, y: 10 },
     ])
     pointOnly.series.lineType = 'none'
 
-    expect(findAnnotationSeriesCandidates([pointOnly], 1, 100, 50)).toEqual([])
+    expect(findAnnotationSeriesCandidates([pointOnly], 1, 5, 80)).toMatchObject([
+      { point: { x: 0, y: 2 }, screenX: 0, screenY: 80, distance: 5 },
+    ])
   })
 
   it('sorts line candidates by screen distance and keeps series metadata', () => {

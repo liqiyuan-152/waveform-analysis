@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { InputNumber, Modal } from 'ant-design-vue'
 import { ColorPicker } from 'vue3-colorpicker'
 import 'vue3-colorpicker/style.css'
 
@@ -15,24 +16,44 @@ interface Props {
   series?: AnnotationSeriesInfo
   seriesOptions?: AnnotationSeriesCandidate[]
   timeUnit?: TimeUnit
+  timeError?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   timeUnit: 'ms',
+  timeError: '',
 })
 const emit = defineEmits<{
   (event: 'confirm', annotation: WaveformAnnotation): void
   (event: 'cancel'): void
   (event: 'series-change', seriesId: string): void
+  (event: 'time-change', displayValue: string): void
 }>()
 
 const textarea = ref<HTMLTextAreaElement>()
 const dialogTitleId = useWaveformInstanceId('waveform-annotation-editor-title')
 const text = ref('')
+const timeInput = ref('')
+const timeValidationRequested = ref(false)
 const borderColor = ref('')
 const textColor = ref('')
 const backgroundColor = ref('')
-const canConfirm = computed(() => text.value.trim().length > 0)
+const inputTimeError = computed(() => {
+  if (!timeValidationRequested.value) return ''
+  if (!timeInput.value.trim() || !Number.isFinite(Number(timeInput.value)))
+    return '请输入有效的时间'
+  return ''
+})
+const timeErrorMessage = computed(() =>
+  timeValidationRequested.value ? inputTimeError.value || props.timeError || '' : '',
+)
+const canConfirm = computed(
+  () =>
+    text.value.trim().length > 0 &&
+    timeInput.value.trim().length > 0 &&
+    Number.isFinite(Number(timeInput.value)) &&
+    !timeErrorMessage.value,
+)
 const characterCount = computed(() => text.value.length)
 const selectedSeries = computed(() => {
   const option = props.seriesOptions?.find(
@@ -46,15 +67,30 @@ const selectedSeries = computed(() => {
 function hydrate() {
   const style = resolveAnnotationStyle(props.annotation.style)
   text.value = props.annotation.text
+  timeInput.value = formatAnnotationTime(props.annotation.x, props.timeUnit)
+  timeValidationRequested.value = false
   borderColor.value = style.borderColor
   textColor.value = style.textColor
   backgroundColor.value = style.backgroundColor
   void nextTick(() => textarea.value?.focus())
 }
 
-watch(() => props.annotation, hydrate, { immediate: true })
+watch(() => props.annotation.id, hydrate, { immediate: true })
 
-function confirm() {
+function handleTimeInput(value: number | string | null) {
+  const nextValue = value === null || value === undefined ? '' : String(value)
+  timeInput.value = nextValue
+  timeValidationRequested.value = false
+}
+
+function commitTimeInput() {
+  timeValidationRequested.value = true
+  emit('time-change', timeInput.value)
+}
+
+async function confirm() {
+  commitTimeInput()
+  await nextTick()
   if (!canConfirm.value) return
   emit('confirm', {
     ...props.annotation,
@@ -82,40 +118,60 @@ function handleSeriesChange(event: Event) {
 </script>
 
 <template>
-  <div
-    class="waveform-annotation-editor"
-    role="dialog"
-    aria-modal="true"
-    :aria-labelledby="dialogTitleId"
-    @click.self="emit('cancel')"
+  <Modal
+    :visible="true"
+    :width="440"
+    :mask-closable="true"
+    :keyboard="true"
+    cancel-text="取消"
+    ok-text="保存标注"
+    :ok-button-props="{ disabled: !canConfirm }"
+    wrap-class-name="waveform-annotation-editor"
+    @cancel="emit('cancel')"
+    @ok="confirm"
   >
-    <section class="waveform-annotation-editor__panel">
-      <header class="waveform-annotation-editor__header">
-        <div>
-          <h2 :id="dialogTitleId">
-            {{ props.mode === 'add' ? '添加标注' : '编辑标注' }}
-          </h2>
-        </div>
-        <button
-          type="button"
-          class="waveform-annotation-editor__close"
-          aria-label="关闭标注编辑器"
-          title="关闭"
-          @click="emit('cancel')"
-        >
-          ×
-        </button>
-      </header>
+    <template #title>
+      <span :id="dialogTitleId">{{ props.mode === 'add' ? '添加标注' : '编辑标注' }}</span>
+    </template>
 
+    <div class="waveform-annotation-editor__content">
       <div class="waveform-annotation-editor__coordinates" aria-label="标注坐标">
-        <span
-          ><b>X ({{ props.timeUnit }})</b
-          ><code>{{ formatAnnotationTime(props.annotation.x, props.timeUnit) }}</code></span
+        <label
+          class="waveform-annotation-editor__coordinate-input"
+          :aria-invalid="Boolean(timeErrorMessage)"
         >
+          <b>X</b>
+          <InputNumber
+            :value="timeInput === '' ? undefined : Number(timeInput)"
+            :controls="true"
+            :step="0.001"
+            :keyboard="true"
+            :status="timeErrorMessage ? 'error' : undefined"
+            aria-label="标注横轴时间"
+            :aria-invalid="Boolean(timeErrorMessage)"
+            :aria-describedby="timeErrorMessage ? `${dialogTitleId}-time-error` : undefined"
+            @blur="commitTimeInput"
+            @update:value="handleTimeInput"
+          />
+          <code class="waveform-annotation-editor__coordinate-value" aria-hidden="true">{{
+            timeInput
+          }}</code>
+        </label>
+        <p
+          v-if="timeErrorMessage"
+          :id="`${dialogTitleId}-time-error`"
+          class="waveform-annotation-editor__coordinate-error"
+          role="alert"
+        >
+          {{ timeErrorMessage }}
+        </p>
         <span
           ><b>Y</b><code>{{ formatPlainNumber(props.annotation.y) }}</code></span
         >
       </div>
+      <p class="waveform-annotation-editor__coordinate-hint" role="note">
+        修改 X 轴后失焦时会自动吸附最近的采样点
+      </p>
 
       <label
         v-if="selectedSeries"
@@ -200,14 +256,8 @@ function handleSeriesChange(event: Event) {
         </label>
       </fieldset>
 
-      <footer class="waveform-annotation-editor__actions">
-        <button type="button" @click="emit('cancel')">取消</button>
-        <button type="button" class="is-primary" :disabled="!canConfirm" @click="confirm">
-          保存标注
-        </button>
-      </footer>
-    </section>
-  </div>
+    </div>
+  </Modal>
 </template>
 
 <style scoped src="./WaveformAnnotationEditor.css"></style>

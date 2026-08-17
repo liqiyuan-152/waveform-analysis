@@ -189,6 +189,46 @@ describe('WaveformChart', () => {
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
   })
 
+  it('clears hover when the pointer leaves the chart and restores it only after a new plot move', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 1, y: 5 },
+        ],
+      },
+      { grid: { rowCount: 1, columnCount: 1 } },
+    )
+    const overlay = wrapper.get('.waveform-chart__overlay')
+    const overlayWidth = Number(overlay.attributes('width'))
+    Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+      value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
+    })
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
+
+    await wrapper.trigger('pointerleave')
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__crosshair').exists()).toBe(false)
+    expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
+
+    await wrapper.trigger('pointerenter')
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
+
+    overlay.element.dispatchEvent(
+      new MouseEvent('pointermove', { clientX: 0, clientY: 120, bubbles: true }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+    expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
+  })
+
   it('hides the numeric tooltip and crosshair when showTooltip is disabled', async () => {
     const wrapper = await mountSizedChart(
       {

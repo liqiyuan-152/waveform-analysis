@@ -87,9 +87,11 @@ const {
   contextMenu,
   editorSeries,
   editorSeriesOptions,
+  timeError,
   confirmAnnotation,
   cancelAnnotation,
   changeDraftSeries,
+  changeDraftTime,
   editContextAnnotation,
   deleteContextAnnotation,
   chartHeight,
@@ -98,6 +100,11 @@ const {
   setTitleMeasureElement,
   setSharedOverlayElement,
 } = toRefs(props.controller)
+
+function handleChartPointerLeave() {
+  pointerInsideChart.value = false
+  handlePointerLeave.value()
+}
 </script>
 
 <template>
@@ -123,7 +130,7 @@ const {
     :data-plot-margin-bottom="resolvedPlotMargin.bottom"
     :data-title-area-height="titleAreaHeight"
     @pointerenter="pointerInsideChart = true"
-    @pointerleave="pointerInsideChart = false"
+    @pointerleave="handleChartPointerLeave"
     @contextmenu.capture="handleNativeContextMenu"
   >
     <div
@@ -332,9 +339,11 @@ const {
       :series="editorSeries"
       :series-options="editorSeriesOptions"
       :time-unit="timeUnit"
+      :time-error="timeError"
       @confirm="confirmAnnotation"
       @cancel="cancelAnnotation"
       @series-change="changeDraftSeries"
+      @time-change="changeDraftTime"
     />
 
     <WaveformAnnotationContextMenu

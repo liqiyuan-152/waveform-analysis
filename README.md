@@ -109,8 +109,8 @@ const data = ref<WaveformData>({
 | `pannable`                        | `boolean`                                   | `false`                                                 | 空格拖拽平移开关                   |
 | `minZoomSpan`                     | `number`                                    | 未设置                                                  | 最小缩放跨度，使用原始 X 数据单位  |
 | `minVisiblePoints`                | `number`                                    | `0`                                                     | 缩放后至少保留的不同 X 坐标数      |
-| `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围              |
-| `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围    |
+| `initialXDomain`                  | `[number, number]`                          | 未设置                                                  | 所有图框的初始 X 范围（可超出数据，空白显示） |
+| `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置初始范围（可超出数据） |
 | `xDomainStrategy`                 | `WaveformXDomainStrategy`                   | `{ type: 'data' }`                                      | 自动 X 轴视口范围策略              |
 | `yDomain`                         | `[number, number]`                          | 未设置                                                  | 所有波形的固定 Y 轴范围            |
 | `yDomains`                        | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置固定范围    |
@@ -247,7 +247,7 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 调用方应处理加载失败的情况（网络错误、超时等），并保持旧数据或显示加载状态。生产环境建议使用
 `AbortController` 取消过时的请求。
 
-`initialXDomain` 固定首次完整数据的 X 轴缩放边界，不要将它改成后端返回的当前窗口；独立图框有不同时间范围时，可通过
+`initialXDomain` 固定首次及重置时的 X 轴视口范围，不要将它改成后端返回的当前窗口；范围可以超出数据的实际时间，超出部分保留空白。独立图框有不同时间范围时，可通过
 `initialXDomains` 按 track ID 或 series ID 分别配置。`minZoomSpan` 使用原始 X 数据单位，
 可防止每次区间数据回填后重新累计放大。双击图框会
 重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。

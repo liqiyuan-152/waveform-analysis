@@ -208,7 +208,7 @@ describe('WaveformChart', () => {
       legend
         .findAll('.waveform-legend__swatch')
         .map((swatch) => swatch.get('path').attributes('stroke')),
-    ).toEqual(['#0960bd', '#389e0d'])
+    ).toEqual(['#0960bd', '#2ca02c'])
     expect(wrapper.findAll('.waveform-chart__watermark').map((item) => item.text())).toEqual([
       '1',
       '2',

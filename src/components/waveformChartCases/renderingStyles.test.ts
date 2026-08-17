@@ -181,7 +181,7 @@ describe('WaveformChart', () => {
     ])
     expect(stepSwatchPaths[0]?.attributes()).toMatchObject({
       d: 'M1 8H25',
-      stroke: '#389e0d',
+      stroke: '#2ca02c',
       'stroke-width': '1.5',
     })
     expect(stepSwatchPaths[1]?.attributes()).toMatchObject({

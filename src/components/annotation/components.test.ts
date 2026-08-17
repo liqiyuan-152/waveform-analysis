@@ -1,28 +1,93 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { InputNumber } from 'ant-design-vue'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
+import { defineComponent, h } from 'vue'
 
 import WaveformAnnotationContextMenu from './WaveformAnnotationContextMenu.vue'
 import WaveformAnnotationEditor from './WaveformAnnotationEditor.vue'
 import WaveformAnnotationLayer from './WaveformAnnotationLayer.vue'
 
+const modalStub = defineComponent({
+  props: [
+    'visible',
+    'width',
+    'maskClosable',
+    'keyboard',
+    'wrapClassName',
+    'cancelText',
+    'okText',
+    'okButtonProps',
+  ],
+  emits: ['cancel', 'ok'],
+  setup(props, { emit, slots }) {
+    return () => {
+      const title = slots.title?.() ?? []
+      const titleId = (title[0]?.props as { id?: string } | undefined)?.id
+      return h('div', { class: 'ant-modal-root' }, [
+        h(
+          'div',
+          {
+            class: ['ant-modal-wrap', props.wrapClassName],
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-labelledby': titleId,
+            onClick: (event: MouseEvent) => {
+              if (event.target === event.currentTarget && props.maskClosable) emit('cancel')
+            },
+          },
+          [
+            h('div', { class: 'ant-modal' }, [
+              h('div', { class: 'ant-modal-header' }, [
+                h('div', { class: 'ant-modal-title' }, title),
+              ]),
+              h('button', { class: 'ant-modal-close', onClick: () => emit('cancel') }, '×'),
+              slots.default?.(),
+              h('div', { class: 'ant-modal-footer' }, [
+                h('button', { class: 'ant-btn', onClick: () => emit('cancel') }, props.cancelText),
+                h(
+                  'button',
+                  {
+                    class: 'ant-btn ant-btn-primary',
+                    disabled: props.okButtonProps?.disabled,
+                    onClick: () => emit('ok'),
+                  },
+                  props.okText,
+                ),
+              ]),
+            ]),
+          ],
+        ),
+      ])
+    }
+  },
+})
+const mountEditor = (options: { props: Record<string, unknown> }) =>
+  mount(WaveformAnnotationEditor, {
+    props: options.props as never,
+    global: { stubs: { Modal: modalStub, AModal: modalStub } },
+  })
+
 describe('waveform annotation controls', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
   it('keeps dialog title ids unique across editor instances', () => {
-    const first = mount(WaveformAnnotationEditor, {
+    const first = mountEditor({
       props: {
         annotation: { id: 'first', seriesId: 'a', x: 1, y: 2, text: '说明' },
         mode: 'edit',
       },
     })
-    const second = mount(WaveformAnnotationEditor, {
+    const second = mountEditor({
       props: {
         annotation: { id: 'second', seriesId: 'a', x: 1, y: 2, text: '说明' },
         mode: 'edit',
       },
     })
 
-    const firstTitleId = first.get('h2').attributes('id')
-    const secondTitleId = second.get('h2').attributes('id')
+    const firstTitleId = first.get('.ant-modal-title [id]').attributes('id')
+    const secondTitleId = second.get('.ant-modal-title [id]').attributes('id')
 
     expect(firstTitleId).toBeTruthy()
     expect(secondTitleId).toBeTruthy()
@@ -31,8 +96,19 @@ describe('waveform annotation controls', () => {
     expect(second.get('[role="dialog"]').attributes('aria-labelledby')).toBe(secondTitleId)
   })
 
+  it.each(['add', 'edit'] as const)('shows the X-axis snapping hint in %s mode', (mode) => {
+    const wrapper = mountEditor({
+      props: {
+        annotation: { id: `hint-${mode}`, seriesId: 'a', x: 1, y: 2, text: '说明' },
+        mode,
+      },
+    })
+
+    expect(wrapper.get('[role="note"]').text()).toBe('修改 X 轴后失焦时会自动吸附最近的采样点')
+  })
+
   it('allows changing the annotation series inside the editor', async () => {
-    const wrapper = mount(WaveformAnnotationEditor, {
+    const wrapper = mountEditor({
       props: {
         annotation: { id: 'note', seriesId: 'a', x: 1, y: 2, text: '说明' },
         mode: 'edit',
@@ -77,17 +153,15 @@ describe('waveform annotation controls', () => {
 
   it('validates text and emits an immutable edited annotation with style defaults', async () => {
     const annotation = { id: 'note', seriesId: 'a', x: 1, y: 2, text: '' }
-    const wrapper = mount(WaveformAnnotationEditor, {
+    const wrapper = mountEditor({
       props: { annotation, mode: 'add' },
     })
     await flushPromises()
 
     expect(wrapper.get('textarea').attributes('maxlength')).toBe('40')
-    expect(wrapper.get('.waveform-annotation-editor__coordinates').text()).toContain(
-      'X (ms)1000.000',
-    )
+    expect(wrapper.get('.waveform-annotation-editor__coordinates').text()).toContain('X1000.000')
     expect(wrapper.get('.waveform-annotation-editor__coordinates').text()).toContain('Y2')
-    expect(wrapper.get('button.is-primary').attributes('disabled')).toBeDefined()
+    expect(wrapper.get('button.ant-btn-primary').attributes('disabled')).toBeDefined()
     await vi.waitFor(() => expect(wrapper.findAllComponents(ColorPicker)).toHaveLength(3), {
       timeout: 5000,
     })
@@ -113,7 +187,7 @@ describe('waveform annotation controls', () => {
     colorPickers[1].vm.$emit('update:pureColor', 'rgba(51, 51, 51, 0.8)')
     colorPickers[2].vm.$emit('update:pureColor', 'rgba(255, 255, 255, 0.5)')
     await wrapper.vm.$nextTick()
-    await wrapper.get('button.is-primary').trigger('click')
+    await wrapper.get('button.ant-btn-primary').trigger('click')
 
     const emitted = wrapper.emitted('confirm')?.[0]?.[0] as
       | {
@@ -133,7 +207,7 @@ describe('waveform annotation controls', () => {
   })
 
   it('formats annotation coordinates using the selected display context', () => {
-    const wrapper = mount(WaveformAnnotationEditor, {
+    const wrapper = mountEditor({
       props: {
         annotation: { id: 'note', seriesId: 'series', x: 1, y: 0.0000001, text: '说明' },
         mode: 'edit',
@@ -142,13 +216,53 @@ describe('waveform annotation controls', () => {
     })
 
     const coordinates = wrapper.get('.waveform-annotation-editor__coordinates').text()
-    expect(coordinates).toContain('X (s)1.000')
+    expect(coordinates).toContain('X1.000')
     expect(coordinates).toContain('Y0.0000001')
     expect(coordinates).not.toContain('e-')
   })
 
+  it('emits valid manual time input and disables save for invalid input', async () => {
+    const wrapper = mountEditor({
+      props: {
+        annotation: { id: 'note', seriesId: 'series', x: 1, y: 2, text: '说明' },
+        mode: 'edit',
+        timeUnit: 'ms',
+      },
+    })
+    const input = wrapper.getComponent(InputNumber)
+    expect(input.props('controls')).toBe(true)
+    await input.vm.$emit('update:value', 1500)
+    expect(wrapper.emitted('time-change')).toBeUndefined()
+    await input.vm.$emit('blur')
+    expect(wrapper.emitted('time-change')).toEqual([['1500']])
+    await input.vm.$emit('update:value', null)
+    await input.vm.$emit('blur')
+    expect(wrapper.get('[role="alert"]').text()).toBe('请输入有效的时间')
+    expect(wrapper.get('button.ant-btn-primary').attributes('disabled')).toBeDefined()
+  })
+
+  it('shows time validation errors and blocks confirmation', async () => {
+    const wrapper = mountEditor({
+      props: {
+        annotation: { id: 'note', seriesId: 'series', x: 1, y: 2, text: '说明' },
+        mode: 'edit',
+        timeError: '时间超出当前波形范围',
+      },
+    })
+
+    const input = wrapper.getComponent(InputNumber)
+    await input.vm.$emit('blur')
+    expect(
+      wrapper.get('.waveform-annotation-editor__coordinate-input').attributes('aria-invalid'),
+    ).toBe('true')
+    expect(wrapper.get('[role="alert"]').text()).toBe('时间超出当前波形范围')
+    expect(wrapper.get('button.ant-btn-primary').attributes('disabled')).toBeDefined()
+    await wrapper.setProps({ timeError: '' })
+    expect(wrapper.find('[role="alert"]').exists()).toBe(false)
+  })
+
   it('hydrates hexadecimal and rgba annotation colors', async () => {
-    const wrapper = mount(WaveformAnnotationEditor, {
+    const wrapper = mountEditor({
       props: {
         annotation: {
           id: 'colored-note',
@@ -176,7 +290,7 @@ describe('waveform annotation controls', () => {
   })
 
   it('supports modal dismissal and live character counting', async () => {
-    const editor = mount(WaveformAnnotationEditor, {
+    const editor = mountEditor({
       props: {
         annotation: { id: 'note', seriesId: 'a', x: 1, y: 2, text: '原文字' },
         mode: 'edit',
@@ -184,23 +298,23 @@ describe('waveform annotation controls', () => {
     })
 
     expect(editor.get('[role="dialog"]').attributes('aria-modal')).toBe('true')
-    expect(editor.get('h2').text()).toBe('编辑标注')
+    expect(editor.get('.ant-modal-title').text()).toBe('编辑标注')
     await editor.get('textarea').setValue('三字说明')
     expect(editor.get('.waveform-annotation-editor__label-row').text()).toContain('4/40')
 
     await editor.get('textarea').trigger('keydown', { key: 'Escape' })
-    await editor.get('.waveform-annotation-editor').trigger('click')
+    await editor.get('.ant-modal-wrap').trigger('click')
     expect(editor.emitted('cancel')).toHaveLength(2)
   })
 
   it('supports cancellation and context menu actions', async () => {
-    const editor = mount(WaveformAnnotationEditor, {
+    const editor = mountEditor({
       props: {
         annotation: { id: 'note', seriesId: 'a', x: 1, y: 2, text: '原文字' },
         mode: 'edit',
       },
     })
-    await editor.findAll('button')[0].trigger('click')
+    await editor.get('.ant-modal-close').trigger('click')
     expect(editor.emitted('cancel')).toHaveLength(1)
 
     const menu = mount(WaveformAnnotationContextMenu, {

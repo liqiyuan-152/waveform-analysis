@@ -93,4 +93,64 @@ describe('WaveformChart x domain strategy', () => {
     expect(tracks[1]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('10000')
     expect(tracks[1]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('15000')
   })
+
+  it('keeps an explicit viewport wider than the data and leaves uncovered time blank', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 0 },
+          { x: 10, y: 1 },
+        ],
+      },
+      { timeUnit: 's', initialXDomain: [-5, 20] },
+    )
+
+    const track = wrapper.get('.waveform-chart__track')
+    const width = Number(track.attributes('data-track-width'))
+    const path = track.get('.waveform-chart__line').attributes('d') ?? ''
+    const xCoordinates = Array.from(path.matchAll(/(?:M|L)([\d.-]+)/g)).map((match) =>
+      Number(match[1]),
+    )
+
+    expect(track.get('.waveform-chart__axis-endpoint--start').text()).toBe('-5')
+    expect(track.get('.waveform-chart__axis-endpoint--end').text()).toBe('20')
+    expect(xCoordinates.length).toBeGreaterThan(0)
+    expect(Math.min(...xCoordinates)).toBeGreaterThanOrEqual(0)
+    expect(Math.max(...xCoordinates)).toBeLessThanOrEqual(width)
+  })
+
+  it('applies independent explicit viewports per track, including empty time regions', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'first',
+            name: '第一轨',
+            data: { kind: 'points', points: [{ x: 0, y: 0 }, { x: 10, y: 1 }] },
+          },
+          {
+            id: 'second',
+            name: '第二轨',
+            data: { kind: 'points', points: [{ x: 100, y: 0 }, { x: 110, y: 1 }] },
+          },
+        ],
+      },
+      {
+        displayMode: 'independent',
+        grid: { rowCount: 1, columnCount: 2 },
+        timeUnit: 's',
+        initialXDomains: { first: [-5, 20], second: [95, 120] },
+      },
+    )
+
+    const tracks = wrapper.findAll('.waveform-chart__track')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('-5')
+    expect(tracks[0]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('20')
+    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--start').text()).toBe('95')
+    expect(tracks[1]?.get('.waveform-chart__axis-endpoint--end').text()).toBe('120')
+    expect(tracks[0]?.find('.waveform-chart__line').exists()).toBe(true)
+    expect(tracks[1]?.find('.waveform-chart__line').exists()).toBe(true)
+  })
 })

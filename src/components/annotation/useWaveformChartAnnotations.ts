@@ -1,5 +1,5 @@
 import { pointer, type ScaleLinear } from 'd3'
-import type { ComputedRef, Ref } from 'vue'
+import { ref, type ComputedRef, type Ref } from 'vue'
 
 import type { WaveformAnnotation, WaveformInteractionMode } from '../data/types'
 import { findClosestTrackAtPointer } from '../core/layout'
@@ -9,7 +9,7 @@ import {
   ANNOTATION_AMBIGUITY_DISTANCE,
   ANNOTATION_HIT_RADIUS,
   findAnnotationSeriesCandidates,
-  interpolateAnnotationPoint,
+  findNearestPointByX,
 } from './markup'
 import type {
   AnnotationEditorAnchor,
@@ -78,6 +78,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
     activeInteractionMode,
     isPresentationMode,
   } = context
+  const timeError = ref('')
 
   function toggleSeriesVisibility(seriesId: string) {
     if (!chartSeries.value.some((series) => series.id === seriesId)) return
@@ -127,6 +128,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
     anchor: AnnotationEditorAnchor,
     candidates: AnnotationSeriesCandidate[],
   ) {
+    timeError.value = ''
     annotationInteraction.openCreate(hit, makeAnnotationId, anchor)
     editorSeriesOptions.value = candidates
     const draft = annotationInteraction.editorDraft.value
@@ -140,7 +142,6 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
       }
     }
   }
-
   function changeDraftSeries(seriesId: string) {
     if (isPresentationMode.value) return
     const draft = annotationInteraction.editorDraft.value
@@ -149,24 +150,61 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
       item.seriesList.some((series) => series.id === seriesId),
     )
     const series = track?.seriesList.find((item) => item.id === seriesId)
-    const point =
-      series && draft
-        ? interpolateAnnotationPoint(series.points, draft.annotation.x, series.lineType)
-        : null
-    if (!draft || !candidate || !track || !point) return
+    const validPoints = series?.points.filter(
+      (item) => Number.isFinite(item.x) && Number.isFinite(item.y),
+    )
+    const point = validPoints && draft ? findNearestPointByX(validPoints, draft.annotation.x) : null
+    if (!draft || !candidate || !track || !validPoints?.length) {
+      timeError.value = '当前波形没有有效数据'
+      return
+    }
+    if (draft.annotation.x < validPoints[0].x || draft.annotation.x > validPoints.at(-1)!.x) {
+      timeError.value = '时间超出当前波形范围'
+      return
+    }
+    timeError.value = ''
     draft.annotation = {
       ...draft.annotation,
       seriesId,
-      y: point.y,
+      y: point!.y,
       style: { ...draft.annotation.style, borderColor: candidate.color },
     }
   }
-
+  function changeDraftTime(displayValue: string) {
+    if (isPresentationMode.value) return
+    const draft = annotationInteraction.editorDraft.value
+    const displayTime = Number(displayValue)
+    if (!draft || !Number.isFinite(displayTime)) {
+      timeError.value = '请输入有效的时间'
+      return
+    }
+    const rawTime = props.timeUnit === 'ms' ? displayTime / 1000 : displayTime
+    const track = trackLayouts.value.find((item) =>
+      item.seriesList.some((series) => series.id === draft.annotation.seriesId),
+    )
+    const series = track?.seriesList.find((item) => item.id === draft.annotation.seriesId)
+    const validPoints = series?.points.filter(
+      (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
+    )
+    if (!validPoints?.length) {
+      timeError.value = '当前波形没有有效数据'
+      return
+    }
+    const firstX = validPoints[0].x
+    const lastX = validPoints[validPoints.length - 1].x
+    if (rawTime < firstX || rawTime > lastX) {
+      timeError.value = '时间超出当前波形范围'
+      return
+    }
+    const point = findNearestPointByX(validPoints, rawTime)!
+    timeError.value = ''
+    draft.annotation = { ...draft.annotation, x: point.x, y: point.y }
+  }
   function cancelAnnotation() {
+    timeError.value = ''
     annotationInteraction.closeEditor()
     editorSeriesOptions.value = []
   }
-
   function resolveTrackAtPointer(
     pointerX: number,
     pointerY: number,
@@ -292,6 +330,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
 
   function editContextAnnotation() {
     if (isPresentationMode.value) return
+    timeError.value = ''
     const menu = annotationInteraction.contextMenu.value
     const annotation = props.annotations.find((item) => item.id === menu?.annotationId)
     if (!annotation) return
@@ -328,7 +367,7 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   function confirmAnnotation(annotation: WaveformAnnotation) {
     if (isPresentationMode.value) return
     const draft = annotationInteraction.editorDraft.value
-    if (!draft) return
+    if (!draft || timeError.value) return
     if (draft.mode === 'add') {
       emit('update:annotations', [...props.annotations, annotation])
       emit('annotation-create', annotation)
@@ -345,6 +384,8 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   return {
     toggleSeriesVisibility,
     changeDraftSeries,
+    changeDraftTime,
+    timeError,
     cancelAnnotation,
     resolveTrackAtPointer,
     handleAnnotationClick,

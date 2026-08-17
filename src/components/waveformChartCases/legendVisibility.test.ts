@@ -7,6 +7,14 @@ import WaveformChartView from '../WaveformChartView.vue'
 
 import { gridSeries, mountSizedChart, visibilitySeries } from '../../test/waveformChart'
 
+function annotationEditorExists() {
+  return Boolean(
+    Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]'))
+      .filter((element) => element.closest('.waveform-annotation-editor'))
+      .at(-1),
+  )
+}
+
 describe('WaveformChart', () => {
   it('resolves legend positions by stable track id across pages', async () => {
     const wrapper = await mountSizedChart(
@@ -273,7 +281,7 @@ describe('WaveformChart', () => {
     )
     flushAnimationFrames()
     await flushPromises()
-    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(true)
+    expect(annotationEditorExists()).toBe(true)
 
     const controller = wrapper.getComponent(WaveformChartView).props('controller') as unknown as {
       annotationInteraction: { editorDraft: { value: { annotation: { seriesId: string } } | null } }
@@ -287,7 +295,7 @@ describe('WaveformChart', () => {
     expect(item).toBeDefined()
     await item!.trigger('click')
     await flushPromises()
-    expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(false)
+    expect(annotationEditorExists()).toBe(false)
   })
 
   it('renders independent cells with separate x axes and overlays', async () => {

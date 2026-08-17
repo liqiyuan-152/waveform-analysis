@@ -321,8 +321,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const styleSelect = frameControls.findAllComponents(Select)[0]
 
     expect(colorPickers).toHaveLength(2)
-    expect(widthInput).toBeDefined()
-    expect(styleSelect).toBeDefined()
+
+    const initialFrames = wrapper.findAll('.waveform-chart__plot-frame')
+    expect(initialFrames.length > 1 && initialFrames.every((frame) => frame.attributes('stroke-width') === '2')).toBe(true)
 
     colorPickers[0].vm.$emit('update:pureColor', 'rgba(220, 38, 38, 0.8)')
     colorPickers[1].vm.$emit('update:pureColor', 'rgba(14, 165, 233, 0.25)')

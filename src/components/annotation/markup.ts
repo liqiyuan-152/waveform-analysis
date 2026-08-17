@@ -25,6 +25,25 @@ export const ANNOTATION_CONNECTOR_LENGTH = 32
 
 const pointBisector = bisector((point: { x: number }) => point.x)
 
+function findNearestPointOnScreen(
+  track: AnnotationTrackLayout,
+  pointerX: number,
+  pointerY: number,
+): { point: { x: number; y: number }; screenX: number; screenY: number; distance: number } | null {
+  let nearest: { point: { x: number; y: number }; screenX: number; screenY: number; distance: number } | null =
+    null
+  for (const point of track.series.points) {
+    if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) continue
+    const screenX = track.xScale(point.x)
+    const screenY = track.top + track.yScale(point.y)
+    const distance = Math.hypot(screenX - pointerX, screenY - pointerY)
+    if (!nearest || distance < nearest.distance) {
+      nearest = { point, screenX, screenY, distance }
+    }
+  }
+  return nearest
+}
+
 export function findNearestPointByX(
   points: Array<{ x: number; y: number }>,
   xValue: number,
@@ -74,6 +93,20 @@ export function findAnnotationSeriesCandidates(
 ): AnnotationSeriesCandidate[] {
   return tracks
     .flatMap((track): AnnotationSeriesCandidate[] => {
+      if (track.series.lineType === 'none') {
+        const nearest = findNearestPointOnScreen(track, pointerX, pointerY)
+        if (!nearest) return []
+        return [
+          {
+            trackIndex: track.index,
+            seriesId: track.series.id,
+            name: track.series.name?.trim() || track.series.id,
+            color: track.series.color || DEFAULT_ANNOTATION_STYLE.borderColor,
+            unit: track.series.unit,
+            ...nearest,
+          },
+        ]
+      }
       const interpolatedPoint = interpolateAnnotationPoint(
         track.series.points,
         xValue,

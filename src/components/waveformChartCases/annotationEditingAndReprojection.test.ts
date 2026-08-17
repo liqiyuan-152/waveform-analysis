@@ -1,9 +1,17 @@
-import { flushPromises } from '@vue/test-utils'
+import { DOMWrapper, flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '../../test/setup'
 
 import { mountSizedChart } from '../../test/waveformChart'
+
+function getAnnotationEditor() {
+  const editor = Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]'))
+    .filter((element) => element.closest('.waveform-annotation-editor'))
+    .at(-1)
+  if (!editor) throw new Error('Expected annotation editor modal to be mounted')
+  return new DOMWrapper(editor)
+}
 
 describe('WaveformChart', () => {
   it('edits and immediately deletes existing annotations without mutating props', async () => {
@@ -31,8 +39,10 @@ describe('WaveformChart', () => {
     })
     await wrapper.get('.waveform-annotation-context-menu button').trigger('click')
     await flushPromises()
-    await wrapper.get('textarea[aria-label="标注文本"]').setValue('新文字')
-    await wrapper.get('.waveform-annotation-editor button.is-primary').trigger('click')
+    const editor = getAnnotationEditor()
+    await editor.get('textarea[aria-label="标注文本"]').setValue('新文字')
+    await editor.get('button.ant-btn-primary').trigger('click')
+    await flushPromises()
 
     const updated = wrapper.emitted('update:annotations')?.at(-1)?.[0] as
       Array<{ text: string }> | undefined
