@@ -58,6 +58,18 @@ export function visibilitySeries(): WaveformData {
           ],
         },
       },
+      {
+        id: 'mid',
+        trackId: 'shared-frame',
+        name: '中量程',
+        data: {
+          kind: 'points',
+          points: [
+            { x: 0, y: 100 },
+            { x: 1, y: 200 },
+          ],
+        },
+      },
     ],
   }
 }

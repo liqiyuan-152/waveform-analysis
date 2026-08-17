@@ -177,6 +177,18 @@ describe('WaveformChart', () => {
               ],
             },
           },
+          {
+            id: 'reference',
+            trackId: 'frame-1',
+            name: 'REF_CH_1',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0.25 },
+                { x: 1, y: 1.25 },
+              ],
+            },
+          },
         ],
       },
       { frameNumber: 1, grid: { rowCount: 2, columnCount: 1 } },
@@ -186,7 +198,7 @@ describe('WaveformChart', () => {
     expect(tracks).toHaveLength(2)
     expect(
       tracks[0].findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
-    ).toEqual(['primary', 'comparison'])
+    ).toEqual(['primary', 'comparison', 'reference'])
     expect(
       tracks[1].findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['second-frame'])
@@ -203,12 +215,13 @@ describe('WaveformChart', () => {
     expect(legend.findAll('.waveform-chart__legend-item').map((item) => item.text())).toEqual([
       'BT2_2M',
       'TEST_CH_1',
+      'REF_CH_1',
     ])
     expect(
       legend
         .findAll('.waveform-legend__swatch')
         .map((swatch) => swatch.get('path').attributes('stroke')),
-    ).toEqual(['#0960bd', '#2ca02c'])
+    ).toEqual(['#0960bd', '#2ca02c', '#d62728'])
     expect(wrapper.findAll('.waveform-chart__watermark').map((item) => item.text())).toEqual([
       '1',
       '2',
@@ -232,10 +245,11 @@ describe('WaveformChart', () => {
     await flushPromises()
 
     const tooltipSeries = wrapper.findAll('.waveform-chart__tooltip-series')
-    expect(tooltipSeries).toHaveLength(2)
+    expect(tooltipSeries).toHaveLength(3)
     expect(tooltipSeries.map((item) => item.text())).toEqual([
       expect.stringContaining('BT2_2M'),
       expect.stringContaining('TEST_CH_1'),
+      expect.stringContaining('REF_CH_1'),
     ])
   })
 
@@ -265,6 +279,18 @@ describe('WaveformChart', () => {
               points: [
                 { x: 0, y: 1 },
                 { x: 1, y: 2 },
+              ],
+            },
+          },
+          {
+            id: 'third',
+            trackId: 'shared',
+            name: 'third',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 2 },
+                { x: 1, y: 3 },
               ],
             },
           },

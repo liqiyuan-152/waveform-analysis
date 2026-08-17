@@ -13,7 +13,7 @@ type ErrorGenerator = (
 
 interface SimulatedSeriesDefinition extends Pick<
   WaveformSeries,
-  'id' | 'shotNo' | 'name' | 'unit' | 'lineType' | 'pointType' | 'errorBar'
+  'id' | 'trackId' | 'shotNo' | 'name' | 'unit' | 'color' | 'lineType' | 'pointType' | 'errorBar'
 > {
   signal: SignalGenerator
   errors?: ErrorGenerator
@@ -60,6 +60,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-harmonic',
+    trackId: 'simulated-harmonic-frame',
     shotNo: '13300',
     name: '谐波扰动',
     unit: 'V',
@@ -67,6 +68,18 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     pointType: 'none',
     signal: (time) =>
       0.9 * Math.sin(TWO_PI * 0.55 * time) + 0.28 * Math.sin(TWO_PI * 2.2 * time + 0.4),
+  },
+  {
+    id: 'simulated-harmonic-reference',
+    trackId: 'simulated-harmonic-frame',
+    shotNo: '13300',
+    name: '谐波对比',
+    unit: 'V',
+    color: '#2ca02c',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) =>
+      0.62 * Math.sin(TWO_PI * 0.55 * time + 0.55) + 0.18 * Math.sin(TWO_PI * 2.2 * time - 0.2),
   },
   {
     id: 'simulated-damped',

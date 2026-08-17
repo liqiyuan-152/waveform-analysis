@@ -235,7 +235,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       tracks.map((track) =>
         track.findAll('.waveform-chart__series').map((item) => item.attributes('data-series-name')),
       ),
-    ).toEqual([['正弦基波'], ['谐波扰动'], ['阻尼振荡'], ['阶跃响应']])
+    ).toEqual([['正弦基波'], ['谐波扰动', '谐波对比'], ['阻尼振荡'], ['阶跃响应']])
     expect(
       tracks
         .slice(1)
@@ -253,6 +253,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(simulatedSeries.map((item) => item.name)).toEqual([
       '正弦基波',
       '谐波扰动',
+      '谐波对比',
       '阻尼振荡',
       '阶跃响应',
       '脉冲响应',
@@ -321,7 +322,6 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const styleSelect = frameControls.findAllComponents(Select)[0]
 
     expect(colorPickers).toHaveLength(2)
-
     const initialFrames = wrapper.findAll('.waveform-chart__plot-frame')
     expect(initialFrames.length > 1 && initialFrames.every((frame) => frame.attributes('stroke-width') === '2')).toBe(true)
 

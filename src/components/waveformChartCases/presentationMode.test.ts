@@ -43,6 +43,19 @@ const presentationData: WaveformData = {
       },
     },
     {
+      id: 'mid',
+      trackId: 'shared',
+      name: '中量程',
+      data: {
+        kind: 'points',
+        points: [
+          { x: 0, y: 50 },
+          { x: 1, y: 100 },
+          { x: 2, y: 75 },
+        ],
+      },
+    },
+    {
       id: 'other',
       name: '其他通道',
       data: {
@@ -150,9 +163,9 @@ describe('WaveformChart presentation mode', () => {
           cancelable: true,
         }),
       )
-      wrapper.get('.waveform-chart__svg').element.dispatchEvent(
-        new MouseEvent('dblclick', { bubbles: true, cancelable: true }),
-      )
+      wrapper
+        .get('.waveform-chart__svg')
+        .element.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }))
       await wrapper.get('[data-annotation-id="note"]').trigger('contextmenu', {
         clientX: width / 2,
         clientY: height / 2,

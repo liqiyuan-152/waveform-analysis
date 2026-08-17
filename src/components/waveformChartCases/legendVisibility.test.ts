@@ -16,13 +16,30 @@ function annotationEditorExists() {
 }
 
 describe('WaveformChart', () => {
+  it('shows legends when a track contains at least two series', async () => {
+    const oneSeries = visibilitySeries()
+    if (oneSeries.kind === 'series') oneSeries.series = oneSeries.series.slice(0, 1)
+    const withoutLegend = await mountSizedChart(oneSeries, {
+      grid: { rowCount: 1, columnCount: 1 },
+    })
+    expect(withoutLegend.findAll('.waveform-chart__legend')).toHaveLength(0)
+
+    const twoSeries = visibilitySeries()
+    if (twoSeries.kind === 'series') twoSeries.series = twoSeries.series.slice(0, 2)
+    const withLegend = await mountSizedChart(twoSeries, {
+      grid: { rowCount: 1, columnCount: 1 },
+    })
+    expect(withLegend.findAll('.waveform-chart__legend')).toHaveLength(1)
+    expect(withLegend.find('.waveform-chart__legend').attributes('data-position')).toBe('top-right')
+  })
+
   it('resolves legend positions by stable track id across pages', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
-        series: Array.from({ length: 8 }, (_, index) => ({
+        series: Array.from({ length: 12 }, (_, index) => ({
           id: `series-${index}`,
-          trackId: `frame-${Math.floor(index / 2)}`,
+          trackId: `frame-${Math.floor(index / 3)}`,
           name: `series ${index}`,
           data: {
             kind: 'points' as const,
@@ -75,9 +92,9 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
-        series: Array.from({ length: 4 }, (_, index) => ({
+        series: Array.from({ length: 6 }, (_, index) => ({
           id: `series-${index}`,
-          trackId: `frame-${Math.floor(index / 2)}`,
+          trackId: `frame-${Math.floor(index / 3)}`,
           name: `series ${index}`,
           data: {
             kind: 'points',
@@ -112,7 +129,7 @@ describe('WaveformChart', () => {
     })
 
     const items = wrapper.findAll('.waveform-chart__legend-item')
-    expect(items).toHaveLength(2)
+    expect(items).toHaveLength(3)
     expect(items.every((item) => item.attributes('disabled') !== undefined)).toBe(true)
     expect(wrapper.get('.waveform-legend__panel').classes()).not.toContain(
       'waveform-legend__panel--interactive',
@@ -128,7 +145,7 @@ describe('WaveformChart', () => {
       overlayMode: 'multi-axis',
     })
 
-    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(3)
     expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
     const annotationLayer = wrapper.get('.waveform-annotation-layer').element
     const legendLayer = wrapper.get('.waveform-chart__legend-layer').element
@@ -143,8 +160,8 @@ describe('WaveformChart', () => {
 
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
-    ).toEqual(['low'])
-    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
+    ).toEqual(['low', 'mid'])
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(2)
     expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(false)
     expect(wrapper.findAll('.waveform-chart__legend-item')[1].classes()).toContain('is-hidden')
     expect(wrapper.findAll('.waveform-chart__legend-item')[1].attributes('aria-pressed')).toBe(
@@ -170,12 +187,12 @@ describe('WaveformChart', () => {
     )
     flushAnimationFrames()
     await flushPromises()
-    expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(1)
+    expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(2)
     expect(wrapper.get('.waveform-chart__tooltip-series').text()).toContain('低量程')
 
     await wrapper.findAll('.waveform-chart__legend-item')[1].trigger('click')
     await flushPromises()
-    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(3)
     expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
     expect(wrapper.emitted('series-visibility-change')?.at(-1)).toEqual([
       { seriesId: 'high', visible: true, hiddenSeriesIds: [] },
@@ -191,20 +208,20 @@ describe('WaveformChart', () => {
 
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
-    ).toEqual(['low'])
+    ).toEqual(['low', 'mid'])
     await wrapper.findAll('.waveform-chart__legend-item')[0].trigger('click')
     expect(wrapper.emitted('update:hidden-series-ids')?.at(-1)).toEqual([
       ['high', 'temporarily-absent', 'low'],
     ])
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
-    ).toEqual(['low'])
+    ).toEqual(['low', 'mid'])
 
     await wrapper.setProps({ hiddenSeriesIds: ['low'] })
     await flushPromises()
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
-    ).toEqual(['high'])
+    ).toEqual(['high', 'mid'])
   })
 
   it('retains uncontrolled visibility by stable ID and clears removed IDs', async () => {
@@ -223,7 +240,7 @@ describe('WaveformChart', () => {
     await flushPromises()
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
-    ).toEqual(['low'])
+    ).toEqual(['mid', 'low'])
 
     await wrapper.setProps({
       data: {
@@ -234,12 +251,12 @@ describe('WaveformChart', () => {
     await flushPromises()
     await wrapper.setProps({ data: original })
     await flushPromises()
-    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(3)
   })
 
   it('keeps a recoverable legend and stops chart interaction when every series is hidden', async () => {
     const wrapper = await mountSizedChart(visibilitySeries(), {
-      defaultHiddenSeriesIds: ['low', 'high'],
+      defaultHiddenSeriesIds: ['low', 'high', 'mid'],
       grid: { rowCount: 1, columnCount: 1 },
       legend: { interactive: true },
       overlayMode: 'multi-axis',
@@ -248,7 +265,7 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
     expect(wrapper.findAll('.waveform-chart__axis')).toHaveLength(0)
     expect(wrapper.findAll('.waveform-chart__overlay')).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(3)
     expect(wrapper.get('.waveform-track__no-visible-series').text()).toBe('暂无可见曲线')
 
     await wrapper.findAll('.waveform-chart__legend-item')[0].trigger('click')
