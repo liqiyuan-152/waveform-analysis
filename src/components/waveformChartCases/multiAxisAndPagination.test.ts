@@ -15,6 +15,7 @@ describe('WaveformChart', () => {
           {
             trackId: 'shared-frame',
             name: '普通量程',
+            unit: 'V',
             data: {
               kind: 'points',
               points: [
@@ -26,6 +27,7 @@ describe('WaveformChart', () => {
           {
             trackId: 'shared-frame',
             name: '大量程',
+            unit: 'A',
             data: {
               kind: 'points',
               points: [
@@ -37,6 +39,7 @@ describe('WaveformChart', () => {
           {
             trackId: 'shared-frame',
             name: '小量程',
+            unit: 'T',
             data: {
               kind: 'points',
               points: [
@@ -57,7 +60,11 @@ describe('WaveformChart', () => {
           .map((label) => label.text())
           .filter((label) => label.startsWith('E')),
       ),
-    ).toEqual([[], [expect.stringMatching(/^E\+03 /)], [expect.stringMatching(/^E-04 /)]])
+    ).toEqual([
+      [],
+      [expect.stringMatching(/^E\+03 \(A\) /)],
+      [expect.stringMatching(/^E-04 \(T\) /)],
+    ])
   })
 
   it('reprojects annotations with the Y axis assigned to their series', async () => {

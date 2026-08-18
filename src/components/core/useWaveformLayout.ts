@@ -112,7 +112,11 @@ export function useWaveformLayout(context: LayoutContext) {
       .flatMap((track) =>
         resolveYAxisSeriesGroups(track, props.overlayMode, props.yDomain, props.yDomains),
       )
-      .map((group) => axisTextMetrics(group.domain, !group.fixed).tickTextWidth)
+      .map(
+        (group) =>
+          axisTextMetrics(group.domain, !group.fixed, undefined, group.seriesList[0]?.unit)
+            .tickTextWidth,
+      )
     const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)
     const tickClearance = tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_OUTER_PADDING
     const labelCenterX = -(

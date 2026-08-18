@@ -40,6 +40,15 @@ describe('waveform number formatters', () => {
     expect(formatScientificAxisExponent(0.0001, 0.0003)).toBe('E-04')
   })
 
+  it('appends a unit to the top tick with or without scientific notation', () => {
+    expect(formatScientificAxisLabel(3000, { axisMin: 1000, axisMax: 3000, unit: 'V' })).toBe(
+      'E+03 (V) 3',
+    )
+    expect(formatScientificAxisLabel(3, { axisMin: 0, axisMax: 3, unit: 'A' })).toBe('(A) 3')
+    expect(formatScientificAxisLabel(2, { axisMin: 0, axisMax: 3, unit: 'A' })).toBe('2')
+    expect(formatScientificAxisLabel(3, { axisMin: 0, axisMax: 3, unit: '  ' })).toBe('3')
+  })
+
   it('derives the exponent from the largest absolute endpoint', () => {
     expect(resolveScientificAxisExponent(-9000, -1000)).toBe(3)
     expect(resolveScientificAxisExponent(-100_000, -3000)).toBe(5)

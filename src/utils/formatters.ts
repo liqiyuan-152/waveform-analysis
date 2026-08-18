@@ -11,6 +11,7 @@ export interface ScientificAxisLabelOptions {
   axisMin?: number
   axisMax?: number
   topTickValue?: number
+  unit?: string
 }
 
 /** @deprecated Use ScientificAxisLabelOptions. */
@@ -71,9 +72,11 @@ export function formatScientificAxisLabel(
   const scaledValue = exponent === null ? value : value / 10 ** exponent
   const formattedValue = formatYAxisNumber(scaledValue)
   const topTickValue = options.topTickValue ?? options.axisMax
-  return exponent !== null && value === topTickValue
-    ? `${formatExponent(exponent)} ${formattedValue}`
-    : formattedValue
+  if (value !== topTickValue) return formattedValue
+  const unit = options.unit?.trim()
+  const unitLabel = unit ? `(${unit}) ` : ''
+  const exponentLabel = exponent === null ? '' : `${formatExponent(exponent)} `
+  return `${exponentLabel}${unitLabel}${formattedValue}`
 }
 
 /** Return the shared E-style multiplier for an axis, or null for a plain axis. */

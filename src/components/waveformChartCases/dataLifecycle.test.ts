@@ -158,6 +158,12 @@ describe('WaveformChart', () => {
     expect(paths[0].attributes('data-series-name')).toBe('BT2_2M')
     const yAxisLabels = wrapper.findAll('.waveform-chart__y-axis-label')
     expect(yAxisLabels.map((label) => label.text())).toEqual(['BT2_2M', 'BT1_2M'])
+    expect(
+      wrapper
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((label) => label.text())
+        .some((label) => label.includes('(T)')),
+    ).toBe(true)
     expect(yAxisLabels.map((label) => label.attributes('fill'))).toEqual(['#0960bd', '#ff7f0e'])
     const labelX = Number(
       yAxisLabels[0].attributes('transform')?.match(/^translate\(([-\d.]+),/)?.[1],

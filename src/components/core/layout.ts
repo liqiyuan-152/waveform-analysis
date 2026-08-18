@@ -103,6 +103,7 @@ export function axisTextMetrics(
   domain: [number, number],
   nice = true,
   tickValues?: number[],
+  unit?: string,
 ): { tickTextWidth: number } {
   const scale = scaleLinear(domain, [1, 0])
   if (nice) scale.nice()
@@ -112,7 +113,7 @@ export function axisTextMetrics(
   const maximumTickCharacters = Math.max(
     1,
     ...values.map(
-      (value) => formatScientificAxisLabel(value, { axisMin, axisMax, topTickValue }).length,
+      (value) => formatScientificAxisLabel(value, { axisMin, axisMax, topTickValue, unit }).length,
     ),
   )
   return {
@@ -122,7 +123,8 @@ export function axisTextMetrics(
 
 export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
   return (
-    axisTextMetrics(group.domain, !group.fixed).tickTextWidth +
+    axisTextMetrics(group.domain, !group.fixed, undefined, group.seriesList[0]?.unit)
+      .tickTextWidth +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_LABEL_GAP +
     Y_AXIS_LABEL_BAND_WIDTH +
@@ -132,7 +134,8 @@ export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
 
 function measureYAxisGroupTickClearance(group: YAxisSeriesGroup): number {
   return (
-    axisTextMetrics(group.domain, !group.fixed).tickTextWidth +
+    axisTextMetrics(group.domain, !group.fixed, undefined, group.seriesList[0]?.unit)
+      .tickTextWidth +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_OUTER_PADDING
   )

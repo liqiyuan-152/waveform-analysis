@@ -44,9 +44,10 @@ function renderAxes() {
     if (!element) return
     const [axisMin, axisMax] = axis.scale.domain()
     const topTickValue = Math.max(...axis.tickValues)
+    const unit = axis.seriesList[0]?.unit
     const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
       .tickFormat((value) =>
-        formatScientificAxisLabel(Number(value), { axisMin, axisMax, topTickValue }),
+        formatScientificAxisLabel(Number(value), { axisMin, axisMax, topTickValue, unit }),
       )
       .tickSize(-4)
       .tickPadding(7)

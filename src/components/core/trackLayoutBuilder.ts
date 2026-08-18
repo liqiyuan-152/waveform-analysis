@@ -135,7 +135,12 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const tickValues = Array.from(
         new Set([axisStart, ...visibleMajorTicks, ...(showAxisEnd ? [axisEnd] : [])]),
       )
-      const { tickTextWidth } = axisTextMetrics(group.domain, !group.fixed, tickValues)
+      const { tickTextWidth } = axisTextMetrics(
+        group.domain,
+        !group.fixed,
+        tickValues,
+        group.seriesList[0]?.unit,
+      )
       const clearance =
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
