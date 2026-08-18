@@ -114,8 +114,13 @@ export function useWaveformLayout(context: LayoutContext) {
       )
       .map(
         (group) =>
-          axisTextMetrics(group.domain, !group.fixed, undefined, group.seriesList[0]?.unit)
-            .tickTextWidth,
+          axisTextMetrics(
+            group.domain,
+            true,
+            undefined,
+            group.seriesList[0]?.unit,
+            props.axes?.y?.splitNumber,
+          ).tickTextWidth,
       )
     const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)
     const tickClearance = tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_OUTER_PADDING
@@ -161,6 +166,7 @@ export function useWaveformLayout(context: LayoutContext) {
           props.overlayMode,
           props.yDomain,
           props.yDomains,
+          props.axes?.y?.splitNumber,
         )
         return {
           left: Math.max(maximum.left, clearance.left),
@@ -302,6 +308,7 @@ export function useWaveformLayout(context: LayoutContext) {
           : sharedYDomains.value,
       timeUnit: props.timeUnit,
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
+      yAxisSplitNumber: props.axes?.y?.splitNumber,
       rendering: renderingOptions.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
       yAxisLabelX: yAxisMetrics.value.labelCenterX,

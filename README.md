@@ -115,7 +115,7 @@ const data = ref<WaveformData>({
 | `yDomain`                         | `[number, number]`                          | 未设置                                                  | 所有波形的固定 Y 轴范围                       |
 | `yDomains`                        | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置固定范围               |
 | `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                                    |
-| `axes`                            | `WaveformAxesOptions`                       | 轴线均显示                                              | X/Y 轴基线显隐与 X 轴 label 格式化            |
+| `axes`                            | `WaveformAxesOptions`                       | 轴线均显示                                              | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距                         |
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式                          |
 | `frameNumber`                     | `string \| number`                          | 未设置                                                  | 图框水印内容                                  |
@@ -208,13 +208,24 @@ import 'waveform-analysis/style.css'
 
 范围优先级为 `trackId` 配置、`seriesId` 配置、全局 `yDomain`、数据自动范围。上下限必须
 是两个有限且不相等的数字；倒序范围会自动调整为升序，无效配置会回退到下一优先级。
-固定范围会精确作为坐标域使用，不会经过 D3 的 `nice()` 扩展。
+固定范围作为 Y 轴刻度算法的初始范围；轴会按漂亮步长经过 D3 的 `nice()` 扩展，确保主刻度
+等间距。原始数据和传入的范围值不会被修改。
 
 单值轴叠加模式会合并同一根轴上所有可见系列的有效范围；多值轴模式按系列分别使用配置，
 超过四根轴后复用第 4 根轴的系列会取范围并集。隐藏系列不参与公共范围合并。
 
 固定范围存在时，对应图框的 Y 轴不会被平移或视口重置覆盖；X 轴缩放、平移和重置保持原有
 行为。运行时更新或移除 `yDomain` / `yDomains` 会立即重新布局，移除后恢复自动范围。
+
+### Y 轴自动等分
+
+Y 轴默认显示 5 个主刻度（包含上下端点），并使用类似 ECharts 的 `1 / 2 / 5 × 10ⁿ` 漂亮
+步长，保证主刻度之间数值等间距。可以通过 `axes.y.splitNumber` 指定主刻度总数；每条
+Y 轴会独立计算：
+
+```vue
+<WaveformChart :data="chartData" :axes="{ y: { splitNumber: 5 } }" />
+```
 
 ### 缩放后按可视区间加载数据
 

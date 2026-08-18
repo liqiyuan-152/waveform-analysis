@@ -25,7 +25,7 @@ import {
   type GridCellGeometry,
   type NormalizedWaveformGridOptions,
 } from './grid'
-import { axisTextMetrics, resolveYAxisSeriesGroups } from './layout'
+import { axisTextMetrics, resolveYAxisSeriesGroups, resolveYAxisTickCount } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import {
@@ -54,6 +54,7 @@ export interface BuildTrackLayoutsOptions {
   yDomains?: Record<string, [number, number]>
   timeUnit: 's' | 'ms'
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
+  yAxisSplitNumber?: number
   rendering: ResolvedWaveformRenderingOptions
   hideSecondaryLabels: boolean
   yAxisLabelX: number
@@ -124,22 +125,26 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     )
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
+      const tickCount = resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber)
+      const niceCount = Math.max(1, tickCount - 1)
       const scale = scaleLinear(group.domain, [cell.plotHeight, 0])
-      if (!group.fixed) scale.nice()
-      const majorTicks = scale.ticks(Math.max(2, Math.floor(cell.plotHeight / 55)))
+      scale.nice(niceCount)
       const [axisStart, axisEnd] = scale.domain()
+      const majorTicks = Array.from(
+        { length: tickCount },
+        (_, index) => axisStart + ((axisEnd - axisStart) * index) / (tickCount - 1),
+      )
       const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
       const visibleMajorTicks = showAxisEnd
         ? majorTicks
         : majorTicks.filter((tick) => tick !== axisEnd)
-      const tickValues = Array.from(
-        new Set([axisStart, ...visibleMajorTicks, ...(showAxisEnd ? [axisEnd] : [])]),
-      )
+      const tickValues = visibleMajorTicks
       const { tickTextWidth } = axisTextMetrics(
-        group.domain,
-        !group.fixed,
+        scale.domain() as [number, number],
+        false,
         tickValues,
         group.seriesList[0]?.unit,
+        tickCount,
       )
       const clearance =
         tickTextWidth +

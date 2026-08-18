@@ -35,7 +35,7 @@ function track(seriesList: DisplaySeries[]): DisplayTrack {
 }
 
 describe('fixed Y-domain layout', () => {
-  it('uses an exact global fixed domain without applying nice bounds', () => {
+  it('expands a global fixed domain to nice equal intervals', () => {
     const sourceTrack = track([series('a', 0, 100)])
     const result = buildTrackLayouts({
       cells: [
@@ -66,10 +66,80 @@ describe('fixed Y-domain layout', () => {
       showCompactEmptyTracks: false,
     })[0]
 
-    expect(result?.yScale.domain()).toEqual([3, 97])
-    expect(result?.yAxes[0]?.tickValues).toContain(3)
-    expect(result?.yAxes[0]?.tickValues).toContain(97)
-    expect(result?.seriesPaths[0]?.yScale.domain()).toEqual([3, 97])
+    expect(result?.yScale.domain()).toEqual([0, 100])
+    expect(result?.yAxes[0]?.tickValues).toContain(0)
+    expect(result?.yAxes[0]?.tickValues).toContain(100)
+    expect(result?.seriesPaths[0]?.yScale.domain()).toEqual([0, 100])
+  })
+
+  it('uses the configured split number for fixed domains', () => {
+    const result = buildTrackLayouts({
+      cells: [
+        {
+          slotIndex: 0,
+          row: 0,
+          column: 0,
+          left: 0,
+          top: 0,
+          width: 120,
+          height: 100,
+          plotHeight: 100,
+          cellHeight: 130,
+          xAxisBand: 30,
+          series: track([series('a', 0, 100)]),
+        },
+      ],
+      grid: { rowCount: 1, columnCount: 1, showPagination: false, trackLines: {} },
+      displayMode: 'independent',
+      overlayMode: 'single-axis',
+      independentTransforms: [zoomIdentity],
+      sharedZoomDomain: [0, 1],
+      fixedYDomain: [3, 97],
+      yAxisSplitNumber: 5,
+      timeUnit: 'ms',
+      rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
+      hideSecondaryLabels: false,
+      yAxisLabelX: -50,
+      showCompactEmptyTracks: false,
+    })[0]
+
+    expect(result?.yAxes[0]?.majorTicks).toEqual([0, 25, 50, 75, 100])
+  })
+
+  it('defaults to five ticks and supports a two-tick axis', () => {
+    const build = (splitNumber?: number) =>
+      buildTrackLayouts({
+        cells: [
+          {
+            slotIndex: 0,
+            row: 0,
+            column: 0,
+            left: 0,
+            top: 0,
+            width: 120,
+            height: 100,
+            plotHeight: 100,
+            cellHeight: 130,
+            xAxisBand: 30,
+            series: track([series('a', 3, 97)]),
+          },
+        ],
+        grid: { rowCount: 1, columnCount: 1, showPagination: false, trackLines: {} },
+        displayMode: 'independent',
+        overlayMode: 'single-axis',
+        independentTransforms: [zoomIdentity],
+        sharedZoomDomain: [0, 1],
+        fixedYDomain: [3, 97],
+        yAxisSplitNumber: splitNumber,
+        timeUnit: 'ms',
+        rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
+        hideSecondaryLabels: false,
+        yAxisLabelX: -50,
+        showCompactEmptyTracks: false,
+      })[0]?.yAxes[0]?.majorTicks
+
+    expect(build()).toHaveLength(5)
+    expect(build(2)).toEqual([0, 100])
   })
 
   it('resolves track, series, and global fixed-domain precedence', () => {

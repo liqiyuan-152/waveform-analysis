@@ -20,6 +20,13 @@ const Y_AXIS_OUTER_PADDING = 4
 const Y_AXIS_LABEL_GAP = 6
 const Y_AXIS_LABEL_BAND_WIDTH = 24
 
+export function resolveYAxisTickCount(_plotHeight: number, splitNumber?: number): number {
+  if (typeof splitNumber === 'number' && Number.isFinite(splitNumber)) {
+    return Math.max(2, Math.floor(splitNumber))
+  }
+  return 5
+}
+
 export interface YAxisSeriesGroup {
   index: number
   side: 'left' | 'right'
@@ -104,11 +111,16 @@ export function axisTextMetrics(
   nice = true,
   tickValues?: number[],
   unit?: string,
+  tickCount = 10,
 ): { tickTextWidth: number } {
+  const effectiveTickCount =
+    typeof tickCount === 'number' && Number.isFinite(tickCount)
+      ? Math.max(2, Math.floor(tickCount))
+      : 10
   const scale = scaleLinear(domain, [1, 0])
-  if (nice) scale.nice()
+  if (nice) scale.nice(effectiveTickCount)
   const [axisMin, axisMax] = scale.domain()
-  const values = tickValues ?? Array.from(new Set([axisMin, ...scale.ticks(10), axisMax]))
+  const values = tickValues ?? scale.ticks(effectiveTickCount)
   const topTickValue = Math.max(...values)
   const maximumTickCharacters = Math.max(
     1,
@@ -121,9 +133,9 @@ export function axisTextMetrics(
   }
 }
 
-export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
+export function measureYAxisGroupClearance(group: YAxisSeriesGroup, tickCount?: number): number {
   return (
-    axisTextMetrics(group.domain, !group.fixed, undefined, group.seriesList[0]?.unit)
+    axisTextMetrics(group.domain, true, undefined, group.seriesList[0]?.unit, tickCount)
       .tickTextWidth +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_LABEL_GAP +
@@ -132,9 +144,9 @@ export function measureYAxisGroupClearance(group: YAxisSeriesGroup): number {
   )
 }
 
-function measureYAxisGroupTickClearance(group: YAxisSeriesGroup): number {
+function measureYAxisGroupTickClearance(group: YAxisSeriesGroup, tickCount?: number): number {
   return (
-    axisTextMetrics(group.domain, !group.fixed, undefined, group.seriesList[0]?.unit)
+    axisTextMetrics(group.domain, true, undefined, group.seriesList[0]?.unit, tickCount)
       .tickTextWidth +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_OUTER_PADDING
@@ -146,13 +158,14 @@ export function measureTrackYAxisClearance(
   overlayMode: WaveformOverlayMode,
   yDomain?: WaveformYDomain,
   yDomains?: Record<string, WaveformYDomain>,
+  tickCount?: number,
 ): { left: number; right: number } {
   return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).reduce(
     (clearance, group) => {
       clearance[group.side] +=
         overlayMode === 'multi-axis' || track.visibleSeries.length === 1
-          ? measureYAxisGroupClearance(group)
-          : measureYAxisGroupTickClearance(group)
+          ? measureYAxisGroupClearance(group, tickCount)
+          : measureYAxisGroupTickClearance(group, tickCount)
       return clearance
     },
     { left: 0, right: 0 },

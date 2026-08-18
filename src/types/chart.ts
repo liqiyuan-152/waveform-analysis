@@ -174,6 +174,8 @@ export interface WaveformAxesOptions {
   }
   y?: {
     lineVisible?: boolean
+    /** Target total number of equal Y-axis ticks, including endpoints. Defaults to 5. */
+    splitNumber?: number
   }
 }
 

@@ -6,6 +6,26 @@ import { resizeObservers } from '../../test/setup'
 import { gridSeries, mountSizedChart } from '../../test/waveformChart'
 
 describe('WaveformChart', () => {
+  it('applies the configured Y-axis split number', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'points',
+        points: [
+          { x: 0, y: 3 },
+          { x: 1, y: 97 },
+        ],
+      },
+      { axes: { y: { splitNumber: 5 } } },
+    )
+
+    expect(
+      wrapper
+        .get('.waveform-chart__axis--y')
+        .findAll('.tick text')
+        .map((tick) => tick.text()),
+    ).toEqual(['0', '25', '50', '75', '100'])
+  })
+
   it('expands the Y-axis label gutter for signed values and long exponents', async () => {
     const wrapper = await mountSizedChart(
       {
@@ -296,7 +316,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
   })
 
-  it('reacts to exact fixed Y-domain props and returns to automatic bounds', async () => {
+  it('reacts to nice fixed Y-domain props and returns to automatic bounds', async () => {
     const wrapper = await mountSizedChart({
       kind: 'points',
       points: [
@@ -312,8 +332,8 @@ describe('WaveformChart', () => {
 
     await wrapper.setProps({ yDomain: [3, 97] })
     await flushPromises()
-    expect(yTickLabels()).toContain('3')
-    expect(yTickLabels()).toContain('97')
+    expect(yTickLabels()).toContain('0')
+    expect(yTickLabels()).toContain('100')
 
     await wrapper.setProps({ yDomain: undefined })
     await flushPromises()

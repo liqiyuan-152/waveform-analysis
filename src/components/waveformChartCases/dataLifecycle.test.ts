@@ -261,7 +261,7 @@ describe('WaveformChart', () => {
       })
 
       expect(startTicks).toHaveLength(1)
-      expect(Number(startTicks[0].text())).toBe(0.1)
+      expect(Number(startTicks[0].text())).toBe(0)
     },
   )
 
@@ -297,7 +297,7 @@ describe('WaveformChart', () => {
         { displayMode },
       )
 
-      const expectedEndValues = [0.9, 4.9]
+      const expectedEndValues = [1, 5]
       wrapper.findAll('.waveform-chart__track').forEach((track, index) => {
         const endTicks = track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
           const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)

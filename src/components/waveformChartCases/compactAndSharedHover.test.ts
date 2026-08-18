@@ -65,9 +65,9 @@ describe('WaveformChart', () => {
     )
 
     expect(endTicks[0]).toHaveLength(1)
-    expect(Number(endTicks[0][0].text())).toBe(0.9)
+    expect(Number(endTicks[0][0].text())).toBe(1)
     expect(endTicks[1]).toHaveLength(1)
-    expect(Number(endTicks[1][0].text())).toBe(1.9)
+    expect(Number(endTicks[1][0].text())).toBe(2)
     expect(endTicks[2]).toHaveLength(0)
     expect(endTicks[3]).toHaveLength(0)
   })

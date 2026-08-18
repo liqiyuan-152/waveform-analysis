@@ -9,6 +9,7 @@ import {
   findClosestTrackAtPointer,
   MAX_MULTI_Y_AXIS_COUNT,
   measureYAxisGroupClearance,
+  resolveYAxisTickCount,
 } from './layout'
 
 function series(id: string, minimum: number, maximum: number): DisplaySeries {
@@ -119,8 +120,15 @@ describe('multi-value Y-axis grouping', () => {
       showCompactEmptyTracks: false,
     })[0]
 
-    expect(result?.yScale.domain()).toEqual([25, 75])
-    expect(result?.seriesPaths[0]?.yScale.domain()).toEqual([25, 75])
+    expect(result?.yScale.domain()).toEqual([20, 80])
+    expect(result?.seriesPaths[0]?.yScale.domain()).toEqual([20, 80])
+  })
+
+  it('normalizes configured Y-axis split counts', () => {
+    expect(resolveYAxisTickCount(100, 0)).toBe(2)
+    expect(resolveYAxisTickCount(100, 4.8)).toBe(4)
+    expect(resolveYAxisTickCount(100, Number.NaN)).toBe(5)
+    expect(resolveYAxisTickCount(220)).toBe(5)
   })
 
   it('keeps every overlaid series on one axis in single-axis mode', () => {
