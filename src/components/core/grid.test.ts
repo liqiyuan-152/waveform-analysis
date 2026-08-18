@@ -15,12 +15,14 @@ describe('waveform grid helpers', () => {
       rowCount: 2,
       columnCount: 1,
       showPagination: true,
+      fillIncompleteLastRow: false,
       trackLines: {},
     })
     expect(normalizeGridOptions({ rowCount: 0, columnCount: 99 })).toEqual({
       rowCount: 1,
       columnCount: 10,
       showPagination: true,
+      fillIncompleteLastRow: false,
       trackLines: {},
     })
   })
@@ -130,5 +132,51 @@ describe('waveform grid helpers', () => {
     expect(cells[0].width).toBe(168)
     expect(cells[1].left).toBe(232)
     expect(cells[2].top).toBe(cells[0].plotHeight + X_AXIS_BAND + 14)
+  })
+
+  it('fills incomplete final rows without changing page capacity', () => {
+    const oneColumn = resolveGridCellGeometry(
+      400,
+      400,
+      normalizeGridOptions({ rowCount: 4, columnCount: 1, fillIncompleteLastRow: true }),
+      'separated',
+      [true, true, true],
+    )
+    expect(oneColumn).toHaveLength(3)
+    expect(oneColumn.map((cell) => cell.width)).toEqual([400, 400, 400])
+    expect(oneColumn.at(-1)?.isLastRow).toBe(true)
+
+    const twoColumns = resolveGridCellGeometry(
+      400,
+      300,
+      normalizeGridOptions({ rowCount: 2, columnCount: 2, fillIncompleteLastRow: true }),
+      'separated',
+      [true, true, true],
+    )
+    expect(twoColumns).toHaveLength(3)
+    expect(twoColumns[2]).toMatchObject({ row: 1, column: 0, left: 0, width: 400 })
+
+    const threeColumns = resolveGridCellGeometry(
+      400,
+      300,
+      normalizeGridOptions({ rowCount: 2, columnCount: 3, fillIncompleteLastRow: true }),
+      'separated',
+      [true, true, true, true, true],
+    )
+    expect(threeColumns).toHaveLength(5)
+    expect(threeColumns.slice(3).map((cell) => cell.width)).toEqual([192, 192])
+    expect(threeColumns.slice(3).map((cell) => cell.left)).toEqual([0, 208])
+  })
+
+  it('keeps full pages and the disabled option byte-for-byte compatible', () => {
+    const base = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
+    const filled = normalizeGridOptions({ rowCount: 2, columnCount: 2, fillIncompleteLastRow: true })
+    const fullSlots = [true, true, true, true]
+    expect(resolveGridCellGeometry(400, 300, filled, 'independent', fullSlots)).toEqual(
+      resolveGridCellGeometry(400, 300, base, 'independent', fullSlots),
+    )
+    expect(resolveGridCellGeometry(400, 300, base, 'independent', [true, true, true])).toHaveLength(
+      4,
+    )
   })
 })

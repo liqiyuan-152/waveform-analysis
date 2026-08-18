@@ -114,7 +114,7 @@ const data = ref<WaveformData>({
 | `xDomainStrategy`                 | `WaveformXDomainStrategy`                   | `{ type: 'data' }`                                      | 自动 X 轴视口范围策略                         |
 | `yDomain`                         | `[number, number]`                          | 未设置                                                  | 所有波形的固定 Y 轴范围                       |
 | `yDomains`                        | `Record<string, [number, number]>`          | 未设置                                                  | 按 track/series ID 配置固定范围               |
-| `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true }` | 网格和分页                                    |
+| `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
 | `axes`                            | `WaveformAxesOptions`                       | 轴线均显示                                              | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                    | 降采样与点/误差棒间距                         |
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                  | 标题、图例和图框样式                          |
@@ -544,6 +544,10 @@ scale 定位零线：
 `grid` 控制独立图框的行列数（范围 `1–10`）以及是否显示分页器。默认值为 `2` 行、
 `1` 列并开启分页；当图框数量超过网格容量时，分页器会显示在图表右下角。
 
+`fillIncompleteLastRow` 默认关闭。开启后，分页容量仍由 `rowCount * columnCount` 决定；
+最后一页或未满页会移除没有数据的整行，并将最后一行的实际图框等宽铺满可用宽度。例如 2 列
+网格的最后一行只有一个图框时，该图框会占满整行。完整页和关闭该选项时的布局保持不变。
+
 还可以通过 `trackLines` 按轨道 ID 分别控制水平/垂直网格线的显隐和颜色。颜色未配置时，
 继续使用组件默认的主/次网格颜色：
 
@@ -554,6 +558,7 @@ scale 定位零线：
     rowCount: 2,
     columnCount: 2,
     showPagination: true,
+    fillIncompleteLastRow: true,
     trackLines: {
       voltage: {
         horizontal: false,

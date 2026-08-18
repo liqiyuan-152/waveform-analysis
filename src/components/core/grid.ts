@@ -8,6 +8,7 @@ export interface WaveformGridOptions {
   rowCount?: number
   columnCount?: number
   showPagination?: boolean
+  fillIncompleteLastRow?: boolean
   trackLines?: WaveformGridTrackLines
 }
 
@@ -33,6 +34,7 @@ export interface NormalizedWaveformGridOptions {
   rowCount: number
   columnCount: number
   showPagination: boolean
+  fillIncompleteLastRow: boolean
   trackLines: Record<string, NormalizedWaveformGridLineOptions>
 }
 
@@ -48,6 +50,7 @@ export interface GridCellGeometry {
   plotHeight: number
   cellHeight: number
   xAxisBand: number
+  isLastRow?: boolean
 }
 
 const normalizeCount = (value: unknown, fallback: number) => {
@@ -78,6 +81,7 @@ export function normalizeGridOptions(options?: WaveformGridOptions): NormalizedW
     rowCount: normalizeCount(options?.rowCount, 2),
     columnCount: normalizeCount(options?.columnCount, 1),
     showPagination: options?.showPagination ?? true,
+    fillIncompleteLastRow: options?.fillIncompleteLastRow ?? false,
     trackLines,
   }
 }
@@ -114,20 +118,23 @@ export function resolveGridCellGeometry(
   horizontalGap?: number,
   showXAxis = true,
 ): GridCellGeometry[] {
+  const pageSize = getPageSize(options)
+  const seriesCount = slotHasSeries.filter(Boolean).length
+  const filledLastRow = options.fillIncompleteLastRow && seriesCount > 0 && seriesCount < pageSize
+  const rowCount = filledLastRow ? Math.ceil(seriesCount / options.columnCount) : options.rowCount
   const defaultGap = getGridGap(displayMode)
   const columnGap = Number.isFinite(horizontalGap)
     ? Math.max(0, horizontalGap as number)
     : defaultGap
-  const totalHorizontalGap = Math.max(0, options.columnCount - 1) * columnGap
   const axisRows = new Set<number>()
   if (!showXAxis) {
     // Net view uses the full drawing area for waveform pixels.
   } else if (displayMode === 'independent') {
-    for (let row = 0; row < options.rowCount; row += 1) axisRows.add(row)
+    for (let row = 0; row < rowCount; row += 1) axisRows.add(row)
   } else if (displayMode === 'compact') {
     // Compact tracks share one continuous plot stack. Reserve the X-axis band
     // only beneath the final grid row, including when that row is empty.
-    axisRows.add(options.rowCount - 1)
+    axisRows.add(rowCount - 1)
   } else {
     for (let column = 0; column < options.columnCount; column += 1) {
       for (let slotIndex = getPageSize(options) - 1; slotIndex >= 0; slotIndex -= 1) {
@@ -139,17 +146,22 @@ export function resolveGridCellGeometry(
       }
     }
   }
-  const totalVerticalGap = Math.max(0, options.rowCount - 1) * defaultGap
+  const totalVerticalGap = Math.max(0, rowCount - 1) * defaultGap
   const totalAxisBand = axisRows.size * X_AXIS_BAND
-  const width = Math.max(1, (innerWidth - totalHorizontalGap) / options.columnCount)
   const plotHeight = Math.max(
     1,
-    (innerHeight - totalVerticalGap - totalAxisBand) / options.rowCount,
+    (innerHeight - totalVerticalGap - totalAxisBand) / rowCount,
   )
 
-  return Array.from({ length: getPageSize(options) }, (_, slotIndex) => {
+  return Array.from({ length: filledLastRow ? seriesCount : pageSize }, (_, slotIndex) => {
     const row = Math.floor(slotIndex / options.columnCount)
     const column = slotIndex % options.columnCount
+    const rowSeriesCount =
+      filledLastRow && row === rowCount - 1
+        ? seriesCount - row * options.columnCount
+        : options.columnCount
+    const rowGap = Math.max(0, rowSeriesCount - 1) * columnGap
+    const width = Math.max(1, (innerWidth - rowGap) / rowSeriesCount)
     const xAxisBand = axisRows.has(row) ? X_AXIS_BAND : 0
     const cellHeight = plotHeight + xAxisBand
     const top = Array.from({ length: row }, (_, previousRow) => {
@@ -167,6 +179,7 @@ export function resolveGridCellGeometry(
       plotHeight,
       cellHeight,
       xAxisBand,
+      isLastRow: row === rowCount - 1,
     }
   })
 }

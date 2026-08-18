@@ -126,6 +126,7 @@ function handleSeriesChange(event: Event) {
     cancel-text="取消"
     ok-text="保存标注"
     :ok-button-props="{ disabled: !canConfirm }"
+    root-class-name="waveform-annotation-editor-root"
     wrap-class-name="waveform-annotation-editor"
     @cancel="emit('cancel')"
     @ok="confirm"

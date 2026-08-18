@@ -18,13 +18,14 @@ const modalStub = defineComponent({
     'cancelText',
     'okText',
     'okButtonProps',
+    'rootClassName',
   ],
   emits: ['cancel', 'ok'],
   setup(props, { emit, slots }) {
     return () => {
       const title = slots.title?.() ?? []
       const titleId = (title[0]?.props as { id?: string } | undefined)?.id
-      return h('div', { class: 'ant-modal-root' }, [
+      return h('div', { class: ['ant-modal-root', props.rootClassName] }, [
         h(
           'div',
           {
@@ -94,6 +95,18 @@ describe('waveform annotation controls', () => {
     expect(firstTitleId).not.toBe(secondTitleId)
     expect(first.get('[role="dialog"]').attributes('aria-labelledby')).toBe(firstTitleId)
     expect(second.get('[role="dialog"]').attributes('aria-labelledby')).toBe(secondTitleId)
+  })
+
+  it('uses a dedicated root class to isolate teleported modal styles', () => {
+    const wrapper = mountEditor({
+      props: {
+        annotation: { id: 'isolated', seriesId: 'a', x: 1, y: 2, text: '说明' },
+        mode: 'add',
+      },
+    })
+
+    expect(wrapper.get('.ant-modal-root').classes()).toContain('waveform-annotation-editor-root')
+    expect(wrapper.get('.ant-modal-wrap').classes()).toContain('waveform-annotation-editor')
   })
 
   it.each(['add', 'edit'] as const)('shows the X-axis snapping hint in %s mode', (mode) => {

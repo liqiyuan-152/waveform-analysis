@@ -1,3 +1,33 @@
+/* The modal is teleported to body. Keep its entire subtree namespaced so host
+   application resets (for example `button { ... }`) cannot change the editor. */
+:global(.waveform-annotation-editor-root),
+:global(.waveform-annotation-editor-root *) {
+  box-sizing: border-box;
+}
+
+:global(.waveform-annotation-editor-root) {
+  color: #344054;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+  line-height: 1.5715;
+  text-align: left;
+  text-transform: none;
+}
+
+:global(.waveform-annotation-editor-root button),
+:global(.waveform-annotation-editor-root input),
+:global(.waveform-annotation-editor-root select),
+:global(.waveform-annotation-editor-root textarea) {
+  font-family: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+:global(.waveform-annotation-editor-root button) {
+  appearance: auto;
+}
+
 .waveform-annotation-editor__content {
   display: grid;
   gap: 20px;

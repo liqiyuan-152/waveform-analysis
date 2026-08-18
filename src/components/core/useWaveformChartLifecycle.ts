@@ -11,6 +11,7 @@ import {
 
 import type { AnnotationSeriesCandidate } from '../annotation'
 import type { useWaveformAnnotationInteraction } from '../annotation'
+import type { NormalizedWaveformGridOptions } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
 import { constrainZoomDomain, transformForDomain } from '../interaction/zoomConstraints'
@@ -33,7 +34,7 @@ interface LifecycleContext {
   currentPage: Ref<number>
   pageCount: ComputedRef<number>
   pagedTracks: ComputedRef<Array<DisplayTrack | undefined>>
-  gridOptions: ComputedRef<{ rowCount: number; columnCount: number }>
+  gridOptions: ComputedRef<NormalizedWaveformGridOptions>
   chartSeries: ComputedRef<DisplaySeries[]>
   chartTracks: ComputedRef<DisplayTrack[]>
   trackLayouts: ComputedRef<TrackLayout[]>
@@ -220,6 +221,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
       currentPage,
       () => gridOptions.value.rowCount,
       () => gridOptions.value.columnCount,
+      () => gridOptions.value.fillIncompleteLastRow,
       activeInteractionMode,
     ],
     async () => {
@@ -239,20 +241,28 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     },
   )
 
-  watch([pageCount, () => props.grid?.rowCount, () => props.grid?.columnCount], () => {
-    const previousPage = currentPage.value
-    currentPage.value =
-      currentPage.value > pageCount.value
-        ? pageCount.value
-        : currentPage.value !== 1
-          ? 1
-          : currentPage.value
-    if (previousPage !== currentPage.value) {
-      emit('page-change', currentPage.value, pageCount.value)
-    }
-    clearHover()
-    void nextTick(configureZoom)
-  })
+  watch(
+    [
+      pageCount,
+      () => props.grid?.rowCount,
+      () => props.grid?.columnCount,
+      () => props.grid?.fillIncompleteLastRow,
+    ],
+    () => {
+      const previousPage = currentPage.value
+      currentPage.value =
+        currentPage.value > pageCount.value
+          ? pageCount.value
+          : currentPage.value !== 1
+            ? 1
+            : currentPage.value
+      if (previousPage !== currentPage.value) {
+        emit('page-change', currentPage.value, pageCount.value)
+      }
+      clearHover()
+      void nextTick(configureZoom)
+    },
+  )
 
   watch(activeInteractionMode, () => {
     editorSeriesOptions.value = []

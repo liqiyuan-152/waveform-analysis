@@ -266,7 +266,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         (isEmpty || hasVisibleSeries) &&
         (options.displayMode === 'independent' ||
           (options.displayMode === 'compact'
-            ? cell.row === options.grid.rowCount - 1
+            ? (cell.isLastRow ?? cell.row === options.grid.rowCount - 1)
             : bottomCells.has(cell.slotIndex))),
     }
   })
