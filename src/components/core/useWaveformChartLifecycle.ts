@@ -39,6 +39,9 @@ interface LifecycleContext {
   trackLayouts: ComputedRef<TrackLayout[]>
   innerWidth: ComputedRef<number>
   innerHeight: ComputedRef<number>
+  sharedZoomDomain: ComputedRef<[number, number]>
+  initialXDomain: ComputedRef<[number, number]>
+  sharedTransform: ShallowRef<ZoomTransform>
   activeInteractionMode: ComputedRef<string | undefined>
   hiddenSeriesIdSet: ComputedRef<Set<string>>
   internalHiddenSeriesIds: Ref<Set<string>>
@@ -93,6 +96,9 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     trackLayouts,
     innerWidth,
     innerHeight,
+    sharedZoomDomain,
+    initialXDomain,
+    sharedTransform,
     activeInteractionMode,
     hiddenSeriesIdSet,
     internalHiddenSeriesIds,
@@ -144,25 +150,24 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     emit('page-change', nextPage, pageCount.value)
   }
 
+  let pendingSharedXDomain: [number, number] | undefined
   let pendingIndependentXDomains: Array<[number, number] | undefined> | undefined
 
   function handleBeforeDataReferenceChange() {
-    if (props.displayMode !== 'independent') return
-    pendingIndependentXDomains = trackLayouts.value.map((track) => {
-      const configuredDomain =
-        props.initialXDomains?.[track.series.trackId ?? track.series.id] ??
-        props.initialXDomains?.[track.series.id] ??
-        props.initialXDomain
-      if (
-        !configuredDomain ||
-        !Number.isFinite(configuredDomain[0]) ||
-        !Number.isFinite(configuredDomain[1]) ||
-        configuredDomain[0] === configuredDomain[1]
-      ) {
-        return undefined
-      }
-      return track.xScale.domain() as [number, number]
-    })
+    if (props.displayMode === 'independent') {
+      pendingSharedXDomain = undefined
+      pendingIndependentXDomains = trackLayouts.value.map((track) => {
+        const current = track.xScale.domain() as [number, number]
+        const boundary = resolveInitialTrackDomain(track)
+        return current[1] - current[0] < boundary[1] - boundary[0] - 1e-12 ? current : undefined
+      })
+      return
+    }
+    pendingIndependentXDomains = undefined
+    const current = sharedZoomDomain.value
+    const boundary = initialXDomain.value
+    pendingSharedXDomain =
+      current[1] - current[0] < boundary[1] - boundary[0] - 1e-12 ? [...current] : undefined
   }
 
   function handleDataReferenceChange() {
@@ -186,10 +191,15 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
         })
         independentTransforms.value = nextTransforms
         pendingIndependentXDomains = undefined
-        void nextTick(configureZoom)
-        return
+      } else if (props.displayMode !== 'independent' && pendingSharedXDomain) {
+        const boundary = initialXDomain.value
+        const groups = trackLayouts.value
+          .filter((track) => track.hasVisibleSeries)
+          .map((track) => track.seriesList)
+        const domain = constrainZoomDomain(pendingSharedXDomain, boundary, groups, props)
+        sharedTransform.value = transformForDomain(domain, boundary, innerWidth.value)
+        pendingSharedXDomain = undefined
       }
-      pendingIndependentXDomains = undefined
       configureZoom()
     })
   }

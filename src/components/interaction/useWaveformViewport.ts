@@ -11,6 +11,7 @@ import type {
 import type { AnnotationSeriesCandidate } from '../annotation'
 import { tryReleasePointerCapture } from './pointerCapture'
 import { transitionViewportInteraction } from './viewportInteractionState'
+import { createViewportDomainSetter } from './viewportDomain'
 import { constrainZoomDomain, transformForDomain } from './zoomConstraints'
 interface ViewportContext {
   props: ResolvedWaveformChartProps
@@ -344,6 +345,20 @@ export function useWaveformViewport(context: ViewportContext) {
     editorSeriesOptions.value = []
     void nextTick(configureZoom)
   }
+  const setViewportDomain = createViewportDomainSetter({
+    props,
+    trackLayouts,
+    initialXDomain,
+    resolveInitialTrackDomain,
+    innerWidth,
+    sharedTransform,
+    independentTransforms,
+    cancelPendingZoom,
+    cancelViewportDrag,
+    clearHover,
+    editorSeriesOptions,
+    configureZoom,
+  })
   const requestViewportReset = (event: MouseEvent) => {
     if (isPresentationMode.value || !props.zoomable || !isZoomMode.value) return
     if (props.displayMode === 'independent') {
@@ -372,6 +387,7 @@ export function useWaveformViewport(context: ViewportContext) {
     finishViewportDrag,
     cancelViewportDrag,
     resetViewport,
+    setViewportDomain,
     requestViewportReset,
   }
 }

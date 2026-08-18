@@ -36,6 +36,7 @@ const controller = useWaveformChartController(props as ResolvedWaveformChartProp
 
 defineExpose({
   resetViewport: controller.resetViewport,
+  setViewportDomain: controller.setViewportDomain,
 })
 </script>
 

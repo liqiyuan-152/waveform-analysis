@@ -253,6 +253,20 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。
 外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。
 
+宿主在替换局部数据后如果需要恢复之前保存的 X 视口，可以调用公开的
+`setViewportDomain(domain, trackIndex?)`。传入范围使用原始秒坐标，组件会按当前数据边界、
+`xDomainStrategy`、`minZoomSpan` 和 `minVisiblePoints` 重新约束；无效范围会被忽略。共享
+X 轴模式直接传入一个范围，独立模式可以按实际 `trackIndex` 分别设置（省略 `trackIndex`
+时应用到当前所有图框）：
+
+```ts
+chartRef.value?.setViewportDomain(previousDomain)
+chartRef.value?.setViewportDomain(trackDomain, trackIndex)
+```
+
+建议在 `data` 引用更新后调用该方法。组件也会在数据引用变更时重投影当前内部视口，避免新
+数据边界使旧 transform 失效；`resetViewport(trackIndex?)` 的既有行为保持不变。
+
 没有显式配置初始范围时，可以通过 `xDomainStrategy` 将数据范围扩展为便于阅读的视口端点。
 默认的 `{ type: 'data' }` 保持数据最小值和最大值不变；`type: 'nice'` 使用固定刻度数量计算
 易读边界，且只扩展视口，不修改原始点位、tooltip、标注或缩放事件值：
