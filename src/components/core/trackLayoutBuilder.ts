@@ -135,9 +135,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         (_, index) => axisStart + ((axisEnd - axisStart) * index) / (tickCount - 1),
       )
       const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
-      const visibleMajorTicks = showAxisEnd
-        ? majorTicks
-        : majorTicks.filter((tick) => tick !== axisEnd)
+      const visibleMajorTicks = showAxisEnd ? majorTicks : majorTicks.slice(0, -1)
       const tickValues = visibleMajorTicks
       const { tickTextWidth } = axisTextMetrics(
         scale.domain() as [number, number],

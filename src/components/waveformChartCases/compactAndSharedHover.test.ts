@@ -72,6 +72,49 @@ describe('WaveformChart', () => {
     expect(endTicks[3]).toHaveLength(0)
   })
 
+  it('removes the later compact row top tick when the Y-axis end has a floating-point tail', async () => {
+    const yDomain: [number, number] = [-1, 0.2]
+    const calculatedAxisEnd =
+      yDomain[0] + ((yDomain[1] - yDomain[0]) * 4) / 4
+    expect(calculatedAxisEnd).not.toBe(yDomain[1])
+
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            name: 'top',
+            data: { kind: 'points', points: [{ x: 0, y: -0.8 }, { x: 1, y: 0.1 }] },
+          },
+          {
+            name: 'bottom',
+            data: { kind: 'points', points: [{ x: 0, y: -0.7 }, { x: 1, y: 0 }] },
+          },
+        ],
+      },
+      { displayMode: 'compact', grid: { rowCount: 2, columnCount: 1 }, yDomain },
+    )
+
+    const [topTrack, bottomTrack] = wrapper.findAll('.waveform-chart__track')
+    const ticksAt = (track: typeof topTrack, position: number) =>
+      track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
+        const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
+        return match ? Math.abs(Number(match[1]) - position) <= 1 : false
+      })
+    const topTrackHeight = Number(topTrack.attributes('data-track-height'))
+
+    expect(ticksAt(topTrack, 0)).toHaveLength(1)
+    expect(ticksAt(topTrack, 0)[0].text()).toBe('0.2')
+    expect(ticksAt(bottomTrack, 0)).toHaveLength(0)
+    expect(Number(bottomTrack.attributes('data-track-top'))).toBeCloseTo(
+      Number(topTrack.attributes('data-track-top')) + topTrackHeight,
+      6,
+    )
+
+    const boundaryLabels = [...ticksAt(topTrack, topTrackHeight), ...ticksAt(bottomTrack, 0)]
+    expect(boundaryLabels).toHaveLength(1)
+  })
+
   it('prefixes one shared exponent to the largest visible tick on every compact Y axis', async () => {
     const wrapper = await mountSizedChart(
       {
