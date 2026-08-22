@@ -72,10 +72,15 @@ jobs:
           sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
 
       - name: Publish npm package
-        if: ${{ secrets.NPMJS_PUBLISH_TOKEN != '' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_PUBLISH_TOKEN }}
-        run: npm publish "release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
+        shell: bash
+        run: |
+          if [[ -z "$NODE_AUTH_TOKEN" ]]; then
+            echo "NPMJS_PUBLISH_TOKEN is not configured; skipping npm publish."
+            exit 0
+          fi
+          npm publish "release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
