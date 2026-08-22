@@ -1,0 +1,85 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Validate release version
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_name="${GITHUB_REF_NAME}"
+          tag_pattern='^v([0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?)$'
+          if [[ ! "$tag_name" =~ $tag_pattern ]]; then
+            echo "Release tags must use vX.Y.Z or vX.Y.Z-prerelease format." >&2
+            exit 1
+          fi
+
+          package_version="${BASH_REMATCH[1]}"
+          source_version="$(node -p "require('./package.json').version")"
+          if [[ "$source_version" != "$package_version" ]]; then
+            echo "package.json version $source_version does not match tag $tag_name" >&2
+            exit 1
+          fi
+
+          if [[ "$package_version" == *-* ]]; then
+            echo "npm_dist_tag=next" >> "$GITHUB_ENV"
+            echo "prerelease=true" >> "$GITHUB_ENV"
+          else
+            echo "npm_dist_tag=latest" >> "$GITHUB_ENV"
+            echo "prerelease=false" >> "$GITHUB_ENV"
+          fi
+          echo "package_version=$package_version" >> "$GITHUB_ENV"
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm check:file-length
+      - run: pnpm lint:oxlint
+      - run: pnpm lint
+      - run: pnpm test:coverage
+      - run: pnpm build
+
+      - name: Pack release assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm pack --pack-destination artifacts
+          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
+          install -d release-assets
+          published_name="waveform-analysis-${package_version}.tgz"
+          install -m 644 "$package_file" "release-assets/$published_name"
+          sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
+
+      - name: Publish npm package
+        if: ${{ secrets.NPMJS_PUBLISH_TOKEN != '' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_PUBLISH_TOKEN }}
+        run: npm publish "release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: ${{ env.prerelease }}
+          generate_release_notes: true
+          files: release-assets/*
