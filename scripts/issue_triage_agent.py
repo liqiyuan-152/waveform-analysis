@@ -239,6 +239,8 @@ def call_model(system, payload):
     )
     request.add_header("Authorization", f"Bearer {api_key}")
     request.add_header("Content-Type", "application/json")
+    request.add_header("Accept", "application/json")
+    request.add_header("User-Agent", "waveform-analysis-issue-triage/1.0")
     with urllib.request.urlopen(request, timeout=90) as response:
         result = json.loads(response.read().decode())
     return result["choices"][0]["message"]["content"]
