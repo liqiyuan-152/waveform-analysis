@@ -343,7 +343,7 @@ describe('WaveformChart', () => {
       const secondLeft = Number(tracks[1].attributes('data-track-left'))
       const labelX = Number(tracks[1].attributes('data-y-axis-label-x'))
 
-      expect(secondLeft - (firstLeft + firstWidth)).toBeGreaterThanOrEqual(Math.abs(labelX) + 16)
+      expect(secondLeft - (firstLeft + firstWidth)).toBeGreaterThanOrEqual(Math.abs(labelX) + 6)
       expect(tracks[1].find('.waveform-chart__y-axis-label-bg').exists()).toBe(true)
     }
   })

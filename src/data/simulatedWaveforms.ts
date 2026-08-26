@@ -17,6 +17,7 @@ interface SimulatedSeriesDefinition extends Pick<
 > {
   signal: SignalGenerator
   errors?: ErrorGenerator
+  minimumX?: number
 }
 
 function createSeededNoise(seed: number) {
@@ -100,6 +101,7 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     unit: 'V',
     lineType: 'linear',
     pointType: 'none',
+    minimumX: 0,
     signal: (time) => (time < 0 ? 0 : 1 - Math.exp(-time * 2.4)),
   },
   {
@@ -128,12 +130,15 @@ export function createSimulatedWaveformData(): WaveformData {
   const noise = createSeededNoise(0x5eed1234)
   return {
     kind: 'series',
-    series: seriesDefinitions.map(({ signal, errors, ...series }) => ({
-      ...series,
-      data: {
-        kind: 'points',
-        points: createPoints(signal, noise, errors),
-      },
-    })),
+    series: seriesDefinitions.map(({ signal, errors, minimumX, ...series }) => {
+      const points = createPoints(signal, noise, errors)
+      return {
+        ...series,
+        data: {
+          kind: 'points' as const,
+          points: minimumX === undefined ? points : points.filter((point) => point.x >= minimumX),
+        },
+      }
+    }),
   }
 }

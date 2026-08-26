@@ -162,7 +162,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         labelX,
         scale,
         majorTicks,
-        minorTicks: buildMinorTicks(majorTicks),
+        minorTicks: buildMinorTicks(majorTicks, 2),
         tickValues,
         seriesList: group.seriesList,
       }
@@ -248,7 +248,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       yScale,
       yAxes,
       xMajorTicks,
-      xMinorTicks: buildMinorTicks(xMajorTicks, 5, domain),
+      xMinorTicks: buildMinorTicks(xMajorTicks, 3, domain),
       yMajorTicks,
       yMinorTicks: yAxes[0]?.minorTicks ?? [],
       yAxisTickValues,

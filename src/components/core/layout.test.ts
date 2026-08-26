@@ -253,8 +253,8 @@ describe('multi-value Y-axis grouping', () => {
         labelOffset: Math.abs(labelX - x),
       })),
     ).toEqual([
-      { side: 'left', labelOffset: 67 },
-      { side: 'right', labelOffset: 67 },
+      { side: 'left', labelOffset: 55 },
+      { side: 'right', labelOffset: 55 },
     ])
   })
 
@@ -262,7 +262,7 @@ describe('multi-value Y-axis grouping', () => {
     const [group] = buildYAxisSeriesGroups(track([series('long', -1e120, 1e120)]), 'multi-axis')
 
     expect(group).toBeDefined()
-    expect(measureYAxisGroupClearance(group!)).toBe(90)
+    expect(measureYAxisGroupClearance(group!)).toBe(72)
   })
 })
 

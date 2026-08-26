@@ -17,8 +17,8 @@ export { MAX_MULTI_Y_AXIS_COUNT } from './constants'
 const Y_AXIS_CHARACTER_WIDTH = 7
 const Y_AXIS_TICK_PADDING = 7
 const Y_AXIS_OUTER_PADDING = 4
-const Y_AXIS_LABEL_GAP = 6
-const Y_AXIS_LABEL_BAND_WIDTH = 24
+const Y_AXIS_LABEL_GAP = 0
+const Y_AXIS_LABEL_BAND_WIDTH = 12
 
 export function resolveYAxisTickCount(_plotHeight: number, splitNumber?: number): number {
   if (typeof splitNumber === 'number' && Number.isFinite(splitNumber)) {

@@ -170,4 +170,27 @@ describe('WaveformTooltip', () => {
 
     expect(wrapper.get('.waveform-tooltip__series-label').text()).toBe('未配置炮号： 温度')
   })
+
+  it('uses each series sample time and marks unavailable series without synthesizing values', () => {
+    const wrapper = mount(WaveformTooltip, {
+      props: {
+        visible: true,
+        position: { x: 10, y: 10 },
+        timeUnit: 's',
+        hoveredPoint: { x: 1, y: 12 },
+        seriesPoints: [
+          { trackIndex: 0, name: '完整数据', color: '#f00', point: { x: 1, y: 12 } },
+          { trackIndex: 1, name: '异步采样', color: '#0a0', point: { x: 1.25, y: 8 } },
+          { trackIndex: 2, name: '缺失数据', color: '#00f', point: null },
+        ],
+        containerWidth: 400,
+        containerHeight: 300,
+      },
+    })
+
+    const values = wrapper
+      .findAll('.waveform-tooltip__value')
+      .map((value) => value.text())
+    expect(values).toEqual(['(x:1 y:12)', '(x:1.25 y:8)', '无数据'])
+  })
 })

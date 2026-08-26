@@ -12,7 +12,9 @@ const props = defineProps<{
   containerHeight: number
 }>()
 
-const hoveredPoint = computed(() => props.state.points[0]?.point ?? null)
+const hoveredPoint = computed(
+  () => props.state.points.find((seriesPoint) => seriesPoint.point)?.point ?? null,
+)
 </script>
 
 <template>

@@ -69,12 +69,13 @@ export interface HoveredSeriesPoint {
   unit?: string
   color: string
   trackIndex: number
-  point: WaveformPoint
+  point: WaveformPoint | null
 }
 
 export interface WaveformHoverState {
   points: HoveredSeriesPoint[]
   trackIndex: number | null
+  queryX: number | null
   position: { x: number; y: number }
 }
 

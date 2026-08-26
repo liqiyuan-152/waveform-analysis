@@ -21,8 +21,13 @@ describe('simulated waveform data', () => {
     first.series.forEach((series) => {
       expect(series.data.kind).toBe('points')
       if (series.data.kind !== 'points') return
-      expect(series.data.points).toHaveLength(1_000)
-      expect(series.data.points[0]?.x).toBe(-5)
+      if (series.id === 'simulated-step') {
+        expect(series.data.points).toHaveLength(500)
+        expect(series.data.points.every((point) => point.x >= 0)).toBe(true)
+      } else {
+        expect(series.data.points).toHaveLength(1_000)
+        expect(series.data.points[0]?.x).toBe(-5)
+      }
       expect(series.data.points.at(-1)?.x).toBe(5)
       series.data.points.forEach((point) => {
         expect(Number.isFinite(point.x)).toBe(true)

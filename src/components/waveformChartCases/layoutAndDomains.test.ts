@@ -53,10 +53,10 @@ describe('WaveformChart', () => {
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
 
-    expect(labelX).toBe(-74)
-    expect(labelBackgroundX).toBe(labelX - 12)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(90)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(90)
+    expect(labelX).toBe(-62)
+    expect(labelBackgroundX).toBe(labelX - 6)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(72)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(72)
   })
 
   it('keeps a tick-only gutter when channel labels are empty', async () => {
@@ -82,7 +82,7 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(64)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(60)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(60)
   })
 

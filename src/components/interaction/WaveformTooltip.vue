@@ -9,7 +9,7 @@ interface SeriesPoint {
   shotNo?: string
   color: string
   unit?: string
-  point: WaveformPoint
+  point: WaveformPoint | null
 }
 
 interface Props {
@@ -45,10 +45,12 @@ function estimateLineCount(text: string, width: number): number {
 }
 
 function formatSeriesText(seriesPoint: SeriesPoint): string {
-  const timeText = formatTooltipTime(props.hoveredPoint?.x ?? seriesPoint.point.x, props.timeUnit)
+  const valueText = seriesPoint.point
+    ? `(x:${formatTooltipTime(seriesPoint.point.x, props.timeUnit)} y:${formatTooltipNumber(seriesPoint.point.y)})`
+    : '无数据'
   return `${seriesPoint.shotNo?.trim() || '未配置炮号'}： ${seriesPoint.name}${
     seriesPoint.unit ? `(${seriesPoint.unit})` : ''
-  }  (x:${timeText} y:${formatTooltipNumber(seriesPoint.point.y)})`
+  }  ${valueText}`
 }
 
 function estimateTooltipHeight(width: number): number {
@@ -114,9 +116,10 @@ const tooltipStyle = computed(() => {
         <span class="waveform-tooltip__series-label">{{ seriesPoint.shotNo?.trim() || '未配置炮号' }}： {{
           seriesPoint.name
         }}<template v-if="seriesPoint.unit">({{ seriesPoint.unit }})</template></span>
-        <span class="waveform-tooltip__value">(x:{{ formatTooltipTime(hoveredPoint.x, timeUnit) }} y:{{
-          formatTooltipNumber(seriesPoint.point.y)
-        }})</span>
+        <span v-if="seriesPoint.point" class="waveform-tooltip__value">(x:{{
+          formatTooltipTime(seriesPoint.point.x, timeUnit)
+        }} y:{{ formatTooltipNumber(seriesPoint.point.y) }})</span>
+        <span v-else class="waveform-tooltip__value waveform-tooltip__value--missing">无数据</span>
       </span>
     </span>
   </div>

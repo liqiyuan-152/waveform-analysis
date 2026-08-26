@@ -5,6 +5,7 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import type { WaveformAxesOptions } from '../../types'
 import { formatScientificAxisLabel, formatXAxisLabel } from '../../utils'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
+import { Y_AXIS_LABEL_BAND_WIDTH } from '../core/yAxisConstants'
 
 interface Props {
   track: TrackLayout
@@ -169,9 +170,9 @@ watch(
   >
     <rect
       class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
-      :x="track.yAxisLabelX - 12"
+      :x="track.yAxisLabelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
       :y="track.height / 2 - 40"
-      width="24"
+      :width="Y_AXIS_LABEL_BAND_WIDTH"
       height="80"
       rx="2"
     />
@@ -194,9 +195,9 @@ watch(
   >
     <rect
       class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
-      :x="axis.labelX - 12"
+      :x="axis.labelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
       :y="track.height / 2 - 40"
-      width="24"
+      :width="Y_AXIS_LABEL_BAND_WIDTH"
       height="80"
       rx="2"
     />

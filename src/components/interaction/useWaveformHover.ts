@@ -62,18 +62,21 @@ export function useWaveformHover(context: HoverContext) {
   const commitHover = (
     nextPoints: HoveredSeriesPoint[],
     trackIndex: number | null,
+    queryX: number,
     position: { x: number; y: number },
   ) => {
     if (isPresentationMode.value) return
     if (!hoveredPointsMatch(nextPoints)) hoverState.points = nextPoints
     hoverState.trackIndex = trackIndex
+    hoverState.queryX = queryX
     hoverState.position = position
-    emit('point-hover', hoverState.points[0]?.point ?? null)
+    emit('point-hover', hoverState.points.find((point) => point.point)?.point ?? null)
   }
   const clearHover = () => {
     cancelPendingHover()
     hoverState.points = []
     hoverState.trackIndex = null
+    hoverState.queryX = null
     emit('point-hover', null)
   }
   const handlePointerLeave = () => {
@@ -82,7 +85,7 @@ export function useWaveformHover(context: HoverContext) {
   const createHoveredSeriesPoint = (
     series: DisplaySeries,
     trackIndex: number,
-    point: WaveformPoint,
+    point: WaveformPoint | null,
   ): HoveredSeriesPoint => ({
     id: series.id,
     shotNo: series.shotNo,
@@ -106,8 +109,12 @@ export function useWaveformHover(context: HoverContext) {
     clearHover()
     return true
   }
-  const nearestPoint = (series: DisplaySeries, xValue: number): WaveformPoint | undefined =>
-    series.points[pointBisector.center(series.points, xValue)]
+  const nearestPoint = (series: DisplaySeries, xValue: number): WaveformPoint | undefined => {
+    const firstPoint = series.points[0]
+    const lastPoint = series.points.at(-1)
+    if (!firstPoint || !lastPoint || xValue < firstPoint.x || xValue > lastPoint.x) return undefined
+    return series.points[pointBisector.center(series.points, xValue)]
+  }
 
   const handleIndependentPointerMove = (event: PointerEvent, trackIndex: number) => {
     if (isPresentationMode.value) return
@@ -125,11 +132,10 @@ export function useWaveformHover(context: HoverContext) {
       const currentTrack = trackLayouts.value[trackIndex]
       if (!currentTrack || !currentTrack.hasVisibleSeries || currentTrack !== track) return
       const xValue = track.xScale.invert(Math.max(0, Math.min(innerWidth.value, pointerX)))
-      const nextPoints = track.seriesList.flatMap((series) => {
-        const point = nearestPoint(series, xValue)
-        return point ? [createHoveredSeriesPoint(series, trackIndex, point)] : []
-      })
-      commitHover(nextPoints, trackIndex, {
+      const nextPoints = track.seriesList.map((series) =>
+        createHoveredSeriesPoint(series, trackIndex, nearestPoint(series, xValue) ?? null),
+      )
+      commitHover(nextPoints, trackIndex, xValue, {
         x: resolvedChartLeftMargin.value + track.left + pointerX,
         y: titleAreaHeight.value + chartTopMargin.value + track.top + pointerY,
       })
@@ -155,12 +161,11 @@ export function useWaveformHover(context: HoverContext) {
       )
       const xValue = referenceTrack.xScale.invert(localPointerX)
       const nextPoints = trackLayouts.value.flatMap((track) =>
-        track.seriesList.flatMap((series) => {
-          const point = nearestPoint(series, xValue)
-          return point ? [createHoveredSeriesPoint(series, track.index, point)] : []
-        }),
+        track.seriesList.map((series) =>
+          createHoveredSeriesPoint(series, track.index, nearestPoint(series, xValue) ?? null),
+        ),
       )
-      commitHover(nextPoints, null, {
+      commitHover(nextPoints, null, xValue, {
         x: resolvedChartLeftMargin.value + pointerX,
         y: titleAreaHeight.value + chartTopMargin.value + pointerY,
       })

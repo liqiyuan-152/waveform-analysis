@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import type { HoveredSeriesPoint, TrackLayout, WaveformHoverState } from '../core/types'
+import type { TrackLayout, WaveformHoverState } from '../core/types'
 
 const props = defineProps<{
   state: WaveformHoverState
@@ -11,23 +11,17 @@ const props = defineProps<{
 }>()
 
 interface Crosshair {
-  point: HoveredSeriesPoint
   track: TrackLayout
   x: number
 }
 
 const crosshairs = computed<Crosshair[]>(() => {
-  if (!props.visible) return []
-
-  const pointByTrack = new Map<number, HoveredSeriesPoint>()
-  props.state.points.forEach((point) => {
-    if (!pointByTrack.has(point.trackIndex)) pointByTrack.set(point.trackIndex, point)
-  })
+  if (!props.visible || props.state.queryX === null) return []
 
   return props.tracks.flatMap((track) => {
-    const point = pointByTrack.get(track.index)
-    return point && !track.isEmpty && track.hasVisibleSeries
-      ? [{ point, track, x: track.xScale(point.point.x) }]
+    const trackIsActive = props.state.trackIndex === null || props.state.trackIndex === track.index
+    return trackIsActive && !track.isEmpty && track.hasVisibleSeries
+      ? [{ track, x: track.xScale(props.state.queryX!) }]
       : []
   })
 })

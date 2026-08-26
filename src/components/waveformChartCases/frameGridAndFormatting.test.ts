@@ -22,6 +22,16 @@ describe('WaveformChart', () => {
 
     expect(wrapper.findAll('.waveform-chart__grid--major line').length).toBeGreaterThan(0)
     expect(wrapper.findAll('.waveform-chart__grid--minor line').length).toBeGreaterThan(0)
+    expect(
+      wrapper.findAll('.waveform-chart__grid--major [data-grid-direction="horizontal"]'),
+    ).toHaveLength(5)
+    expect(
+      wrapper.findAll('.waveform-chart__grid--minor [data-grid-direction="horizontal"]'),
+    ).toHaveLength(4)
+    expect(
+      wrapper.findAll('.waveform-chart__grid--minor [data-grid-direction="vertical"]'),
+    ).not.toHaveLength(0)
+    expect(getComputedStyle(wrapper.element).borderTopWidth).toBe('1.2px')
     expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(true)
     expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
       fill: 'none',

@@ -59,6 +59,7 @@ export function useWaveformChartController(
   const hoverState = shallowReactive<WaveformHoverState>({
     points: [],
     trackIndex: null,
+    queryX: null,
     position: { x: 0, y: 0 },
   })
   const suppressHoverUntilMove = ref(false)
