@@ -80,7 +80,7 @@ jobs:
             echo "NPMJS_PUBLISH_TOKEN is not configured; skipping npm publish."
             exit 0
           fi
-          npm publish "release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
+          npm publish "./release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
