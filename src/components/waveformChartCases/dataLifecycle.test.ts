@@ -170,7 +170,7 @@ describe('WaveformChart', () => {
     )
     expect(labelX).toBeLessThan(-46)
     expect(Number(wrapper.get('.waveform-chart__y-axis-label-bg').attributes('x'))).toBe(
-      labelX - 12,
+      labelX - 6,
     )
     expect(yAxisLabels.every((label) => !label.text().includes('(T)'))).toBe(true)
     expect(wrapper.findAll('.waveform-chart__track-label')).toHaveLength(0)

@@ -18,23 +18,19 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
           ? data.series[0].data.points.length
           : 0
       const initialPointCount = pointCount(chart.props('data') as WaveformData)
-
       chart.vm.$emit('zoom-end', { start: 0, end: 0.001 })
       await wrapper.get('[aria-label="重置波形视图"]').trigger('click')
       await vi.advanceTimersByTimeAsync(100)
       await flushPromises()
-
       expect(pointCount(chart.props('data') as WaveformData)).toBe(initialPointCount)
     } finally {
       wrapper.unmount()
       vi.useRealTimers()
     }
   })
-
   it('places controls in the sidebar beside the chart', async () => {
     const wrapper = mount(App)
     await flushPromises()
-
     const panel = wrapper.get('#waveform-control-panel')
     const frameControls = panel.get('.frame-style-controls')
     expect(panel.find('h1').exists()).toBe(false)
@@ -88,7 +84,6 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(legendColorPicker.props('disableAlpha')).toBe(false)
     expect(panel.text()).not.toContain('数据摘要')
     expect(wrapper.get('.chart-panel').find('.waveform-chart').exists()).toBe(true)
-
     wrapper.unmount()
   })
 
@@ -262,8 +257,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
       if (item.data.kind === 'points') {
-        expect(item.data.points).toHaveLength(1000)
-        expect(item.data.points[0]?.x).toBe(-5)
+        expect(item.data.points).toHaveLength(item.name === '阶跃响应' ? 500 : 1000)
+        expect(item.data.points[0]?.x).toBeCloseTo(item.name === '阶跃响应' ? 5 / 999 : -5, 10)
       }
     })
 

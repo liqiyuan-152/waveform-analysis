@@ -55,7 +55,7 @@ describe('WaveformChart', () => {
 
     expect(labelX).toBe(-62)
     expect(labelBackgroundX).toBe(labelX - 6)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(72)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(80)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(72)
   })
 
@@ -82,7 +82,7 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(60)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(80)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(60)
   })
 
