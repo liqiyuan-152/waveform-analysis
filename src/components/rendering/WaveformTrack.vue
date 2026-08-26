@@ -67,6 +67,7 @@ const resolvedFrameStyle = computed(() => {
     class="waveform-track waveform-chart__track"
     :class="{ 'waveform-track--empty waveform-chart__track--empty': track.isEmpty }"
     :data-track-index="track.index"
+    :data-track-id="track.id"
     :data-track-empty="track.isEmpty || undefined"
     :data-track-left="track.left"
     :data-track-width="track.width"

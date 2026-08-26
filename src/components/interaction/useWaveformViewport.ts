@@ -3,11 +3,8 @@ import { computed, nextTick, shallowRef, type ComputedRef, type Ref, type Shallo
 import { MINIMUM_SELECTION_SIZE } from '../core/constants'
 import type { DisplayTrack, TrackLayout } from '../core/types'
 import { hasFixedYDomainForTrack } from '../core/yDomain'
-import type {
-  ResolvedWaveformChartProps,
-  ViewportSelectionState,
-  WaveformChartEmit,
-} from '../core/waveformChartTypes'
+import type { ResolvedWaveformChartProps, ViewportSelectionState } from '../core/waveformChartTypes'
+import type { WaveformChartEmit } from '../core/waveformChartTypes'
 import type { AnnotationSeriesCandidate } from '../annotation'
 import { tryReleasePointerCapture } from './pointerCapture'
 import { transitionViewportInteraction } from './viewportInteractionState'
@@ -104,10 +101,12 @@ export function useWaveformViewport(context: ViewportContext) {
   }
   const currentYDomains = (): Record<string, [number, number]> =>
     Object.fromEntries(
-      trackLayouts.value.map((track) => [
-        track.series.trackId ?? track.series.id,
-        track.yScale.domain() as [number, number],
-      ]),
+      trackLayouts.value
+        .filter((track) => track.hasVisibleSeries)
+        .map((track) => [
+          track.series?.trackId ?? track.series?.id ?? track.id,
+          track.yScale.domain() as [number, number],
+        ]),
     )
   const beginViewportDrag = (event: PointerEvent, trackIndex: number, independent: boolean) => {
     if (isPresentationMode.value) return
@@ -142,8 +141,10 @@ export function useWaveformViewport(context: ViewportContext) {
   const beginSharedViewportDrag = (event: PointerEvent) => {
     if (!sharedOverlayElement.value) return
     const [x, y] = pointer(event, sharedOverlayElement.value)
+    const pointedTrack = resolveTrackAtPointer(x, y)
     const track =
-      resolveTrackAtPointer(x, y) ?? trackLayouts.value.find((item) => item.hasVisibleSeries)
+      (pointedTrack?.hasVisibleSeries ? pointedTrack : undefined) ??
+      trackLayouts.value.find((item) => item.hasVisibleSeries)
     if (track) beginViewportDrag(event, track.index, false)
   }
   const applyPan = (active: ViewportSelectionState, track: TrackLayout) => {
@@ -166,7 +167,9 @@ export function useWaveformViewport(context: ViewportContext) {
     } else {
       sharedTransform.value = transformForDomain(nextX, sourceXDomain, innerWidth.value)
     }
-    const targets = active.independent ? [track] : trackLayouts.value
+    const targets = active.independent
+      ? [track]
+      : trackLayouts.value.filter((target) => target.hasVisibleSeries)
     const nextIndependentDomains = { ...independentYDomains.value }
     const nextSharedDomains = { ...sharedYDomains.value }
     targets.forEach((target) => {
@@ -174,7 +177,7 @@ export function useWaveformViewport(context: ViewportContext) {
       if (chartTrack && hasFixedYDomainForTrack(chartTrack, props.yDomain, props.yDomains)) {
         return
       }
-      const key = target.series.trackId ?? target.series.id
+      const key = target.series?.trackId ?? target.series?.id ?? target.id
       const source = active.yDomains[key] ?? (target.yScale.domain() as [number, number])
       const boundary = chartTrack?.yDomain ?? source
       const ySpan = source[1] - source[0]
@@ -251,16 +254,18 @@ export function useWaveformViewport(context: ViewportContext) {
     } else {
       sharedTransform.value = transformForDomain(xDomain, baseXDomain, innerWidth.value)
     }
-    const targets = active.independent ? [track] : trackLayouts.value
+    const targets = active.independent
+      ? [track]
+      : trackLayouts.value.filter((target) => target.hasVisibleSeries)
     const yRanges = Object.fromEntries(
       targets.map((target) => [
-        target.series.trackId ?? target.series.id,
+        target.series?.trackId ?? target.series?.id ?? target.id,
         target.yScale.domain() as [number, number],
       ]),
     )
     emit('zoom-change', xDomain)
     if (active.independent) {
-      const yDomain = yRanges[track.series.trackId ?? track.series.id]
+      const yDomain = yRanges[track.series?.trackId ?? track.series?.id ?? track.id]
       emit('zoom-end', {
         start: xDomain[0],
         end: xDomain[1],

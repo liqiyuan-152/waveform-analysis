@@ -9,6 +9,8 @@ export interface WaveformGridOptions {
   columnCount?: number
   showPagination?: boolean
   fillIncompleteLastRow?: boolean
+  /** Stable grid slots. Empty IDs remain as empty chart frames and keep their page position. */
+  trackOrder?: string[]
   trackLines?: WaveformGridTrackLines
 }
 
@@ -35,6 +37,7 @@ export interface NormalizedWaveformGridOptions {
   columnCount: number
   showPagination: boolean
   fillIncompleteLastRow: boolean
+  trackOrder?: string[]
   trackLines: Record<string, NormalizedWaveformGridLineOptions>
 }
 
@@ -57,6 +60,15 @@ const normalizeCount = (value: unknown, fallback: number) => {
   const numeric = typeof value === 'number' ? value : Number(value)
   if (!Number.isFinite(numeric)) return fallback
   return Math.min(GRID_MAX_COUNT, Math.max(GRID_MIN_COUNT, Math.floor(numeric)))
+}
+
+const normalizeTrackOrder = (trackOrder: unknown): string[] => {
+  if (!Array.isArray(trackOrder)) return []
+  const normalized = trackOrder
+    .filter((trackId): trackId is string => typeof trackId === 'string')
+    .map((trackId) => trackId.trim())
+    .filter(Boolean)
+  return Array.from(new Set(normalized))
 }
 
 export function normalizeGridOptions(options?: WaveformGridOptions): NormalizedWaveformGridOptions {
@@ -82,6 +94,7 @@ export function normalizeGridOptions(options?: WaveformGridOptions): NormalizedW
     columnCount: normalizeCount(options?.columnCount, 1),
     showPagination: options?.showPagination ?? true,
     fillIncompleteLastRow: options?.fillIncompleteLastRow ?? false,
+    trackOrder: normalizeTrackOrder(options?.trackOrder),
     trackLines,
   }
 }
@@ -148,10 +161,7 @@ export function resolveGridCellGeometry(
   }
   const totalVerticalGap = Math.max(0, rowCount - 1) * defaultGap
   const totalAxisBand = axisRows.size * X_AXIS_BAND
-  const plotHeight = Math.max(
-    1,
-    (innerHeight - totalVerticalGap - totalAxisBand) / rowCount,
-  )
+  const plotHeight = Math.max(1, (innerHeight - totalVerticalGap - totalAxisBand) / rowCount)
 
   return Array.from({ length: filledLastRow ? seriesCount : pageSize }, (_, slotIndex) => {
     const row = Math.floor(slotIndex / options.columnCount)

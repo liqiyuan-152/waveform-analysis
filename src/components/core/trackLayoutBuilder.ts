@@ -26,7 +26,7 @@ import {
   type NormalizedWaveformGridOptions,
 } from './grid'
 import { axisTextMetrics, resolveYAxisSeriesGroups, resolveYAxisTickCount } from './layout'
-import type { DisplaySeries, DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
+import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import {
   Y_AXIS_LABEL_BAND_WIDTH,
@@ -81,33 +81,24 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
   const bottomCells = getBottomRowCellIndexes(visibleCells, options.grid.columnCount)
 
   return visibleCells.flatMap((cell, index) => {
-    const isEmpty = !cell.series
-    if (isEmpty && (options.displayMode !== 'compact' || !options.showCompactEmptyTracks)) return []
-    const emptySeries: DisplaySeries = {
+    const isEmpty = !cell.series || cell.series.series.length === 0
+    if (!cell.series && (options.displayMode !== 'compact' || !options.showCompactEmptyTracks))
+      return []
+    const displayTrack: DisplayTrack = cell.series ?? {
       id: `empty-grid-slot-${cell.slotIndex}`,
-      name: '',
-      color: 'transparent',
-      lineType: 'linear',
-      lineStyle: 'solid',
-      pointType: 'none',
-      errorBar: { visible: false, width: 1.5, capWidth: 8 },
-      points: [],
+      series: [],
+      visibleSeries: [],
       xDomain: [0, 1],
       yDomain: [0, 1],
-      hasErrorPoints: false,
-    }
-    const displayTrack: DisplayTrack = cell.series ?? {
-      id: emptySeries.id,
-      series: [emptySeries],
-      visibleSeries: [emptySeries],
-      xDomain: emptySeries.xDomain,
-      yDomain: emptySeries.yDomain,
     }
     const hasVisibleSeries = !isEmpty && displayTrack.visibleSeries.length > 0
-    const series = displayTrack.visibleSeries[0] ?? displayTrack.series[0] ?? emptySeries
+    const series = displayTrack.visibleSeries[0] ?? displayTrack.series[0] ?? null
     const baseXScale =
       options.displayMode === 'independent'
-        ? scaleLinear(resolveIndependentXDomain(displayTrack, series.id, options), [0, cell.width])
+        ? scaleLinear(
+            resolveIndependentXDomain(displayTrack, series?.id ?? displayTrack.id, options),
+            [0, cell.width],
+          )
         : scaleLinear(options.sharedZoomDomain, [0, cell.width])
     const transform =
       options.displayMode === 'independent'

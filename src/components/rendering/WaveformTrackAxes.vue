@@ -164,6 +164,7 @@ watch(
       track.hasVisibleSeries &&
       track.seriesList.length === 1 &&
       track.showYAxisLabel &&
+      track.series &&
       resolveYAxisLabel(track.series) &&
       shouldShowYAxisLabel(track.height, track.index)
     "
@@ -178,12 +179,12 @@ watch(
     />
     <text
       class="waveform-track__y-axis-label waveform-chart__y-axis-label"
-      :fill="track.series.color"
+      :fill="track.series?.color"
       :transform="`translate(${track.yAxisLabelX}, ${track.height / 2}) rotate(-90)`"
       text-anchor="middle"
       dominant-baseline="central"
     >
-      {{ resolveYAxisLabel(track.series) }}
+      {{ track.series ? resolveYAxisLabel(track.series) : '' }}
     </text>
   </g>
 

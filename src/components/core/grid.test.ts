@@ -16,6 +16,7 @@ describe('waveform grid helpers', () => {
       columnCount: 1,
       showPagination: true,
       fillIncompleteLastRow: false,
+      trackOrder: [],
       trackLines: {},
     })
     expect(normalizeGridOptions({ rowCount: 0, columnCount: 99 })).toEqual({
@@ -23,8 +24,15 @@ describe('waveform grid helpers', () => {
       columnCount: 10,
       showPagination: true,
       fillIncompleteLastRow: false,
+      trackOrder: [],
       trackLines: {},
     })
+  })
+
+  it('normalizes track order by trimming, dropping blanks, and removing duplicates', () => {
+    expect(
+      normalizeGridOptions({ trackOrder: [' voltage ', '', 'current', 'voltage', '  '] }),
+    ).toMatchObject({ trackOrder: ['voltage', 'current'] })
   })
 
   it('normalizes per-track grid line visibility with visible defaults', () => {
@@ -170,7 +178,11 @@ describe('waveform grid helpers', () => {
 
   it('keeps full pages and the disabled option byte-for-byte compatible', () => {
     const base = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
-    const filled = normalizeGridOptions({ rowCount: 2, columnCount: 2, fillIncompleteLastRow: true })
+    const filled = normalizeGridOptions({
+      rowCount: 2,
+      columnCount: 2,
+      fillIncompleteLastRow: true,
+    })
     const fullSlots = [true, true, true, true]
     expect(resolveGridCellGeometry(400, 300, filled, 'independent', fullSlots)).toEqual(
       resolveGridCellGeometry(400, 300, base, 'independent', fullSlots),

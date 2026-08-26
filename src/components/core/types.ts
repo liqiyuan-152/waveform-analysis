@@ -86,7 +86,8 @@ export interface TrackLayout {
   /** Stable track key derived from trackId, or from the series id when trackId is omitted. */
   id: string
   index: number
-  series: DisplaySeries
+  /** Primary visible series, if this grid slot has waveform data. */
+  series: DisplaySeries | null
   /** Visible series used by rendering and interaction code. */
   seriesList: DisplaySeries[]
   /** Complete series list used by the legend. */

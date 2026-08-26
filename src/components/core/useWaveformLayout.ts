@@ -75,6 +75,7 @@ export function useWaveformLayout(context: LayoutContext) {
         (index === 0 ? props.lineColor : channelColors[index % channelColors.length]),
     })),
   )
+  const gridOptions = computed(() => normalizeGridOptions(props.grid))
   const chartTracks = computed<DisplayTrack[]>(() => {
     const groupedSeries = new Map<string, DisplaySeries[]>()
     chartSeries.value.forEach((series) => {
@@ -83,7 +84,13 @@ export function useWaveformLayout(context: LayoutContext) {
       if (trackSeries) trackSeries.push(series)
       else groupedSeries.set(trackId, [series])
     })
-    return Array.from(groupedSeries, ([id, series]) => {
+    const trackOrder = gridOptions.value.trackOrder ?? []
+    const orderedTrackIds = [
+      ...trackOrder,
+      ...Array.from(groupedSeries.keys()).filter((trackId) => !trackOrder.includes(trackId)),
+    ]
+    return orderedTrackIds.map((id) => {
+      const series = groupedSeries.get(id) ?? []
       const visibleSeries = series.filter((item) => !hiddenSeriesIdSet.value.has(item.id))
       const xDomainValues: number[] = []
       const yDomainValues: number[] = []
@@ -95,12 +102,11 @@ export function useWaveformLayout(context: LayoutContext) {
         id,
         series,
         visibleSeries,
-        xDomain: paddedDomain(xDomainValues),
-        yDomain: paddedDomain(yDomainValues),
+        xDomain: xDomainValues.length ? paddedDomain(xDomainValues) : [0, 1],
+        yDomain: yDomainValues.length ? paddedDomain(yDomainValues) : [0, 1],
       }
     })
   })
-  const gridOptions = computed(() => normalizeGridOptions(props.grid))
   const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
   const pageCount = computed(() => getPageCount(chartTracks.value.length, gridOptions.value))
   const pagedTracks = computed(() =>
@@ -245,8 +251,8 @@ export function useWaveformLayout(context: LayoutContext) {
   })
   const resolveInitialTrackDomain = (track: TrackLayout): [number, number] => {
     const configuredDomain =
-      props.initialXDomains?.[track.series.trackId ?? track.series.id] ??
-      props.initialXDomains?.[track.series.id] ??
+      props.initialXDomains?.[track.series?.trackId ?? track.series?.id ?? track.id] ??
+      (track.series ? props.initialXDomains?.[track.series.id] : undefined) ??
       props.initialXDomain
     if (
       configuredDomain &&

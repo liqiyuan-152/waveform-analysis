@@ -153,7 +153,8 @@ export function useWaveformHover(context: HoverContext) {
     scheduleHover(() => {
       const resolvedTrack = resolveTrackAtPointer(pointerX, pointerY)
       const referenceTrack =
-        resolvedTrack ?? trackLayouts.value.find((track) => track.hasVisibleSeries)
+        (resolvedTrack?.hasVisibleSeries ? resolvedTrack : undefined) ??
+        trackLayouts.value.find((track) => track.hasVisibleSeries)
       if (!referenceTrack) return
       const localPointerX = Math.max(
         0,

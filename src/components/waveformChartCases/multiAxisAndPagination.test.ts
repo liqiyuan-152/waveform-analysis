@@ -144,6 +144,55 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.ant-pagination-next').classes()).toContain('ant-pagination-disabled')
   })
 
+  it('keeps ordered empty tracks in their page slots after channels are merged', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: ['frame-1', 'frame-1', 'frame-3', 'frame-4', 'frame-5', 'frame-6'].map(
+          (trackId, index) => ({
+            id: `channel-${index + 1}`,
+            trackId,
+            name: `channel-${index + 1}`,
+            data: {
+              kind: 'points' as const,
+              points: [
+                { x: 0, y: index },
+                { x: 1, y: index + 1 },
+              ],
+            },
+          }),
+        ),
+      },
+      {
+        grid: {
+          rowCount: 2,
+          columnCount: 1,
+          trackOrder: ['frame-1', 'frame-2', 'frame-3', 'frame-4', 'frame-5', 'frame-6'],
+        },
+      },
+    )
+    const trackIds = () =>
+      wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id'))
+    const lineIds = () =>
+      wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id'))
+    const nextButton = () => wrapper.get('.ant-pagination-next button')
+
+    expect(trackIds()).toEqual(['frame-1', 'frame-2'])
+    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(1)
+    expect(lineIds()).toEqual(['channel-1', 'channel-2'])
+    expect(wrapper.findAll('.waveform-chart__legend')).toHaveLength(1)
+
+    await nextButton().trigger('click')
+    expect(trackIds()).toEqual(['frame-3', 'frame-4'])
+    expect(lineIds()).toEqual(['channel-3', 'channel-4'])
+    expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 3])
+
+    await nextButton().trigger('click')
+    expect(trackIds()).toEqual(['frame-5', 'frame-6'])
+    expect(lineIds()).toEqual(['channel-5', 'channel-6'])
+    expect(wrapper.emitted('page-change')?.at(-1)).toEqual([3, 3])
+  })
+
   it('overlays series with the same track ID without changing the next frame', async () => {
     const wrapper = await mountSizedChart(
       {

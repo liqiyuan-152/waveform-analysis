@@ -222,7 +222,7 @@ function handleChartPointerLeave() {
         <!-- 轨道渲染 -->
         <WaveformTrack
           v-for="track in trackLayouts"
-          :key="`${track.index}-${track.series.name}`"
+          :key="`${track.index}-${track.id}`"
           :track="track"
           :clip-path-id="clipPathId"
           :inner-width="innerWidth"
@@ -277,7 +277,7 @@ function handleChartPointerLeave() {
         <g v-if="!isCleanView" class="waveform-chart__legend-layer">
           <g
             v-for="track in trackLayouts"
-            :key="`legend-${track.index}-${track.series.name}`"
+            :key="`legend-${track.index}-${track.id}`"
             class="waveform-chart__legend-track"
             :data-legend-track-index="track.index"
             :data-legend-track-id="track.id"

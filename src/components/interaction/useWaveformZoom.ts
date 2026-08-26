@@ -177,7 +177,7 @@ export function useWaveformZoom(context: ZoomContext) {
         end: domain[1],
         yRanges: Object.fromEntries(
           visibleTracks.map((track) => [
-            track.series.trackId ?? track.series.id,
+            track.series?.trackId ?? track.series?.id ?? track.id,
             track.yScale.domain() as [number, number],
           ]),
         ),
