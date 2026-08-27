@@ -133,9 +133,13 @@ export function axisTextMetrics(
   }
 }
 
-export function measureYAxisGroupClearance(group: YAxisSeriesGroup, tickCount?: number): number {
+export function measureYAxisGroupClearance(
+  group: YAxisSeriesGroup,
+  tickCount?: number,
+  nice = true,
+): number {
   return (
-    axisTextMetrics(group.domain, true, undefined, group.seriesList[0]?.unit, tickCount)
+    axisTextMetrics(group.domain, nice, undefined, group.seriesList[0]?.unit, tickCount)
       .tickTextWidth +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_LABEL_GAP +
@@ -144,9 +148,13 @@ export function measureYAxisGroupClearance(group: YAxisSeriesGroup, tickCount?: 
   )
 }
 
-function measureYAxisGroupTickClearance(group: YAxisSeriesGroup, tickCount?: number): number {
+function measureYAxisGroupTickClearance(
+  group: YAxisSeriesGroup,
+  tickCount?: number,
+  nice = true,
+): number {
   return (
-    axisTextMetrics(group.domain, true, undefined, group.seriesList[0]?.unit, tickCount)
+    axisTextMetrics(group.domain, nice, undefined, group.seriesList[0]?.unit, tickCount)
       .tickTextWidth +
     Y_AXIS_TICK_PADDING +
     Y_AXIS_OUTER_PADDING
@@ -159,13 +167,14 @@ export function measureTrackYAxisClearance(
   yDomain?: WaveformYDomain,
   yDomains?: Record<string, WaveformYDomain>,
   tickCount?: number,
+  nice = true,
 ): { left: number; right: number } {
   return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).reduce(
     (clearance, group) => {
       clearance[group.side] +=
         overlayMode === 'multi-axis' || track.visibleSeries.length === 1
-          ? measureYAxisGroupClearance(group, tickCount)
-          : measureYAxisGroupTickClearance(group, tickCount)
+          ? measureYAxisGroupClearance(group, tickCount, nice)
+          : measureYAxisGroupTickClearance(group, tickCount, nice)
       return clearance
     },
     { left: 0, right: 0 },

@@ -234,6 +234,13 @@ Y 轴会独立计算：
 <WaveformChart :data="chartData" :axes="{ y: { splitNumber: 5 } }" />
 ```
 
+默认会将 Y 轴范围扩展为便于读取的等距刻度。传入 `nice: false` 可保持数据自动范围或
+`yDomain` / `yDomains` 的原始端点：
+
+```vue
+<WaveformChart :data="chartData" :axes="{ y: { nice: false } }" />
+```
+
 ### 缩放后按可视区间加载数据
 
 组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放

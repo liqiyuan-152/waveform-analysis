@@ -112,6 +112,12 @@ export function useWaveformLayout(context: LayoutContext) {
   const pagedTracks = computed(() =>
     paginateSeries(chartTracks.value, currentPage.value, gridOptions.value),
   )
+  const layoutTracks = computed(() => {
+    const tracksWithSeries = pagedTracks.value.filter((track) => track.series.length > 0)
+    return gridOptions.value.fillIncompleteLastRow && tracksWithSeries.length > 0
+      ? tracksWithSeries
+      : pagedTracks.value
+  })
   const yAxisMetrics = computed(() => {
     const axisText = chartTracks.value
       .filter((track) => track.visibleSeries.length > 0)
@@ -122,7 +128,7 @@ export function useWaveformLayout(context: LayoutContext) {
         (group) =>
           axisTextMetrics(
             group.domain,
-            true,
+            props.axes?.y?.nice !== false,
             undefined,
             group.seriesList[0]?.unit,
             props.axes?.y?.splitNumber,
@@ -173,6 +179,7 @@ export function useWaveformLayout(context: LayoutContext) {
           props.yDomain,
           props.yDomains,
           props.axes?.y?.splitNumber,
+          props.axes?.y?.nice !== false,
         )
         return {
           left: Math.max(maximum.left, clearance.left),
@@ -223,9 +230,7 @@ export function useWaveformLayout(context: LayoutContext) {
   const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
   const resolvedXLabel = computed(() => props.xLabel ?? `时间（${props.timeUnit}）`)
   const activeInteractionMode = computed(() => props.interactionMode)
-  const isZoomMode = computed(
-    () => activeInteractionMode.value === 'zoom' || activeInteractionMode.value === undefined,
-  )
+  const isZoomMode = computed(() => activeInteractionMode.value !== 'annotation')
   const sharedXDomain = computed(() => {
     const values: number[] = []
     chartTracks.value.forEach((track) => {
@@ -285,10 +290,10 @@ export function useWaveformLayout(context: LayoutContext) {
       innerHeight.value,
       gridOptions.value,
       props.displayMode,
-      pagedTracks.value.map(Boolean),
+      layoutTracks.value.map(Boolean),
       yAxisLayout.value.horizontalGap,
     )
-    return cells.map((cell, index) => ({ ...cell, series: pagedTracks.value[index] }))
+    return cells.map((cell, index) => ({ ...cell, series: layoutTracks.value[index] }))
   })
   const trackLayouts = computed<TrackLayout[]>(() =>
     buildTrackLayouts({
@@ -315,6 +320,7 @@ export function useWaveformLayout(context: LayoutContext) {
       timeUnit: props.timeUnit,
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
       yAxisSplitNumber: props.axes?.y?.splitNumber,
+      yAxisNice: props.axes?.y?.nice,
       rendering: renderingOptions.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
       yAxisLabelX: yAxisMetrics.value.labelCenterX,

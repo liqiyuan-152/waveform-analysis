@@ -55,6 +55,7 @@ export interface BuildTrackLayoutsOptions {
   timeUnit: 's' | 'ms'
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
   yAxisSplitNumber?: number
+  yAxisNice?: boolean
   rendering: ResolvedWaveformRenderingOptions
   hideSecondaryLabels: boolean
   yAxisLabelX: number
@@ -119,7 +120,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const tickCount = resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber)
       const niceCount = Math.max(1, tickCount - 1)
       const scale = scaleLinear(group.domain, [cell.plotHeight, 0])
-      scale.nice(niceCount)
+      if (options.yAxisNice !== false) scale.nice(niceCount)
       const [axisStart, axisEnd] = scale.domain()
       const majorTicks = Array.from(
         { length: tickCount },
@@ -158,7 +159,9 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         seriesList: group.seriesList,
       }
     })
-    const yScale = yAxes[0]?.scale ?? scaleLinear(displayTrack.yDomain, [cell.plotHeight, 0]).nice()
+    const fallbackYScale = scaleLinear(displayTrack.yDomain, [cell.plotHeight, 0])
+    if (options.yAxisNice !== false) fallbackYScale.nice()
+    const yScale = yAxes[0]?.scale ?? fallbackYScale
     const xMajorTicks = xScale.ticks(Math.max(2, Math.floor(cell.width / 100)))
     const yMajorTicks = yAxes[0]?.majorTicks ?? []
     const yAxisTickValues = yAxes[0]?.tickValues ?? []

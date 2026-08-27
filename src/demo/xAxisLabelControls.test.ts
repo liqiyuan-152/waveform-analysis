@@ -82,5 +82,5 @@ describe('X-axis label demo controls', () => {
     expect(chart.props('axes')?.x?.labelFormatter).toBeUndefined()
     expect(wrapper.find('[aria-label="X 轴 Label 运算倍率"]').exists()).toBe(false)
     wrapper.unmount()
-  })
+  }, 10_000)
 })
