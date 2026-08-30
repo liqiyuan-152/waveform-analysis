@@ -35,6 +35,7 @@ export interface WaveformChartProps {
   pannable?: boolean
   minZoomSpan?: number
   minVisiblePoints?: number
+  maxZoomScale?: number | null
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy

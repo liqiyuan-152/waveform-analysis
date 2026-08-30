@@ -14,6 +14,7 @@ export type ZoomSeriesGroup = readonly PointSeriesSource[]
 interface ZoomConstraintOptions {
   minZoomSpan?: number
   minVisiblePoints?: number
+  maxZoomScale?: number | null
 }
 
 const xValueCache = new WeakMap<object, Map<string, number[]>>()
@@ -80,10 +81,14 @@ export function resolveMinimumZoomSpan(
       : 0
   const required = resolveRequiredPointCount(options.minVisiblePoints)
   const pointSpan = minimumPointSpan(groups, normalized, required)
-  if (configuredSpan > 0 || required > 0) {
-    return Math.max(configuredSpan, pointSpan)
-  }
-  return boundarySpan / ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
+  const configuredScale = Number(options.maxZoomScale)
+  const scaleSpan =
+    Number.isFinite(configuredScale) && configuredScale >= ZOOM_CONSTRAINTS.MIN_SCALE
+      ? boundarySpan / configuredScale
+      : options.maxZoomScale !== null && configuredSpan === 0 && required === 0
+        ? boundarySpan / ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
+        : 0
+  return Math.max(configuredSpan, pointSpan, scaleSpan)
 }
 
 function expandToMinimumPoints(

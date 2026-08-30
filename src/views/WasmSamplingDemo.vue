@@ -68,6 +68,7 @@ const mode = ref<WaveformSamplingMode>('auto')
 const strategy = ref<WaveformSamplingStrategy>('peak')
 const autoThreshold = ref(1_000)
 const maxPointsPerPixel = ref(3)
+const minVisiblePoints = ref(2)
 const diagnostics = reactive<Record<string, WaveformSamplingDiagnostics | undefined>>({})
 
 const rendering = computed<WaveformRenderingOptions>(() => ({
@@ -135,6 +136,10 @@ function pointCount(value: number | undefined) {
           size="small"
         />
       </label>
+      <label>
+        <span>最少可见点</span>
+        <InputNumber v-model:value="minVisiblePoints" :min="2" :max="1000" :step="1" size="small" />
+      </label>
     </section>
 
     <section class="sampling-demo__workspace">
@@ -144,6 +149,8 @@ function pointCount(value: number | undefined) {
           :rendering="rendering"
           :grid="{ rowCount: 1, columnCount: 1, showPagination: false }"
           :legend="{ position: 'top-right', orientation: 'vertical' }"
+          :max-zoom-scale="null"
+          :min-visible-points="minVisiblePoints"
           :title="{ visible: true, text: '多系列采样与缓存诊断', align: 'left' }"
           x-label="时间（s）"
           time-unit="s"

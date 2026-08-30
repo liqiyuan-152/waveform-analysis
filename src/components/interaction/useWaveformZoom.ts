@@ -231,7 +231,7 @@ export function useWaveformZoom(context: ZoomContext) {
     const minimumSpan = resolveMinimumZoomSpan(domain, groups, props)
     return Math.max(
       ZOOM_CONSTRAINTS.MIN_SCALE,
-      minimumSpan > 0 ? domainSpan / minimumSpan : ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE,
+      minimumSpan > 0 ? domainSpan / minimumSpan : Number.POSITIVE_INFINITY,
     )
   }
   const constrainTransform = (
