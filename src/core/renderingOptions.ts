@@ -11,6 +11,7 @@ export interface ResolvedWaveformSamplingOptions {
   autoHysteresis: number
   strategy: WaveformSamplingStrategy
   maxPointsPerPixel: number
+  maxPointCount: number | undefined
   rawPointLimit: number
   wasmFailureFallback: 'error' | 'javascript'
 }
@@ -36,6 +37,7 @@ export const DEFAULT_WAVEFORM_RENDERING_OPTIONS: ResolvedWaveformRenderingOption
     autoHysteresis: 0,
     strategy: 'peak',
     maxPointsPerPixel: 4,
+    maxPointCount: undefined,
     rawPointLimit: 100_000,
     wasmFailureFallback: 'error',
   },
@@ -72,6 +74,12 @@ function resolvePositiveNumber(value: unknown, fallback: number): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : fallback
 }
 
+function resolveOptionalFiniteInteger(value: unknown, minimum: number): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value) && value >= minimum
+    ? Math.floor(value)
+    : undefined
+}
+
 function resolveNonNegativeNumber(value: number, fallback: number): number {
   return Number.isFinite(value) && value >= 0 ? value : fallback
 }
@@ -106,6 +114,7 @@ function resolveSamplingOptions(
       ? options.strategy
       : DEFAULT_WAVEFORM_RENDERING_OPTIONS.sampling.strategy,
     maxPointsPerPixel,
+    maxPointCount: resolveOptionalFiniteInteger(options?.maxPointCount, 1),
     rawPointLimit: resolveFiniteInteger(
       options?.rawPointLimit,
       1,

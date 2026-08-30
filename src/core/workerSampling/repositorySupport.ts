@@ -92,6 +92,9 @@ export function selectedStrategy(strategy: WorkerSamplingSeriesRequest['strategy
 }
 
 export function targetPointCount(request: WorkerSamplingSeriesRequest) {
+  if (Number.isFinite(request.maxPointCount) && (request.maxPointCount ?? 0) >= 1) {
+    return Math.floor(request.maxPointCount as number)
+  }
   const width = Number.isFinite(request.plotWidth) ? Math.max(0, request.plotWidth) : 0
   const density = Number.isFinite(request.maxPointsPerPixel)
     ? Math.max(0, request.maxPointsPerPixel ?? 0)
@@ -179,6 +182,7 @@ export function cacheKey(
     request.plotWidth,
     target,
     request.maxPointsPerPixel,
+    request.maxPointCount,
     request.mode,
     backend,
     strategy,

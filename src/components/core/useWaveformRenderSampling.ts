@@ -75,11 +75,14 @@ function rawDiagnostics(target: SamplingTarget, requestId: number): WorkerSampli
   }
 }
 
-function fallbackPoints(target: SamplingTarget, maxPointsPerPixel: number) {
+function fallbackPoints(target: SamplingTarget) {
   const { source } = target
   const { start, end } = target.visibleRange
   const count = end - start
-  const targetCount = Math.max(1, Math.floor(target.request.plotWidth * maxPointsPerPixel))
+  const targetCount =
+    Number.isFinite(target.request.maxPointCount) && (target.request.maxPointCount ?? 0) >= 1
+      ? Math.floor(target.request.maxPointCount as number)
+      : Math.max(1, Math.floor(target.request.plotWidth * target.request.maxPointsPerPixel!))
   if (count <= targetCount) return source.pointsInRange(start, end)
   if (targetCount === 1) return source.pointAt(start) ? [source.pointAt(start)!] : []
   const points: WaveformPoint[] = []
@@ -141,6 +144,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
               autoHysteresis: sampling.autoHysteresis,
               strategy: sampling.strategy,
               maxPointsPerPixel: sampling.maxPointsPerPixel,
+              maxPointCount: sampling.maxPointCount,
               rawPointLimit: sampling.rawPointLimit,
               wasmFailureFallback: sampling.wasmFailureFallback,
               lineType: series.lineType,
@@ -159,7 +163,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
       `${dataEpoch.value}:${targets.value
         .map(
           (target) =>
-            `${target.request.datasetId}:${target.request.xDomain.join(',')}:${target.request.plotWidth}:${target.visibleRange.start}:${target.visibleRange.end}:${target.request.mode}:${target.request.autoThreshold}:${target.request.autoHysteresis}:${target.request.strategy}:${target.request.maxPointsPerPixel}:${target.request.rawPointLimit}:${target.request.wasmFailureFallback}:${target.request.lineType}:${target.request.pointType}:${target.request.errorBarVisible}:${target.request.pointMinSpacing}:${target.request.errorBarMinSpacing}`,
+            `${target.request.datasetId}:${target.request.xDomain.join(',')}:${target.request.plotWidth}:${target.visibleRange.start}:${target.visibleRange.end}:${target.request.mode}:${target.request.autoThreshold}:${target.request.autoHysteresis}:${target.request.strategy}:${target.request.maxPointsPerPixel}:${target.request.maxPointCount}:${target.request.rawPointLimit}:${target.request.wasmFailureFallback}:${target.request.lineType}:${target.request.pointType}:${target.request.errorBarVisible}:${target.request.pointMinSpacing}:${target.request.errorBarMinSpacing}`,
         )
         .join('|')}`,
   )
@@ -253,10 +257,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         diagnostics.push(rawDiagnostics(target, token))
       } else {
         if (!nextOverrides[target.series.id]?.length) {
-          nextOverrides[target.series.id] = fallbackPoints(
-            target,
-            context.renderingOptions.value.sampling.maxPointsPerPixel,
-          )
+          nextOverrides[target.series.id] = fallbackPoints(target)
         }
         sampledTargets.push({
           ...target,

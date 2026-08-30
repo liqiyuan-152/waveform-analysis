@@ -684,8 +684,9 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 
 默认 `auto` 模式按每条系列的当前可见点数决定渲染路径：不超过 1,000 个点直接使用原始
 可视点；超过 1,000 个点时，组件将当前页面的可见系列合并为一次 Web Worker 请求，并在
-Worker 内通过 WASM 执行保峰采样。采样数量仍由图框宽度和每像素最大点数控制，默认每个像素
-最多渲染 4 个保峰点。可按业务调整：
+Worker 内通过 WASM 执行保峰采样。默认采样数量由图框宽度和每像素最大点数控制，默认每个像素
+最多渲染 4 个保峰点。多通道场景可通过 `sampling.maxPointCount` 设定每条曲线的固定目标数量；
+设置后会优先于像素密度。可按业务调整：
 
 ```vue
 <WaveformChart
@@ -708,8 +709,9 @@ Worker 内通过 WASM 执行保峰采样。采样数量仍由图框宽度和每�
 
 `rendering.sampling` 控制 Worker/WASM 渲染路径。默认模式为 `auto`，其单系列可见点阈值为
 `1_000`，默认策略为 `peak`。`wasm` 强制发起 Worker+WASM 请求，不受阈值影响；`raw` 完全绕过
-Worker 和采样，直接渲染当前可见原始点。嵌套的 `sampling.maxPointsPerPixel` 优先于旧的
-`rendering.maxPointsPerPixel`。未指定 `sampling.mode` 时，旧的 `downsample: false` 映射为
+Worker 和采样，直接渲染当前可见原始点。`sampling.maxPointCount` 用于每条线的固定采样数量，
+`sampling.maxPointsPerPixel` 用于按宽度自适应；两者同时存在时固定数量优先。嵌套的
+`sampling.maxPointsPerPixel` 优先于旧的 `rendering.maxPointsPerPixel`。未指定 `sampling.mode` 时，旧的 `downsample: false` 映射为
 `raw`，`downsample: true` 映射为 `auto`。
 
 ```ts
@@ -719,6 +721,7 @@ rendering: {
     autoThreshold: 1_000,
     autoHysteresis: 0,
     strategy: 'peak',
+    maxPointCount: 1_000,
     maxPointsPerPixel: 4,
     rawPointLimit: 100_000,
     wasmFailureFallback: 'error',
@@ -852,7 +855,7 @@ Worker 的 JavaScript 回退后端和 Rust/WASM 后端都按需建立多分辨�
 同步释放其索引与缓存项。`sampling-complete.cacheHit` 只在 Worker 实际返回该缓存项时为 `true`。
 
 演示可在 `#/wasm-sampling` 打开。该路由生成 10 条各 100,000 点的 `Float32Array` 通道，可切换
-`auto` / `wasm` / `raw`，所有采样策略、自动阈值和每像素点数；右侧表格显示每个系列的真实后端、
+`auto` / `wasm` / `raw`，所有采样策略、自动阈值和每条线最大渲染点数；右侧表格显示每个系列的真实后端、
 源点/可见点/渲染点、耗时和缓存命中状态。
 
 库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署

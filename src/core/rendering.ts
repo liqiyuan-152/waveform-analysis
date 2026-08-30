@@ -106,7 +106,9 @@ function selectSamplingPlaceholderPoints(
   const count = end - start
   if (count <= 0) return []
   if (options.sampling.strategy === 'none') return points.slice(start, end)
-  const target = Math.max(1, Math.floor(width * options.sampling.maxPointsPerPixel))
+  const target =
+    options.sampling.maxPointCount ??
+    Math.max(1, Math.floor(width * options.sampling.maxPointsPerPixel))
   if (count <= target) return points.slice(start, end)
   if (target === 1) return [points[start]!]
   return Array.from({ length: target }, (_, index) => {

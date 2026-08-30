@@ -96,6 +96,8 @@ export interface WaveformSamplingOptions {
   strategy?: WaveformSamplingStrategy
   /** Upper bound for rendered points per horizontal CSS pixel. */
   maxPointsPerPixel?: number
+  /** Fixed per-series target point count. When set, this takes precedence over pixel density. */
+  maxPointCount?: number
   /** Visible-point count at which raw rendering should report a diagnostic. */
   rawPointLimit?: number
   /** Controls whether a forced WASM failure may temporarily show JavaScript results. */

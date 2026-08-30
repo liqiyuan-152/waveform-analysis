@@ -5,6 +5,7 @@ import { InputNumber, RadioButton, RadioGroup, Select } from 'ant-design-vue'
 import { WaveformChart } from '../components'
 import type {
   WaveformData,
+  WaveformAnnotation,
   WaveformRenderingOptions,
   WaveformSamplingDiagnostics,
   WaveformSamplingMode,
@@ -67,8 +68,9 @@ const data = createDenseData()
 const mode = ref<WaveformSamplingMode>('auto')
 const strategy = ref<WaveformSamplingStrategy>('peak')
 const autoThreshold = ref(1_000)
-const maxPointsPerPixel = ref(3)
+const maxPointCount = ref(1_000)
 const minVisiblePoints = ref(2)
+const annotations = ref<WaveformAnnotation[]>([])
 const diagnostics = reactive<Record<string, WaveformSamplingDiagnostics | undefined>>({})
 
 const rendering = computed<WaveformRenderingOptions>(() => ({
@@ -76,7 +78,7 @@ const rendering = computed<WaveformRenderingOptions>(() => ({
     mode: mode.value,
     strategy: strategy.value,
     autoThreshold: autoThreshold.value,
-    maxPointsPerPixel: maxPointsPerPixel.value,
+    maxPointCount: maxPointCount.value,
     rawPointLimit: 100_000,
     wasmFailureFallback: 'javascript',
   },
@@ -127,12 +129,12 @@ function pointCount(value: number | undefined) {
         />
       </label>
       <label>
-        <span>每像素点数</span>
+        <span>最多渲染点</span>
         <InputNumber
-          v-model:value="maxPointsPerPixel"
-          :min="0.25"
-          :max="16"
-          :step="0.25"
+          v-model:value="maxPointCount"
+          :min="1"
+          :max="100000"
+          :step="100"
           size="small"
         />
       </label>
@@ -146,6 +148,7 @@ function pointCount(value: number | undefined) {
       <div class="sampling-demo__chart">
         <WaveformChart
           :data="data"
+          v-model:annotations="annotations"
           :rendering="rendering"
           :grid="{ rowCount: 1, columnCount: 1, showPagination: false }"
           :legend="{ position: 'top-right', orientation: 'vertical' }"

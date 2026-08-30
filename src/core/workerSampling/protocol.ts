@@ -90,6 +90,7 @@ export interface WorkerSamplingSeriesRequest {
   previousSelectedMode?: 'raw' | 'sampled'
   strategy: WaveformSamplingStrategy
   maxPointsPerPixel?: number
+  maxPointCount?: number
   rawPointLimit?: number
   wasmFailureFallback?: 'error' | 'javascript'
   /** Rendering inputs that affect the cache key, even when only line geometry is overridden. */
