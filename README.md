@@ -855,7 +855,8 @@ Worker 的 JavaScript 回退后端和 Rust/WASM 后端都按需建立多分辨�
 同步释放其索引与缓存项。`sampling-complete.cacheHit` 只在 Worker 实际返回该缓存项时为 `true`。
 
 演示可在 `#/wasm-sampling` 打开。该路由生成 10 条各 100,000 点的 `Float32Array` 通道，可切换
-`auto` / `wasm` / `raw`，所有采样策略、自动阈值和每条线最大渲染点数；右侧表格显示每个系列的真实后端、
+`auto` / `wasm` / `raw`，所有采样策略与自动阈值；Peak 类策略按每像素点数采样，LTTB、Average、
+Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的真实后端、
 源点/可见点/渲染点、耗时和缓存命中状态。
 
 库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署

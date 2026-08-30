@@ -49,4 +49,58 @@ describe('WorkerSamplingRepository sampling targets', () => {
     if (response.type !== 'sample-viewport-response') return
     expect(response.results[0]?.diagnostics.renderedPointCount).toBeLessThanOrEqual(4)
   })
+
+  it.each(['lttb', 'average', 'sum'] as const)(
+    'returns exactly the fixed target for %s when enough points are visible',
+    (strategy) => {
+      const source = Array.from({ length: 100_000 }, (_, index) => ({
+        x: index,
+        y: Math.sin(index / 10),
+      }))
+      const repository = new WorkerSamplingRepository()
+      repository.handle({
+        type: 'register-dataset',
+        requestId: 1,
+        datasetId: strategy,
+        revision: 0,
+        points: source,
+      })
+      const response = repository.handle({
+        type: 'sample-viewport',
+        requestId: 2,
+        series: [
+          {
+            ...sampleSeries(strategy),
+            xDomain: [0, 99_999],
+            strategy,
+            maxPointCount: 1_000,
+          },
+        ],
+      })
+
+      expect(response).toMatchObject({
+        results: [{ diagnostics: { visiblePointCount: 100_000, renderedPointCount: 1_000 } }],
+      })
+    },
+  )
+
+  it('does not add points when the visible source has fewer than the fixed target', () => {
+    const repository = new WorkerSamplingRepository()
+    register(repository, 'small-target')
+    const response = repository.handle({
+      type: 'sample-viewport',
+      requestId: 3,
+      series: [
+        {
+          ...sampleSeries('small-target'),
+          strategy: 'lttb',
+          maxPointCount: 100,
+        },
+      ],
+    })
+
+    expect(response).toMatchObject({
+      results: [{ diagnostics: { visiblePointCount: 12, renderedPointCount: 12 } }],
+    })
+  })
 })

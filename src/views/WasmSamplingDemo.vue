@@ -11,6 +11,11 @@ import type {
   WaveformSamplingMode,
   WaveformSamplingStrategy,
 } from '../types'
+import {
+  samplingSizeOptions,
+  showsSamplingSize,
+  usesFixedPointCount,
+} from './wasmSamplingDemoSampling'
 
 const SERIES_COUNT = 10
 const POINTS_PER_SERIES = 100_000
@@ -68,6 +73,7 @@ const data = createDenseData()
 const mode = ref<WaveformSamplingMode>('auto')
 const strategy = ref<WaveformSamplingStrategy>('peak')
 const autoThreshold = ref(1_000)
+const maxPointsPerPixel = ref(3)
 const maxPointCount = ref(1_000)
 const minVisiblePoints = ref(2)
 const annotations = ref<WaveformAnnotation[]>([])
@@ -78,7 +84,7 @@ const rendering = computed<WaveformRenderingOptions>(() => ({
     mode: mode.value,
     strategy: strategy.value,
     autoThreshold: autoThreshold.value,
-    maxPointCount: maxPointCount.value,
+    ...samplingSizeOptions(strategy.value, maxPointsPerPixel.value, maxPointCount.value),
     rawPointLimit: 100_000,
     wasmFailureFallback: 'javascript',
   },
@@ -128,8 +134,8 @@ function pointCount(value: number | undefined) {
           size="small"
         />
       </label>
-      <label>
-        <span>最多渲染点</span>
+      <label v-if="usesFixedPointCount(strategy)">
+        <span>目标渲染点数</span>
         <InputNumber
           v-model:value="maxPointCount"
           :min="1"
@@ -138,6 +144,17 @@ function pointCount(value: number | undefined) {
           size="small"
         />
       </label>
+      <label v-else-if="showsSamplingSize(strategy)">
+        <span>每像素点数</span>
+        <InputNumber
+          v-model:value="maxPointsPerPixel"
+          :min="0.1"
+          :max="10"
+          :step="0.1"
+          size="small"
+        />
+      </label>
+      <span v-else class="sampling-demo__sampling-disabled">当前策略不执行降采样</span>
       <label>
         <span>最少可见点</span>
         <InputNumber v-model:value="minVisiblePoints" :min="2" :max="1000" :step="1" size="small" />
