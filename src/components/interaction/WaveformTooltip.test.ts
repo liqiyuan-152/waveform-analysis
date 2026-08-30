@@ -188,9 +188,7 @@ describe('WaveformTooltip', () => {
       },
     })
 
-    const values = wrapper
-      .findAll('.waveform-tooltip__value')
-      .map((value) => value.text())
+    const values = wrapper.findAll('.waveform-tooltip__value').map((value) => value.text())
     expect(values).toEqual(['(x:1 y:12)', '(x:1.25 y:8)', '无数据'])
   })
 })

@@ -5,6 +5,7 @@
       <nav class="demo-shell__nav" aria-label="示例导航">
         <RouterLink to="/">综合示例</RouterLink>
         <RouterLink to="/fixed-y-domain">固定振幅范围</RouterLink>
+        <RouterLink to="/wasm-sampling">WASM 采样</RouterLink>
       </nav>
     </header>
     <div class="demo-shell__content">

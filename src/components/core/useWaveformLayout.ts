@@ -1,6 +1,5 @@
 import { scaleLinear, type ZoomTransform } from 'd3'
 import { computed, type ComputedRef, type Ref, type ShallowRef } from 'vue'
-
 import { resolveWaveformRenderingOptions } from '../../core'
 import { paddedDomain } from '../../utils'
 import {
@@ -36,7 +35,6 @@ import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
 import type { useWaveformAnnotationInteraction } from '../annotation'
-
 interface LayoutContext {
   props: ResolvedWaveformChartProps
   preparedSeries: ShallowRef<PreparedWaveformSeries[]>
@@ -50,8 +48,8 @@ interface LayoutContext {
   sharedYDomains: Ref<Record<string, [number, number]>>
   independentYDomains: Ref<Record<number, [number, number]>>
   annotationInteraction: ReturnType<typeof useWaveformAnnotationInteraction>
+  linePointOverrides?: ShallowRef<Readonly<Record<string, import('../../types').WaveformPoint[]>>>
 }
-
 export function useWaveformLayout(context: LayoutContext) {
   const {
     props,
@@ -66,6 +64,7 @@ export function useWaveformLayout(context: LayoutContext) {
     sharedYDomains,
     independentYDomains,
     annotationInteraction,
+    linePointOverrides,
   } = context
   const chartSeries = computed<DisplaySeries[]>(() =>
     preparedSeries.value.map((series, index): DisplaySeries => ({
@@ -322,6 +321,7 @@ export function useWaveformLayout(context: LayoutContext) {
       yAxisSplitNumber: props.axes?.y?.splitNumber,
       yAxisNice: props.axes?.y?.nice,
       rendering: renderingOptions.value,
+      linePointOverrides: linePointOverrides?.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
       yAxisLabelX: yAxisMetrics.value.labelCenterX,
       showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
@@ -370,10 +370,10 @@ export function useWaveformLayout(context: LayoutContext) {
       ? props.frameNumber + trackIndex
       : `${props.frameNumber}-${trackIndex + 1}`
   }
-
   return {
     chartSeries,
     chartTracks,
+    renderingOptions,
     gridOptions,
     pageCount,
     pagedTracks,

@@ -1,14 +1,17 @@
 # 动态数据加载功能已恢复并修复
 
 ## 修复日期
+
 2026-07-21
 
 ## 状态
+
 ✅ **功能已恢复并修复** - 所有缩放问题已解决
 
 ## 问题回顾
 
 您报告的三个问题：
+
 1. 鼠标拖拽平移会触发放大
 2. 放大后无法回到初始视口
 3. 图框1缩放影响图框2
@@ -19,7 +22,7 @@
 
 ```typescript
 // 之前的问题代码
-const initialXDomain: [number, number] = [0, 10]  // 固定值
+const initialXDomain: [number, number] = [0, 10] // 固定值
 
 async function handleZoomEnd(payload) {
   // 加载 2-4 秒的数据
@@ -80,6 +83,7 @@ initialXDomain.value = [payload.start, payload.end]
 ```
 
 这确保了：
+
 - 组件的缩放基准始终与当前加载的数据范围一致
 - D3 zoom 的 `scaleExtent([1, 40])` 基于当前数据窗口计算
 - 用户可以在当前窗口内自由缩放
@@ -89,7 +93,7 @@ initialXDomain.value = [payload.start, payload.end]
 ```typescript
 function resetWaveformViewport() {
   chartData.value = fullChartData
-  initialXDomain.value = initialXDomainValue  // 恢复原始范围
+  initialXDomain.value = initialXDomainValue // 恢复原始范围
   waveformChartRef.value?.resetViewport()
 }
 ```
@@ -139,6 +143,7 @@ chartData.value =
 请在 http://localhost:5174/ 测试以下场景：
 
 ### 共享轴模式
+
 1. ✅ 滚轮放大到某个区间
 2. ✅ 数据会动态加载该区间
 3. ✅ 可以继续在该区间内缩放
@@ -147,6 +152,7 @@ chartData.value =
 6. ✅ 拖拽平移不会触发数据加载（只有滚轮缩放才触发）
 
 ### 独立分图模式
+
 1. ✅ 缩放图框1只更新图框1的数据
 2. ✅ 图框2保持不变
 3. ✅ 每个图框可以独立缩放和加载数据
@@ -162,12 +168,12 @@ chartData.value =
 
 ## 与之前的区别
 
-| 方面 | 之前（有问题） | 现在（已修复） |
-|------|--------------|--------------|
-| `initialXDomain` | 固定值 | 响应式，随数据窗口更新 |
-| 缩放后视口 | 与数据不一致 | 始终与数据同步 |
-| 回到初始状态 | 无法回退 | 可以通过重置按钮恢复 |
-| 跨图框影响 | 有影响 | 独立管理，无影响 |
+| 方面             | 之前（有问题） | 现在（已修复）         |
+| ---------------- | -------------- | ---------------------- |
+| `initialXDomain` | 固定值         | 响应式，随数据窗口更新 |
+| 缩放后视口       | 与数据不一致   | 始终与数据同步         |
+| 回到初始状态     | 无法回退       | 可以通过重置按钮恢复   |
+| 跨图框影响       | 有影响         | 独立管理，无影响       |
 
 ## 代码位置
 

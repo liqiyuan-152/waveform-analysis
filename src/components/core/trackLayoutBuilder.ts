@@ -57,6 +57,8 @@ export interface BuildTrackLayoutsOptions {
   yAxisSplitNumber?: number
   yAxisNice?: boolean
   rendering: ResolvedWaveformRenderingOptions
+  /** Latest sampling result for SVG lines only; source series remain complete for interaction. */
+  linePointOverrides?: Readonly<Record<string, WaveformPoint[]>>
   hideSecondaryLabels: boolean
   yAxisLabelX: number
   showCompactEmptyTracks: boolean
@@ -200,6 +202,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         options.rendering,
         {
           lineVisible: !isEmpty && trackSeries.lineType !== 'none',
+          linePointOverride: options.linePointOverrides?.[trackSeries.id],
           pointVisible: trackSeries.pointType !== 'none',
           errorBarVisible: trackSeries.errorBar.visible,
           hasErrorPoints: trackSeries.hasErrorPoints,

@@ -10,6 +10,9 @@ import type {
   WaveformPlotMargin,
   WaveformPoint,
   WaveformRenderingOptions,
+  WaveformSamplingBackend,
+  WaveformSamplingDiagnostics,
+  WaveformSamplingError,
   WaveformTitleOptions,
   WaveformXDomainStrategy,
   WaveformZeroLineOptions,
@@ -97,6 +100,16 @@ export interface WaveformChartEmit {
   (event: 'annotation-update', annotation: WaveformAnnotation, previous: WaveformAnnotation): void
   (event: 'annotation-delete', annotation: WaveformAnnotation): void
   (event: 'page-change', page: number, pageCount: number): void
+  (event: 'sampling-complete', diagnostics: WaveformSamplingDiagnostics): void
+  (
+    event: 'sampling-backend-change',
+    payload: {
+      seriesId: string
+      previous: WaveformSamplingBackend
+      current: WaveformSamplingBackend
+    },
+  ): void
+  (event: 'sampling-error', error: WaveformSamplingError): void
 }
 
 interface ViewportSelectionBase {

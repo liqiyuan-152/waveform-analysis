@@ -1,10 +1,12 @@
 import { scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
 
 import type { WaveformPoint } from '../../types'
+import { pointSourceFromPoints, type WaveformPointSource } from '../../core/waveformPointSource'
 import { ZOOM_CONSTRAINTS } from '../core/constants'
 
 interface PointSeriesSource {
   points: WaveformPoint[]
+  source?: WaveformPointSource
 }
 
 export type ZoomSeriesGroup = readonly PointSeriesSource[]
@@ -30,7 +32,9 @@ function uniqueXValues(group: ZoomSeriesGroup, boundary: [number, number]): numb
   if (cached) return cached
   const values = new Set<number>()
   for (const series of group) {
-    for (const point of series.points) {
+    const source = series.source ?? pointSourceFromPoints(series.points)
+    for (let index = 0; index < source.length; index += 1) {
+      const point = source.pointAt(index)!
       if (point.x >= boundary[0] && point.x <= boundary[1]) values.add(point.x)
     }
   }

@@ -210,12 +210,13 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '正弦基波',
     ])
 
-    const triangleSeries = firstFrame.get('.waveform-chart__series[data-series-name="正弦基波"]')
-    expect(triangleSeries.find('.waveform-chart__line').exists()).toBe(false)
-    expect(triangleSeries.get('.waveform-chart__points').attributes('data-point-type')).toBe(
-      'triangle',
-    )
-    expect(triangleSeries.get('.waveform-chart__error-bar').attributes('stroke')).toBe('#0960bd')
+    const sineSeries = firstFrame.get('.waveform-chart__series[data-series-name="正弦基波"]')
+    expect(sineSeries.find('.waveform-chart__line').exists()).toBe(true)
+    expect(sineSeries.get('.waveform-chart__points').attributes('data-point-type')).toBe('circle')
+    expect(sineSeries.get('.waveform-chart__error-bar').attributes()).toMatchObject({
+      stroke: '#0960bd',
+      'stroke-width': '1.5',
+    })
 
     wrapper.unmount()
   })
@@ -318,7 +319,10 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     expect(colorPickers).toHaveLength(2)
     const initialFrames = wrapper.findAll('.waveform-chart__plot-frame')
-    expect(initialFrames.length > 1 && initialFrames.every((frame) => frame.attributes('stroke-width') === '2')).toBe(true)
+    expect(
+      initialFrames.length > 1 &&
+        initialFrames.every((frame) => frame.attributes('stroke-width') === '2'),
+    ).toBe(true)
 
     colorPickers[0].vm.$emit('update:pureColor', 'rgba(220, 38, 38, 0.8)')
     colorPickers[1].vm.$emit('update:pureColor', 'rgba(14, 165, 233, 0.25)')

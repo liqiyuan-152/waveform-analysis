@@ -6,6 +6,7 @@ import type {
   WaveformPoint,
   WaveformPointType,
 } from '../../types'
+import type { WaveformPointSource } from '../../core/waveformPointSource'
 import type { NormalizedWaveformGridLineOptions } from './grid'
 
 /**
@@ -23,6 +24,7 @@ export interface DisplaySeries {
   pointType: WaveformPointType
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]
+  source?: WaveformPointSource
   xDomain: [number, number]
   yDomain: [number, number]
   hasErrorPoints: boolean

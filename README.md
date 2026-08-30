@@ -128,8 +128,8 @@ const data = ref<WaveformData>({
 | `hiddenSeriesIds`                 | `string[]`                                  | 未设置                                                                                | 受控隐藏系列 ID                               |
 | `defaultHiddenSeriesIds`          | `string[]`                                  | `[]`                                                                                  | 非受控模式的初始隐藏系列                      |
 
-所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
-`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
+所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、`TypedSampleData`、
+`TypedPointData`、`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
 `WaveformAxesOptions`、`WaveformXAxisLabelFormatter`、`WaveformXDomainStrategy`、`WaveformZeroLineOptions`、
 `WaveformGridOptions` 和 `WaveformGridTrackLines`。
 
@@ -155,6 +155,32 @@ const points: WaveformData = {
   ],
 }
 ```
+
+也可使用紧凑的 TypedArray 输入。`typed-samples` 只保存 Y 值，X 始终按
+`startTime + index / sampleRate`（秒）计算；`typed-points` 使用 `Float64Array` 存储 X，Y 和
+误差字段可使用 `Float32Array` 或 `Float64Array`。所有 `typed-points` 字段长度必须一致；不支持
+其他 TypedArray 类型。选择 `Float32Array` 的 Y 或误差值时，精度损失由调用方承担。输入数据和
+底层 `ArrayBuffer` 仅被读取，不会排序、写入或转移所有权。
+
+```ts
+const compactSamples: WaveformData = {
+  kind: 'typed-samples',
+  values: new Float32Array([0.2, 0.4, 0.1]),
+  sampleRate: 1000,
+}
+
+const compactPoints: WaveformData = {
+  kind: 'typed-points',
+  x: new Float64Array([0, 0.001]),
+  y: new Float32Array([12, 15]),
+  lowerError: new Float32Array([0.4, 0.4]),
+  upperError: new Float32Array([0.8, 0.8]),
+}
+```
+
+TypedArray 输入在内部保持紧凑列表示。`typed-samples` 只复制 Y 值及采样元数据；遇到无效样本
+时用紧凑源索引保留时间空洞，不生成完整 X 列。既有数组式渲染接口通过有界缓存按需构造单个
+`WaveformPoint`，Worker 消息使用私有数值副本，不会分离调用方的 `ArrayBuffer`。
 
 多通道使用 `kind: 'series'`。同一个 `trackId` 的系列会绘制在同一图框中；没有
 `trackId` 的系列默认各占一个图框。建议为每个系列提供全图唯一且稳定的 `id`。
@@ -653,7 +679,10 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 当前视口和 `rendering` 配置自动降采样。调用方如需在传入组件前主动压缩数据，应自行保留
 原始数据，以免影响 tooltip、标注和误差范围的精度。
 
-默认在可见点超过 2,000 时进行降采样，每个像素最多渲染 4 个保峰点。可按业务调整：
+默认 `auto` 模式按每条系列的当前可见点数决定渲染路径：不超过 1,000 个点直接使用原始
+可视点；超过 1,000 个点时，组件将当前页面的可见系列合并为一次 Web Worker 请求，并在
+Worker 内通过 WASM 执行保峰采样。采样数量仍由图框宽度和每像素最大点数控制，默认每个像素
+最多渲染 4 个保峰点。可按业务调整：
 
 ```vue
 <WaveformChart
@@ -673,6 +702,53 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 显示时共用一批采样点，并采用两个间距中的较大值，确保误差棒与对应点符号保持共心；仅显示
 一类装饰时仍使用各自的间距。仅显示一类装饰时可将对应间距设为 `0`；两者同时显示时需将
 两个间距都设为 `0` 才会关闭共同限制。设置 `downsample: false` 会关闭曲线和装饰的全部降采样。
+
+`rendering.sampling` 控制 Worker/WASM 渲染路径。默认模式为 `auto`，其单系列可见点阈值为
+`1_000`，默认策略为 `peak`。`wasm` 强制发起 Worker+WASM 请求，不受阈值影响；`raw` 完全绕过
+Worker 和采样，直接渲染当前可见原始点。嵌套的 `sampling.maxPointsPerPixel` 优先于旧的
+`rendering.maxPointsPerPixel`。未指定 `sampling.mode` 时，旧的 `downsample: false` 映射为
+`raw`，`downsample: true` 映射为 `auto`。
+
+```ts
+rendering: {
+  sampling: {
+    mode: 'auto',
+    autoThreshold: 1_000,
+    autoHysteresis: 0,
+    strategy: 'peak',
+    maxPointsPerPixel: 4,
+    rawPointLimit: 100_000,
+    wasmFailureFallback: 'error',
+  },
+}
+```
+
+Worker 或 WASM 初始化不可用时，`auto` 会报告诊断后使用等价 JavaScript 采样，避免把大数据
+退回为超长 SVG 路径。强制 `wasm` 模式遵循 `wasmFailureFallback`：`'error'` 保留已有有效路径
+或当前同步渲染回退，并发出错误；`'javascript'` 会在错误诊断后显示 JavaScript 等价结果。快速
+缩放或数据替换会用 `requestId` 和数据 revision 丢弃过期结果；等待新结果时保留当前有效路径。
+采样结果只覆盖 SVG 线条点，完整原始数据仍用于 domain、tooltip、最近点、标注、误差范围和缩放
+约束。组件卸载和 `data` 引用替换会终止实例 Worker 并释放其数据集。
+
+高级场景可直接使用独立的 `sampleWaveformWasm` 数值内核。它接收等长的扁平 `Float64Array`
+X/Y 坐标，返回真实源点的 `Uint32Array` 索引，或 `average` / `sum` 的新 X/Y 数组。该 API 不会
+修改输入：
+
+```ts
+import { sampleWaveformWasm } from 'waveform-analysis'
+
+const result = await sampleWaveformWasm({
+  x: new Float64Array([0, 1, 2, 3]),
+  y: new Float64Array([4, 1, 8, 3]),
+  strategy: 'peak',
+  targetPointCount: 4,
+})
+```
+
+`none`、`peak`、`lttb`、`min`、`max` 和 `minmax` 返回源索引；`average` 与 `sum` 返回合成
+坐标。`calculateWasmRange` 与 `findWasmVisibleRange` 分别提供完整范围统计和规范化序列上的
+半开可见索引范围查询。WASM 初始化失败时这些调用会拒绝，由调用方选择是否使用 JavaScript
+参考实现回退。
 
 降采样仅作用于 SVG 中的曲线、点符号和误差棒。点符号和误差棒在每个系列中分别合并为
 单个 SVG path；最近点查询、tooltip、标注插值、Y 轴误差范围和受控数据不会损失精度。
@@ -743,9 +819,44 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
 | `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
 | `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                           |
+| `sampling-complete`                                             | 每条系列当前采样结果的 `WaveformSamplingDiagnostics`           |
+| `sampling-backend-change`                                       | 某系列在 `raw`、`javascript` 或 `wasm` 后端之间切换时触发      |
+| `sampling-error`                                                | Worker/WASM 不可用或强制 WASM 无法满足时的降级/失败信息        |
 
 `annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
 `interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
+
+`sampling-complete` 的 payload 包含模式、实际后端、策略、完整/可视/渲染点数、耗时、请求号、
+revision，以及 `scheduledRequestCount`、`coalescedRequestCount` 和
+`maxPendingRequestCount` 三个调度指标；适合性能面板或日志采集。`sampling-error` 不携带原始
+`Error` 对象，只提供可序列化的消息、请求模式、回退方式和受影响系列 ID。不要将这些诊断事件
+作为 pointermove 处理逻辑。
+
+### 多分辨率索引、缓存与诊断
+
+Worker 的 JavaScript 回退后端和 Rust/WASM 后端都按需建立多分辨率索引。`peak`、`min`、`max`
+和 `minmax` 使用可追溯到真实源点的 Min/Max 分层；`average` 与 `sum` 使用可重用的 Sum/Count
+分层，LTTB 仍按当前视口即时计算。WASM 数据集通过可释放 handle 持久保存；每个桶的左右边界按
+当前可见半开索引范围精确计算，所以局部缩放不会复用首次全局采样而丢失细节。
+
+连续 wheel、pan 和 resize 使用 latest-wins 调度：同一图表最多保留一个执行中任务和一个最新
+待处理任务，中间视口会被合并，Worker 消息队列不会随输入事件无界增长。过期请求仍通过
+`requestId` 和 revision 双重校验，不能覆盖最终稳定视口。
+
+每个已访问数据集的索引默认最多使用 8 MiB。采样输出缓存使用 LRU，默认最多 96 个条目或
+16 MiB；先到达任一上限就逐出最久未使用结果。缓存键包括 dataset ID、revision、可见起止索引、
+图框宽度、目标密度、策略、后端及线型/点型/误差棒/装饰间距等渲染维度。替换、删除或清空数据集会
+同步释放其索引与缓存项。`sampling-complete.cacheHit` 只在 Worker 实际返回该缓存项时为 `true`。
+
+演示可在 `#/wasm-sampling` 打开。该路由生成 10 条各 100,000 点的 `Float32Array` 通道，可切换
+`auto` / `wasm` / `raw`，所有采样策略、自动阈值和每像素点数；右侧表格显示每个系列的真实后端、
+源点/可见点/渲染点、耗时和缓存命中状态。
+
+库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署
+仍需允许库的模块 Worker，并允许浏览器编译 WebAssembly；若策略禁止 `data:` Worker/WASM 资源
+或 WebAssembly 编译，`auto` 可回退到 JavaScript，而强制 `wasm` 会按配置报告失败。当前自动化
+与浏览器烟测覆盖 Chromium；Firefox、Safari、严格 CSP、离线和子路径部署应按
+[`docs/performance-guide.md`](docs/performance-guide.md) 的发布清单验证。
 
 ## 项目结构
 
@@ -753,11 +864,15 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 - `src/components/WaveformChart.vue`：图表容器、缩放、tooltip、图例和标注编排
 - `src/components/{core,data,rendering,interaction,annotation}`：数据、布局、渲染和交互模块
 - `src/App.vue`：综合可交互 demo，`src/data` 中提供示例波形数据
-- `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 为固定振幅范围示例
+- `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 与
+  `src/views/WasmSamplingDemo.vue` 为专用示例
+- `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 与
+  `wasm/target` 是本地构建产物，不提交到 Git
 
 ## 本地开发
 
-开发环境要求 Node.js 22 和 pnpm：
+开发环境要求 Node.js 22、pnpm、Rust 1.95（含 `wasm32-unknown-unknown` target）和 wasm-pack
+0.14.0：
 
 ```bash
 pnpm install

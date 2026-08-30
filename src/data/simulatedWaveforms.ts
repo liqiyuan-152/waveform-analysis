@@ -9,6 +9,7 @@ type SignalGenerator = (time: number, noise: number) => number
 type ErrorGenerator = (
   time: number,
   value: number,
+  noise: () => number,
 ) => Pick<WaveformPoint, 'error' | 'lowerError' | 'upperError'>
 
 interface SimulatedSeriesDefinition extends Pick<
@@ -32,6 +33,7 @@ function createPoints(
   signal: SignalGenerator,
   noise: () => number,
   errors?: ErrorGenerator,
+  errorNoise: () => number = noise,
 ): WaveformPoint[] {
   return Array.from({ length: POINT_COUNT }, (_, index) => {
     const time = START_TIME + (index * (END_TIME - START_TIME)) / (POINT_COUNT - 1)
@@ -39,7 +41,7 @@ function createPoints(
     return {
       x: time,
       y: value,
-      ...errors?.(time, value),
+      ...errors?.(time, value, errorNoise),
     }
   })
 }
@@ -50,13 +52,13 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     shotNo: '13300',
     name: '正弦基波',
     unit: 'V',
-    lineType: 'none',
-    pointType: 'triangle',
-    errorBar: { visible: true },
+    lineType: 'linear',
+    pointType: 'circle',
+    errorBar: { visible: true, width: 1.5, capWidth: 10 },
     signal: (time) => 1.2 * Math.sin(TWO_PI * 0.8 * time),
-    errors: (time) => ({
-      lowerError: 0.06 + 0.015 * Math.abs(Math.sin(time)),
-      upperError: 0.08 + 0.02 * Math.abs(Math.cos(time)),
+    errors: (_time, _value, noise) => ({
+      lowerError: 0.05 + (noise() + 0.5) * 0.45,
+      upperError: 0.05 + (noise() + 0.5) * 0.45,
     }),
   },
   {
@@ -128,10 +130,11 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
 
 export function createSimulatedWaveformData(): WaveformData {
   const noise = createSeededNoise(0x5eed1234)
+  const errorNoise = createSeededNoise(0xe220a11)
   return {
     kind: 'series',
     series: seriesDefinitions.map(({ signal, errors, minimumX, ...series }) => {
-      const points = createPoints(signal, noise, errors)
+      const points = createPoints(signal, noise, errors, errorNoise)
       return {
         ...series,
         data: {

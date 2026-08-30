@@ -1,6 +1,9 @@
-import { bisector } from 'd3'
-
 import type { WaveformAnnotation, WaveformAnnotationStyle, WaveformLineType } from '../../types'
+import {
+  isWaveformPointSource,
+  pointSourceFromPoints,
+  type WaveformPointSource,
+} from '../../core/waveformPointSource'
 import type { AnnotationHit, AnnotationSeriesCandidate, AnnotationTrackLayout } from './types'
 
 export const DEFAULT_ANNOTATION_STYLE = {
@@ -23,16 +26,26 @@ export const ANNOTATION_TEXT_GLYPH_HEIGHT = 14
 export const ANNOTATION_TEXT_FONT = '12px Arial, sans-serif'
 export const ANNOTATION_CONNECTOR_LENGTH = 32
 
-const pointBisector = bisector((point: { x: number }) => point.x)
+type PointCollection = Array<{ x: number; y: number }> | WaveformPointSource
+
+function sourceFor(points: PointCollection) {
+  return isWaveformPointSource(points) ? points : pointSourceFromPoints(points)
+}
 
 function findNearestPointOnScreen(
   track: AnnotationTrackLayout,
   pointerX: number,
   pointerY: number,
 ): { point: { x: number; y: number }; screenX: number; screenY: number; distance: number } | null {
-  let nearest: { point: { x: number; y: number }; screenX: number; screenY: number; distance: number } | null =
-    null
-  for (const point of track.series.points) {
+  let nearest: {
+    point: { x: number; y: number }
+    screenX: number
+    screenY: number
+    distance: number
+  } | null = null
+  const source = track.series.source ?? pointSourceFromPoints(track.series.points)
+  for (let index = 0; index < source.length; index += 1) {
+    const point = source.pointAt(index)!
     if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) continue
     const screenX = track.xScale(point.x)
     const screenY = track.top + track.yScale(point.y)
@@ -45,33 +58,35 @@ function findNearestPointOnScreen(
 }
 
 export function findNearestPointByX(
-  points: Array<{ x: number; y: number }>,
+  points: PointCollection,
   xValue: number,
 ): { x: number; y: number } | null {
-  if (!points.length || !Number.isFinite(xValue)) return null
-  const centerIndex = pointBisector.center(points, xValue)
-  const center = points[Math.min(centerIndex, points.length - 1)]
-  const left = points[Math.max(0, centerIndex - 1)]
-  return Math.abs(xValue - left.x) < Math.abs(center.x - xValue) ? left : center
+  const source = sourceFor(points)
+  if (!source.length || !Number.isFinite(xValue)) return null
+  const rightIndex = source.visibleRange([xValue, xValue]).start
+  const right = source.pointAt(Math.min(rightIndex, source.length - 1))!
+  const left = source.pointAt(Math.max(0, rightIndex - 1))!
+  return Math.abs(xValue - left.x) < Math.abs(right.x - xValue) ? left : right
 }
 
 export function interpolateAnnotationPoint(
-  points: Array<{ x: number; y: number }>,
+  points: PointCollection,
   xValue: number,
   lineType: WaveformLineType = 'linear',
 ): { x: number; y: number } | null {
-  if (!points.length || !Number.isFinite(xValue)) return null
-  const first = points[0]
-  const last = points[points.length - 1]
+  const source = sourceFor(points)
+  if (!source.length || !Number.isFinite(xValue)) return null
+  const first = source.pointAt(0)!
+  const last = source.pointAt(source.length - 1)!
   if (xValue < first.x || xValue > last.x) return null
-  if (points.length === 1) return xValue === first.x ? { ...first } : null
+  if (source.length === 1) return xValue === first.x ? { ...first } : null
 
-  const rightIndex = pointBisector.left(points, xValue)
-  const right = points[Math.min(rightIndex, points.length - 1)]
+  const rightIndex = source.visibleRange([xValue, xValue]).start
+  const right = source.pointAt(Math.min(rightIndex, source.length - 1))!
   if (right.x === xValue || rightIndex === 0) return { x: xValue, y: right.y }
   if (lineType === 'none') return null
 
-  const left = points[rightIndex - 1]
+  const left = source.pointAt(rightIndex - 1)!
   if (lineType === 'step-start') return { x: xValue, y: right.y }
   if (lineType === 'step-middle') {
     return { x: xValue, y: xValue < (left.x + right.x) / 2 ? left.y : right.y }
@@ -108,7 +123,7 @@ export function findAnnotationSeriesCandidates(
         ]
       }
       const interpolatedPoint = interpolateAnnotationPoint(
-        track.series.points,
+        track.series.source ?? pointSourceFromPoints(track.series.points),
         xValue,
         track.series.lineType,
       )
@@ -116,7 +131,10 @@ export function findAnnotationSeriesCandidates(
 
       // Always snap to nearest actual sample point for the anchor
       // This ensures annotations align with visible data points
-      const nearestPoint = findNearestPointByX(track.series.points, xValue)
+      const nearestPoint = findNearestPointByX(
+        track.series.source ?? pointSourceFromPoints(track.series.points),
+        xValue,
+      )
       if (!nearestPoint) return []
 
       // Use interpolated point for distance calculation to get accurate series selection
@@ -213,15 +231,16 @@ export function findNearestAnnotationPoint(
 
   tracks.forEach((track) => {
     const localY = pointerY - track.top
-    if (localY < 0 || localY > track.height || track.series.points.length === 0) return
+    const source = track.series.source ?? pointSourceFromPoints(track.series.points)
+    if (localY < 0 || localY > track.height || source.length === 0) return
 
     const xValue = track.xScale.invert(pointerX)
-    const centerIndex = pointBisector.center(track.series.points, xValue)
+    const centerIndex = source.visibleRange([xValue, xValue]).start
     const firstIndex = Math.max(0, centerIndex - 2)
-    const lastIndex = Math.min(track.series.points.length - 1, centerIndex + 2)
+    const lastIndex = Math.min(source.length - 1, centerIndex + 2)
 
     for (let candidateIndex = firstIndex; candidateIndex <= lastIndex; candidateIndex += 1) {
-      const point = track.series.points[candidateIndex]
+      const point = source.pointAt(candidateIndex)!
       const screenX = track.xScale(point.x)
       const screenY = track.yScale(point.y) + track.top
       const distance = Math.hypot(screenX - pointerX, screenY - pointerY)

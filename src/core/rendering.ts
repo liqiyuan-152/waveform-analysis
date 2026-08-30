@@ -12,6 +12,7 @@ export {
   DEFAULT_WAVEFORM_RENDERING_OPTIONS,
   resolveWaveformRenderingOptions,
   type ResolvedWaveformRenderingOptions,
+  type ResolvedWaveformSamplingOptions,
 } from './renderingOptions'
 
 const pointBisector = bisector((point: WaveformPoint) => point.x)
@@ -23,6 +24,8 @@ interface PointSeriesSource {
 
 interface SeriesRenderSelectionOptions {
   lineVisible: boolean
+  /** A current Worker result used only for the SVG line. */
+  linePointOverride?: WaveformPoint[]
   pointVisible: boolean
   errorBarVisible: boolean
   hasErrorPoints: boolean
@@ -81,6 +84,34 @@ function selectRenderablePointsInRange(
     domain,
     width,
     options,
+  })
+}
+
+function shouldDeferLineSampling(
+  visibleCount: number,
+  options: ResolvedWaveformRenderingOptions,
+): boolean {
+  if (options.sampling.mode === 'wasm') return true
+  return options.sampling.mode === 'auto' && visibleCount > options.sampling.autoThreshold
+}
+
+function selectSamplingPlaceholderPoints(
+  points: WaveformPoint[],
+  range: VisiblePointRange,
+  width: number,
+  options: ResolvedWaveformRenderingOptions,
+): WaveformPoint[] {
+  const start = Math.max(0, range.start - 1)
+  const end = Math.min(points.length, range.end + 1)
+  const count = end - start
+  if (count <= 0) return []
+  if (options.sampling.strategy === 'none') return points.slice(start, end)
+  const target = Math.max(1, Math.floor(width * options.sampling.maxPointsPerPixel))
+  if (count <= target) return points.slice(start, end)
+  if (target === 1) return [points[start]!]
+  return Array.from({ length: target }, (_, index) => {
+    const offset = Math.round((index * (count - 1)) / (target - 1))
+    return points[start + offset]!
   })
 }
 
@@ -247,7 +278,10 @@ export function selectSeriesRenderPoints(
   }
   const range = resolveVisiblePointRange(points, domain)
   const linePoints = selection.lineVisible
-    ? selectRenderablePointsInRange(points, range, domain, width, rendering)
+    ? (selection.linePointOverride ??
+      (shouldDeferLineSampling(range.end - range.start, rendering)
+        ? selectSamplingPlaceholderPoints(points, range, width, rendering)
+        : selectRenderablePointsInRange(points, range, domain, width, rendering)))
     : []
   const errorBarVisible = selection.errorBarVisible && selection.hasErrorPoints
   if (selection.pointVisible && errorBarVisible) {

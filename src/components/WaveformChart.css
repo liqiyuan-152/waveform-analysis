@@ -1,3 +1,5 @@
+@import 'vue3-colorpicker/style.css';
+
 .waveform-chart {
   box-sizing: border-box;
   position: relative;

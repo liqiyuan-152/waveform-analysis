@@ -1,7 +1,8 @@
-import { bisector, pointer } from 'd3'
+import { pointer } from 'd3'
 import type { ComputedRef, Ref, ShallowRef } from 'vue'
 
 import type { WaveformPoint } from '../data/types'
+import { pointSourceFromPoints } from '../../core/waveformPointSource'
 import type {
   DisplaySeries,
   HoveredSeriesPoint,
@@ -27,8 +28,6 @@ interface HoverContext {
   updateViewportDrag: (event: PointerEvent) => void
   resolveTrackAtPointer: (pointerX: number, pointerY: number) => TrackLayout | undefined
 }
-
-const pointBisector = bisector<WaveformPoint, number>((point) => point.x)
 
 export function useWaveformHover(context: HoverContext) {
   const {
@@ -110,10 +109,11 @@ export function useWaveformHover(context: HoverContext) {
     return true
   }
   const nearestPoint = (series: DisplaySeries, xValue: number): WaveformPoint | undefined => {
-    const firstPoint = series.points[0]
-    const lastPoint = series.points.at(-1)
-    if (!firstPoint || !lastPoint || xValue < firstPoint.x || xValue > lastPoint.x) return undefined
-    return series.points[pointBisector.center(series.points, xValue)]
+    const source = series.source ?? pointSourceFromPoints(series.points)
+    const first = source.pointAt(0)
+    const last = source.pointAt(source.length - 1)
+    if (!first || !last || xValue < first.x || xValue > last.x) return undefined
+    return source.nearestPoint(xValue)
   }
 
   const handleIndependentPointerMove = (event: PointerEvent, trackIndex: number) => {

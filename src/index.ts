@@ -18,6 +18,12 @@ export type {
   WaveformZoomResetPayload,
   WaveformAnnotationStyle,
   WaveformAnnotation,
+  WaveformSamplingMode,
+  WaveformSamplingStrategy,
+  WaveformSamplingOptions,
+  WaveformSamplingBackend,
+  WaveformSamplingDiagnostics,
+  WaveformSamplingError,
   WaveformRenderingOptions,
   WaveformPlotMargin,
   WaveformTitleTextStyle,
@@ -38,6 +44,9 @@ export type {
   WaveformPointType,
   WaveformErrorBarOptions,
   ResolvedWaveformErrorBarOptions,
+  WaveformTypedValues,
+  TypedSampleData,
+  TypedPointData,
   WaveformSeries,
   WaveformData,
   NormalizedWaveformSeries,
@@ -67,10 +76,19 @@ export {
 } from './utils'
 
 export {
+  calculateWasmRange,
+  findWasmVisibleRange,
   DEFAULT_WAVEFORM_RENDERING_OPTIONS,
   resolveWaveformRenderingOptions,
   selectRenderablePoints,
   type ResolvedWaveformRenderingOptions,
+  type ResolvedWaveformSamplingOptions,
+  type WasmRangeMetrics,
+  initializeWasmSampling,
+  sampleWaveformWasm,
+  type WasmSamplingRequest,
+  type WasmSamplingResult,
+  type WasmSamplingStrategy,
 } from './core'
 
 export { parseWaveformAnnotations, serializeWaveformAnnotations } from './components/annotation'
