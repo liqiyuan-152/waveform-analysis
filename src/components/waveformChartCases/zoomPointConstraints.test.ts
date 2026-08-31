@@ -65,10 +65,10 @@ function dispatchBox(
 }
 
 describe('WaveformChart point-aware zoom constraints', () => {
-  it('wheel-zooms 1,200 samples to two distinct X values, stops, and still zooms out', async () => {
+  it('zooms to two distinct X values when the scale limit is disabled', async () => {
     const wrapper = await mountSizedChart(
       { kind: 'points', points: regularPoints },
-      { minVisiblePoints: 2 },
+      { minVisiblePoints: 2, maxZoomScale: null },
     )
     const { overlay, width, height } = prepareOverlay(
       wrapper,
@@ -151,7 +151,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
     expect(visibleXCount(constrainedDomain)).toBe(2)
   })
 
-  it('retains the default 40x maximum when no explicit limit is configured', async () => {
+  it('retains the backwards-compatible default maximum zoom scale', async () => {
     const wrapper = await mountSizedChart({ kind: 'points', points: regularPoints })
     const { overlay, width, height } = prepareOverlay(
       wrapper,
@@ -161,6 +161,66 @@ describe('WaveformChart point-aware zoom constraints', () => {
     await dispatchWheel(overlay, width, height, -4_000)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeCloseTo(1_199 / 40)
+  })
+
+  it('honors an explicit maximum zoom scale', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'points', points: regularPoints },
+      { maxZoomScale: 20 },
+    )
+    const { overlay, width, height } = prepareOverlay(
+      wrapper,
+      '.waveform-chart__overlay--independent',
+    )
+
+    await dispatchWheel(overlay, width, height, -4_000)
+    const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(domain[1] - domain[0]).toBeCloseTo(1_199 / 20)
+  })
+
+  it('disables the compatibility scale limit when configured with null', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'points', points: regularPoints },
+      { maxZoomScale: null },
+    )
+    const { overlay, width, height } = prepareOverlay(
+      wrapper,
+      '.waveform-chart__overlay--independent',
+    )
+
+    await dispatchWheel(overlay, width, height, -4_000)
+    const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(domain[1] - domain[0]).toBeLessThan(1_199 / 40)
+  })
+
+  it('falls back to the compatibility limit for an invalid maximum scale', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'points', points: regularPoints },
+      { maxZoomScale: 0 },
+    )
+    const { overlay, width, height } = prepareOverlay(
+      wrapper,
+      '.waveform-chart__overlay--independent',
+    )
+
+    await dispatchWheel(overlay, width, height, -4_000)
+    const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(domain[1] - domain[0]).toBeCloseTo(1_199 / 40)
+  })
+
+  it('uses the strictest configured zoom constraint', async () => {
+    const wrapper = await mountSizedChart(
+      { kind: 'points', points: regularPoints },
+      { minZoomSpan: 50, minVisiblePoints: 2, maxZoomScale: 40 },
+    )
+    const { overlay, width, height } = prepareOverlay(
+      wrapper,
+      '.waveform-chart__overlay--independent',
+    )
+
+    await dispatchWheel(overlay, width, height, -4_000)
+    const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
+    expect(domain[1] - domain[0]).toBeCloseTo(50)
   })
 
   it('retains two endpoint samples while replacing an independent data window', async () => {

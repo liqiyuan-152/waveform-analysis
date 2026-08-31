@@ -90,14 +90,10 @@ const tooltipStyle = computed(() => {
     ...horizontalStyle,
     top: `${Math.max(
       8,
-      Math.min(
-        props.position.y - 18,
-        props.containerHeight - estimateTooltipHeight(maxWidth) - 8,
-      ),
+      Math.min(props.position.y - 18, props.containerHeight - estimateTooltipHeight(maxWidth) - 8),
     )}px`,
   }
 })
-
 </script>
 
 <template>
@@ -113,12 +109,15 @@ const tooltipStyle = computed(() => {
     >
       <i :style="{ backgroundColor: seriesPoint.color }" />
       <span class="waveform-tooltip__series-content">
-        <span class="waveform-tooltip__series-label">{{ seriesPoint.shotNo?.trim() || '未配置炮号' }}： {{
-          seriesPoint.name
-        }}<template v-if="seriesPoint.unit">({{ seriesPoint.unit }})</template></span>
-        <span v-if="seriesPoint.point" class="waveform-tooltip__value">(x:{{
-          formatTooltipTime(seriesPoint.point.x, timeUnit)
-        }} y:{{ formatTooltipNumber(seriesPoint.point.y) }})</span>
+        <span class="waveform-tooltip__series-label"
+          >{{ seriesPoint.shotNo?.trim() || '未配置炮号' }}： {{ seriesPoint.name
+          }}<template v-if="seriesPoint.unit">({{ seriesPoint.unit }})</template></span
+        >
+        <span v-if="seriesPoint.point" class="waveform-tooltip__value"
+          >(x:{{ formatTooltipTime(seriesPoint.point.x, timeUnit) }} y:{{
+            formatTooltipNumber(seriesPoint.point.y)
+          }})</span
+        >
         <span v-else class="waveform-tooltip__value waveform-tooltip__value--missing">无数据</span>
       </span>
     </span>
@@ -136,7 +135,9 @@ const tooltipStyle = computed(() => {
   max-width: min(560px, calc(100% - 16px));
   padding: 9px 12px;
   color: #505050;
-  font: 14px/1.35 Arial, sans-serif;
+  font:
+    14px/1.35 Arial,
+    sans-serif;
   pointer-events: none;
   background: #fff;
   border: 1px solid #e3e7eb;

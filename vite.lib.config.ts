@@ -7,6 +7,7 @@ const peerDependencies = ['vue', 'd3', 'ant-design-vue', 'vue3-colorpicker']
 
 export default defineConfig({
   plugins: [vue()],
+  assetsInclude: ['**/*.wasm'],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

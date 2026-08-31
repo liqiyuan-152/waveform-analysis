@@ -77,8 +77,73 @@ export interface WaveformAnnotation {
   createdAt?: string
 }
 
+/** Selects the execution path used to obtain points for waveform rendering. */
+export type WaveformSamplingMode = 'auto' | 'wasm' | 'raw'
+
+/** Selects the point-reduction algorithm used by the sampling backend. */
+export type WaveformSamplingStrategy =
+  'auto' | 'none' | 'peak' | 'lttb' | 'average' | 'min' | 'max' | 'minmax' | 'sum'
+
+/** Controls how waveform points are selected for rendering. */
+export interface WaveformSamplingOptions {
+  /** Defaults to `auto`. */
+  mode?: WaveformSamplingMode
+  /** Per-series visible-point threshold used by auto mode. Defaults to 1,000. */
+  autoThreshold?: number
+  /** Interaction-only hysteresis around the automatic threshold. Defaults to 0. */
+  autoHysteresis?: number
+  /** Defaults to the peak-preserving strategy. */
+  strategy?: WaveformSamplingStrategy
+  /** Upper bound for rendered points per horizontal CSS pixel. */
+  maxPointsPerPixel?: number
+  /** Fixed per-series target point count. When set, this takes precedence over pixel density. */
+  maxPointCount?: number
+  /** Visible-point count at which raw rendering should report a diagnostic. */
+  rawPointLimit?: number
+  /** Controls whether a forced WASM failure may temporarily show JavaScript results. */
+  wasmFailureFallback?: 'error' | 'javascript'
+}
+
+/** The backend that produced a series' current SVG geometry. */
+export type WaveformSamplingBackend = 'raw' | 'javascript' | 'wasm' | 'unavailable'
+
+/** Read-only details emitted after a sampling request settles. */
+export interface WaveformSamplingDiagnostics {
+  seriesId: string
+  /** Internal dataset identity, useful when correlating request logs. */
+  datasetId: string
+  mode: WaveformSamplingMode
+  selectedMode: 'raw' | 'sampled'
+  backend: WaveformSamplingBackend
+  strategy: Exclude<WaveformSamplingStrategy, 'auto'>
+  sourcePointCount: number
+  visiblePointCount: number
+  renderedPointCount: number
+  durationMs: number
+  cacheHit: boolean
+  requestId: number
+  revision: number
+  rawPointLimitExceeded: boolean
+  /** Cumulative sampling runs scheduled by this chart instance. */
+  scheduledRequestCount: number
+  /** Cumulative intermediate runs replaced before they entered the Worker queue. */
+  coalescedRequestCount: number
+  /** Maximum retained pending runs; bounded to one by the latest-wins scheduler. */
+  maxPendingRequestCount: number
+}
+
+/** Describes a sampling backend failure without exposing an implementation-specific Error object. */
+export interface WaveformSamplingError {
+  message: string
+  mode: WaveformSamplingMode
+  fallback: 'javascript' | 'none'
+  seriesIds: string[]
+}
+
 /** Controls how many source points are included in the rendered SVG path. */
 export interface WaveformRenderingOptions {
+  /** Sampling execution and strategy configuration. Takes precedence over legacy fields. */
+  sampling?: WaveformSamplingOptions
   /** Disable only when every source point must be rendered. */
   downsample?: boolean
   /** Visible point count below which the complete range is rendered. */

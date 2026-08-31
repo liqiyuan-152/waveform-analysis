@@ -35,6 +35,10 @@ jobs:
         with:
           node-version: '22'
           cache: 'pnpm'
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: wasm32-unknown-unknown
+      - run: cargo install wasm-pack --version 0.14.0 --locked
       - run: pnpm install --frozen-lockfile
       - run: DEMO_BASE_PATH=/waveform-analysis/ pnpm build
       - uses: actions/upload-artifact@v4

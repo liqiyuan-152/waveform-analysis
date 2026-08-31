@@ -213,6 +213,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
       isPresentationMode,
       () => props.minZoomSpan,
       () => props.minVisiblePoints,
+      () => props.maxZoomScale,
       () => props.initialXDomain,
       () => props.initialXDomains,
       () => props.xDomainStrategy,

@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "0.1.48",
+  "version": "0.1.54",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -24,19 +24,20 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm typecheck && pnpm build:lib && pnpm build:types && pnpm build:demo",
+    "build:wasm": "wasm-pack build wasm --target web --release --out-dir pkg --locked",
     "build:lib": "vite build --config vite.lib.config.ts",
     "build:types": "node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json",
     "build:demo": "vite build",
     "preview": "vite preview --outDir dist-demo",
-    "typecheck": "vue-tsc -b",
+    "typecheck": "pnpm build:wasm && vue-tsc -b",
     "check:file-length": "node scripts/check-file-length.mjs",
     "lint": "eslint . --max-warnings=0",
     "lint:oxlint": "oxlint . --deny-warnings",
     "lint:all": "pnpm lint:oxlint && pnpm lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test": "pnpm build:wasm && vitest run",
+    "test:coverage": "pnpm build:wasm && vitest run --coverage"
   },
   "dependencies": {
     "ant-design-vue": "3.2.20",

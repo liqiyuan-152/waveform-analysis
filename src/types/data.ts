@@ -27,8 +27,29 @@ export interface ResolvedWaveformErrorBarOptions {
   capWidth: number
 }
 
+/** Numeric storage accepted by the compact waveform input formats. */
+export type WaveformTypedValues = Float32Array | Float64Array
+
+/** Compact, evenly spaced samples. X is derived as `startTime + index / sampleRate`. */
+export interface TypedSampleData {
+  kind: 'typed-samples'
+  values: WaveformTypedValues
+  sampleRate: number
+  startTime?: number
+}
+
+/** Compact points with explicit X coordinates. X uses Float64 precision by contract. */
+export interface TypedPointData {
+  kind: 'typed-points'
+  x: Float64Array
+  y: WaveformTypedValues
+  error?: WaveformTypedValues
+  lowerError?: WaveformTypedValues
+  upperError?: WaveformTypedValues
+}
+
 /**
- * 单波形数据格式（采样点或显式坐标点）
+ * 单波形数据格式（对象数组或紧凑 TypedArray）
  */
 export type SingleWaveformData =
   | {
@@ -41,6 +62,8 @@ export type SingleWaveformData =
       kind: 'points'
       points: WaveformPoint[]
     }
+  | TypedSampleData
+  | TypedPointData
 
 /**
  * 波形系列

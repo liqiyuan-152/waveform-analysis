@@ -1,10 +1,12 @@
 import { scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
 
 import type { WaveformPoint } from '../../types'
+import { pointSourceFromPoints, type WaveformPointSource } from '../../core/waveformPointSource'
 import { ZOOM_CONSTRAINTS } from '../core/constants'
 
 interface PointSeriesSource {
   points: WaveformPoint[]
+  source?: WaveformPointSource
 }
 
 export type ZoomSeriesGroup = readonly PointSeriesSource[]
@@ -12,6 +14,7 @@ export type ZoomSeriesGroup = readonly PointSeriesSource[]
 interface ZoomConstraintOptions {
   minZoomSpan?: number
   minVisiblePoints?: number
+  maxZoomScale?: number | null
 }
 
 const xValueCache = new WeakMap<object, Map<string, number[]>>()
@@ -30,7 +33,9 @@ function uniqueXValues(group: ZoomSeriesGroup, boundary: [number, number]): numb
   if (cached) return cached
   const values = new Set<number>()
   for (const series of group) {
-    for (const point of series.points) {
+    const source = series.source ?? pointSourceFromPoints(series.points)
+    for (let index = 0; index < source.length; index += 1) {
+      const point = source.pointAt(index)!
       if (point.x >= boundary[0] && point.x <= boundary[1]) values.add(point.x)
     }
   }
@@ -76,10 +81,14 @@ export function resolveMinimumZoomSpan(
       : 0
   const required = resolveRequiredPointCount(options.minVisiblePoints)
   const pointSpan = minimumPointSpan(groups, normalized, required)
-  if (configuredSpan > 0 || required > 0) {
-    return Math.max(configuredSpan, pointSpan)
-  }
-  return boundarySpan / ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
+  const configuredScale = Number(options.maxZoomScale)
+  const scaleSpan =
+    Number.isFinite(configuredScale) && configuredScale >= ZOOM_CONSTRAINTS.MIN_SCALE
+      ? boundarySpan / configuredScale
+      : options.maxZoomScale !== null && configuredSpan === 0 && required === 0
+        ? boundarySpan / ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
+        : 0
+  return Math.max(configuredSpan, pointSpan, scaleSpan)
 }
 
 function expandToMinimumPoints(

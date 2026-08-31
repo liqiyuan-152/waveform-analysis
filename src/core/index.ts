@@ -10,4 +10,15 @@ export {
   selectDecorationPoints,
   selectRenderablePoints,
   type ResolvedWaveformRenderingOptions,
+  type ResolvedWaveformSamplingOptions,
 } from './rendering'
+export {
+  calculateWasmRange,
+  findWasmVisibleRange,
+  initializeWasmSampling,
+  sampleWaveformWasm,
+  type WasmRangeMetrics,
+  type WasmSamplingRequest,
+  type WasmSamplingResult,
+  type WasmSamplingStrategy,
+} from './wasmSampling'
