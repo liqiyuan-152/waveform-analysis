@@ -86,7 +86,7 @@ describe('WaveformChart', () => {
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(60)
   })
 
-  it('keeps the Y-axis label gutter stable while paging between value ranges', async () => {
+  it('updates the Y-axis label position while preserving the chart gutter between pages', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -118,14 +118,12 @@ describe('WaveformChart', () => {
       { grid: { rowCount: 1, columnCount: 1 } },
     )
     const initialMargin = wrapper.attributes('data-chart-left-margin')
-    const initialLabelX = wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')
+    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-34')
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe(
-      initialLabelX,
-    )
+    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-62')
   })
 
   it('hides only secondary-column Y-axis labels when the grid is too narrow', async () => {
