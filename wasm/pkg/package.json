@@ -1,0 +1,15 @@
+{
+  "name": "waveform-sampling-wasm",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "waveform_sampling_wasm_bg.wasm",
+    "waveform_sampling_wasm.js",
+    "waveform_sampling_wasm.d.ts"
+  ],
+  "main": "waveform_sampling_wasm.js",
+  "types": "waveform_sampling_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

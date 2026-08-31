@@ -7,5 +7,4 @@ coverage
 *.local
 *.log
 .claude/settings.local.json
-wasm/pkg
 wasm/target
