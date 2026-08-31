@@ -25,13 +25,19 @@ import {
   type GridCellGeometry,
   type NormalizedWaveformGridOptions,
 } from './grid'
-import { axisTextMetrics, resolveYAxisSeriesGroups, resolveYAxisTickCount } from './layout'
+import {
+  axisTextMetrics,
+  resolveYAxisSeriesGroups,
+  resolveYAxisTickCount,
+  type YAxisSlot,
+} from './layout'
 import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import {
   Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
   Y_AXIS_OUTER_PADDING,
+  Y_AXIS_RIGHT_LABEL_OFFSET,
   Y_AXIS_TICK_PADDING,
 } from './yAxisConstants'
 
@@ -61,6 +67,7 @@ export interface BuildTrackLayoutsOptions {
   linePointOverrides?: Readonly<Record<string, WaveformPoint[]>>
   hideSecondaryLabels: boolean
   yAxisLabelX: number
+  yAxisSlots?: readonly YAxisSlot[]
   showCompactEmptyTracks: boolean
 }
 
@@ -117,8 +124,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     ).map((group) =>
       !group.fixed && configuredYDomain ? { ...group, domain: configuredYDomain } : group,
     )
+    const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
+      const sideIndex = sideIndexes[group.side]++
       const tickCount = resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber)
       const niceCount = Math.max(1, tickCount - 1)
       const scale = scaleLinear(group.domain, [cell.plotHeight, 0])
@@ -144,11 +153,22 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         Y_AXIS_LABEL_GAP +
         Y_AXIS_LABEL_BAND_WIDTH +
         Y_AXIS_OUTER_PADDING
-      const x = group.side === 'left' ? -sideOffsets.left : cell.width + sideOffsets.right
+      const slot = options.yAxisSlots?.find(
+        (candidate) => candidate.side === group.side && candidate.sideIndex === sideIndex,
+      )
+      const x = slot
+        ? (group.side === 'left' ? 0 : cell.width) + slot.axisOffset
+        : group.side === 'left'
+          ? -sideOffsets.left
+          : cell.width + sideOffsets.right
       const labelDistance =
         tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
-      const labelX = x + (group.side === 'left' ? -labelDistance : labelDistance)
-      sideOffsets[group.side] += clearance
+      const labelX =
+        (slot
+          ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
+          : x + (group.side === 'left' ? -labelDistance : labelDistance)) -
+        (group.side === 'right' ? Y_AXIS_RIGHT_LABEL_OFFSET : 0)
+      if (!slot) sideOffsets[group.side] += clearance
       return {
         index: group.index,
         side: group.side,

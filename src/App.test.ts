@@ -231,7 +231,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       tracks.map((track) =>
         track.findAll('.waveform-chart__series').map((item) => item.attributes('data-series-name')),
       ),
-    ).toEqual([['正弦基波'], ['谐波扰动', '谐波对比'], ['阻尼振荡'], ['阶跃响应']])
+    ).toEqual([['正弦基波'], ['谐波扰动', '谐波对比', '谐波校正'], ['阻尼振荡'], ['阶跃响应']])
     expect(
       tracks
         .slice(1)
@@ -250,6 +250,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '正弦基波',
       '谐波扰动',
       '谐波对比',
+      '谐波校正',
       '阻尼振荡',
       '阶跃响应',
       '脉冲响应',

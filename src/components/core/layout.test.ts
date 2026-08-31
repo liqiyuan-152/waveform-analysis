@@ -254,7 +254,7 @@ describe('multi-value Y-axis grouping', () => {
       })),
     ).toEqual([
       { side: 'left', labelOffset: 55 },
-      { side: 'right', labelOffset: 55 },
+      { side: 'right', labelOffset: 45 },
     ])
   })
 

@@ -85,6 +85,18 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
       0.62 * Math.sin(TWO_PI * 0.55 * time + 0.55) + 0.18 * Math.sin(TWO_PI * 2.2 * time - 0.2),
   },
   {
+    id: 'simulated-harmonic-correction',
+    trackId: 'simulated-harmonic-frame',
+    shotNo: '13300',
+    name: '谐波校正',
+    unit: 'V',
+    color: '#722ed1',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) =>
+      0.48 * Math.sin(TWO_PI * 0.55 * time - 0.35) + 0.12 * Math.sin(TWO_PI * 2.2 * time + 0.7),
+  },
+  {
     id: 'simulated-damped',
     shotNo: '13300',
     name: '阻尼振荡',

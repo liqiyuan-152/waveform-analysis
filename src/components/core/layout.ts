@@ -35,6 +35,14 @@ export interface YAxisSeriesGroup {
   fixed: boolean
 }
 
+export interface YAxisSlot {
+  side: 'left' | 'right'
+  sideIndex: number
+  axisOffset: number
+  labelOffset: number
+  clearance: number
+}
+
 function resolveAxisSides(axisCount: number): Array<'left' | 'right'> {
   if (axisCount >= 4) return ['left', 'left', 'right', 'right']
   if (axisCount === 3) return ['left', 'right', 'right']
@@ -179,6 +187,61 @@ export function measureTrackYAxisClearance(
     },
     { left: 0, right: 0 },
   )
+}
+
+/**
+ * Reserves stable Y-axis positions for every visible track on the current page.
+ * Slots are ordered from the plot edge outward for each side.
+ */
+export function buildYAxisSlots(
+  tracks: readonly DisplayTrack[],
+  overlayMode: WaveformOverlayMode,
+  yDomain?: WaveformYDomain,
+  yDomains?: Record<string, WaveformYDomain>,
+  tickCount?: number,
+  nice = true,
+): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
+  const widths = new Map<string, number>()
+  tracks.forEach((track) => {
+    const sideIndexes = { left: 0, right: 0 }
+    resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).forEach((group) => {
+      const sideIndex = sideIndexes[group.side]++
+      const key = `${group.side}:${sideIndex}`
+      const width = axisTextMetrics(
+        group.domain,
+        nice,
+        undefined,
+        group.seriesList[0]?.unit,
+        tickCount,
+      ).tickTextWidth
+      widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))
+    })
+  })
+
+  const slots: YAxisSlot[] = []
+  const clearance = { left: 0, right: 0 }
+  ;(['left', 'right'] as const).forEach((side) => {
+    const sideIndexes = Array.from(widths.keys())
+      .filter((key) => key.startsWith(`${side}:`))
+      .map((key) => Number(key.slice(side.length + 1)))
+      .sort((first, second) => first - second)
+    sideIndexes.forEach((sideIndex) => {
+      const tickTextWidth = widths.get(`${side}:${sideIndex}`) ?? Y_AXIS_CHARACTER_WIDTH
+      const axisOffset = side === 'left' && clearance.left > 0 ? -clearance.left : clearance[side]
+      const labelDistance =
+        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
+      const labelOffset = axisOffset + labelDistance * (side === 'left' ? -1 : 1)
+      const fullClearance =
+        tickTextWidth +
+        Y_AXIS_TICK_PADDING +
+        Y_AXIS_LABEL_GAP +
+        Y_AXIS_LABEL_BAND_WIDTH +
+        Y_AXIS_OUTER_PADDING
+      slots.push({ side, sideIndex, axisOffset, labelOffset, clearance: fullClearance })
+      clearance[side] += fullClearance
+    })
+  })
+  return { slots, clearance }
 }
 
 type PositionedTrack = Pick<TrackLayout, 'left' | 'top' | 'width' | 'height'>

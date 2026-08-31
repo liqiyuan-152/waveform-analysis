@@ -27,7 +27,7 @@ import {
 import {
   buildTrackLayouts,
   axisTextMetrics,
-  measureTrackYAxisClearance,
+  buildYAxisSlots,
   resolveYAxisSeriesGroups,
 } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
@@ -169,33 +169,24 @@ export function useWaveformLayout(context: LayoutContext) {
           : 0,
     ),
   )
-  const multiAxisClearance = computed(() =>
-    chartTracks.value.reduce(
-      (maximum, track) => {
-        const clearance = measureTrackYAxisClearance(
-          track,
-          props.overlayMode,
-          props.yDomain,
-          props.yDomains,
-          props.axes?.y?.splitNumber,
-          props.axes?.y?.nice !== false,
-        )
-        return {
-          left: Math.max(maximum.left, clearance.left),
-          right: Math.max(maximum.right, clearance.right),
-        }
-      },
-      { left: 0, right: 0 },
+  const yAxisSlots = computed(() =>
+    buildYAxisSlots(
+      layoutTracks.value.filter((track) => track.visibleSeries.length > 0),
+      props.overlayMode,
+      props.yDomain,
+      props.yDomains,
+      props.axes?.y?.splitNumber,
+      props.axes?.y?.nice !== false,
     ),
   )
   const resolvedChartLeftMargin = computed(() =>
     props.overlayMode === 'multi-axis'
-      ? Math.max(chartLeftMargin.value, multiAxisClearance.value.left)
+      ? Math.max(chartLeftMargin.value, yAxisSlots.value.clearance.left)
       : chartLeftMargin.value,
   )
   const chartRightMargin = computed(() =>
     props.overlayMode === 'multi-axis'
-      ? Math.max(margin.right, multiAxisClearance.value.right)
+      ? Math.max(margin.right, yAxisSlots.value.clearance.right)
       : margin.right,
   )
   const innerWidth = computed(() =>
@@ -212,7 +203,7 @@ export function useWaveformLayout(context: LayoutContext) {
     return {
       horizontalGap:
         props.overlayMode === 'multi-axis' && hasMultipleColumns && hasVisibleWaveformData.value
-          ? Math.max(baseGap, multiAxisClearance.value.left + multiAxisClearance.value.right)
+          ? Math.max(baseGap, yAxisSlots.value.clearance.left + yAxisSlots.value.clearance.right)
           : hasMultipleColumns && hasVisibleWaveformData.value
             ? hasYAxisLabels.value && canReserveLabelClearance
               ? fullGap
@@ -323,7 +314,10 @@ export function useWaveformLayout(context: LayoutContext) {
       rendering: renderingOptions.value,
       linePointOverrides: linePointOverrides?.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
-      yAxisLabelX: yAxisMetrics.value.labelCenterX,
+      yAxisLabelX:
+        yAxisSlots.value.slots.find((slot) => slot.side === 'left' && slot.sideIndex === 0)
+          ?.labelOffset ?? yAxisMetrics.value.labelCenterX,
+      yAxisSlots: props.overlayMode === 'multi-axis' ? yAxisSlots.value.slots : undefined,
       showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
     }),
   )
