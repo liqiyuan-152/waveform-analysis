@@ -873,8 +873,8 @@ Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的�
 - `src/App.vue`：综合可交互 demo，`src/data` 中提供示例波形数据
 - `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 与
   `src/views/WasmSamplingDemo.vue` 为专用示例
-- `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 与
-  `wasm/target` 是本地构建产物，不提交到 Git
+- `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 是提交到 Git 的
+  WASM 绑定与二进制产物，`wasm/target` 是本地 Rust 构建缓存，不提交到 Git
 
 ## 本地开发
 
