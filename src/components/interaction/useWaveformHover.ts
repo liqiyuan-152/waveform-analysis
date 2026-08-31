@@ -62,12 +62,14 @@ export function useWaveformHover(context: HoverContext) {
     nextPoints: HoveredSeriesPoint[],
     trackIndex: number | null,
     queryX: number,
+    crosshairXByTrack: Record<number, number>,
     position: { x: number; y: number },
   ) => {
     if (isPresentationMode.value) return
     if (!hoveredPointsMatch(nextPoints)) hoverState.points = nextPoints
     hoverState.trackIndex = trackIndex
     hoverState.queryX = queryX
+    hoverState.crosshairXByTrack = crosshairXByTrack
     hoverState.position = position
     emit('point-hover', hoverState.points.find((point) => point.point)?.point ?? null)
   }
@@ -76,6 +78,7 @@ export function useWaveformHover(context: HoverContext) {
     hoverState.points = []
     hoverState.trackIndex = null
     hoverState.queryX = null
+    hoverState.crosshairXByTrack = {}
     emit('point-hover', null)
   }
   const handlePointerLeave = () => {
@@ -112,8 +115,29 @@ export function useWaveformHover(context: HoverContext) {
     const source = series.source ?? pointSourceFromPoints(series.points)
     const first = source.pointAt(0)
     const last = source.pointAt(source.length - 1)
-    if (!first || !last || xValue < first.x || xValue > last.x) return undefined
+    if (!first || !last) return undefined
+    if (xValue <= first.x) return first
+    if (xValue >= last.x) return last
     return source.nearestPoint(xValue)
+  }
+  const crosshairXForTrack = (track: TrackLayout, xValue: number): number | undefined => {
+    let longestRange: [number, number] | undefined
+    let longestSpan = -Infinity
+
+    track.seriesList.forEach((series) => {
+      const source = series.source ?? pointSourceFromPoints(series.points)
+      const first = source.pointAt(0)
+      const last = source.pointAt(source.length - 1)
+      if (!first || !last) return
+      const span = last.x - first.x
+      if (span > longestSpan) {
+        longestSpan = span
+        longestRange = [first.x, last.x]
+      }
+    })
+
+    if (!longestRange) return undefined
+    return Math.max(longestRange[0], Math.min(longestRange[1], xValue))
   }
 
   const handleIndependentPointerMove = (event: PointerEvent, trackIndex: number) => {
@@ -135,10 +159,17 @@ export function useWaveformHover(context: HoverContext) {
       const nextPoints = track.seriesList.map((series) =>
         createHoveredSeriesPoint(series, trackIndex, nearestPoint(series, xValue) ?? null),
       )
-      commitHover(nextPoints, trackIndex, xValue, {
-        x: resolvedChartLeftMargin.value + track.left + pointerX,
-        y: titleAreaHeight.value + chartTopMargin.value + track.top + pointerY,
-      })
+      const crosshairX = crosshairXForTrack(track, xValue)
+      commitHover(
+        nextPoints,
+        trackIndex,
+        xValue,
+        crosshairX === undefined ? {} : { [trackIndex]: crosshairX },
+        {
+          x: resolvedChartLeftMargin.value + track.left + pointerX,
+          y: titleAreaHeight.value + chartTopMargin.value + track.top + pointerY,
+        },
+      )
     })
   }
   const handleSharedPointerMove = (event: PointerEvent) => {
@@ -166,7 +197,13 @@ export function useWaveformHover(context: HoverContext) {
           createHoveredSeriesPoint(series, track.index, nearestPoint(series, xValue) ?? null),
         ),
       )
-      commitHover(nextPoints, null, xValue, {
+      const crosshairXByTrack = Object.fromEntries(
+        trackLayouts.value.flatMap((track) => {
+          const crosshairX = crosshairXForTrack(track, xValue)
+          return crosshairX === undefined ? [] : [[track.index, crosshairX]]
+        }),
+      )
+      commitHover(nextPoints, null, xValue, crosshairXByTrack, {
         x: resolvedChartLeftMargin.value + pointerX,
         y: titleAreaHeight.value + chartTopMargin.value + pointerY,
       })

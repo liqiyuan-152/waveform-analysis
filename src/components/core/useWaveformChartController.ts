@@ -61,6 +61,7 @@ export function useWaveformChartController(
     points: [],
     trackIndex: null,
     queryX: null,
+    crosshairXByTrack: {},
     position: { x: 0, y: 0 },
   })
   const suppressHoverUntilMove = ref(false)

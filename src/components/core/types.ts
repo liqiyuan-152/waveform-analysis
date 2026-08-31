@@ -78,6 +78,8 @@ export interface WaveformHoverState {
   points: HoveredSeriesPoint[]
   trackIndex: number | null
   queryX: number | null
+  /** Actual crosshair X coordinate for each hovered track, after its range is clamped. */
+  crosshairXByTrack: Record<number, number>
   position: { x: number; y: number }
 }
 
