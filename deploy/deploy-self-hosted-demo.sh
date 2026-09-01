@@ -4,6 +4,9 @@ set -euo pipefail
 tag=${1:?tag is required}
 sha=${2:?commit SHA is required}
 
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+cd "$script_dir/.."
+
 [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Invalid release tag: $tag" >&2; exit 64; }
 [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid commit SHA" >&2; exit 64; }
 
