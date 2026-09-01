@@ -104,6 +104,68 @@ describe('WaveformChart track order', () => {
     expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(2)
   })
 
+  it('keeps incremental watermarks stable when empty ordered tracks are hidden', async () => {
+    const wrapper = await mountSizedChart(mergedFourTrackSeries(), {
+      frameNumber: 1,
+      grid: {
+        rowCount: 2,
+        columnCount: 1,
+        hideEmptyTracks: true,
+        trackOrder: ['frame-1', 'frame-2', 'frame-3', 'frame-4'],
+      },
+    })
+
+    expect(
+      wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id')),
+    ).toEqual(['frame-1', 'frame-3'])
+    expect(
+      wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
+    ).toEqual(['1', '3'])
+
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+
+    expect(
+      wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id')),
+    ).toEqual(['frame-4'])
+    expect(
+      wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
+    ).toEqual(['4'])
+  })
+
+  it('uses stable track IDs for explicit frame watermark overrides', async () => {
+    const wrapper = await mountSizedChart(mergedFourTrackSeries(), {
+      frameNumber: 1,
+      frameNumbers: { 'frame-1': 'A', 'frame-3': 'C', 'frame-4': 'D' },
+      grid: {
+        rowCount: 2,
+        columnCount: 1,
+        hideEmptyTracks: true,
+        trackOrder: ['frame-1', 'frame-2', 'frame-3', 'frame-4'],
+      },
+    })
+
+    expect(
+      wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
+    ).toEqual(['A', 'C'])
+
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+
+    expect(
+      wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
+    ).toEqual(['D'])
+  })
+
+  it('keeps the existing incremental watermark fallback when frame mappings are absent', async () => {
+    const wrapper = await mountSizedChart(orderedSeries(['frame-1', 'frame-2']), {
+      frameNumber: 7,
+      grid: { rowCount: 2, columnCount: 1 },
+    })
+
+    expect(
+      wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
+    ).toEqual(['7', '8'])
+  })
+
   it('appends data tracks absent from trackOrder in input order', async () => {
     const wrapper = await mountSizedChart(
       {

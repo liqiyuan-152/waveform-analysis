@@ -11,6 +11,8 @@ export interface WaveformGridOptions {
   fillIncompleteLastRow?: boolean
   /** Stable grid slots. Empty IDs remain as empty chart frames and keep their page position. */
   trackOrder?: string[]
+  /** Omits ordered tracks without waveform series from layout and pagination. */
+  hideEmptyTracks?: boolean
   trackLines?: WaveformGridTrackLines
 }
 
@@ -38,6 +40,7 @@ export interface NormalizedWaveformGridOptions {
   showPagination: boolean
   fillIncompleteLastRow: boolean
   trackOrder?: string[]
+  hideEmptyTracks?: boolean
   trackLines: Record<string, NormalizedWaveformGridLineOptions>
 }
 
@@ -95,6 +98,7 @@ export function normalizeGridOptions(options?: WaveformGridOptions): NormalizedW
     showPagination: options?.showPagination ?? true,
     fillIncompleteLastRow: options?.fillIncompleteLastRow ?? false,
     trackOrder: normalizeTrackOrder(options?.trackOrder),
+    hideEmptyTracks: options?.hideEmptyTracks ?? false,
     trackLines,
   }
 }

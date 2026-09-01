@@ -120,6 +120,7 @@ const data = ref<WaveformData>({
 | `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                                                  | 降采样与点/误差棒间距                         |
 | `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                                                | 标题、图例和图框样式                          |
 | `frameNumber`                     | `string \| number`                          | 未设置                                                                                | 图框水印内容                                  |
+| `frameNumbers`                    | `Record<string, string \| number>`          | 未设置                                                                                | 按 `trackId` 覆盖图框水印内容                 |
 | `zeroLine`                        | `WaveformZeroLineOptions`                   | `{ visible: false }`                                                                  | 零值参考线显隐与样式                          |
 | `cleanView`                       | `boolean`                                   | `false`                                                                               | 保留波形、图框和刻度的净图模式                |
 | `presentationMode`                | `boolean`                                   | `false`                                                                               | 禁用绘图区交互的展示模式                      |
@@ -197,7 +198,8 @@ const chartData: WaveformData = {
 ```
 
 需要让图框在合并或暂时没有数据时仍保持位置和分页，可传入 `grid.trackOrder`。列表中的
-`trackId` 会按给定顺序占用图框；没有对应系列的项显示为空图框，数据中未列出的轨道会追加在末尾：
+`trackId` 会按给定顺序占用图框；没有对应系列的项显示为空图框，数据中未列出的轨道会追加在末尾。传入
+`hideEmptyTracks: true` 可省略空图框，同时按稳定 `trackId` 保留图例、交互和水印映射：
 
 ```vue
 <WaveformChart :data="chartData" :grid="{ rowCount: 2, trackOrder: ['ch-a', 'ch-b', 'ch-c'] }" />

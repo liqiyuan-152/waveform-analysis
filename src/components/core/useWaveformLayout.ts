@@ -31,6 +31,7 @@ import {
   resolveYAxisSeriesGroups,
 } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
+import { createFrameNumberResolver, resolvePageableTracks } from './trackPagination'
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
@@ -107,9 +108,12 @@ export function useWaveformLayout(context: LayoutContext) {
     })
   })
   const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
-  const pageCount = computed(() => getPageCount(chartTracks.value.length, gridOptions.value))
+  const pageableTracks = computed(() =>
+    resolvePageableTracks(chartTracks.value, gridOptions.value.hideEmptyTracks),
+  )
+  const pageCount = computed(() => getPageCount(pageableTracks.value.length, gridOptions.value))
   const pagedTracks = computed(() =>
-    paginateSeries(chartTracks.value, currentPage.value, gridOptions.value),
+    paginateSeries(pageableTracks.value, currentPage.value, gridOptions.value),
   )
   const layoutTracks = computed(() => {
     const tracksWithSeries = pagedTracks.value.filter((track) => track.series.length > 0)
@@ -357,16 +361,15 @@ export function useWaveformLayout(context: LayoutContext) {
         }
       : undefined
   })
-  const resolveFrameNumber = (trackIndex: number): string | number | undefined => {
-    if (props.frameNumber === undefined || props.frameNumber === null) return undefined
-    if (chartTracks.value.length === 1) return props.frameNumber
-    return typeof props.frameNumber === 'number'
-      ? props.frameNumber + trackIndex
-      : `${props.frameNumber}-${trackIndex + 1}`
-  }
+  const resolveFrameNumber = createFrameNumberResolver(
+    () => props.frameNumber,
+    () => props.frameNumbers,
+    () => chartTracks.value,
+  )
   return {
     chartSeries,
     chartTracks,
+    pageableTracks,
     renderingOptions,
     gridOptions,
     pageCount,

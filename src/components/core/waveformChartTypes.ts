@@ -43,6 +43,8 @@ export interface WaveformChartProps {
   yDomains?: Record<string, [number, number]>
   timeUnit?: 's' | 'ms'
   frameNumber?: string | number
+  /** Per-track frame watermark overrides, keyed by stable trackId. */
+  frameNumbers?: Record<string, string | number>
   frameStyle?: WaveformFrameStyle
   axes?: WaveformAxesOptions
   annotations?: WaveformAnnotation[]
