@@ -5,5 +5,4 @@ node_modules
 dist
 dist-demo
 coverage
-wasm/pkg
 wasm/target
