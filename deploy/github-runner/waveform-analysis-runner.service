@@ -1,0 +1,14 @@
+[Unit]
+Description=GitHub Actions runner for waveform-analysis
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/docker start -a waveform-analysis-runner
+ExecStop=/usr/bin/docker stop -t 30 waveform-analysis-runner
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

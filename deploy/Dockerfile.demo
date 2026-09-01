@@ -1,0 +1,20 @@
+FROM rust:1.95-bookworm AS wasm-tools
+
+RUN cargo install wasm-pack --version 0.14.0 --locked
+
+FROM node:22-bookworm AS build
+
+WORKDIR /app
+
+COPY --from=wasm-tools /usr/local/cargo/bin/wasm-pack /usr/local/bin/wasm-pack
+COPY package.json pnpm-lock.yaml ./
+COPY wasm ./wasm
+COPY scripts ./scripts
+COPY src ./src
+COPY index.html tsconfig.json tsconfig.app.json tsconfig.lib.json tsconfig.node.json vite.config.ts vite.lib.config.ts ./
+COPY eslint.config.js .oxlintrc.json ./
+
+RUN corepack enable \
+    && corepack prepare pnpm@10.32.1 --activate \
+    && pnpm install --frozen-lockfile \
+    && DEMO_BASE_PATH=/waveform-analysis/ pnpm build
