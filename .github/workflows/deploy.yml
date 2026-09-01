@@ -8,23 +8,12 @@ on:
 permissions:
   contents: read
 
-jobs:
-  tag-gate:
-    runs-on: ubuntu-latest
-    outputs:
-      deploy: ${{ steps.gate.outputs.deploy }}
-    steps:
-      - id: gate
-        shell: bash
-        run: |
-          if [[ "${GITHUB_REF_NAME}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "deploy=true" >> "${GITHUB_OUTPUT}"
-          else
-            echo "deploy=false" >> "${GITHUB_OUTPUT}"
-          fi
+concurrency:
+  group: waveform-analysis-production
+  cancel-in-progress: false
 
-  build:
-    needs: tag-gate
+jobs:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,33 +29,34 @@ jobs:
           targets: wasm32-unknown-unknown
       - run: cargo install wasm-pack --version 0.14.0 --locked
       - run: pnpm install --frozen-lockfile
-      - run: DEMO_BASE_PATH=/waveform-analysis/ pnpm build
-      - uses: actions/upload-artifact@v4
-        with:
-          name: waveform-analysis-site
-          path: dist-demo
-          if-no-files-found: error
+      - run: python3 scripts/issue_triage_agent.py --self-test
+      - run: pnpm typecheck
+      - run: pnpm check:file-length
+      - run: pnpm lint:oxlint
+      - run: pnpm lint
+      - run: pnpm test:coverage
+      - run: pnpm build
+      - run: pnpm pack --dry-run
 
   deploy:
-    needs: [tag-gate, build]
-    if: needs.tag-gate.outputs.deploy == 'true'
-    runs-on: ubuntu-latest
+    needs: verify
+    runs-on: [self-hosted, waveform-analysis]
     environment: production
+    timeout-minutes: 45
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: waveform-analysis-site
-          path: site
-      - name: Upload and activate release
+      - name: Validate protected release tag
+        shell: bash
+        run: |
+          [[ "$GITHUB_REF_TYPE" == tag ]]
+          [[ "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+      - name: Download, build, activate, and verify release
         shell: bash
         env:
-          DEPLOY_API_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
-          test -n "$DEPLOY_API_TOKEN"
-          tar -C site -czf site.tar.gz .
-          curl --fail-with-body --silent --show-error --retry 3 --connect-timeout 10 --max-time 900 \
-            -X POST "https://lqycustomsite.online/deployment-hook/projects/waveform-analysis/releases/${GITHUB_REF_NAME}" \
-            -H "Authorization: Bearer ${DEPLOY_API_TOKEN}" \
-            -H "X-Deployment-Commit: ${GITHUB_SHA}" \
-            -H "Content-Type: application/gzip" \
-            --data-binary @site.tar.gz
+          source_dir=$(mktemp -d "${RUNNER_TEMP}/waveform-analysis-source.XXXXXX")
+          curl --fail --location --retry 3 --connect-timeout 15 --max-time 300 \
+            --header "Authorization: Bearer ${GITHUB_TOKEN}" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/tarball/${GITHUB_SHA}" \
+            | tar -xz --strip-components=1 -C "$source_dir"
+          "$source_dir/deploy/deploy-self-hosted-demo.sh" "$GITHUB_REF_NAME" "$GITHUB_SHA"
