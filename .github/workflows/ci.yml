@@ -25,3 +25,5 @@ jobs:
       - run: pnpm test:coverage
       - run: pnpm build
       - run: pnpm pack --dry-run
+      - name: Verify Showcase static image
+        run: docker build --build-arg DEMO_BASE_PATH=/ -t waveform-analysis-demo:ci .
