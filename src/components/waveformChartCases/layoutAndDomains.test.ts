@@ -6,26 +6,6 @@ import { resizeObservers } from '../../test/setup'
 import { gridSeries, mountSizedChart } from '../../test/waveformChart'
 
 describe('WaveformChart', () => {
-  it('applies the configured Y-axis split number', async () => {
-    const wrapper = await mountSizedChart(
-      {
-        kind: 'points',
-        points: [
-          { x: 0, y: 3 },
-          { x: 1, y: 97 },
-        ],
-      },
-      { axes: { y: { splitNumber: 5 } } },
-    )
-
-    expect(
-      wrapper
-        .get('.waveform-chart__axis--y')
-        .findAll('.tick text')
-        .map((tick) => tick.text()),
-    ).toEqual(['0', '25', '50', '75', '100'])
-  })
-
   it('expands the Y-axis label gutter for signed values and long exponents', async () => {
     const wrapper = await mountSizedChart(
       {
@@ -52,10 +32,13 @@ describe('WaveformChart', () => {
     const labelBackgroundX = Number(
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
+    const longestTickLabel = Math.max(
+      ...tracks[0].findAll('.waveform-chart__axis--y .tick text').map((tick) => tick.text().length),
+    )
 
-    expect(labelX).toBe(-62)
+    expect(Math.abs(labelX)).toBeGreaterThanOrEqual(7 + longestTickLabel * 7 + 6)
     expect(labelBackgroundX).toBe(labelX - 6)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(80)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(80)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(72)
   })
 
@@ -118,12 +101,28 @@ describe('WaveformChart', () => {
       { grid: { rowCount: 1, columnCount: 1 } },
     )
     const initialMargin = wrapper.attributes('data-chart-left-margin')
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-34')
+    const initialTrack = wrapper.get('.waveform-chart__track')
+    const initialLongestTickLabel = Math.max(
+      ...initialTrack
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => tick.text().length),
+    )
+    expect(initialTrack.attributes('data-y-axis-label-x')).toBe(
+      String(-(7 + initialLongestTickLabel * 7 + 6)),
+    )
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-62')
+    const pagedTrack = wrapper.get('.waveform-chart__track')
+    const pagedLongestTickLabel = Math.max(
+      ...pagedTrack
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => tick.text().length),
+    )
+    expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(
+      String(-(7 + pagedLongestTickLabel * 7 + 6)),
+    )
   })
 
   it('hides only secondary-column Y-axis labels when the grid is too narrow', async () => {

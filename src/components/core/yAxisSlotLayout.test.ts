@@ -2,7 +2,7 @@ import { zoomIdentity } from 'd3'
 import { describe, expect, it } from 'vitest'
 
 import { DEFAULT_WAVEFORM_RENDERING_OPTIONS } from '../../core'
-import { buildTrackLayouts, buildYAxisSlots } from './layout'
+import { buildTrackLayouts, buildYAxisSlots, resolveRenderedYAxisSeriesGroups } from './layout'
 import type { DisplaySeries, DisplayTrack } from './types'
 import { Y_AXIS_RIGHT_LABEL_OFFSET } from './yAxisConstants'
 
@@ -125,5 +125,41 @@ describe('Y-axis slots', () => {
     ])
     expect(fourAxisSlots.slots[1]!.axisOffset).toBeLessThan(0)
     expect(fourAxisSlots.slots[3]!.axisOffset).toBeGreaterThan(0)
+  })
+
+  it('uses dynamic Y domains when measuring multi-axis slots', () => {
+    const negativeVoltage = series('negative-voltage', 0, 1)
+    negativeVoltage.unit = 'V'
+    const longUnit = series('long-unit', 0, 1)
+    longUnit.unit = 'volt-amperes-per-phase'
+    const sourceTrack = track([negativeVoltage, longUnit])
+    const viewportYDomains = { [sourceTrack.id]: [-0.7434, -0.3434] as [number, number] }
+
+    expect(
+      resolveRenderedYAxisSeriesGroups(
+        sourceTrack,
+        'multi-axis',
+        undefined,
+        undefined,
+        viewportYDomains,
+      ).map((group) => group.domain),
+    ).toEqual([
+      [-0.7434, -0.3434],
+      [-0.7434, -0.3434],
+    ])
+
+    const slots = buildYAxisSlots(
+      [sourceTrack],
+      'multi-axis',
+      undefined,
+      undefined,
+      5,
+      false,
+      false,
+      viewportYDomains,
+    )
+
+    expect(slots.clearance.left).toBe(100)
+    expect(slots.clearance.right).toBeGreaterThan(180)
   })
 })

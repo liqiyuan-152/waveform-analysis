@@ -27,7 +27,8 @@ import {
 } from './grid'
 import {
   axisTextMetrics,
-  resolveYAxisSeriesGroups,
+  resolveRenderedYAxisSeriesGroups,
+  resolveYAxisTicks,
   resolveYAxisTickCount,
   type YAxisSlot,
 } from './layout'
@@ -115,28 +116,21 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         ? (options.independentTransforms[index] ?? zoomIdentity)
         : zoomIdentity
     const xScale = transform.rescaleX(baseXScale)
-    const configuredYDomain = options.yDomains?.[displayTrack.id]
-    const yAxisGroups = resolveYAxisSeriesGroups(
+    const yAxisGroups = resolveRenderedYAxisSeriesGroups(
       displayTrack,
       options.overlayMode,
       options.fixedYDomain,
       options.fixedYDomains,
-    ).map((group) =>
-      !group.fixed && configuredYDomain ? { ...group, domain: configuredYDomain } : group,
+      options.yDomains,
     )
     const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
       const sideIndex = sideIndexes[group.side]++
       const tickCount = resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber)
-      const niceCount = Math.max(1, tickCount - 1)
-      const scale = scaleLinear(group.domain, [cell.plotHeight, 0])
-      if (options.yAxisNice !== false) scale.nice(niceCount)
-      const [axisStart, axisEnd] = scale.domain()
-      const majorTicks = Array.from(
-        { length: tickCount },
-        (_, index) => axisStart + ((axisEnd - axisStart) * index) / (tickCount - 1),
-      )
+      const resolvedTicks = resolveYAxisTicks(group.domain, tickCount, options.yAxisNice !== false)
+      const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
+      const majorTicks = resolvedTicks.values
       const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
       const visibleMajorTicks = showAxisEnd ? majorTicks : majorTicks.slice(0, -1)
       const tickValues = visibleMajorTicks
