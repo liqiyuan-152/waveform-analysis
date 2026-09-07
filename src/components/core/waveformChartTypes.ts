@@ -16,6 +16,7 @@ import type {
   WaveformTitleOptions,
   WaveformXDomainStrategy,
   WaveformZeroLineOptions,
+  WaveformZoomIntentPayload,
   WaveformZoomEndPayload,
   WaveformZoomResetPayload,
 } from '../data/types'
@@ -90,6 +91,7 @@ export type ResolvedWaveformChartProps = Readonly<
 
 export interface WaveformChartEmit {
   (event: 'point-hover', point: WaveformPoint | null): void
+  (event: 'zoom-intent', payload: WaveformZoomIntentPayload): void
   (event: 'zoom-change', domain: [number, number]): void
   (event: 'zoom-end', payload: WaveformZoomEndPayload): void
   (event: 'zoom-reset', payload: WaveformZoomResetPayload): void

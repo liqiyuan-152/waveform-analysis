@@ -49,6 +49,15 @@ export interface WaveformZoomEndPayload {
   gesture?: 'wheel' | 'box'
 }
 
+/** Describes the X-axis viewport targeted by a user zoom gesture before rendering settles. */
+export interface WaveformZoomIntentPayload {
+  start: number
+  end: number
+  gesture: 'wheel' | 'box'
+  trackIndex?: number
+  seriesIds?: string[]
+}
+
 /** Identifies the viewport reset by a double-click gesture. */
 export interface WaveformZoomResetPayload {
   trackIndex?: number

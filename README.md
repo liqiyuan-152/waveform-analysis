@@ -275,8 +275,9 @@ Y 轴会独立计算：
 组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放
 X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽可平移当前视口。
 鼠标滚轮可放大和缩小，双击恢复完整视口。
-组件会在滚轮或框选缩放结束后触发 `zoom-end`，调用方可以使用端点请求后端，再通过
-`data` 传回新数据。独立分图模式还会包含 `trackIndex` 和稳定的 `seriesIds`。
+组件会在真实滚轮或框选确定目标范围时同步触发 `zoom-intent`，可立即取消过时请求并启动
+新请求；缩放结束后仍会触发 `zoom-end`。独立分图模式还会包含 `trackIndex` 和稳定的
+`seriesIds`。
 
 ```vue
 <WaveformChart
@@ -285,14 +286,15 @@ X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽�
   :initial-x-domain="initialDomain"
   :min-zoom-span="initialDomainSpan / 40"
   pannable
-  @zoom-end="loadVisibleData"
+  @zoom-intent="loadVisibleData"
   @zoom-reset="restoreInitialData"
 />
 ```
 
-`zoom-change` 会在滚轮、框选和平移过程中触发，适合更新外部状态；后端请求应使用
-`zoom-end`，或在 `zoom-change` 上自行防抖。标注数据应由父组件独立持有，替换波形数据时
-不要清空标注，组件会根据当前数据域自动隐藏或恢复对应标注。
+`zoom-change` 会在滚轮、框选和平移过程中触发，适合更新外部状态。后端按视口回填数据时，
+应使用 `zoom-intent` 使每次用户意图立即使旧请求失效；`zoom-end` 适合只在手势完成后执行
+的工作。标注数据应由父组件独立持有，替换波形数据时不要清空标注，组件会根据当前数据域
+自动隐藏或恢复对应标注。
 
 `zoom-end.gesture` 用于区分 `wheel` 和 `box`。单轨道 payload 使用 `yStart/yEnd`；共享
 X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平移不会触发 `zoom-end`，
@@ -821,6 +823,7 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | 事件                                                            | 说明                                                           |
 | --------------------------------------------------------------- | -------------------------------------------------------------- |
 | `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
+| `zoom-intent`                                                   | 真实滚轮或框选确定目标范围时同步触发，参数含端点和 `gesture`   |
 | `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
 | `zoom-end`                                                      | 滚轮或框选结束后触发；`gesture` 区分二者，独立模式附带轨道信息 |
 | `zoom-reset`                                                    | 双击重置视口时触发；独立模式 payload 标识目标图框              |

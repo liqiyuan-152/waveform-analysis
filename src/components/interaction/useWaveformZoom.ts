@@ -21,6 +21,11 @@ import {
   transformForDomain,
   type ZoomSeriesGroup,
 } from './zoomConstraints'
+import {
+  emitIndependentWheelZoomEnds,
+  emitSharedWheelZoomEnd,
+  seriesIdentity,
+} from './zoomEventPayload'
 
 interface ZoomContext {
   props: ResolvedWaveformChartProps
@@ -70,9 +75,10 @@ export function useWaveformZoom(context: ZoomContext) {
   let lastSharedZoomGesture: ZoomGestureKind | null = null
   const pendingIndependentZoomTransforms = new Map<number, ZoomTransform>()
   const pendingIndependentZoomGestures = new Map<number, ZoomGestureKind>()
-  const lastIndependentZoomGestures = new Map<number, ZoomGestureKind>()
-  const lastZoomedTrackIndexes = new Set<number>()
+  const lastIndependentWheelSeriesIds = new Map<string, string[]>()
   let wheelZoomEndTimer: ReturnType<typeof setTimeout> | undefined
+  let preservePendingWheelDuringDataRebind = false
+  let zoomBindingEpoch = 0
 
   const scheduleZoomCommit = () => zoomThrottle.schedule(commitPendingZoom)
   const handleSharedZoom = (event: D3ZoomEvent<SVGRectElement, unknown>) => {
@@ -80,8 +86,12 @@ export function useWaveformZoom(context: ZoomContext) {
     cancelPendingHover()
     pendingSharedZoomTransform = event.transform
     pendingSharedZoomGesture = 'wheel'
-    scheduleZoomCommit()
     scheduleWheelZoomEnd()
+    const domain = event.transform
+      .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
+      .domain()
+    emit('zoom-intent', { start: domain[0], end: domain[1], gesture: 'wheel' })
+    scheduleZoomCommit()
   }
   const handleIndependentZoom = (
     event: D3ZoomEvent<SVGRectElement, unknown>,
@@ -91,8 +101,21 @@ export function useWaveformZoom(context: ZoomContext) {
     cancelPendingHover()
     pendingIndependentZoomTransforms.set(trackIndex, event.transform)
     pendingIndependentZoomGestures.set(trackIndex, 'wheel')
-    scheduleZoomCommit()
     scheduleWheelZoomEnd()
+    const track = trackLayouts.value.find((item) => item.index === trackIndex)
+    if (track) {
+      const domain = event.transform
+        .rescaleX(scaleLinear(resolveInitialTrackDomain(track), [0, track.width]))
+        .domain()
+      emit('zoom-intent', {
+        start: domain[0],
+        end: domain[1],
+        trackIndex,
+        seriesIds: track.seriesList.map((series) => series.id),
+        gesture: 'wheel',
+      })
+    }
+    scheduleZoomCommit()
   }
   function commitPendingZoom() {
     if (isPresentationMode.value) {
@@ -113,12 +136,7 @@ export function useWaveformZoom(context: ZoomContext) {
     if (!pendingIndependentZoomTransforms.size) return
     const nextTransforms = [...independentTransforms.value]
     const changedTrackIndexes = Array.from(pendingIndependentZoomTransforms.keys())
-    lastZoomedTrackIndexes.clear()
-    changedTrackIndexes.forEach((trackIndex) => lastZoomedTrackIndexes.add(trackIndex))
-    changedTrackIndexes.forEach((trackIndex) => {
-      const gesture = pendingIndependentZoomGestures.get(trackIndex)
-      if (gesture) lastIndependentZoomGestures.set(trackIndex, gesture)
-    })
+    const changedGestures = new Map(pendingIndependentZoomGestures)
     pendingIndependentZoomTransforms.forEach((transform, trackIndex) => {
       nextTransforms[trackIndex] = transform
     })
@@ -129,68 +147,36 @@ export function useWaveformZoom(context: ZoomContext) {
     changedTrackIndexes.forEach((trackIndex) => {
       const track = tracksByIndex.get(trackIndex)
       if (!track) return
+      if (changedGestures.get(trackIndex) === 'wheel') {
+        const seriesIds = track.seriesList.map((series) => series.id)
+        lastIndependentWheelSeriesIds.set(seriesIdentity(seriesIds), seriesIds)
+      }
       const domain = track.xScale.domain()
       emit('zoom-change', [domain[0], domain[1]])
     })
   }
   const emitZoomEnd = () => {
     if (props.displayMode === 'independent') {
-      const tracksByIndex = new Map(trackLayouts.value.map((track) => [track.index, track]))
-      lastZoomedTrackIndexes.forEach((trackIndex) => {
-        if (lastIndependentZoomGestures.get(trackIndex) !== 'wheel') return
-        const track = tracksByIndex.get(trackIndex)
-        if (!track) return
-        const domain = track.xScale.domain() as [number, number]
-        const yDomain = track.yScale.domain()
-        emit('zoom-end', {
-          start: domain[0],
-          end: domain[1],
-          yStart: yDomain[0],
-          yEnd: yDomain[1],
-          trackIndex,
-          seriesIds: track.seriesList.map((series) => series.id),
-          gesture: 'wheel',
-        })
-      })
-      lastZoomedTrackIndexes.clear()
-      lastIndependentZoomGestures.clear()
+      emitIndependentWheelZoomEnds(emit, trackLayouts.value, lastIndependentWheelSeriesIds.values())
+      lastIndependentWheelSeriesIds.clear()
       return
     }
     if (lastSharedZoomGesture !== 'wheel') {
       lastSharedZoomGesture = null
       return
     }
-    const domain = sharedZoomDomain.value
-    const visibleTracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
-    if (visibleTracks.length === 1) {
-      const yDomain = visibleTracks[0]?.yScale.domain()
-      emit('zoom-end', {
-        start: domain[0],
-        end: domain[1],
-        yStart: yDomain?.[0],
-        yEnd: yDomain?.[1],
-        gesture: 'wheel',
-      })
-    } else {
-      emit('zoom-end', {
-        start: domain[0],
-        end: domain[1],
-        yRanges: Object.fromEntries(
-          visibleTracks.map((track) => [
-            track.series?.trackId ?? track.series?.id ?? track.id,
-            track.yScale.domain() as [number, number],
-          ]),
-        ),
-        gesture: 'wheel',
-      })
-    }
+    emitSharedWheelZoomEnd(emit, sharedZoomDomain.value, trackLayouts.value)
     lastSharedZoomGesture = null
   }
   const flushPendingZoom = () => {
     zoomThrottle.flush()
     commitPendingZoom()
-    if (lastSharedZoomGesture === 'wheel' || lastIndependentZoomGestures.size) return
+    if (lastSharedZoomGesture === 'wheel' || lastIndependentWheelSeriesIds.size) return
     emitZoomEnd()
+  }
+  const handleD3ZoomEnd = (bindingEpoch: number) => {
+    if (bindingEpoch !== zoomBindingEpoch) return
+    flushPendingZoom()
   }
   function scheduleWheelZoomEnd() {
     if (wheelZoomEndTimer !== undefined) clearTimeout(wheelZoomEndTimer)
@@ -199,7 +185,14 @@ export function useWaveformZoom(context: ZoomContext) {
       zoomThrottle.flush()
       commitPendingZoom()
       emitZoomEnd()
+      preservePendingWheelDuringDataRebind = false
     }, WHEEL_ZOOM_DEBOUNCE_MS)
+  }
+  const prepareForDataChange = () => {
+    if (wheelZoomEndTimer === undefined) return
+    zoomThrottle.flush()
+    commitPendingZoom()
+    preservePendingWheelDuringDataRebind = true
   }
   const cancelPendingZoom = () => {
     pendingSharedZoomTransform = null
@@ -207,16 +200,17 @@ export function useWaveformZoom(context: ZoomContext) {
     lastSharedZoomGesture = null
     pendingIndependentZoomTransforms.clear()
     pendingIndependentZoomGestures.clear()
-    lastZoomedTrackIndexes.clear()
-    lastIndependentZoomGestures.clear()
+    lastIndependentWheelSeriesIds.clear()
     zoomThrottle.cancel()
+    preservePendingWheelDuringDataRebind = false
     if (wheelZoomEndTimer !== undefined) {
       clearTimeout(wheelZoomEndTimer)
       wheelZoomEndTimer = undefined
     }
   }
-  const clearZoomBindings = () => {
-    cancelPendingZoom()
+  const clearZoomBindings = (preservePendingWheel = false) => {
+    zoomBindingEpoch += 1
+    if (!preservePendingWheel) cancelPendingZoom()
     svgElement.value
       ?.querySelectorAll<SVGRectElement>('.waveform-chart__overlay')
       .forEach((overlay) => select(overlay).on('.zoom', null))
@@ -268,7 +262,9 @@ export function useWaveformZoom(context: ZoomContext) {
     return false
   }
   const configureZoom = () => {
-    clearZoomBindings()
+    const preservePendingWheel = preservePendingWheelDuringDataRebind
+    clearZoomBindings(preservePendingWheel)
+    const bindingEpoch = zoomBindingEpoch
     if (
       isPresentationMode.value ||
       !props.zoomable ||
@@ -303,7 +299,7 @@ export function useWaveformZoom(context: ZoomContext) {
             [track.width, track.height],
           ])
           .on('zoom', (event) => handleIndependentZoom(event, track.index))
-          .on('end', flushPendingZoom)
+          .on('end', () => handleD3ZoomEnd(bindingEpoch))
         zoomBehaviors.set(track.index, behavior)
         synchronizingZoomTransform = true
         try {
@@ -337,7 +333,7 @@ export function useWaveformZoom(context: ZoomContext) {
         [innerWidth.value, innerHeight.value],
       ])
       .on('zoom', handleSharedZoom)
-      .on('end', flushPendingZoom)
+      .on('end', () => handleD3ZoomEnd(bindingEpoch))
     zoomBehaviors.set('shared', behavior)
     synchronizingZoomTransform = true
     try {
@@ -356,5 +352,6 @@ export function useWaveformZoom(context: ZoomContext) {
     canZoomTrack,
     canZoomSharedTracks,
     configureZoom,
+    prepareForDataChange,
   }
 }
