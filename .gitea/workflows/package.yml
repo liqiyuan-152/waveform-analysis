@@ -124,6 +124,9 @@ jobs:
           DEMO_BASE_PATH: /waveform-analysis/
         run: pnpm build
 
+      - name: Verify package consumer
+        run: pnpm test:package
+
       - name: Pack component
         shell: bash
         run: |
@@ -149,6 +152,8 @@ jobs:
             package/dist/index.js \
             package/dist/index.cjs \
             package/dist/types/index.d.ts \
+            package/dist/types/wasm/waveform_sampling_wasm.d.ts \
+            package/dist/types/wasm/waveform_sampling_wasm_bg.wasm.d.ts \
             package/dist/style.css \
             package/src/index.ts \
             package/src/components/WaveformChart.vue \

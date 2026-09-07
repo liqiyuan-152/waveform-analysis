@@ -3,7 +3,7 @@ import type {
   WaveformSamplingMode,
   WaveformSamplingOptions,
   WaveformSamplingStrategy,
-} from '@/types'
+} from '../types'
 
 export interface ResolvedWaveformSamplingOptions {
   mode: WaveformSamplingMode

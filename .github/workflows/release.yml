@@ -65,6 +65,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm test:coverage
       - run: pnpm build
+      - run: pnpm test:package
 
       - name: Pack release assets
         shell: bash
@@ -83,8 +84,8 @@ jobs:
         shell: bash
         run: |
           if [[ -z "$NODE_AUTH_TOKEN" ]]; then
-            echo "NPMJS_PUBLISH_TOKEN is not configured; skipping npm publish."
-            exit 0
+            echo "NPMJS_PUBLISH_TOKEN is required for npm publish." >&2
+            exit 1
           fi
           npm publish "./release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
 

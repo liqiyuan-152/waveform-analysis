@@ -6,7 +6,7 @@ import type {
   WaveformSamplingDiagnostics,
   WaveformSamplingMode,
   WaveformSamplingStrategy,
-} from '@/types'
+} from '../../types'
 import type { WorkerSamplingDataset } from '../waveformPointSource'
 
 export const DEFAULT_WORKER_SAMPLING_AUTO_THRESHOLD = 1_000

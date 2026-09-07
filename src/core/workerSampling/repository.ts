@@ -1,4 +1,4 @@
-import type { WaveformPoint } from '@/types'
+import type { WaveformPoint } from '../../types'
 import type { WorkerSamplingDataset } from '../waveformPointSource'
 import { javascriptSamplingBackend } from './javascriptBackend'
 import {
