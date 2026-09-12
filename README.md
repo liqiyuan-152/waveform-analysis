@@ -797,3 +797,16 @@ git push origin main --follow-tags
 支持稳定版 `vX.Y.Z` 与预发布版 `vX.Y.Z-rc.1`。tag 去掉 `v` 后必须与 `package.json` 的
 `version` 完全一致。稳定版发布为 npm `latest`，预发布版发布为 npm `next`。流水线会创建 Gitea
 Release，并上传 `.tgz` 与 SHA-256 校验文件。
+
+## Dokploy demo deployment
+
+Pushes to `main` run verification in GitHub Actions, notify Dokploy through
+the `DOKPLOY_DEPLOY_URL` Actions secret, and verify the published commit at
+`/waveform-analysis/version.txt`. The demo is served under `/waveform-analysis/`.
+
+Dokploy reads the public Git repository and uses `docker-compose.dokploy.yml`
+and `Dockerfile.dokploy`. These target the existing server runtime image
+`local/sub2api-cpa-converter:1bd8fb805d5d` and Node 22 builder. Keep that base
+image on this server. Application builds and npm publishing are unchanged.
+Build failures preserve the running version; revert a commit on `main` to
+roll back. Runtime failures require manual review; automatic rollback is not configured.
