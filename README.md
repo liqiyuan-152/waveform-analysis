@@ -3,14 +3,18 @@
 基于 Vue 3、TypeScript 和 D3 的响应式 SVG 波形图组件。适合展示单通道、多通道和大规模采样
 数据，内置缩放、tooltip、图例、误差棒、标注、分页和多 Y 轴叠加。
 
-当前稳定版本：`v0.1.15`。
+当前稳定版本：`v0.1.61`。
 
 组件使用不可变数据模型：替换 `data` 引用后会重新计算数据域和视口；大数据会按当前可见范围
 和屏幕像素自动保峰降采样，而 tooltip、最近点查询和标注仍使用完整原始数据。
 
 ## 在线示例
 
-最新稳定版 Demo：<https://lqycustomsite.online/waveform-analysis/>
+线上 Demo：[波形分析组件在线示例](https://lqycustomsite.online/waveform-analysis/)。
+
+请使用完整的 `/waveform-analysis/` 路径；域名根路径会跳转到 Dokploy 管理站。
+线上 Demo 由 `production` 分支通过 Dokploy 部署，稳定版发布成功后会自动更新该页面。
+可通过 [version.txt](https://lqycustomsite.online/waveform-analysis/version.txt) 查看当前部署的 Git 提交号。
 
 本地运行 `pnpm dev` 后，可通过
 <http://127.0.0.1:5173/#/fixed-y-domain> 查看固定振幅上下限示例。
@@ -56,7 +60,8 @@ pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
 
 发布由推送版本 tag 触发。`package.json` 的 `version` 必须与 tag 去掉 `v` 后完全一致。
 稳定版使用 `vX.Y.Z`，预发布版使用 `vX.Y.Z-rc.1`；稳定版发布为 npm `latest`，预发布版发布为
-`next`。流水线会创建 Gitea Release，并上传包文件与 SHA-256 校验文件。
+`next`。流水线会创建 GitHub Release，并上传包文件与 SHA-256 校验文件。稳定版发布成功后，同一提交
+会被推进到 `production` 分支并通过 Dokploy 更新线上 Demo；预发布版不会更新线上 Demo。
 
 ## 最小示例
 
@@ -914,13 +919,18 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 
 ## 发布流程
 
-发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再创建同版本 tag：
+发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再为该提交创建
+同版本 tag：
 
 ```bash
-git tag -a v0.1.15 -m "Release v0.1.15"
-git push origin main --follow-tags
+git tag -a v0.1.62 -m "Release v0.1.62"
+git push origin develop --follow-tags
 ```
 
 支持稳定版 `vX.Y.Z` 与预发布版 `vX.Y.Z-rc.1`。tag 去掉 `v` 后必须与 `package.json` 的
-`version` 完全一致。稳定版发布为 npm `latest`，预发布版发布为 npm `next`。流水线会创建 Gitea
+`version` 完全一致。稳定版发布为 npm `latest`，预发布版发布为 npm `next`。流水线会创建 GitHub
 Release，并上传 `.tgz` 与 SHA-256 校验文件。
+
+稳定版完成包发布后，流水线使用带租约检查的推送将该 tag 的提交推进到 `production` 分支，调用
+Dokploy 部署，并等待线上 `version.txt` 返回同一提交号后才算成功。预发布版本跳过部署。若部署失败，
+npm 包和 GitHub Release 仍保留，修复部署问题后可重新运行失败的 `deploy-demo` job。

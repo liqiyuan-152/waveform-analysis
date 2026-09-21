@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: waveform-analysis-release
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -95,3 +99,60 @@ jobs:
           prerelease: ${{ env.prerelease }}
           generate_release_notes: true
           files: release-assets/*
+
+  deploy-demo:
+    needs: release
+    if: ${{ !contains(github.ref_name, '-') }}
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Promote the verified release
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote origin refs/heads/production | cut -f1)"
+          if [[ -n "$remote_sha" ]]; then
+            git push origin \
+              --force-with-lease="refs/heads/production:$remote_sha" \
+              "$GITHUB_SHA:refs/heads/production"
+          else
+            git push origin "$GITHUB_SHA:refs/heads/production"
+          fi
+
+      - name: Trigger Dokploy deployment
+        env:
+          DOKPLOY_DEPLOY_URL: ${{ secrets.DOKPLOY_DEPLOY_URL }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DOKPLOY_DEPLOY_URL"
+          jq -n --arg sha "$GITHUB_SHA" --arg tag "$GITHUB_REF_NAME" \
+            '{ref:"refs/heads/production",after:$sha,head_commit:{id:$sha,message:("Release " + $tag)},commits:[{modified:["package.json"]}]}' \
+            > deploy-payload.json
+          curl --fail-with-body --silent --show-error --retry 3 \
+            --connect-timeout 15 --max-time 60 \
+            -H 'Content-Type: application/json' \
+            -H 'X-GitHub-Event: push' \
+            --data-binary @deploy-payload.json \
+            "$DOKPLOY_DEPLOY_URL"
+
+      - name: Verify deployed release
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 90); do
+            published="$(curl --silent --fail --connect-timeout 5 --max-time 10 \
+              "https://lqycustomsite.online/waveform-analysis/version.txt?run=$GITHUB_RUN_ID" || true)"
+            if [[ "$published" == "$GITHUB_SHA" ]]; then
+              echo "Verified deployed release $GITHUB_REF_NAME at $GITHUB_SHA"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Deployment did not publish $GITHUB_SHA; inspect the Dokploy deployment logs." >&2
+          exit 1
