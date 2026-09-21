@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WASM Sampling Phase 0 Baseline</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        margin: 24px;
+        color: #172033;
+      }
+      button {
+        padding: 8px 12px;
+      }
+      pre {
+        background: #f4f6f8;
+        overflow: auto;
+        padding: 12px;
+      }
+      [data-trace] {
+        display: grid;
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      svg {
+        border: 1px solid #d5dbe3;
+        height: 120px;
+        width: 100%;
+      }
+      path {
+        fill: none;
+        stroke: #147d92;
+        stroke-width: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <button data-run-baseline>Run 10 x 100k baseline</button>
+    <pre data-baseline-output>Run the baseline to capture browser metrics.</pre>
+    <div data-trace></div>
+    <script type="module" src="/scripts/wasm-sampling-baseline-browser.ts"></script>
+  </body>
+</html>

@@ -17,6 +17,97 @@ describe('waveform data normalization', () => {
     ])
   })
 
+  it('normalizes typed samples without mutating their values or buffer', () => {
+    const values = new Float32Array([1, Number.NaN, 3])
+    const snapshot = values.slice()
+
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-samples',
+        values,
+        sampleRate: 2,
+        startTime: 1,
+      }),
+    ).toEqual([
+      { x: 1, y: 1 },
+      { x: 2, y: 3 },
+    ])
+    expect(values).toEqual(snapshot)
+    expect(values.buffer.byteLength).toBe(snapshot.buffer.byteLength)
+  })
+
+  it('rejects malformed typed sample input without coercing numeric fields', () => {
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-samples',
+        values: new Float64Array([1]),
+        sampleRate: Number.POSITIVE_INFINITY,
+      }),
+    ).toEqual([])
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-samples',
+        values: new Float64Array([1]),
+        sampleRate: 1,
+        startTime: Number.NaN,
+      }),
+    ).toEqual([])
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-samples',
+        values: new Int32Array([1]),
+        sampleRate: 1,
+      } as unknown as Parameters<typeof normalizeWaveformData>[0]),
+    ).toEqual([])
+  })
+
+  it('normalizes typed points, errors, and unordered coordinates without mutation', () => {
+    const x = new Float64Array([2, 1, 1, Number.NaN])
+    const y = new Float32Array([20, 10, 11, 12])
+    const error = new Float64Array([1, -1, Number.NaN, 4])
+    const lowerError = new Float32Array([2, 3, 4, 5])
+    const upperError = new Float64Array([3, 4, 5, 6])
+    const snapshots = [x.slice(), y.slice(), error.slice(), lowerError.slice(), upperError.slice()]
+
+    expect(
+      normalizeWaveformData({ kind: 'typed-points', x, y, error, lowerError, upperError }),
+    ).toEqual([
+      { x: 1, y: 10, lowerError: 3, upperError: 4 },
+      { x: 1, y: 11, lowerError: 4, upperError: 5 },
+      { x: 2, y: 20, error: 1, lowerError: 2, upperError: 3 },
+    ])
+    expect(x).toEqual(snapshots[0])
+    expect(y).toEqual(snapshots[1])
+    expect(error).toEqual(snapshots[2])
+    expect(lowerError).toEqual(snapshots[3])
+    expect(upperError).toEqual(snapshots[4])
+  })
+
+  it('rejects typed points with unsupported arrays or mismatched field lengths', () => {
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-points',
+        x: new Float64Array([0, 1]),
+        y: new Float32Array([1]),
+      }),
+    ).toEqual([])
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-points',
+        x: new Float64Array([0]),
+        y: new Float64Array([1]),
+        upperError: new Float32Array([1, 2]),
+      }),
+    ).toEqual([])
+    expect(
+      normalizeWaveformData({
+        kind: 'typed-points',
+        x: new Float32Array([0]),
+        y: new Float32Array([1]),
+      } as unknown as Parameters<typeof normalizeWaveformData>[0]),
+    ).toEqual([])
+  })
+
   it('skips sorting already ordered points and normalizes errors', () => {
     const sortSpy = vi.spyOn(Array.prototype, 'sort')
     try {
@@ -123,5 +214,28 @@ describe('waveform data normalization', () => {
     })
 
     expect(result.map((series) => series.shotNo)).toEqual(['13300', undefined])
+  })
+
+  it('accepts compact inputs inside regular series containers', () => {
+    const result = normalizeWaveformSeries({
+      kind: 'series',
+      series: [
+        {
+          id: 'typed',
+          name: 'Typed',
+          data: {
+            kind: 'typed-points',
+            x: new Float64Array([0, 1]),
+            y: new Float32Array([2, 3]),
+          },
+        },
+      ],
+    })
+
+    expect(result).toHaveLength(1)
+    expect(result[0]?.points).toEqual([
+      { x: 0, y: 2 },
+      { x: 1, y: 3 },
+    ])
   })
 })

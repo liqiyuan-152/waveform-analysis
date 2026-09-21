@@ -26,6 +26,7 @@ import { useWaveformChartLifecycle } from './useWaveformChartLifecycle'
 import { usePreparedWaveformSeries } from './useWaveformData'
 import { useWaveformLayout } from './useWaveformLayout'
 import { useWaveformPresentation } from './useWaveformPresentation'
+import { useWaveformRenderSampling } from './useWaveformRenderSampling'
 import type {
   ResolvedWaveformChartProps,
   ViewportSelectionState,
@@ -60,6 +61,7 @@ export function useWaveformChartController(
     points: [],
     trackIndex: null,
     queryX: null,
+    crosshairXByTrack: {},
     position: { x: 0, y: 0 },
   })
   const suppressHoverUntilMove = ref(false)
@@ -68,6 +70,7 @@ export function useWaveformChartController(
   const clipPathId = useWaveformInstanceId('waveform-clip')
   const internalHiddenSeriesIds = ref(new Set(props.defaultHiddenSeriesIds))
   const annotationInteraction = useWaveformAnnotationInteraction()
+  const linePointOverrides = shallowRef<Record<string, import('../../types').WaveformPoint[]>>({})
   const editorSeriesOptions = ref<AnnotationSeriesCandidate[]>([])
   const hoverThrottle = useAnimationFrameThrottle()
 
@@ -84,9 +87,13 @@ export function useWaveformChartController(
   const pointerInsideChart = ref(false)
   let handleBeforeDataReferenceChange: () => void = () => undefined
   let handleDataReferenceChange: () => void = () => undefined
+  let prepareForDataChange: () => void = () => undefined
   const preparedSeries = usePreparedWaveformSeries(
     () => props.data,
-    () => handleBeforeDataReferenceChange(),
+    () => {
+      prepareForDataChange()
+      handleBeforeDataReferenceChange()
+    },
     () => handleDataReferenceChange(),
   )
 
@@ -126,10 +133,12 @@ export function useWaveformChartController(
     sharedYDomains,
     independentYDomains,
     annotationInteraction: markRaw(annotationInteraction),
+    linePointOverrides,
   })
   const {
     chartSeries,
     chartTracks,
+    renderingOptions,
     trackLayouts,
     gridOptions,
     pageCount,
@@ -145,6 +154,16 @@ export function useWaveformChartController(
     annotationLayoutsForTrack,
     resolveSeriesYScale,
   } = layout
+
+  useWaveformRenderSampling({
+    props,
+    emit,
+    instanceId: clipPathId,
+    preparedSeries,
+    sourceTrackLayouts: trackLayouts,
+    renderingOptions,
+    linePointOverrides,
+  })
 
   watchEffect(() => {
     paginationBandHeight.value =
@@ -169,6 +188,7 @@ export function useWaveformChartController(
     resolveInitialTrackDomain,
     cancelPendingHover: () => hover.cancelPendingHover(),
   })
+  prepareForDataChange = zoom.prepareForDataChange
 
   const annotations = useWaveformChartAnnotations({
     props,

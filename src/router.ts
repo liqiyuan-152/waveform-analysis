@@ -13,6 +13,11 @@ export const routes: RouteRecordRaw[] = [
     name: 'fixed-y-domain',
     component: () => import('./views/FixedYDomainDemo.vue'),
   },
+  {
+    path: '/wasm-sampling',
+    name: 'wasm-sampling',
+    component: () => import('./views/WasmSamplingDemo.vue'),
+  },
 ]
 
 export const router = createRouter({

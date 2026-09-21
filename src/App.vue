@@ -202,8 +202,8 @@ let zoomRequestSequence = 0
 function filterWaveformData(data: WaveformData, start: number, end: number): WaveformData {
   const lower = Math.min(start, end)
   const upper = Math.max(start, end)
-  if (data.kind === 'samples') return data
-  if (data.kind === 'points') {
+  if (data.kind !== 'series') {
+    if (data.kind !== 'points') return data
     return {
       kind: 'points',
       points: data.points.filter((point) => point.x >= lower && point.x <= upper),

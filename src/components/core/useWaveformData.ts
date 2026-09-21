@@ -1,6 +1,7 @@
 import { shallowRef, watch } from 'vue'
 
-import { normalizeWaveformSeries, resolveWaveformPointErrors } from '../../core'
+import { normalizeWaveformSeriesSources } from '../../core/data'
+import { lazyPointArray, type WaveformPointSource } from '../../core/waveformPointSource'
 import type {
   ResolvedWaveformErrorBarOptions,
   WaveformData,
@@ -22,43 +23,33 @@ export interface PreparedWaveformSeries {
   pointType: WaveformPointType
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]
+  source: WaveformPointSource
   xDomain: [number, number]
   yDomain: [number, number]
   hasErrorPoints: boolean
 }
 
-function pointMetrics(
-  points: WaveformPoint[],
-  includeErrors = false,
-): { xDomain: [number, number]; yDomain: [number, number]; hasErrorPoints: boolean } {
-  let xMinimum = Number.POSITIVE_INFINITY
-  let xMaximum = Number.NEGATIVE_INFINITY
-  let yMinimum = Number.POSITIVE_INFINITY
-  let yMaximum = Number.NEGATIVE_INFINITY
-  let hasErrorPoints = false
-  for (const point of points) {
-    if (point.x < xMinimum) xMinimum = point.x
-    if (point.x > xMaximum) xMaximum = point.x
-    if (point.y < yMinimum) yMinimum = point.y
-    if (point.y > yMaximum) yMaximum = point.y
-    if (includeErrors) {
-      const errors = resolveWaveformPointErrors(point)
-      if (errors.lower !== 0 || errors.upper !== 0) hasErrorPoints = true
-      yMinimum = Math.min(yMinimum, point.y - errors.lower)
-      yMaximum = Math.max(yMaximum, point.y + errors.upper)
-    }
-  }
-  return {
-    xDomain: paddedDomain(Number.isFinite(xMinimum) ? [xMinimum, xMaximum] : []),
-    yDomain: paddedDomain(Number.isFinite(yMinimum) ? [yMinimum, yMaximum] : []),
-    hasErrorPoints,
-  }
-}
-
 export function prepareWaveformSeries(data: WaveformData): PreparedWaveformSeries[] {
-  return normalizeWaveformSeries(data).map((series) => {
-    const metrics = pointMetrics(series.points, series.errorBar.visible)
-    return { ...series, ...metrics }
+  return normalizeWaveformSeriesSources(data).map(({ source, ...series }) => {
+    const sourceMetrics = source.metrics(series.errorBar.visible)
+    return {
+      ...series,
+      source,
+      // Existing chart code remains array-oriented; compact sources materialize individual points
+      // only when an index is read.
+      points: lazyPointArray(source),
+      xDomain: paddedDomain(
+        Number.isFinite(sourceMetrics.xMinimum)
+          ? [sourceMetrics.xMinimum, sourceMetrics.xMaximum]
+          : [],
+      ),
+      yDomain: paddedDomain(
+        Number.isFinite(sourceMetrics.yMinimum)
+          ? [sourceMetrics.yMinimum, sourceMetrics.yMaximum]
+          : [],
+      ),
+      hasErrorPoints: sourceMetrics.hasErrorPoints,
+    }
   })
 }
 

@@ -35,6 +35,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ## 文件变更概览
 
 ### 新增文件 (6个)
+
 - `src/utils/sampling.ts` - 核心抽样算法
 - `src/utils/sampling.test.ts` - 单元测试
 - `src/components/core/constants.ts` - 常量管理
@@ -43,6 +44,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - `docs/performance-guide.md` - 使用指南
 
 ### 修改文件 (6个)
+
 - `src/components/WaveformChart.vue` - 性能优化
 - `src/components/core/layout.ts` - 缓存优化
 - `src/core/rendering.ts` - 集成视口级渲染降采样

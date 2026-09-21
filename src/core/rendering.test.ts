@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import type { WaveformPoint } from '../types'
+import type { WaveformPoint, WaveformRenderingOptions } from '../types'
 import {
+  DEFAULT_WAVEFORM_RENDERING_OPTIONS,
   hasMinimumVisibleXValues,
   resolveWaveformRenderingOptions,
   selectDecorationPoints,
@@ -49,23 +50,81 @@ describe('waveform rendering selection', () => {
         pointMinSpacing: -1,
         errorBarMinSpacing: Number.POSITIVE_INFINITY,
       }),
-    ).toEqual({
-      downsample: true,
-      downsampleThreshold: 2_000,
-      maxPointsPerPixel: 4,
-      pointMinSpacing: 10,
-      errorBarMinSpacing: 12,
-    })
+    ).toEqual(DEFAULT_WAVEFORM_RENDERING_OPTIONS)
   })
 
   it('accepts custom decoration spacing and uses zero to disable it', () => {
     expect(resolveWaveformRenderingOptions({ pointMinSpacing: 6, errorBarMinSpacing: 0 })).toEqual({
-      downsample: true,
-      downsampleThreshold: 2_000,
-      maxPointsPerPixel: 4,
+      ...DEFAULT_WAVEFORM_RENDERING_OPTIONS,
       pointMinSpacing: 6,
       errorBarMinSpacing: 0,
     })
+  })
+
+  it('normalizes sampling options with strict runtime validation', () => {
+    const options: WaveformRenderingOptions = {
+      sampling: {
+        mode: 'wasm',
+        autoThreshold: 1_001.9,
+        autoHysteresis: 20.8,
+        strategy: 'minmax',
+        maxPointsPerPixel: 2.5,
+        maxPointCount: 1_000.9,
+        rawPointLimit: 50_000.2,
+        wasmFailureFallback: 'javascript',
+      },
+    }
+
+    expect(resolveWaveformRenderingOptions(options)).toMatchObject({
+      downsample: true,
+      maxPointsPerPixel: 2.5,
+      sampling: {
+        mode: 'wasm',
+        autoThreshold: 1_001,
+        autoHysteresis: 20,
+        strategy: 'minmax',
+        maxPointsPerPixel: 2.5,
+        maxPointCount: 1_000,
+        rawPointLimit: 50_000,
+        wasmFailureFallback: 'javascript',
+      },
+    })
+
+    expect(
+      resolveWaveformRenderingOptions({
+        sampling: {
+          mode: 'invalid',
+          autoThreshold: 0,
+          autoHysteresis: -1,
+          strategy: 'invalid',
+          maxPointsPerPixel: Number.POSITIVE_INFINITY,
+          maxPointCount: 0,
+          rawPointLimit: 0,
+          wasmFailureFallback: 'fallback',
+        },
+      } as unknown as WaveformRenderingOptions),
+    ).toMatchObject({ sampling: DEFAULT_WAVEFORM_RENDERING_OPTIONS.sampling })
+  })
+
+  it('maps legacy downsample flags and gives explicit sampling mode precedence', () => {
+    expect(resolveWaveformRenderingOptions({ downsample: false }).sampling.mode).toBe('raw')
+    expect(resolveWaveformRenderingOptions({ downsample: true }).sampling.mode).toBe('auto')
+    expect(
+      resolveWaveformRenderingOptions({ downsample: false, sampling: { mode: 'wasm' } }),
+    ).toMatchObject({ downsample: true, sampling: { mode: 'wasm' } })
+  })
+
+  it('prefers nested sampling density over the legacy rendering field', () => {
+    const legacy = resolveWaveformRenderingOptions({ maxPointsPerPixel: 2 })
+    const nested = resolveWaveformRenderingOptions({
+      maxPointsPerPixel: 2,
+      sampling: { maxPointsPerPixel: 3 },
+    })
+
+    expect(legacy.maxPointsPerPixel).toBe(2)
+    expect(legacy.sampling.maxPointsPerPixel).toBe(2)
+    expect(nested.maxPointsPerPixel).toBe(3)
+    expect(nested.sampling.maxPointsPerPixel).toBe(3)
   })
 
   it('selects evenly distributed source points for dense decorations', () => {
@@ -135,7 +194,10 @@ describe('waveform rendering selection', () => {
       densePoints,
       [99_999, 0],
       500,
-      resolveWaveformRenderingOptions({ downsampleThreshold: 100 }),
+      resolveWaveformRenderingOptions({
+        downsampleThreshold: 100,
+        sampling: { autoThreshold: 200_000 },
+      }),
       {
         lineVisible: true,
         pointVisible: true,
@@ -150,6 +212,22 @@ describe('waveform rendering selection', () => {
     expect(selected.linePoints.at(-1)).toBe(densePoints.at(-1))
     expect(selected.pointRenderPoints.length).toBeLessThanOrEqual(52)
     expect(selected.errorBarRenderPoints.every((point) => (point.error ?? 0) > 0)).toBe(true)
+  })
+
+  it('uses a width-bounded placeholder while large-series Worker sampling is pending', () => {
+    const rendering = resolveWaveformRenderingOptions({
+      sampling: { mode: 'auto', autoThreshold: 1_000, maxPointsPerPixel: 2 },
+    })
+    const selected = selectSeriesRenderPoints(points, [0, 9_999], 100, rendering, {
+      lineVisible: true,
+      pointVisible: false,
+      errorBarVisible: false,
+      hasErrorPoints: false,
+    })
+
+    expect(selected.linePoints).toHaveLength(200)
+    expect(selected.linePoints[0]).toBe(points[0])
+    expect(selected.linePoints.at(-1)).toBe(points.at(-1))
   })
 
   it('counts unique visible x values across series and reversed domains', () => {

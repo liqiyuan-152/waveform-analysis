@@ -1,9 +1,15 @@
-.git
+.codegraph
+.codegraphy
 .github
 .idea
 node_modules
-coverage
 dist
 dist-demo
+coverage
+wasm/target
+.env
+.env.*
 *.local
 *.log
+*.pem
+*.key

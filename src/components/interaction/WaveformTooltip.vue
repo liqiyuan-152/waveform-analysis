@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onUpdated, ref, watch } from 'vue'
 import { formatTooltipNumber, formatTooltipTime } from '../../utils'
 import type { WaveformPoint } from '../data/types'
 
@@ -33,76 +33,69 @@ const props = defineProps<Props>()
 
 const tooltipGap = 12
 const containerPadding = 8
-const tooltipPlacementWidth = 238
 const tooltipMaxWidth = 560
-const tooltipHorizontalPadding = 20
-const tooltipLineHeight = 20
+const tooltipElement = ref<HTMLElement | null>(null)
+const tooltipSize = ref({ width: 0, height: 0 })
 
-function estimateLineCount(text: string, width: number): number {
-  const contentWidth = Math.max(1, width - tooltipHorizontalPadding - 14)
-  const charactersPerLine = Math.max(1, Math.floor(contentWidth / 7.2))
-  return Math.max(1, Math.ceil([...text].length / charactersPerLine))
+function measureTooltip() {
+  const bounds = tooltipElement.value?.getBoundingClientRect()
+  const width = bounds?.width ?? 0
+  const height = bounds?.height ?? 0
+  if (width !== tooltipSize.value.width || height !== tooltipSize.value.height) {
+    tooltipSize.value = { width, height }
+  }
 }
 
-function formatSeriesText(seriesPoint: SeriesPoint): string {
-  const valueText = seriesPoint.point
-    ? `(x:${formatTooltipTime(seriesPoint.point.x, props.timeUnit)} y:${formatTooltipNumber(seriesPoint.point.y)})`
-    : '无数据'
-  return `${seriesPoint.shotNo?.trim() || '未配置炮号'}： ${seriesPoint.name}${
-    seriesPoint.unit ? `(${seriesPoint.unit})` : ''
-  }  ${valueText}`
-}
-
-function estimateTooltipHeight(width: number): number {
-  const seriesLines = props.seriesPoints.reduce(
-    (total, seriesPoint) => total + estimateLineCount(formatSeriesText(seriesPoint), width),
-    0,
-  )
-  return 16 + tooltipLineHeight * seriesLines + 5
-}
+// The width cap depends only on the container, never on the cursor's side.
+// Measuring the rendered box therefore cannot cause a shrink/flip feedback loop.
+watch(
+  tooltipElement,
+  (element, _, onCleanup) => {
+    measureTooltip()
+    if (!element) return
+    const observer = new ResizeObserver(measureTooltip)
+    observer.observe(element)
+    onCleanup(() => observer.disconnect())
+  },
+  { flush: 'post' },
+)
+onUpdated(measureTooltip)
 
 const tooltipStyle = computed(() => {
   if (!props.visible || !props.hoveredPoint) return { display: 'none' }
 
   const rightPlacement = props.position.x + tooltipGap
-  const leftPlacement = props.position.x - tooltipGap - tooltipPlacementWidth
-  const rightAvailableWidth = props.containerWidth - containerPadding - rightPlacement
-  const leftAvailableWidth = props.position.x - tooltipGap - containerPadding
+  const leftPlacement = props.position.x - tooltipGap - tooltipSize.value.width
   const availableWidth = Math.max(
     1,
     Math.min(tooltipMaxWidth, props.containerWidth - containerPadding * 2),
   )
   const horizontalStyle =
-    rightPlacement + tooltipPlacementWidth <= props.containerWidth - containerPadding
-      ? {
-          left: `${rightPlacement}px`,
-          maxWidth: `${Math.min(tooltipMaxWidth, rightAvailableWidth)}px`,
-        }
+    rightPlacement + tooltipSize.value.width <= props.containerWidth - containerPadding
+      ? { left: `${rightPlacement}px` }
       : leftPlacement >= containerPadding
-        ? {
-            right: `${props.containerWidth - props.position.x + tooltipGap}px`,
-            maxWidth: `${Math.min(tooltipMaxWidth, leftAvailableWidth)}px`,
-          }
-        : { left: `${containerPadding}px`, maxWidth: `${availableWidth}px` }
+        ? { right: `${props.containerWidth - props.position.x + tooltipGap}px` }
+        : { left: `${containerPadding}px` }
 
-  const maxWidth = Number.parseFloat(horizontalStyle.maxWidth)
   return {
     ...horizontalStyle,
+    maxWidth: `${availableWidth}px`,
+    visibility: tooltipSize.value.width > 0 ? ('visible' as const) : ('hidden' as const),
     top: `${Math.max(
-      8,
+      containerPadding,
       Math.min(
         props.position.y - 18,
-        props.containerHeight - estimateTooltipHeight(maxWidth) - 8,
+        props.containerHeight - tooltipSize.value.height - containerPadding,
       ),
     )}px`,
   }
 })
-
 </script>
 
 <template>
   <div
     v-if="visible && hoveredPoint"
+    ref="tooltipElement"
     class="waveform-tooltip waveform-chart__tooltip"
     :style="tooltipStyle"
   >
@@ -113,12 +106,15 @@ const tooltipStyle = computed(() => {
     >
       <i :style="{ backgroundColor: seriesPoint.color }" />
       <span class="waveform-tooltip__series-content">
-        <span class="waveform-tooltip__series-label">{{ seriesPoint.shotNo?.trim() || '未配置炮号' }}： {{
-          seriesPoint.name
-        }}<template v-if="seriesPoint.unit">({{ seriesPoint.unit }})</template></span>
-        <span v-if="seriesPoint.point" class="waveform-tooltip__value">(x:{{
-          formatTooltipTime(seriesPoint.point.x, timeUnit)
-        }} y:{{ formatTooltipNumber(seriesPoint.point.y) }})</span>
+        <span class="waveform-tooltip__series-label"
+          >{{ seriesPoint.shotNo?.trim() || '未配置炮号' }}： {{ seriesPoint.name
+          }}<template v-if="seriesPoint.unit">({{ seriesPoint.unit }})</template></span
+        >
+        <span v-if="seriesPoint.point" class="waveform-tooltip__value"
+          >(x:{{ formatTooltipTime(seriesPoint.point.x, timeUnit) }} y:{{
+            formatTooltipNumber(seriesPoint.point.y)
+          }})</span
+        >
         <span v-else class="waveform-tooltip__value waveform-tooltip__value--missing">无数据</span>
       </span>
     </span>
@@ -136,7 +132,9 @@ const tooltipStyle = computed(() => {
   max-width: min(560px, calc(100% - 16px));
   padding: 9px 12px;
   color: #505050;
-  font: 14px/1.35 Arial, sans-serif;
+  font:
+    14px/1.35 Arial,
+    sans-serif;
   pointer-events: none;
   background: #fff;
   border: 1px solid #e3e7eb;
@@ -161,7 +159,7 @@ const tooltipStyle = computed(() => {
 
 .waveform-tooltip__series-content {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 12px;
   align-items: baseline;
   min-width: 0;
@@ -170,14 +168,13 @@ const tooltipStyle = computed(() => {
 .waveform-tooltip__series-label {
   flex: 1 1 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .waveform-tooltip__value {
-  flex: 0 0 auto;
-  white-space: nowrap;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .waveform-tooltip__series strong {

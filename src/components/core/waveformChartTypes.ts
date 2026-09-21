@@ -10,9 +10,13 @@ import type {
   WaveformPlotMargin,
   WaveformPoint,
   WaveformRenderingOptions,
+  WaveformSamplingBackend,
+  WaveformSamplingDiagnostics,
+  WaveformSamplingError,
   WaveformTitleOptions,
   WaveformXDomainStrategy,
   WaveformZeroLineOptions,
+  WaveformZoomIntentPayload,
   WaveformZoomEndPayload,
   WaveformZoomResetPayload,
 } from '../data/types'
@@ -32,6 +36,7 @@ export interface WaveformChartProps {
   pannable?: boolean
   minZoomSpan?: number
   minVisiblePoints?: number
+  maxZoomScale?: number | null
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy
@@ -39,6 +44,8 @@ export interface WaveformChartProps {
   yDomains?: Record<string, [number, number]>
   timeUnit?: 's' | 'ms'
   frameNumber?: string | number
+  /** Per-track frame watermark overrides, keyed by stable trackId. */
+  frameNumbers?: Record<string, string | number>
   frameStyle?: WaveformFrameStyle
   axes?: WaveformAxesOptions
   annotations?: WaveformAnnotation[]
@@ -84,6 +91,7 @@ export type ResolvedWaveformChartProps = Readonly<
 
 export interface WaveformChartEmit {
   (event: 'point-hover', point: WaveformPoint | null): void
+  (event: 'zoom-intent', payload: WaveformZoomIntentPayload): void
   (event: 'zoom-change', domain: [number, number]): void
   (event: 'zoom-end', payload: WaveformZoomEndPayload): void
   (event: 'zoom-reset', payload: WaveformZoomResetPayload): void
@@ -97,6 +105,16 @@ export interface WaveformChartEmit {
   (event: 'annotation-update', annotation: WaveformAnnotation, previous: WaveformAnnotation): void
   (event: 'annotation-delete', annotation: WaveformAnnotation): void
   (event: 'page-change', page: number, pageCount: number): void
+  (event: 'sampling-complete', diagnostics: WaveformSamplingDiagnostics): void
+  (
+    event: 'sampling-backend-change',
+    payload: {
+      seriesId: string
+      previous: WaveformSamplingBackend
+      current: WaveformSamplingBackend
+    },
+  ): void
+  (event: 'sampling-error', error: WaveformSamplingError): void
 }
 
 interface ViewportSelectionBase {

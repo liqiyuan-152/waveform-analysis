@@ -4,11 +4,14 @@ import { describe, expect, it } from 'vitest'
 import { DEFAULT_WAVEFORM_RENDERING_OPTIONS } from '../../core'
 import type { DisplaySeries, DisplayTrack } from './types'
 import {
+  axisTextMetrics,
   buildTrackLayouts,
   buildYAxisSeriesGroups,
+  formatYAxisTickLabel,
   findClosestTrackAtPointer,
   MAX_MULTI_Y_AXIS_COUNT,
   measureYAxisGroupClearance,
+  resolveYAxisTicks,
   resolveYAxisTickCount,
 } from './layout'
 
@@ -143,6 +146,27 @@ describe('multi-value Y-axis grouping', () => {
     expect(resolveYAxisTickCount(220)).toBe(5)
   })
 
+  it('measures the same final endpoint label that Y-axis rendering uses', () => {
+    const ticks = resolveYAxisTicks([-0.7434, -0.3434], 5, false)
+    const labels = ticks.values.map((value) =>
+      formatYAxisTickLabel(value, ticks.domain, ticks.values, 'V'),
+    )
+
+    expect(labels).toEqual(['-0.7434', '-0.6434', '-0.5434', '-0.4434', '(V) -0.3434'])
+    expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5).tickTextWidth).toBe(77)
+  })
+
+  it('includes the compact-axis unit label after its top tick is hidden', () => {
+    const ticks = resolveYAxisTicks([0.12345, 100], 5, false)
+    const compactTicks = ticks.values.slice(0, -1)
+
+    expect(formatYAxisTickLabel(compactTicks.at(-1)!, ticks.domain, compactTicks, 'V')).toBe(
+      '(V) 75.031',
+    )
+    expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5).tickTextWidth).toBe(49)
+    expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5, true).tickTextWidth).toBe(70)
+  })
+
   it('keeps every overlaid series on one axis in single-axis mode', () => {
     const groups = buildYAxisSeriesGroups(
       track([series('a', 0, 1), series('b', 10, 20)]),
@@ -254,7 +278,7 @@ describe('multi-value Y-axis grouping', () => {
       })),
     ).toEqual([
       { side: 'left', labelOffset: 55 },
-      { side: 'right', labelOffset: 55 },
+      { side: 'right', labelOffset: 45 },
     ])
   })
 

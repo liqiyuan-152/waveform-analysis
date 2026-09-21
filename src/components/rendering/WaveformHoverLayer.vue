@@ -20,8 +20,9 @@ const crosshairs = computed<Crosshair[]>(() => {
 
   return props.tracks.flatMap((track) => {
     const trackIsActive = props.state.trackIndex === null || props.state.trackIndex === track.index
-    return trackIsActive && !track.isEmpty && track.hasVisibleSeries
-      ? [{ track, x: track.xScale(props.state.queryX!) }]
+    const crosshairX = props.state.crosshairXByTrack[track.index]
+    return trackIsActive && !track.isEmpty && track.hasVisibleSeries && crosshairX !== undefined
+      ? [{ track, x: track.xScale(crosshairX) }]
       : []
   })
 })

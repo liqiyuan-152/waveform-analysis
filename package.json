@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "0.1.48",
+  "version": "0.1.63",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -24,21 +24,25 @@
   "scripts": {
     "dev": "vite",
     "build": "pnpm typecheck && pnpm build:lib && pnpm build:types && pnpm build:demo",
+    "build:wasm": "wasm-pack build wasm --target web --release --out-dir pkg --locked",
     "build:lib": "vite build --config vite.lib.config.ts",
-    "build:types": "node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json",
+    "build:types": "node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json && node scripts/prepare-package-types.mjs",
     "build:demo": "vite build",
     "preview": "vite preview --outDir dist-demo",
-    "typecheck": "vue-tsc -b",
+    "typecheck": "pnpm build:wasm && vue-tsc -b",
     "check:file-length": "node scripts/check-file-length.mjs",
     "lint": "eslint . --max-warnings=0",
     "lint:oxlint": "oxlint . --deny-warnings",
     "lint:all": "pnpm lint:oxlint && pnpm lint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test": "pnpm build:wasm && vitest run",
+    "test:coverage": "pnpm build:wasm && vitest run --coverage",
+    "test:package": "node scripts/test-package.mjs",
+    "prepack": "pnpm build"
   },
   "dependencies": {
+    "@types/d3": "7.4.3",
     "ant-design-vue": "3.2.20",
     "d3": "^7.9.0",
     "vue-router": "^4.6.4",
@@ -50,7 +54,6 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
-    "@types/d3": "7.4.3",
     "@types/node": "26.1.1",
     "@vitejs/plugin-vue": "6.0.8",
     "@vitest/coverage-v8": "4.1.10",

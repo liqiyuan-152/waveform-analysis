@@ -80,7 +80,7 @@ const {
   pageCount,
   currentPage,
   getPageSize,
-  chartTracks,
+  pageableTracks,
   goToPage,
   annotationInteraction,
   editorDraft,
@@ -230,7 +230,7 @@ function handleChartPointerLeave() {
           :interactive="!isPresentationMode"
           :display-mode="displayMode"
           :interaction-mode="activeInteractionMode"
-          :frame-number="resolveFrameNumber(track.index)"
+          :frame-number="resolveFrameNumber(track.id)"
           :frame-style="frameStyle"
           :axes="axes"
           :clean-view="isCleanView"
@@ -326,7 +326,7 @@ function handleChartPointerLeave() {
       aria-label="波形分页"
       :current="currentPage"
       :page-size="getPageSize(gridOptions)"
-      :total="chartTracks.length"
+      :total="pageableTracks.length"
       :show-size-changer="false"
       :show-quick-jumper="false"
       @change="goToPage"

@@ -128,12 +128,24 @@ describe('WaveformChart x domain strategy', () => {
           {
             id: 'first',
             name: '第一轨',
-            data: { kind: 'points', points: [{ x: 0, y: 0 }, { x: 10, y: 1 }] },
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 10, y: 1 },
+              ],
+            },
           },
           {
             id: 'second',
             name: '第二轨',
-            data: { kind: 'points', points: [{ x: 100, y: 0 }, { x: 110, y: 1 }] },
+            data: {
+              kind: 'points',
+              points: [
+                { x: 100, y: 0 },
+                { x: 110, y: 1 },
+              ],
+            },
           },
         ],
       },

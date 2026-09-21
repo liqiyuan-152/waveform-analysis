@@ -99,12 +99,17 @@ describe('WaveformChart', () => {
       { rendering: { downsampleThreshold: 1_000, maxPointsPerPixel: 4 } },
     )
     const overlayWidth = Number(wrapper.get('.waveform-chart__overlay').attributes('width'))
-    const path = wrapper.get('.waveform-chart__line').attributes('d') ?? ''
-    const renderedPointCount = path.match(/[ML]/g)?.length ?? 0
-
-    expect(renderedPointCount).toBeGreaterThan(0)
-    expect(renderedPointCount).toBeLessThanOrEqual(Math.floor(overlayWidth * 4) + 2)
-    expect(path).toContain(',0')
+    await vi.waitFor(
+      () => {
+        expect(wrapper.emitted('sampling-complete')?.length).toBeGreaterThan(0)
+        const path = wrapper.get('.waveform-chart__line').attributes('d') ?? ''
+        const renderedPointCount = path.match(/[ML]/g)?.length ?? 0
+        expect(renderedPointCount).toBeGreaterThan(0)
+        expect(renderedPointCount).toBeLessThanOrEqual(Math.floor(overlayWidth * 4) + 2)
+        expect(path).toContain(',0')
+      },
+      { timeout: 5_000 },
+    )
   })
 
   it('bounds dense decorations by pixel spacing while keeping one SVG path per series', async () => {

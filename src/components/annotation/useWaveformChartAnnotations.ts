@@ -9,7 +9,6 @@ import {
   ANNOTATION_AMBIGUITY_DISTANCE,
   ANNOTATION_HIT_RADIUS,
   findAnnotationSeriesCandidates,
-  findNearestPointByX,
 } from './markup'
 import type {
   AnnotationEditorAnchor,
@@ -150,15 +149,15 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
       item.seriesList.some((series) => series.id === seriesId),
     )
     const series = track?.seriesList.find((item) => item.id === seriesId)
-    const validPoints = series?.points.filter(
-      (item) => Number.isFinite(item.x) && Number.isFinite(item.y),
-    )
-    const point = validPoints && draft ? findNearestPointByX(validPoints, draft.annotation.x) : null
-    if (!draft || !candidate || !track || !validPoints?.length) {
+    const source = series?.source
+    const first = source?.pointAt(0)
+    const last = source?.pointAt((source?.length ?? 0) - 1)
+    const point = draft ? source?.nearestPoint(draft.annotation.x) : undefined
+    if (!draft || !candidate || !track || !first || !last || !point) {
       timeError.value = '当前波形没有有效数据'
       return
     }
-    if (draft.annotation.x < validPoints[0].x || draft.annotation.x > validPoints.at(-1)!.x) {
+    if (draft.annotation.x < first.x || draft.annotation.x > last.x) {
       timeError.value = '时间超出当前波形范围'
       return
     }
@@ -183,20 +182,18 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
       item.seriesList.some((series) => series.id === draft.annotation.seriesId),
     )
     const series = track?.seriesList.find((item) => item.id === draft.annotation.seriesId)
-    const validPoints = series?.points.filter(
-      (point) => Number.isFinite(point.x) && Number.isFinite(point.y),
-    )
-    if (!validPoints?.length) {
+    const source = series?.source
+    const first = source?.pointAt(0)
+    const last = source?.pointAt((source?.length ?? 0) - 1)
+    if (!source || !first || !last) {
       timeError.value = '当前波形没有有效数据'
       return
     }
-    const firstX = validPoints[0].x
-    const lastX = validPoints[validPoints.length - 1].x
-    if (rawTime < firstX || rawTime > lastX) {
+    if (rawTime < first.x || rawTime > last.x) {
       timeError.value = '时间超出当前波形范围'
       return
     }
-    const point = findNearestPointByX(validPoints, rawTime)!
+    const point = source.nearestPoint(rawTime)!
     timeError.value = ''
     draft.annotation = { ...draft.annotation, x: point.x, y: point.y }
   }

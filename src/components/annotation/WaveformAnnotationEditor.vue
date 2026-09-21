@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, ref, watch, type Component } from 'vue'
 import { InputNumber, Modal } from 'ant-design-vue'
-import { ColorPicker } from 'vue3-colorpicker'
-import 'vue3-colorpicker/style.css'
 
 import type { WaveformAnnotation } from '../../types'
 import { formatAnnotationTime, formatPlainNumber, type TimeUnit } from '../../utils'
 import { ANNOTATION_MAX_TEXT_LENGTH, resolveAnnotationStyle } from './markup'
 import type { AnnotationSeriesCandidate, AnnotationSeriesInfo } from './types'
 import { useWaveformInstanceId } from '../../utils/waveformId'
+
+const ColorPicker = defineAsyncComponent(async (): Promise<Component> => {
+  if (typeof window === 'undefined') {
+    return { name: 'WaveformColorPickerSsrFallback', render: () => null }
+  }
+  return (await import('vue3-colorpicker')).ColorPicker
+})
 
 interface Props {
   annotation: WaveformAnnotation
@@ -256,7 +261,6 @@ function handleSeriesChange(event: Event) {
           />
         </label>
       </fieldset>
-
     </div>
   </Modal>
 </template>

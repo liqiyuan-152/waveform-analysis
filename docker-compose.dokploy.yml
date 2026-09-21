@@ -7,7 +7,7 @@ services:
     pull_policy: never
     restart: unless-stopped
     ports:
-      - "127.0.0.1:18089:8080"
+      - '127.0.0.1:18089:8080'
     read_only: true
     security_opt:
       - no-new-privileges:true
@@ -15,12 +15,12 @@ services:
     mem_limit: 64m
     cpus: 0.5
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/"]
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/']
       interval: 15s
       timeout: 5s
       retries: 3
     logging:
       driver: json-file
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'

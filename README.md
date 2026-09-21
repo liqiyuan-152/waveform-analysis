@@ -3,17 +3,12 @@
 基于 Vue 3、TypeScript 和 D3 的响应式 SVG 波形图组件。适合展示单通道、多通道和大规模采样
 数据，内置缩放、tooltip、图例、误差棒、标注、分页和多 Y 轴叠加。
 
-当前稳定版本：`v0.1.15`。
-
 组件使用不可变数据模型：替换 `data` 引用后会重新计算数据域和视口；大数据会按当前可见范围
 和屏幕像素自动保峰降采样，而 tooltip、最近点查询和标注仍使用完整原始数据。
 
 ## 在线示例
 
-最新稳定版 Demo：<https://lqycustomsite.online/waveform-analysis/>
-
-本地运行 `pnpm dev` 后，可通过
-<http://127.0.0.1:5173/#/fixed-y-domain> 查看固定振幅上下限示例。
+线上 Demo：[波形分析组件在线示例](https://lqycustomsite.online/waveform-analysis/)。
 
 ## 特性
 
@@ -32,16 +27,16 @@
 
 ## 安装
 
-组件库将 Vue、D3、Ant Design Vue 和 vue3-colorpicker 作为 peer dependency；直接安装到业务项目时请一并
-安装这些依赖：
+组件库将 Vue 和 Ant Design Vue 作为 peer dependency；D3 和 vue3-colorpicker 由组件包直接依赖。
+安装组件时请确保业务项目同时提供兼容版本的 peer dependency：
 
 ```bash
-pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
+pnpm add waveform-analysis vue ant-design-vue
 ```
 
 ### 运行时版本要求
 
-组件库支持以下运行时版本：
+组件库当前使用或支持以下运行时版本：
 
 | 依赖             | 支持版本      |
 | ---------------- | ------------- |
@@ -50,13 +45,8 @@ pnpm add waveform-analysis vue d3 ant-design-vue vue3-colorpicker
 | D3               | `>=7.9.0 <8`  |
 | vue3-colorpicker | `>=2.3.0 <3`  |
 
-安装时请确保业务项目中的 peer dependency 版本均满足上述范围。
-
-## 发布
-
-发布由推送版本 tag 触发。`package.json` 的 `version` 必须与 tag 去掉 `v` 后完全一致。
-稳定版使用 `vX.Y.Z`，预发布版使用 `vX.Y.Z-rc.1`；稳定版发布为 npm `latest`，预发布版发布为
-`next`。流水线会创建 Gitea Release，并上传包文件与 SHA-256 校验文件。
+其中 Vue 和 Ant Design Vue 的版本范围是公开的 peer dependency 约束；D3 和 vue3-colorpicker
+随组件包安装。
 
 ## 最小示例
 
@@ -96,40 +86,45 @@ const data = ref<WaveformData>({
 
 ### Props
 
-| Prop                              | 类型                                        | 默认值                                                                                | 说明                                          |
-| --------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `data`                            | `WaveformData`                              | 必填                                                                                  | 波形数据                                      |
-| `displayMode`                     | `'independent' \| 'separated' \| 'compact'` | `'independent'`                                                                       | 图框布局                                      |
-| `overlayMode`                     | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
-| `timeUnit`                        | `'s' \| 'ms'`                               | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
-| `xLabel` / `yLabel`               | `string`                                    | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
-| `lineColor`                       | `string`                                    | `'#0960bd'`                                                                           | 单波形默认颜色                                |
-| `width` / `height`                | `number`                                    | 自适应                                                                                | 组件总尺寸，单位为 CSS 像素                   |
-| `zoomable` / `showTooltip`        | `boolean`                                   | `true` / `true`                                                                       | 缩放和数值 tooltip 开关                       |
-| `pannable`                        | `boolean`                                   | `false`                                                                               | 空格拖拽平移开关                              |
-| `minZoomSpan`                     | `number`                                    | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
-| `minVisiblePoints`                | `number`                                    | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
-| `initialXDomain`                  | `[number, number]`                          | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
-| `initialXDomains`                 | `Record<string, [number, number]>`          | 未设置                                                                                | 按 track/series ID 配置初始范围（可超出数据） |
-| `xDomainStrategy`                 | `WaveformXDomainStrategy`                   | `{ type: 'data' }`                                                                    | 自动 X 轴视口范围策略                         |
-| `yDomain`                         | `[number, number]`                          | 未设置                                                                                | 所有波形的固定 Y 轴范围                       |
-| `yDomains`                        | `Record<string, [number, number]>`          | 未设置                                                                                | 按 track/series ID 配置固定范围               |
-| `grid`                            | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
-| `axes`                            | `WaveformAxesOptions`                       | 轴线均显示                                                                            | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
-| `rendering`                       | `WaveformRenderingOptions`                  | `{}`                                                                                  | 降采样与点/误差棒间距                         |
-| `title` / `legend` / `frameStyle` | 对应公开类型                                | 未设置                                                                                | 标题、图例和图框样式                          |
-| `frameNumber`                     | `string \| number`                          | 未设置                                                                                | 图框水印内容                                  |
-| `zeroLine`                        | `WaveformZeroLineOptions`                   | `{ visible: false }`                                                                  | 零值参考线显隐与样式                          |
-| `cleanView`                       | `boolean`                                   | `false`                                                                               | 保留波形、图框和刻度的净图模式                |
-| `presentationMode`                | `boolean`                                   | `false`                                                                               | 禁用绘图区交互的展示模式                      |
-| `annotations`                     | `WaveformAnnotation[]`                      | `[]`                                                                                  | 受控标注数据                                  |
-| `annotationsVisible`              | `boolean`                                   | `true`                                                                                | 标注图层显隐                                  |
-| `interactionMode`                 | `'zoom' \| 'annotation'`                    | `'zoom'`                                                                              | 左键交互模式                                  |
-| `hiddenSeriesIds`                 | `string[]`                                  | 未设置                                                                                | 受控隐藏系列 ID                               |
-| `defaultHiddenSeriesIds`          | `string[]`                                  | `[]`                                                                                  | 非受控模式的初始隐藏系列                      |
+| Prop                       | 类型                                        | 默认值                                                                                | 说明                                          |
+| -------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `data`                     | `WaveformData`                              | 必填                                                                                  | 波形数据                                      |
+| `displayMode`              | `'independent' \| 'separated' \| 'compact'` | `'independent'`                                                                       | 图框布局                                      |
+| `overlayMode`              | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
+| `timeUnit`                 | `'s' \| 'ms'`                               | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
+| `xLabel` / `yLabel`        | `string`                                    | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
+| `lineColor`                | `string`                                    | `'#0960bd'`                                                                           | 单波形默认颜色                                |
+| `width` / `height`         | `number`                                    | 自适应                                                                                | 组件总尺寸，单位为 CSS 像素                   |
+| `zoomable` / `showTooltip` | `boolean`                                   | `true` / `true`                                                                       | 缩放和数值 tooltip 开关                       |
+| `pannable`                 | `boolean`                                   | `false`                                                                               | 空格拖拽平移开关                              |
+| `minZoomSpan`              | `number`                                    | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
+| `minVisiblePoints`         | `number`                                    | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
+| `maxZoomScale`             | `number \| null`                            | 未设置                                                                                | 最大缩放倍数；`null` 表示不限制               |
+| `initialXDomain`           | `[number, number]`                          | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
+| `initialXDomains`          | `Record<string, [number, number]>`          | 未设置                                                                                | 按 track/series ID 配置初始范围（可超出数据） |
+| `xDomainStrategy`          | `WaveformXDomainStrategy`                   | `{ type: 'data' }`                                                                    | 自动 X 轴视口范围策略                         |
+| `yDomain`                  | `[number, number]`                          | 未设置                                                                                | 所有波形的固定 Y 轴范围                       |
+| `yDomains`                 | `Record<string, [number, number]>`          | 未设置                                                                                | 按 track/series ID 配置固定范围               |
+| `grid`                     | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
+| `axes`                     | `WaveformAxesOptions`                       | 轴线均显示                                                                            | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
+| `rendering`                | `WaveformRenderingOptions`                  | `{}`                                                                                  | 降采样与点/误差棒间距                         |
+| `plotMargin`               | `WaveformPlotMargin`                        | `{ top: 18, bottom: 52 }`                                                             | 绘图区上下边距，单位为 CSS 像素               |
+| `title` / `frameStyle`     | 对应公开类型                                | 未设置                                                                                | 标题和图框样式                                |
+| `legend`                   | `WaveformLegendOptions`                     | `{ position: 'top-right', orientation: 'auto' }`                                      | 图例位置、排列、背景和交互                    |
+| `frameNumber`              | `string \| number`                          | 未设置                                                                                | 图框水印内容                                  |
+| `frameNumbers`             | `Record<string, string \| number>`          | 未设置                                                                                | 按 `trackId` 覆盖图框水印内容                 |
+| `zeroLine`                 | `WaveformZeroLineOptions`                   | `{ visible: false }`                                                                  | 零值参考线显隐与样式                          |
+| `cleanView`                | `boolean`                                   | `false`                                                                               | 保留波形、图框和刻度的净图模式                |
+| `presentationMode`         | `boolean`                                   | `false`                                                                               | 禁用绘图区交互的展示模式                      |
+| `annotations`              | `WaveformAnnotation[]`                      | `[]`                                                                                  | 受控标注数据                                  |
+| `annotationsVisible`       | `boolean`                                   | `true`                                                                                | 标注图层显隐                                  |
+| `interactionMode`          | `'zoom' \| 'annotation'`                    | `'zoom'`                                                                              | 左键交互模式                                  |
+| `hiddenSeriesIds`          | `string[]`                                  | 未设置                                                                                | 受控隐藏系列 ID                               |
+| `defaultHiddenSeriesIds`   | `string[]`                                  | `[]`                                                                                  | 非受控模式的初始隐藏系列                      |
 
-所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、
-`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
+所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、`TypedSampleData`、
+`TypedPointData`、`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
+`WaveformPlotMargin`、
 `WaveformAxesOptions`、`WaveformXAxisLabelFormatter`、`WaveformXDomainStrategy`、`WaveformZeroLineOptions`、
 `WaveformGridOptions` 和 `WaveformGridTrackLines`。
 
@@ -156,6 +151,32 @@ const points: WaveformData = {
 }
 ```
 
+也可使用紧凑的 TypedArray 输入。`typed-samples` 只保存 Y 值，X 始终按
+`startTime + index / sampleRate`（秒）计算；`typed-points` 使用 `Float64Array` 存储 X，Y 和
+误差字段可使用 `Float32Array` 或 `Float64Array`。所有 `typed-points` 字段长度必须一致；不支持
+其他 TypedArray 类型。选择 `Float32Array` 的 Y 或误差值时，精度损失由调用方承担。输入数据和
+底层 `ArrayBuffer` 仅被读取，不会排序、写入或转移所有权。
+
+```ts
+const compactSamples: WaveformData = {
+  kind: 'typed-samples',
+  values: new Float32Array([0.2, 0.4, 0.1]),
+  sampleRate: 1000,
+}
+
+const compactPoints: WaveformData = {
+  kind: 'typed-points',
+  x: new Float64Array([0, 0.001]),
+  y: new Float32Array([12, 15]),
+  lowerError: new Float32Array([0.4, 0.4]),
+  upperError: new Float32Array([0.8, 0.8]),
+}
+```
+
+TypedArray 输入在内部保持紧凑列表示。`typed-samples` 只复制 Y 值及采样元数据；遇到无效样本
+时用紧凑源索引保留时间空洞，不生成完整 X 列。既有数组式渲染接口通过有界缓存按需构造单个
+`WaveformPoint`，Worker 消息使用私有数值副本，不会分离调用方的 `ArrayBuffer`。
+
 多通道使用 `kind: 'series'`。同一个 `trackId` 的系列会绘制在同一图框中；没有
 `trackId` 的系列默认各占一个图框。建议为每个系列提供全图唯一且稳定的 `id`。
 
@@ -170,7 +191,8 @@ const chartData: WaveformData = {
 ```
 
 需要让图框在合并或暂时没有数据时仍保持位置和分页，可传入 `grid.trackOrder`。列表中的
-`trackId` 会按给定顺序占用图框；没有对应系列的项显示为空图框，数据中未列出的轨道会追加在末尾：
+`trackId` 会按给定顺序占用图框；没有对应系列的项显示为空图框，数据中未列出的轨道会追加在末尾。传入
+`hideEmptyTracks: true` 可省略空图框，同时按稳定 `trackId` 保留图例、交互和水印映射：
 
 ```vue
 <WaveformChart :data="chartData" :grid="{ rowCount: 2, trackOrder: ['ch-a', 'ch-b', 'ch-c'] }" />
@@ -246,8 +268,9 @@ Y 轴会独立计算：
 组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放
 X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽可平移当前视口。
 鼠标滚轮可放大和缩小，双击恢复完整视口。
-组件会在滚轮或框选缩放结束后触发 `zoom-end`，调用方可以使用端点请求后端，再通过
-`data` 传回新数据。独立分图模式还会包含 `trackIndex` 和稳定的 `seriesIds`。
+组件会在真实滚轮或框选确定目标范围时同步触发 `zoom-intent`，可立即取消过时请求并启动
+新请求；缩放结束后仍会触发 `zoom-end`。独立分图模式还会包含 `trackIndex` 和稳定的
+`seriesIds`。
 
 ```vue
 <WaveformChart
@@ -256,14 +279,15 @@ X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽�
   :initial-x-domain="initialDomain"
   :min-zoom-span="initialDomainSpan / 40"
   pannable
-  @zoom-end="loadVisibleData"
+  @zoom-intent="loadVisibleData"
   @zoom-reset="restoreInitialData"
 />
 ```
 
-`zoom-change` 会在滚轮、框选和平移过程中触发，适合更新外部状态；后端请求应使用
-`zoom-end`，或在 `zoom-change` 上自行防抖。标注数据应由父组件独立持有，替换波形数据时
-不要清空标注，组件会根据当前数据域自动隐藏或恢复对应标注。
+`zoom-change` 会在滚轮、框选和平移过程中触发，适合更新外部状态。后端按视口回填数据时，
+应使用 `zoom-intent` 使每次用户意图立即使旧请求失效；`zoom-end` 适合只在手势完成后执行
+的工作。标注数据应由父组件独立持有，替换波形数据时不要清空标注，组件会根据当前数据域
+自动隐藏或恢复对应标注。
 
 `zoom-end.gesture` 用于区分 `wheel` 和 `box`。单轨道 payload 使用 `yStart/yEnd`；共享
 X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平移不会触发 `zoom-end`，
@@ -274,13 +298,15 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 
 `initialXDomain` 固定首次及重置时的 X 轴视口范围，不要将它改成后端返回的当前窗口；范围可以超出数据的实际时间，超出部分保留空白。独立图框有不同时间范围时，可通过
 `initialXDomains` 按 track ID 或 series ID 分别配置。`minZoomSpan` 使用原始 X 数据单位，
-可防止每次区间数据回填后重新累计放大。双击图框会
+可防止每次区间数据回填后重新累计放大。未配置任何缩放约束时保留既有的 40 倍兜底；设置
+`minVisiblePoints: 2` 可缩放到两个真实采样点，`maxZoomScale: null` 可显式关闭倍率上限。
+显式设置多种限制时采用最严格的一项。双击图框会
 重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。
 外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。
 
 宿主在替换局部数据后如果需要恢复之前保存的 X 视口，可以调用公开的
 `setViewportDomain(domain, trackIndex?)`。传入范围使用原始秒坐标，组件会按当前数据边界、
-`xDomainStrategy`、`minZoomSpan` 和 `minVisiblePoints` 重新约束；无效范围会被忽略。共享
+`xDomainStrategy`、`minZoomSpan`、`minVisiblePoints` 和 `maxZoomScale` 重新约束；无效范围会被忽略。共享
 X 轴模式直接传入一个范围，独立模式可以按实际 `trackIndex` 分别设置（省略 `trackIndex`
 时应用到当前所有图框）：
 
@@ -653,7 +679,11 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 当前视口和 `rendering` 配置自动降采样。调用方如需在传入组件前主动压缩数据，应自行保留
 原始数据，以免影响 tooltip、标注和误差范围的精度。
 
-默认在可见点超过 2,000 时进行降采样，每个像素最多渲染 4 个保峰点。可按业务调整：
+默认 `auto` 模式按每条系列的当前可见点数决定渲染路径：不超过 1,000 个点直接使用原始
+可视点；超过 1,000 个点时，组件将当前页面的可见系列合并为一次 Web Worker 请求，并在
+Worker 内通过 WASM 执行保峰采样。默认采样数量由图框宽度和每像素最大点数控制，默认每个像素
+最多渲染 4 个保峰点。多通道场景可通过 `sampling.maxPointCount` 设定每条曲线的固定目标数量；
+设置后会优先于像素密度。可按业务调整：
 
 ```vue
 <WaveformChart
@@ -673,6 +703,55 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 显示时共用一批采样点，并采用两个间距中的较大值，确保误差棒与对应点符号保持共心；仅显示
 一类装饰时仍使用各自的间距。仅显示一类装饰时可将对应间距设为 `0`；两者同时显示时需将
 两个间距都设为 `0` 才会关闭共同限制。设置 `downsample: false` 会关闭曲线和装饰的全部降采样。
+
+`rendering.sampling` 控制 Worker/WASM 渲染路径。默认模式为 `auto`，其单系列可见点阈值为
+`1_000`，默认策略为 `peak`。`wasm` 强制发起 Worker+WASM 请求，不受阈值影响；`raw` 完全绕过
+Worker 和采样，直接渲染当前可见原始点。`sampling.maxPointCount` 用于每条线的固定采样数量，
+`sampling.maxPointsPerPixel` 用于按宽度自适应；两者同时存在时固定数量优先。嵌套的
+`sampling.maxPointsPerPixel` 优先于旧的 `rendering.maxPointsPerPixel`。未指定 `sampling.mode` 时，旧的 `downsample: false` 映射为
+`raw`，`downsample: true` 映射为 `auto`。
+
+```ts
+rendering: {
+  sampling: {
+    mode: 'auto',
+    autoThreshold: 1_000,
+    autoHysteresis: 0,
+    strategy: 'peak',
+    maxPointCount: 1_000,
+    maxPointsPerPixel: 4,
+    rawPointLimit: 100_000,
+    wasmFailureFallback: 'error',
+  },
+}
+```
+
+Worker 或 WASM 初始化不可用时，`auto` 会报告诊断后使用等价 JavaScript 采样，避免把大数据
+退回为超长 SVG 路径。强制 `wasm` 模式遵循 `wasmFailureFallback`：`'error'` 保留已有有效路径
+或当前同步渲染回退，并发出错误；`'javascript'` 会在错误诊断后显示 JavaScript 等价结果。快速
+缩放或数据替换会用 `requestId` 和数据 revision 丢弃过期结果；等待新结果时保留当前有效路径。
+采样结果只覆盖 SVG 线条点，完整原始数据仍用于 domain、tooltip、最近点、标注、误差范围和缩放
+约束。组件卸载和 `data` 引用替换会终止实例 Worker 并释放其数据集。
+
+高级场景可直接使用独立的 `sampleWaveformWasm` 数值内核。它接收等长的扁平 `Float64Array`
+X/Y 坐标，返回真实源点的 `Uint32Array` 索引，或 `average` / `sum` 的新 X/Y 数组。该 API 不会
+修改输入：
+
+```ts
+import { sampleWaveformWasm } from 'waveform-analysis'
+
+const result = await sampleWaveformWasm({
+  x: new Float64Array([0, 1, 2, 3]),
+  y: new Float64Array([4, 1, 8, 3]),
+  strategy: 'peak',
+  targetPointCount: 4,
+})
+```
+
+`none`、`peak`、`lttb`、`min`、`max` 和 `minmax` 返回源索引；`average` 与 `sum` 返回合成
+坐标。`calculateWasmRange` 与 `findWasmVisibleRange` 分别提供完整范围统计和规范化序列上的
+半开可见索引范围查询。WASM 初始化失败时这些调用会拒绝，由调用方选择是否使用 JavaScript
+参考实现回退。
 
 降采样仅作用于 SVG 中的曲线、点符号和误差棒。点符号和误差棒在每个系列中分别合并为
 单个 SVG path；最近点查询、tooltip、标注插值、Y 轴误差范围和受控数据不会损失精度。
@@ -737,27 +816,70 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | 事件                                                            | 说明                                                           |
 | --------------------------------------------------------------- | -------------------------------------------------------------- |
 | `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
+| `zoom-intent`                                                   | 真实滚轮或框选确定目标范围时同步触发，参数含端点和 `gesture`   |
 | `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
 | `zoom-end`                                                      | 滚轮或框选结束后触发；`gesture` 区分二者，独立模式附带轨道信息 |
 | `zoom-reset`                                                    | 双击重置视口时触发；独立模式 payload 标识目标图框              |
 | `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
 | `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
 | `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                           |
+| `sampling-complete`                                             | 每条系列当前采样结果的 `WaveformSamplingDiagnostics`           |
+| `sampling-backend-change`                                       | 某系列在 `raw`、`javascript` 或 `wasm` 后端之间切换时触发      |
+| `sampling-error`                                                | Worker/WASM 不可用或强制 WASM 无法满足时的降级/失败信息        |
 
 `annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
 `interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
 
+`sampling-complete` 的 payload 包含模式、实际后端、策略、完整/可视/渲染点数、耗时、请求号、
+revision，以及 `scheduledRequestCount`、`coalescedRequestCount` 和
+`maxPendingRequestCount` 三个调度指标；适合性能面板或日志采集。`sampling-error` 不携带原始
+`Error` 对象，只提供可序列化的消息、请求模式、回退方式和受影响系列 ID。不要将这些诊断事件
+作为 pointermove 处理逻辑。
+
+### 多分辨率索引、缓存与诊断
+
+Worker 的 JavaScript 回退后端和 Rust/WASM 后端都按需建立多分辨率索引。`peak`、`min`、`max`
+和 `minmax` 使用可追溯到真实源点的 Min/Max 分层；`average` 与 `sum` 使用可重用的 Sum/Count
+分层，LTTB 仍按当前视口即时计算。WASM 数据集通过可释放 handle 持久保存；每个桶的左右边界按
+当前可见半开索引范围精确计算，所以局部缩放不会复用首次全局采样而丢失细节。
+
+连续 wheel、pan 和 resize 使用 latest-wins 调度：同一图表最多保留一个执行中任务和一个最新
+待处理任务，中间视口会被合并，Worker 消息队列不会随输入事件无界增长。过期请求仍通过
+`requestId` 和 revision 双重校验，不能覆盖最终稳定视口。
+
+每个已访问数据集的索引默认最多使用 8 MiB。采样输出缓存使用 LRU，默认最多 96 个条目或
+16 MiB；先到达任一上限就逐出最久未使用结果。缓存键包括 dataset ID、revision、可见起止索引、
+图框宽度、目标密度、策略、后端及线型/点型/误差棒/装饰间距等渲染维度。替换、删除或清空数据集会
+同步释放其索引与缓存项。`sampling-complete.cacheHit` 只在 Worker 实际返回该缓存项时为 `true`。
+
+演示可在 `#/wasm-sampling` 打开。该路由生成 10 条各 100,000 点的 `Float32Array` 通道，可切换
+`auto` / `wasm` / `raw`，所有采样策略与自动阈值；Peak 类策略按每像素点数采样，LTTB、Average、
+Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的真实后端、
+源点/可见点/渲染点、耗时和缓存命中状态。
+
+库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署
+仍需允许库的模块 Worker，并允许浏览器编译 WebAssembly；若策略禁止 `data:` Worker/WASM 资源
+或 WebAssembly 编译，`auto` 可回退到 JavaScript，而强制 `wasm` 会按配置报告失败。当前自动化
+与浏览器烟测覆盖 Chromium；Firefox、Safari、严格 CSP、离线和子路径部署应按
+[`docs/performance-guide.md`](docs/performance-guide.md) 的发布清单验证。
+
 ## 项目结构
 
 - `src/index.ts`：组件库公开入口和工具函数导出
-- `src/components/WaveformChart.vue`：图表容器、缩放、tooltip、图例和标注编排
+- `src/components/WaveformChart.vue`：公共组件边界，连接图表控制器与视图
+- `src/components/WaveformChartView.vue`：图表视图、交互宿主和渲染层编排
+- `src/components/core/useWaveformChartController.ts`：布局、状态和交互控制器编排
 - `src/components/{core,data,rendering,interaction,annotation}`：数据、布局、渲染和交互模块
 - `src/App.vue`：综合可交互 demo，`src/data` 中提供示例波形数据
-- `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 为固定振幅范围示例
+- `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 与
+  `src/views/WasmSamplingDemo.vue` 为专用示例
+- `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 是提交到 Git 的
+  WASM 绑定与二进制产物，`wasm/target` 是本地 Rust 构建缓存，不提交到 Git
 
 ## 本地开发
 
-开发环境要求 Node.js 22 和 pnpm：
+开发环境要求 Node.js 22、pnpm 10.32.1、Rust 1.95（含 `wasm32-unknown-unknown` target）和 wasm-pack
+0.14.0：
 
 ```bash
 pnpm install
@@ -784,29 +906,3 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 
 `pnpm build` 同时生成 `dist/` 组件库产物和 `dist-demo/` 演示应用。正式公开入口为
 `src/index.ts`，样式入口为 `src/styles.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
-
-## 发布流程
-
-发布由推送版本 tag 触发。先将 `package.json` 的 `version` 更新为目标版本并提交，再创建同版本 tag：
-
-```bash
-git tag -a v0.1.15 -m "Release v0.1.15"
-git push origin main --follow-tags
-```
-
-支持稳定版 `vX.Y.Z` 与预发布版 `vX.Y.Z-rc.1`。tag 去掉 `v` 后必须与 `package.json` 的
-`version` 完全一致。稳定版发布为 npm `latest`，预发布版发布为 npm `next`。流水线会创建 Gitea
-Release，并上传 `.tgz` 与 SHA-256 校验文件。
-
-## Dokploy demo deployment
-
-Pushes to `main` run verification in GitHub Actions, notify Dokploy through
-the `DOKPLOY_DEPLOY_URL` Actions secret, and verify the published commit at
-`/waveform-analysis/version.txt`. The demo is served under `/waveform-analysis/`.
-
-Dokploy reads the public Git repository and uses `docker-compose.dokploy.yml`
-and `Dockerfile.dokploy`. These target the existing server runtime image
-`local/sub2api-cpa-converter:1bd8fb805d5d` and Node 22 builder. Keep that base
-image on this server. Application builds and npm publishing are unchanged.
-Build failures preserve the running version; revert a commit on `main` to
-roll back. Runtime failures require manual review; automatic rollback is not configured.

@@ -42,7 +42,10 @@ export const peakPreservingPointSelectionStrategy: RenderablePointSelectionStrat
 
   const domainStart = Math.min(domain[0], domain[1])
   const domainEnd = Math.max(domain[0], domain[1])
-  const maximumPointCount = Math.max(4, Math.floor(width * options.maxPointsPerPixel))
+  const maximumPointCount = Math.max(
+    4,
+    options.sampling.maxPointCount ?? Math.floor(width * options.maxPointsPerPixel),
+  )
   const bucketCount = Math.max(1, Math.floor(maximumPointCount / 4))
   const result: WaveformPoint[] = []
   const span = domainEnd - domainStart || 1
@@ -119,7 +122,8 @@ export function resolveRenderablePointSelectionStrategy(
 ): RenderablePointSelectionStrategy {
   const maximumPointCount = Math.max(
     4,
-    Math.floor(request.width * request.options.maxPointsPerPixel),
+    request.options.sampling.maxPointCount ??
+      Math.floor(request.width * request.options.maxPointsPerPixel),
   )
   const shouldUseCompletePoints =
     !request.options.downsample ||

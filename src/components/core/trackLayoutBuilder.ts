@@ -25,13 +25,20 @@ import {
   type GridCellGeometry,
   type NormalizedWaveformGridOptions,
 } from './grid'
-import { axisTextMetrics, resolveYAxisSeriesGroups, resolveYAxisTickCount } from './layout'
+import {
+  axisTextMetrics,
+  resolveRenderedYAxisSeriesGroups,
+  resolveYAxisTicks,
+  resolveYAxisTickCount,
+  type YAxisSlot,
+} from './layout'
 import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import {
   Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
   Y_AXIS_OUTER_PADDING,
+  Y_AXIS_RIGHT_LABEL_OFFSET,
   Y_AXIS_TICK_PADDING,
 } from './yAxisConstants'
 
@@ -57,8 +64,11 @@ export interface BuildTrackLayoutsOptions {
   yAxisSplitNumber?: number
   yAxisNice?: boolean
   rendering: ResolvedWaveformRenderingOptions
+  /** Latest sampling result for SVG lines only; source series remain complete for interaction. */
+  linePointOverrides?: Readonly<Record<string, WaveformPoint[]>>
   hideSecondaryLabels: boolean
   yAxisLabelX: number
+  yAxisSlots?: readonly YAxisSlot[]
   showCompactEmptyTracks: boolean
 }
 
@@ -106,26 +116,21 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         ? (options.independentTransforms[index] ?? zoomIdentity)
         : zoomIdentity
     const xScale = transform.rescaleX(baseXScale)
-    const configuredYDomain = options.yDomains?.[displayTrack.id]
-    const yAxisGroups = resolveYAxisSeriesGroups(
+    const yAxisGroups = resolveRenderedYAxisSeriesGroups(
       displayTrack,
       options.overlayMode,
       options.fixedYDomain,
       options.fixedYDomains,
-    ).map((group) =>
-      !group.fixed && configuredYDomain ? { ...group, domain: configuredYDomain } : group,
+      options.yDomains,
     )
+    const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
+      const sideIndex = sideIndexes[group.side]++
       const tickCount = resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber)
-      const niceCount = Math.max(1, tickCount - 1)
-      const scale = scaleLinear(group.domain, [cell.plotHeight, 0])
-      if (options.yAxisNice !== false) scale.nice(niceCount)
-      const [axisStart, axisEnd] = scale.domain()
-      const majorTicks = Array.from(
-        { length: tickCount },
-        (_, index) => axisStart + ((axisEnd - axisStart) * index) / (tickCount - 1),
-      )
+      const resolvedTicks = resolveYAxisTicks(group.domain, tickCount, options.yAxisNice !== false)
+      const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
+      const majorTicks = resolvedTicks.values
       const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
       const visibleMajorTicks = showAxisEnd ? majorTicks : majorTicks.slice(0, -1)
       const tickValues = visibleMajorTicks
@@ -142,11 +147,22 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         Y_AXIS_LABEL_GAP +
         Y_AXIS_LABEL_BAND_WIDTH +
         Y_AXIS_OUTER_PADDING
-      const x = group.side === 'left' ? -sideOffsets.left : cell.width + sideOffsets.right
+      const slot = options.yAxisSlots?.find(
+        (candidate) => candidate.side === group.side && candidate.sideIndex === sideIndex,
+      )
+      const x = slot
+        ? (group.side === 'left' ? 0 : cell.width) + slot.axisOffset
+        : group.side === 'left'
+          ? -sideOffsets.left
+          : cell.width + sideOffsets.right
       const labelDistance =
         tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
-      const labelX = x + (group.side === 'left' ? -labelDistance : labelDistance)
-      sideOffsets[group.side] += clearance
+      const labelX =
+        (slot
+          ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
+          : x + (group.side === 'left' ? -labelDistance : labelDistance)) -
+        (group.side === 'right' ? Y_AXIS_RIGHT_LABEL_OFFSET : 0)
+      if (!slot) sideOffsets[group.side] += clearance
       return {
         index: group.index,
         side: group.side,
@@ -200,6 +216,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         options.rendering,
         {
           lineVisible: !isEmpty && trackSeries.lineType !== 'none',
+          linePointOverride: options.linePointOverrides?.[trackSeries.id],
           pointVisible: trackSeries.pointType !== 'none',
           errorBarVisible: trackSeries.errorBar.visible,
           hasErrorPoints: trackSeries.hasErrorPoints,

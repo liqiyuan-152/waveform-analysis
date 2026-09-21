@@ -28,6 +28,12 @@ jobs:
           corepack enable
           corepack prepare pnpm@10.32.1 --activate
 
+      - name: Set up Rust and wasm-pack
+        run: |
+          rustup toolchain install 1.95.0 --profile minimal --target wasm32-unknown-unknown
+          rustup default 1.95.0
+          cargo install wasm-pack --version 0.14.0 --locked
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -118,6 +124,9 @@ jobs:
           DEMO_BASE_PATH: /waveform-analysis/
         run: pnpm build
 
+      - name: Verify package consumer
+        run: pnpm test:package
+
       - name: Pack component
         shell: bash
         run: |
@@ -143,6 +152,8 @@ jobs:
             package/dist/index.js \
             package/dist/index.cjs \
             package/dist/types/index.d.ts \
+            package/dist/types/wasm/waveform_sampling_wasm.d.ts \
+            package/dist/types/wasm/waveform_sampling_wasm_bg.wasm.d.ts \
             package/dist/style.css \
             package/src/index.ts \
             package/src/components/WaveformChart.vue \

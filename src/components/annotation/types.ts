@@ -1,6 +1,7 @@
 import type { ScaleLinear } from 'd3'
 
 import type { WaveformAnnotation, WaveformLineType, WaveformPoint } from '../../types'
+import type { WaveformPointSource } from '../../core/waveformPointSource'
 
 export interface AnnotationTrackLayout {
   index: number
@@ -11,6 +12,7 @@ export interface AnnotationTrackLayout {
     unit?: string
     lineType?: WaveformLineType
     points: WaveformPoint[]
+    source?: WaveformPointSource
   }
   left?: number
   top: number

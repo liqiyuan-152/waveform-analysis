@@ -1,4 +1,4 @@
-import type { WaveformDisplayMode } from '@/types'
+import type { WaveformDisplayMode } from '../types'
 
 /**
  * 轨道几何信息

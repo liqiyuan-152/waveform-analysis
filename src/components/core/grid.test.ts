@@ -17,6 +17,7 @@ describe('waveform grid helpers', () => {
       showPagination: true,
       fillIncompleteLastRow: false,
       trackOrder: [],
+      hideEmptyTracks: false,
       trackLines: {},
     })
     expect(normalizeGridOptions({ rowCount: 0, columnCount: 99 })).toEqual({
@@ -25,8 +26,10 @@ describe('waveform grid helpers', () => {
       showPagination: true,
       fillIncompleteLastRow: false,
       trackOrder: [],
+      hideEmptyTracks: false,
       trackLines: {},
     })
+    expect(normalizeGridOptions({ hideEmptyTracks: true }).hideEmptyTracks).toBe(true)
   })
 
   it('normalizes track order by trimming, dropping blanks, and removing duplicates', () => {

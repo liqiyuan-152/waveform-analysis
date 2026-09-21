@@ -74,8 +74,7 @@ describe('WaveformChart', () => {
 
   it('removes the later compact row top tick when the Y-axis end has a floating-point tail', async () => {
     const yDomain: [number, number] = [-1, 0.2]
-    const calculatedAxisEnd =
-      yDomain[0] + ((yDomain[1] - yDomain[0]) * 4) / 4
+    const calculatedAxisEnd = yDomain[0] + ((yDomain[1] - yDomain[0]) * 4) / 4
     expect(calculatedAxisEnd).not.toBe(yDomain[1])
 
     const wrapper = await mountSizedChart(
@@ -84,11 +83,23 @@ describe('WaveformChart', () => {
         series: [
           {
             name: 'top',
-            data: { kind: 'points', points: [{ x: 0, y: -0.8 }, { x: 1, y: 0.1 }] },
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: -0.8 },
+                { x: 1, y: 0.1 },
+              ],
+            },
           },
           {
             name: 'bottom',
-            data: { kind: 'points', points: [{ x: 0, y: -0.7 }, { x: 1, y: 0 }] },
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: -0.7 },
+                { x: 1, y: 0 },
+              ],
+            },
           },
         ],
       },
