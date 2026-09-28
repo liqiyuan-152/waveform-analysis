@@ -33,14 +33,14 @@ Important behavioral contracts:
 - `src/utils/`: domains, formatting, geometry, sampling, and waveform ID helpers.
 - `src/demo/`, `src/App.vue`: controls and the main interactive demo workspace.
 - `src/router.ts`, `src/DemoRouterApp.vue`, `src/views/`: hash-based demo routes and focused demos.
-- `src/data/`: simulated demo data; `src/test/`: shared Vitest setup and test helpers.
+- `src/data/`: simulated demo data; `tests/support/`: shared Vitest setup and test helpers.
 - `scripts/`: repository checks and declaration-build cleanup scripts.
 - `docs/` and root Markdown notes: supporting or historical documentation; verify claims against
   current source, tests, `README.md`, and `package.json` before relying on them.
 
-Tests are colocated as `*.test.ts`. The large chart suite is split under
-`src/components/waveformChartCases/`; add focused cases there instead of rebuilding a monolithic
-chart test file.
+Tests live under the root `tests/` directory and mirror the source layout. The large chart suite is
+split under `tests/components/waveformChartCases/`; add focused cases there instead of rebuilding a
+monolithic chart test file.
 
 ## Toolchain and Commands
 
@@ -88,7 +88,7 @@ are externalized by `vite.lib.config.ts`; validate packaging after dependency or
 
 ## Testing Expectations
 
-Vitest runs in jsdom with `@vue/test-utils`; shared setup is in `src/test/setup.ts`. Coverage uses
+Vitest runs in jsdom with `@vue/test-utils`; shared setup is in `tests/support/setup.ts`. Coverage uses
 V8 and must remain at least 80% for lines, statements, and functions, and 75% for branches.
 
 Cover behavior at the narrowest useful layer:

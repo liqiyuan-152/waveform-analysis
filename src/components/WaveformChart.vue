@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   zoomable: true,
   pannable: false,
   minVisiblePoints: 0,
-  xDomainStrategy: () => ({ type: 'data' }),
+  xDomainStrategy: () => ({ type: 'integer-ms' }),
   timeUnit: 'ms',
   frameNumber: undefined,
   annotations: () => [],

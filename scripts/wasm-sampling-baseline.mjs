@@ -15,7 +15,7 @@ http://localhost:5173/scripts/wasm-sampling-baseline.html`)
 const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm'
 const result = spawnSync(
   command,
-  ['vitest', 'run', 'scripts/wasm-sampling-baseline.test.ts', '--disableConsoleIntercept'],
+  ['vitest', 'run', 'tests/scripts/wasm-sampling-baseline.test.ts', '--disableConsoleIntercept'],
   {
     stdio: 'inherit',
     env: { ...process.env, WAVEFORM_BASELINE_REPORT: '1' },

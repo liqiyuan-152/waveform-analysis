@@ -102,7 +102,7 @@ const data = ref<WaveformData>({
 | `maxZoomScale`             | `number \| null`                            | 未设置                                                                                | 最大缩放倍数；`null` 表示不限制               |
 | `initialXDomain`           | `[number, number]`                          | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
 | `initialXDomains`          | `Record<string, [number, number]>`          | 未设置                                                                                | 按 track/series ID 配置初始范围（可超出数据） |
-| `xDomainStrategy`          | `WaveformXDomainStrategy`                   | `{ type: 'data' }`                                                                    | 自动 X 轴视口范围策略                         |
+| `xDomainStrategy`          | `WaveformXDomainStrategy`                   | `{ type: 'integer-ms' }`                                                              | 自动 X 轴视口范围策略                         |
 | `yDomain`                  | `[number, number]`                          | 未设置                                                                                | 所有波形的固定 Y 轴范围                       |
 | `yDomains`                 | `Record<string, [number, number]>`          | 未设置                                                                                | 按 track/series ID 配置固定范围               |
 | `grid`                     | `WaveformGridOptions`                       | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
@@ -319,7 +319,8 @@ chartRef.value?.setViewportDomain(trackDomain, trackIndex)
 数据边界使旧 transform 失效；`resetViewport(trackIndex?)` 的既有行为保持不变。
 
 没有显式配置初始范围时，可以通过 `xDomainStrategy` 将数据范围扩展为便于阅读的视口端点。
-默认的 `{ type: 'data' }` 保持数据最小值和最大值不变；`type: 'nice'` 使用固定刻度数量计算
+默认的 `{ type: 'integer-ms' }` 将数据范围向外贴近合适的整十毫秒边界；`type: 'data'` 保持数据
+最小值和最大值不变；`type: 'nice'` 使用固定刻度数量计算
 易读边界，且只扩展视口，不修改原始点位、tooltip、标注或缩放事件值：
 
 ```vue
@@ -337,6 +338,12 @@ chartRef.value?.setViewportDomain(trackDomain, trackIndex)
 也应用 nice 扩展。独立模式在未配置显式范围时
 按图框分别计算，共享 X 轴模式则合并所有可见图框后计算。所有范围仍使用原始秒坐标，
 `timeUnit` 只影响显示。
+
+若显式配置初始范围也需要贴近整十毫秒边界（例如 `-62881.52` 到 `14999.999`
+显示为 `-63000` 到 `15000`），可设置 `xDomainStrategy` 为
+`{ type: 'integer-ms', includeExplicit: true }`。该策略依据范围选择主刻度十分之一作为端点
+取整步长，不采用可能将末端扩大至 `20000` 的主刻度；短范围保留毫秒精度。
+显式初始范围仍须通过 `includeExplicit` 开启，原始数据坐标不变。
 
 独立坐标模式下，回填响应应只替换 `seriesIds` 对应的系列，并调用
 `resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。独立模式下双击图框触发的
