@@ -258,8 +258,12 @@ export interface WaveformAxesOptions {
 
 /** Styling and visibility options for the horizontal zero-value reference line. */
 export interface WaveformZeroLineOptions {
+  /** Defaults to true. Set false to hide the reference line. */
   visible?: boolean
+  /** Defaults to red (#ff0000). */
   color?: string
+  /** Positive stroke width in pixels. Defaults to 1. */
   width?: number
+  /** SVG stroke-dasharray. Defaults to '6 4'; use '' for a solid line. */
   dash?: string
 }

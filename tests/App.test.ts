@@ -94,7 +94,12 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     expect(chart.props('cleanView')).toBe(false)
     expect(chart.props('presentationMode')).toBe(false)
-    expect(chart.props('zeroLine')).toMatchObject({ visible: false, color: '#98a2b3', width: 1 })
+    expect(chart.props('zeroLine')).toEqual({
+      visible: true,
+      color: '#ff0000',
+      width: 1,
+      dash: '6 4',
+    })
 
     await wrapper.get('[aria-label="净图模式"]').trigger('click')
     await wrapper.get('[aria-label="展示模式"]').trigger('click')
@@ -103,7 +108,33 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     expect(chart.props('cleanView')).toBe(true)
     expect(chart.props('presentationMode')).toBe(true)
-    expect(chart.props('zeroLine')).toMatchObject({ visible: true, color: '#98a2b3', width: 1 })
+    expect(chart.props('zeroLine')).toMatchObject({ visible: false, color: '#ff0000', width: 1 })
+    await wrapper.get('[aria-label="显示零值参考线"]').trigger('click')
+    expect(chart.props('zeroLine')?.visible).toBe(true)
+    wrapper.unmount()
+  })
+
+  it('passes live zero-line color and line-style changes to the chart', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+    const chart = wrapper.getComponent(WaveformChart)
+    const controls = wrapper.get('.zero-line-controls')
+    const picker = controls.getComponent(ColorPicker)
+    const style = controls.getComponent(Select)
+
+    picker.vm.$emit('update:pureColor', '#0960bd')
+    style.vm.$emit('update:value', '')
+    await flushPromises()
+    expect(chart.props('zeroLine')).toEqual({
+      visible: true,
+      color: '#0960bd',
+      width: 1,
+      dash: '',
+    })
+
+    style.vm.$emit('update:value', '6 4')
+    await flushPromises()
+    expect(chart.props('zeroLine')?.dash).toBe('6 4')
     wrapper.unmount()
   })
 

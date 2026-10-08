@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import { ZERO_LINE_DEFAULTS } from '../core/constants'
 import type { WaveformAxesOptions, WaveformFrameStyle, WaveformZeroLineOptions } from '../../types'
 import type { TrackLayout } from '../core/types'
 import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
@@ -41,7 +42,12 @@ const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
   interactive: true,
   cleanView: false,
-  zeroLine: () => ({ visible: false, color: '#98a2b3', width: 1, dash: '6 4' }),
+  zeroLine: () => ({
+    visible: true,
+    color: ZERO_LINE_DEFAULTS.COLOR,
+    width: ZERO_LINE_DEFAULTS.WIDTH,
+    dash: ZERO_LINE_DEFAULTS.DASH,
+  }),
 })
 const emit = defineEmits<Emits>()
 

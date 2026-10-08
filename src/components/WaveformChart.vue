@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   defaultHiddenSeriesIds: () => [],
   cleanView: false,
   presentationMode: false,
-  zeroLine: () => ({ visible: false }),
+  zeroLine: () => ({ visible: true }),
 })
 const emit = defineEmits<WaveformChartEmit>()
 const controller = useWaveformChartController(props as ResolvedWaveformChartProps, emit)

@@ -54,7 +54,7 @@ export function useWaveformPresentation(context: PresentationContext) {
   const resolvedZeroLine = computed(() => {
     const width = props.zeroLine.width
     return {
-      visible: props.zeroLine.visible === true,
+      visible: props.zeroLine.visible !== false,
       color: props.zeroLine.color || ZERO_LINE_DEFAULTS.COLOR,
       width:
         typeof width === 'number' && Number.isFinite(width) && width > 0

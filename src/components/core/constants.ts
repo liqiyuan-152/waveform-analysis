@@ -177,7 +177,7 @@ export const ERROR_BAR_DEFAULTS = {
  */
 export const ZERO_LINE_DEFAULTS = {
   /** 颜色 */
-  COLOR: '#98a2b3',
+  COLOR: '#ff0000',
   /** 线宽（像素） */
   WIDTH: 1,
   /** 虚线样式 */
