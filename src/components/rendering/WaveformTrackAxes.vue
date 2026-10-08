@@ -61,6 +61,14 @@ function renderAxes() {
 
     const selection = select(element)
     selection.call(yAxis)
+    const domain = axis.scale.domain()
+    const labelOffset = (Math.max(...domain) - Math.min(...domain)) * 0.1
+    const lowestTick = Math.min(...axis.tickValues)
+    selection
+      .selectAll<SVGTextElement, number>('.tick text')
+      .attr('y', (value) =>
+        value === lowestTick ? axis.scale(value + labelOffset) - axis.scale(value) : null,
+      )
     selection
       .selectAll('path.domain')
       .attr('display', props.axes?.y?.lineVisible === false ? 'none' : null)

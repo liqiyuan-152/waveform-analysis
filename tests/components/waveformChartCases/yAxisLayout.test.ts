@@ -6,6 +6,84 @@ import { resizeObservers } from '@tests/support/setup'
 import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart Y-axis layout', () => {
+  it.each(['independent', 'separated', 'compact'] as const)(
+    'moves only the lowest Y label up by one tenth of the domain in %s mode',
+    async (displayMode) => {
+      const wrapper = await mountSizedChart(
+        {
+          kind: 'points',
+          points: [
+            { x: 0, y: -20 },
+            { x: 1, y: 80 },
+          ],
+        },
+        { displayMode, yDomain: [-20, 80], axes: { y: { nice: false } } },
+      )
+      try {
+        const assertLabelOffset = () => {
+          const track = wrapper.get('.waveform-chart__track')
+          const height = Number(track.attributes('data-track-height'))
+          const ticks = track.findAll('.waveform-chart__axis--y .tick')
+          expect(ticks.map((tick) => tick.text())).toEqual(['-20', '5', '30', '55', '80'])
+          const bottomPosition = Number(
+            ticks[0].attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)?.[1],
+          )
+          expect(bottomPosition).toBeCloseTo(height + 0.5)
+          expect(Number(ticks[0].get('text').attributes('y'))).toBeCloseTo(-height * 0.1)
+          expect(
+            ticks.slice(1).every((tick) => tick.get('text').attributes('y') === undefined),
+          ).toBe(true)
+          expect(ticks.every((tick) => tick.get('line').attributes('y2') === undefined)).toBe(true)
+        }
+        assertLabelOffset()
+        resizeObservers.at(-1)?.resize(520, 280)
+        await flushPromises()
+        assertLabelOffset()
+        await wrapper.setProps({ cleanView: true, yDomain: [-40, 160] })
+        await flushPromises()
+        const track = wrapper.get('.waveform-chart__track')
+        const bottom = track.get('.waveform-chart__axis--y .tick text')
+        expect(bottom.text()).toBe('-40')
+        expect(Number(bottom.attributes('y'))).toBeCloseTo(
+          -Number(track.attributes('data-track-height')) * 0.1,
+        )
+      } finally {
+        wrapper.unmount()
+      }
+    },
+  )
+
+  it('offsets the lowest label independently on both left and right Y axes', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [-10, -1000].map((minimum, index) => ({
+          id: `series-${index}`,
+          name: `series-${index}`,
+          trackId: 'shared',
+          data: {
+            kind: 'points' as const,
+            points: [
+              { x: 0, y: minimum },
+              { x: 1, y: -minimum },
+            ],
+          },
+        })),
+      },
+      { overlayMode: 'multi-axis', axes: { y: { nice: false } } },
+    )
+    try {
+      const height = Number(wrapper.get('.waveform-chart__track').attributes('data-track-height'))
+      const axes = wrapper.findAll('.waveform-chart__axis--y')
+      expect(axes).toHaveLength(2)
+      for (const axis of axes) {
+        expect(Number(axis.get('.tick text').attributes('y'))).toBeCloseTo(-height * 0.1)
+      }
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
   it('applies the configured Y-axis split number', async () => {
     const wrapper = await mountSizedChart(
       {
