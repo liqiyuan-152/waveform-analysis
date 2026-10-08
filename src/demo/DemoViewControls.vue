@@ -39,6 +39,10 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
     <Button block aria-label="重置波形视图" @click="model.resetWaveformViewport"> 重置视图 </Button>
     <div class="auxiliary-style-controls" style="margin-top: 10px">
       <label class="frame-style-control frame-style-control--switch">
+        <span>整数缩放</span>
+        <Switch v-model:checked="model.integerZoom" size="small" aria-label="整数缩放" />
+      </label>
+      <label class="frame-style-control frame-style-control--switch">
         <span>数值 Tooltip</span>
         <Switch v-model:checked="model.showTooltip" size="small" aria-label="显示数值 Tooltip" />
       </label>

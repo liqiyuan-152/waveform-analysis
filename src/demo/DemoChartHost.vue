@@ -23,6 +23,7 @@ defineExpose({ resetViewport })
       v-model:hidden-series-ids="model.hiddenSeriesIds"
       :data="model.data"
       :min-visible-points="2"
+      :integer-zoom="model.integerZoom"
       :initial-x-domain="model.initialXDomain"
       :x-domain-strategy="{ type: 'integer-ms', includeExplicit: true }"
       :display-mode="model.displayMode"

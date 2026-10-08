@@ -27,6 +27,7 @@ export interface DemoControlPanelModel {
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
   showTooltip: boolean
+  integerZoom: boolean
   plotMarginTop: number
   plotMarginBottom: number
   cleanView: boolean
@@ -101,6 +102,7 @@ export interface DemoChartModel {
   cleanView: boolean
   presentationMode: boolean
   showTooltip: boolean
+  integerZoom: boolean
   plotMargin: WaveformPlotMargin
   zeroLine: WaveformZeroLineOptions
   frameWatermarkVisible: boolean
