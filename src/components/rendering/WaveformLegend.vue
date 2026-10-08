@@ -93,7 +93,7 @@ function toggleSeries(seriesId: string) {
               :d="waveformLegendLinePath(item.lineType) ?? undefined"
               :stroke="item.color"
               :stroke-dasharray="waveformLineDasharray(item.lineStyle)"
-              stroke-width="2.5"
+              stroke-width="1"
               fill="none"
             />
             <path

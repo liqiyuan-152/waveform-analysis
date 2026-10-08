@@ -103,7 +103,7 @@ const renderedSeriesPaths = computed<RenderedSeriesPath[]>(() =>
 <style scoped>
 .waveform-track__line {
   fill: none;
-  stroke-width: 2.5;
+  stroke-width: 1;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
