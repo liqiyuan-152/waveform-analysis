@@ -2,7 +2,7 @@ export const Y_AXIS_CHARACTER_WIDTH = 7
 export const Y_AXIS_TICK_PADDING = 7
 export const Y_AXIS_OUTER_PADDING = 4
 export const Y_AXIS_LABEL_GAP = 0
-export const Y_AXIS_LABEL_BAND_WIDTH = 12
+export const Y_AXIS_LABEL_BAND_WIDTH = 20
 export const Y_AXIS_RIGHT_LABEL_OFFSET = 10
 
 export function resolveYAxisSides(axisCount: number): Array<'left' | 'right'> {

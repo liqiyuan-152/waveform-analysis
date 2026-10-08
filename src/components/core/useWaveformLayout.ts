@@ -290,10 +290,11 @@ export function useWaveformLayout(context: LayoutContext) {
       rendering: renderingOptions.value,
       linePointOverrides: linePointOverrides?.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
+      yLabel: props.yLabel,
       yAxisLabelX:
         yAxisSlots.value.slots.find((slot) => slot.side === 'left' && slot.sideIndex === 0)
           ?.labelOffset ?? yAxisMetrics.value.labelCenterX,
-      yAxisSlots: props.overlayMode === 'multi-axis' ? yAxisSlots.value.slots : undefined,
+      yAxisSlots: yAxisSlots.value.slots,
       showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
     }),
   )

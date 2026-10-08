@@ -37,7 +37,14 @@ describe('WaveformChart', () => {
     )
 
     expect(Math.abs(labelX)).toBeGreaterThanOrEqual(7 + longestTickLabel * 7 + 6)
-    expect(labelBackgroundX).toBe(labelX - 6)
+    const renderedLabelX = Number(
+      tracks[0]
+        .get('.waveform-chart__y-axis-label')
+        .attributes('transform')
+        ?.match(/^translate\(([-\d.]+),/)?.[1],
+    )
+    expect(labelBackgroundX).toBe(renderedLabelX - 10)
+    expect(labelBackgroundX).toBeGreaterThanOrEqual(labelX - 10)
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(80)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(72)
   })
@@ -65,7 +72,7 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(80)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(60)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(60)
   })
 
@@ -108,7 +115,7 @@ describe('WaveformChart', () => {
         .map((tick) => tick.text().length),
     )
     expect(initialTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + initialLongestTickLabel * 7 + 6)),
+      String(-(7 + initialLongestTickLabel * 7 + 10)),
     )
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
@@ -121,7 +128,7 @@ describe('WaveformChart', () => {
         .map((tick) => tick.text().length),
     )
     expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + pagedLongestTickLabel * 7 + 6)),
+      String(-(7 + pagedLongestTickLabel * 7 + 10)),
     )
   })
 

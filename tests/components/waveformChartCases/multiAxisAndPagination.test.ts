@@ -395,6 +395,6 @@ describe('WaveformChart', () => {
       'waveform-legend__panel--horizontal',
     )
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('80')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('48')
   })
 })

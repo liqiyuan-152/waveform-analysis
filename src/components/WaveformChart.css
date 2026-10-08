@@ -116,3 +116,7 @@
   fill: #595959;
   font-size: 12px;
 }
+
+.waveform-chart__label {
+  font-weight: 700;
+}

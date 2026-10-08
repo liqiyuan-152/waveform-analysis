@@ -181,7 +181,7 @@ watch(
   >
     <rect
       class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
-      :x="track.yAxisLabelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
+      :x="track.yAxes[0].labelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
       :y="track.height / 2 - 40"
       :width="Y_AXIS_LABEL_BAND_WIDTH"
       height="80"
@@ -190,7 +190,7 @@ watch(
     <text
       class="waveform-track__y-axis-label waveform-chart__y-axis-label"
       :fill="track.series?.color"
-      :transform="`translate(${track.yAxisLabelX}, ${track.height / 2}) rotate(-90)`"
+      :transform="`translate(${track.yAxes[0].labelX}, ${track.height / 2}) rotate(-90)`"
       text-anchor="middle"
       dominant-baseline="central"
     >

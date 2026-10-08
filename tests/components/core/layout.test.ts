@@ -236,7 +236,7 @@ describe('multi-value Y-axis grouping', () => {
     ])
   })
 
-  it('reserves label clearance for exponent-prefixed ticks on both axis sides', () => {
+  it('uses nearby tick clearance on the left and reserved clearance on the right', () => {
     const layout = buildTrackLayouts({
       cells: [
         {
@@ -277,8 +277,8 @@ describe('multi-value Y-axis grouping', () => {
         labelOffset: Math.abs(labelX - x),
       })),
     ).toEqual([
-      { side: 'left', labelOffset: 55 },
-      { side: 'right', labelOffset: 45 },
+      { side: 'left', labelOffset: 24 },
+      { side: 'right', labelOffset: 49 },
     ])
   })
 
@@ -286,7 +286,7 @@ describe('multi-value Y-axis grouping', () => {
     const [group] = buildYAxisSeriesGroups(track([series('long', -1e120, 1e120)]), 'multi-axis')
 
     expect(group).toBeDefined()
-    expect(measureYAxisGroupClearance(group!)).toBe(72)
+    expect(measureYAxisGroupClearance(group!)).toBe(80)
   })
 })
 

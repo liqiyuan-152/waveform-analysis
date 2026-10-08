@@ -6,6 +6,47 @@ import { resizeObservers } from '@tests/support/setup'
 import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart Y-axis layout', () => {
+  it('places channel names beside nearby ticks without reserving the top unit width', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: [
+          {
+            id: 'channel',
+            name: '通道',
+            unit: 'long-unit-name',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: -2 },
+                { x: 1, y: 2 },
+              ],
+            },
+          },
+        ],
+      },
+      { axes: { y: { nice: false } } },
+    )
+    try {
+      const assertTitlePosition = () => {
+        const track = wrapper.get('.waveform-chart__track')
+        const title = track.get('.waveform-chart__y-axis-label')
+        const titleX = Number(title.attributes('transform')?.match(/^translate\(([-\d.]+),/)?.[1])
+        expect(titleX).toBeGreaterThan(Number(track.attributes('data-y-axis-label-x')))
+        expect(titleX + 10).toBeLessThan(-7)
+        const background = track.get('.waveform-chart__y-axis-label-bg')
+        expect(Number(background.attributes('x'))).toBe(titleX - 10)
+        expect(Number(background.attributes('width'))).toBe(20)
+      }
+      assertTitlePosition()
+      resizeObservers.at(-1)?.resize(375, 280)
+      await flushPromises()
+      assertTitlePosition()
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
   it.each(['independent', 'separated', 'compact'] as const)(
     'bottom-aligns only the lowest Y label with its tick without an offset in %s mode',
     async (displayMode) => {
@@ -146,20 +187,20 @@ describe('WaveformChart Y-axis layout', () => {
     )
     const firstTrack = wrapper.get('.waveform-chart__track')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('100')
-    expect(firstTrack.attributes('data-y-axis-label-x')).toBe('-90')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
+    expect(firstTrack.attributes('data-y-axis-label-x')).toBe('-94')
     expect(firstTrack.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe(
       '(V) -0.3434',
     )
 
     resizeObservers.at(-1)?.resize(520, 280)
     await flushPromises()
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('100')
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-90')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
+    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('100')
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-90')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
+    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
     expect(wrapper.get('.waveform-chart__axis--y').findAll('.tick text').at(-1)?.text()).toBe(
       '(V) -1.3434',
     )
@@ -190,8 +231,8 @@ describe('WaveformChart Y-axis layout', () => {
     )
     const tracks = wrapper.findAll('.waveform-chart__track')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('93')
-    expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-83')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('101')
+    expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-87')
     expect(tracks[1]?.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe(
       '(V) 75.031',
     )

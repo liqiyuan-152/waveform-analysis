@@ -18,7 +18,7 @@ const Y_AXIS_CHARACTER_WIDTH = 7
 const Y_AXIS_TICK_PADDING = 7
 const Y_AXIS_OUTER_PADDING = 4
 const Y_AXIS_LABEL_GAP = 0
-const Y_AXIS_LABEL_BAND_WIDTH = 12
+const Y_AXIS_LABEL_BAND_WIDTH = 20
 
 export function resolveYAxisTickCount(_plotHeight: number, splitNumber?: number): number {
   if (typeof splitNumber === 'number' && Number.isFinite(splitNumber)) {
