@@ -37,8 +37,8 @@ export function alignIntegerZoomDomain(
 ): [number, number] {
   if (!options.integerZoom) return domain
   const factor = options.timeUnit === 's' ? 1 : 1000
-  const start = stableInteger(domain[0] * factor)
-  const end = stableInteger(domain[1] * factor)
+  const start = stableInteger(Math.min(domain[0], domain[1]) * factor)
+  const end = stableInteger(Math.max(domain[0], domain[1]) * factor)
   if (!Number.isSafeInteger(Math.floor(start)) || !Number.isSafeInteger(Math.ceil(end)))
     return domain
   const left = Math.floor(start)

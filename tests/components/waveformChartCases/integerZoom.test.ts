@@ -25,6 +25,9 @@ describe('integer zoom', () => {
       0.001, 0.009,
     ])
     expect(alignIntegerZoomDomain([1.2, 1.3], {})).toEqual([1.2, 1.3])
+    expect(alignIntegerZoomDomain([1.3, -1.2], { integerZoom: true, timeUnit: 's' })).toEqual([
+      -2, 2,
+    ])
   })
 
   it('preserves minimum span and point constraints while snapping', () => {
@@ -63,7 +66,7 @@ describe('integer zoom', () => {
         displayMode,
         integerZoom: true,
         timeUnit: 's',
-        initialXDomain: [-0.2, 10.2],
+        initialXDomain: [10.2, -0.2],
       })
       try {
         const overlay = wrapper.get('.waveform-chart__overlay')
