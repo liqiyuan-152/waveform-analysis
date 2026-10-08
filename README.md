@@ -113,7 +113,7 @@ const data = ref<WaveformData>({
 | `legend`                   | `WaveformLegendOptions`                     | `{ position: 'top-right', orientation: 'auto' }`                                      | 图例位置、排列、背景和交互                    |
 | `frameNumber`              | `string \| number`                          | 未设置                                                                                | 图框水印内容                                  |
 | `frameNumbers`             | `Record<string, string \| number>`          | 未设置                                                                                | 按 `trackId` 覆盖图框水印内容                 |
-| `zeroLine`                 | `WaveformZeroLineOptions`                   | `{ visible: false }`                                                                  | 零值参考线显隐与样式                          |
+| `zeroLine`                 | `WaveformZeroLineOptions`                   | `{ visible: true }`                                                                   | 零值参考线显隐与样式                          |
 | `cleanView`                | `boolean`                                   | `false`                                                                               | 保留波形、图框和刻度的净图模式                |
 | `presentationMode`         | `boolean`                                   | `false`                                                                               | 禁用绘图区交互的展示模式                      |
 | `annotations`              | `WaveformAnnotation[]`                      | `[]`                                                                                  | 受控标注数据                                  |
@@ -558,7 +558,8 @@ const hiddenSeriesIds = ref<string[]>([])
 
 ### 零值参考线与净图
 
-`zeroLine` 用于绘制 `y = 0` 的水平参考线，默认隐藏。参考线只在对应 Y 轴的当前 domain
+`zeroLine` 用于绘制 `y = 0` 的水平参考线，默认显示红色（`#ff0000`）、1px 宽的虚线
+（`dash: '6 4'`）。参考线只在对应 Y 轴的当前 domain
 包含 0 时渲染，不会为了显示参考线而扩展数据范围。多值轴模式下，每根可见 Y 轴分别按自身
 scale 定位零线：
 
@@ -567,7 +568,7 @@ scale 定位零线：
   :data="chartData"
   :zero-line="{
     visible: true,
-    color: '#98a2b3',
+    color: '#ff0000',
     width: 1,
     dash: '6 4',
   }"
@@ -576,6 +577,9 @@ scale 定位零线：
 
 `dash` 直接对应 SVG 的 `stroke-dasharray`；传入空字符串可显示实线。无效或非正数的
 `width` 会回退到 `1`。
+
+只传入颜色或线型时仍默认显示，例如 `:zero-line="{ color: '#0960bd', dash: '' }"`
+显示蓝色实线。使用 `:zero-line="{ visible: false }"` 可关闭零线。颜色和线型配置可动态修改。
 
 设置 `cleanView` 后，组件保留波形、图框边框、X/Y 轴刻度及刻度值，并隐藏标题内容、图例、
 网格、轴标签、图框背景、帧水印、零值参考线、标注和分页器。原图的标题区域、边距和波形
