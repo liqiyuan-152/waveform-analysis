@@ -64,7 +64,7 @@ function renderAxes() {
     const lowestTick = Math.min(...axis.tickValues)
     selection
       .selectAll<SVGTextElement, number>('.tick text')
-      .attr('y', (value) => (value === lowestTick ? -5 : null))
+      .attr('y', null)
       .attr('dy', (value) => (value === lowestTick ? '0' : '0.32em'))
       .attr('dominant-baseline', (value) => (value === lowestTick ? 'text-after-edge' : null))
     selection

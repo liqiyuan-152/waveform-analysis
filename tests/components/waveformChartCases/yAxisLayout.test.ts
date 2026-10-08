@@ -7,7 +7,7 @@ import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart Y-axis layout', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
-    'bottom-aligns only the lowest Y label 5 pixels above its tick in %s mode',
+    'bottom-aligns only the lowest Y label with its tick without an offset in %s mode',
     async (displayMode) => {
       const wrapper = await mountSizedChart(
         {
@@ -20,7 +20,7 @@ describe('WaveformChart Y-axis layout', () => {
         { displayMode, yDomain: [-20, 80], axes: { y: { nice: false } } },
       )
       try {
-        const assertLabelOffset = () => {
+        const assertLabelAlignment = () => {
           const track = wrapper.get('.waveform-chart__track')
           const height = Number(track.attributes('data-track-height'))
           const ticks = track.findAll('.waveform-chart__axis--y .tick')
@@ -30,10 +30,10 @@ describe('WaveformChart Y-axis layout', () => {
           )
           expect(bottomPosition).toBeCloseTo(height + 0.5)
           expect(ticks[0].get('text').attributes()).toMatchObject({
-            y: '-5',
             dy: '0',
             'dominant-baseline': 'text-after-edge',
           })
+          expect(ticks[0].get('text').attributes('y')).toBeUndefined()
           expect(
             ticks.slice(1).every((tick) => tick.get('text').attributes('y') === undefined),
           ).toBe(true)
@@ -48,27 +48,27 @@ describe('WaveformChart Y-axis layout', () => {
           ).toBe(true)
           expect(ticks.every((tick) => tick.get('line').attributes('y2') === undefined)).toBe(true)
         }
-        assertLabelOffset()
+        assertLabelAlignment()
         resizeObservers.at(-1)?.resize(520, 280)
         await flushPromises()
-        assertLabelOffset()
+        assertLabelAlignment()
         await wrapper.setProps({ cleanView: true, yDomain: [-40, 160] })
         await flushPromises()
         const track = wrapper.get('.waveform-chart__track')
         const bottom = track.get('.waveform-chart__axis--y .tick text')
         expect(bottom.text()).toBe('-40')
         expect(bottom.attributes()).toMatchObject({
-          y: '-5',
           dy: '0',
           'dominant-baseline': 'text-after-edge',
         })
+        expect(bottom.attributes('y')).toBeUndefined()
       } finally {
         wrapper.unmount()
       }
     },
   )
 
-  it('offsets the lowest label independently on both left and right Y axes', async () => {
+  it('bottom-aligns the lowest label with its tick on both left and right Y axes', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -92,10 +92,10 @@ describe('WaveformChart Y-axis layout', () => {
       expect(axes).toHaveLength(2)
       for (const axis of axes) {
         expect(axis.get('.tick text').attributes()).toMatchObject({
-          y: '-5',
           dy: '0',
           'dominant-baseline': 'text-after-edge',
         })
+        expect(axis.get('.tick text').attributes('y')).toBeUndefined()
       }
     } finally {
       wrapper.unmount()
