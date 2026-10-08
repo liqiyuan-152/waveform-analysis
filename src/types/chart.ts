@@ -266,4 +266,8 @@ export interface WaveformZeroLineOptions {
   width?: number
   /** SVG stroke-dasharray. Defaults to '6 4'; use '' for a solid line. */
   dash?: string
+  /** Stroke opacity from 0 to 1. Defaults to 0.5; multiplies the color's alpha. */
+  opacity?: number
+  /** Hide within this fraction of a Y-axis tick interval from either boundary. Defaults to 0.02. */
+  boundaryThreshold?: number
 }

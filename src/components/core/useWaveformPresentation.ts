@@ -53,6 +53,8 @@ export function useWaveformPresentation(context: PresentationContext) {
   const isPresentationMode = computed(() => props.presentationMode === true)
   const resolvedZeroLine = computed(() => {
     const width = props.zeroLine.width
+    const opacity = props.zeroLine.opacity
+    const threshold = props.zeroLine.boundaryThreshold
     return {
       visible: props.zeroLine.visible !== false,
       color: props.zeroLine.color || ZERO_LINE_DEFAULTS.COLOR,
@@ -61,6 +63,14 @@ export function useWaveformPresentation(context: PresentationContext) {
           ? width
           : ZERO_LINE_DEFAULTS.WIDTH,
       dash: props.zeroLine.dash ?? ZERO_LINE_DEFAULTS.DASH,
+      opacity:
+        typeof opacity === 'number' && Number.isFinite(opacity) && opacity >= 0 && opacity <= 1
+          ? opacity
+          : ZERO_LINE_DEFAULTS.OPACITY,
+      boundaryThreshold:
+        typeof threshold === 'number' && Number.isFinite(threshold) && threshold >= 0
+          ? threshold
+          : ZERO_LINE_DEFAULTS.BOUNDARY_THRESHOLD,
     }
   })
   const legendBackgroundColor = computed(

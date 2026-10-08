@@ -182,6 +182,8 @@ export const ZERO_LINE_DEFAULTS = {
   WIDTH: 1,
   /** 虚线样式 */
   DASH: '6 4',
+  OPACITY: 0.5,
+  BOUNDARY_THRESHOLD: 0.02,
 }
 
 /**

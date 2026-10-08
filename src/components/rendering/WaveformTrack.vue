@@ -6,6 +6,7 @@ import type { WaveformAxesOptions, WaveformFrameStyle, WaveformZeroLineOptions }
 import type { TrackLayout } from '../core/types'
 import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
 import WaveformSeriesLayer from './WaveformSeriesLayer.vue'
+import WaveformZeroLines from './WaveformZeroLines.vue'
 import WaveformTrackAxes from './WaveformTrackAxes.vue'
 import WaveformTrackBackdrop from './WaveformTrackBackdrop.vue'
 
@@ -23,9 +24,7 @@ interface Props {
   timeUnit: 's' | 'ms'
   yLabel?: string
   cleanView?: boolean
-  zeroLine?: Required<Pick<WaveformZeroLineOptions, 'color' | 'width' | 'dash'>> & {
-    visible: boolean
-  }
+  zeroLine?: Required<WaveformZeroLineOptions>
 }
 
 interface Emits {
@@ -47,6 +46,8 @@ const props = withDefaults(defineProps<Props>(), {
     color: ZERO_LINE_DEFAULTS.COLOR,
     width: ZERO_LINE_DEFAULTS.WIDTH,
     dash: ZERO_LINE_DEFAULTS.DASH,
+    opacity: ZERO_LINE_DEFAULTS.OPACITY,
+    boundaryThreshold: ZERO_LINE_DEFAULTS.BOUNDARY_THRESHOLD,
   }),
 })
 const emit = defineEmits<Emits>()
@@ -89,7 +90,6 @@ const resolvedFrameStyle = computed(() => {
       :clean-view="cleanView"
       :frame-number="frameNumber"
       :frame-style="resolvedFrameStyle"
-      :zero-line="zeroLine"
     />
     <WaveformTrackAxes
       :track="track"
@@ -120,6 +120,13 @@ const resolvedFrameStyle = computed(() => {
     />
 
     <WaveformSeriesLayer :track="track" :clip-path-id="clipPathId" />
+    <WaveformZeroLines
+      :track="track"
+      :clip-path-id="clipPathId"
+      :inner-width="innerWidth"
+      :clean-view="cleanView"
+      :zero-line="zeroLine"
+    />
 
     <rect
       v-if="!track.isEmpty && track.hasVisibleSeries && displayMode === 'independent'"
