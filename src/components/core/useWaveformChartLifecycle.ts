@@ -13,7 +13,9 @@ import type { AnnotationSeriesCandidate, useWaveformAnnotationInteraction } from
 import type { NormalizedWaveformGridOptions } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
-import { constrainZoomDomain, transformForDomain } from '../interaction/zoomConstraints'
+import { transformForDomain } from '../interaction/zoomConstraints'
+import { remotePanBoundary, restoreViewportDomain } from '../interaction/remoteViewport'
+import { isEditableTarget } from '../interaction/interactionTarget'
 import { seriesIdentity } from '../interaction/zoomEventPayload'
 
 interface LifecycleContext {
@@ -59,17 +61,6 @@ interface LifecycleContext {
   cancelViewportDrag: () => void
   cancelPendingHover: () => void
   clearZoomBindings: () => void
-}
-
-function isEditableTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof Element &&
-    Boolean(
-      target.closest(
-        'button, input, select, textarea, [contenteditable]:not([contenteditable="false"])',
-      ),
-    )
-  )
 }
 
 export function useWaveformChartLifecycle(context: LifecycleContext) {
@@ -161,7 +152,8 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
         trackLayouts.value.flatMap((track) => {
           const current = track.xScale.domain() as [number, number]
           const boundary = resolveInitialTrackDomain(track)
-          return current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
+          return remotePanBoundary(props) ||
+            current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
             ? [[seriesIdentity(track.seriesList.map((series) => series.id)), current]]
             : []
         }),
@@ -172,7 +164,9 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     const current = sharedZoomDomain.value
     const boundary = initialXDomain.value
     pendingSharedXDomain =
-      current[1] - current[0] < boundary[1] - boundary[0] - 1e-12 ? [...current] : undefined
+      remotePanBoundary(props) || current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
+        ? [...current]
+        : undefined
   }
 
   function handleDataReferenceChange() {
@@ -193,7 +187,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
           )
           if (!previousDomain) return
           const boundary = resolveInitialTrackDomain(track)
-          const domain = constrainZoomDomain(previousDomain, boundary, [track.seriesList], props)
+          const domain = restoreViewportDomain(previousDomain, boundary, [track.seriesList], props)
           nextTransforms[track.index] = transformForDomain(domain, boundary, track.width)
         })
         independentTransforms.value = nextTransforms
@@ -203,7 +197,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
         const groups = trackLayouts.value
           .filter((track) => track.hasVisibleSeries)
           .map((track) => track.seriesList)
-        const domain = constrainZoomDomain(pendingSharedXDomain, boundary, groups, props)
+        const domain = restoreViewportDomain(pendingSharedXDomain, boundary, groups, props)
         sharedTransform.value = transformForDomain(domain, boundary, innerWidth.value)
         pendingSharedXDomain = undefined
       }

@@ -15,13 +15,9 @@ import { WHEEL_ZOOM_DEBOUNCE_MS, ZOOM_CONSTRAINTS } from '../core/constants'
 import type { TrackLayout } from '../core/types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from '../core/waveformChartTypes'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
+import { constrainViewportZoom } from './remoteViewport'
 import { normalizeIntegerZoomDomain } from './integerZoom'
-import {
-  constrainZoomDomain,
-  resolveMinimumZoomSpan,
-  transformForDomain,
-  type ZoomSeriesGroup,
-} from './zoomConstraints'
+import { resolveMinimumZoomSpan, transformForDomain, type ZoomSeriesGroup } from './zoomConstraints'
 import {
   emitIndependentWheelZoomEnds,
   emitSharedWheelZoomEnd,
@@ -240,7 +236,11 @@ export function useWaveformZoom(context: ZoomContext) {
       number,
       number,
     ]
-    return transformForDomain(constrainZoomDomain(requested, domain, groups, props), domain, width)
+    return transformForDomain(
+      constrainViewportZoom(requested, domain, groups, props),
+      domain,
+      width,
+    )
   }
   const canZoomTrack = (track: TrackLayout): boolean => {
     const minimum = Number(props.minVisiblePoints)

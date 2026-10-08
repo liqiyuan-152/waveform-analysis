@@ -17,6 +17,7 @@ export type {
   WaveformXDomainStrategy,
   WaveformZoomIntentPayload,
   WaveformZoomEndPayload,
+  WaveformPanEndPayload,
   WaveformZoomResetPayload,
   WaveformAnnotationStyle,
   WaveformAnnotation,

@@ -50,6 +50,14 @@ export interface WaveformZoomEndPayload {
   gesture?: 'wheel' | 'box'
 }
 
+/** Final horizontal viewport after a pan; endpoints are always seconds. */
+export interface WaveformPanEndPayload {
+  start: number
+  end: number
+  trackIndex?: number
+  seriesIds?: string[]
+}
+
 /** Describes the X-axis viewport targeted by a user zoom gesture before rendering settles. */
 export interface WaveformZoomIntentPayload {
   start: number

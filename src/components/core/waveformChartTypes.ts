@@ -18,6 +18,7 @@ import type {
   WaveformZeroLineOptions,
   WaveformZoomIntentPayload,
   WaveformZoomEndPayload,
+  WaveformPanEndPayload,
   WaveformZoomResetPayload,
 } from '../data/types'
 import type { WaveformGridOptions } from './grid'
@@ -36,6 +37,8 @@ export interface WaveformChartProps {
   /** Snap viewport endpoints outwards to integer X-axis display units. */
   integerZoom?: boolean
   pannable?: boolean
+  /** Global record bounds in seconds; enables horizontal panning beyond loaded data. */
+  panXDomain?: [number, number]
   minZoomSpan?: number
   minVisiblePoints?: number
   maxZoomScale?: number | null
@@ -97,6 +100,7 @@ export interface WaveformChartEmit {
   (event: 'zoom-intent', payload: WaveformZoomIntentPayload): void
   (event: 'zoom-change', domain: [number, number]): void
   (event: 'zoom-end', payload: WaveformZoomEndPayload): void
+  (event: 'pan-end', payload: WaveformPanEndPayload): void
   (event: 'zoom-reset', payload: WaveformZoomResetPayload): void
   (event: 'update:annotations', annotations: WaveformAnnotation[]): void
   (event: 'update:hidden-series-ids', ids: string[]): void
