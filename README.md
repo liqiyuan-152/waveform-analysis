@@ -97,6 +97,7 @@ const data = ref<WaveformData>({
 | `width` / `height`         | `number`                                    | 自适应                                                                                | 组件总尺寸，单位为 CSS 像素                   |
 | `zoomable` / `showTooltip` | `boolean`                                   | `true` / `true`                                                                       | 缩放和数值 tooltip 开关                       |
 | `pannable`                 | `boolean`                                   | `false`                                                                               | 空格拖拽平移开关                              |
+| `panXDomain`               | `[number, number]`                          | 未设置                                                                                | 远端横向平移边界，使用秒坐标                  |
 | `minZoomSpan`              | `number`                                    | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
 | `integerZoom`              | `boolean`                                   | `false`                                                                               | 缩放范围按 X 轴显示单位对齐整数               |
 | `minVisiblePoints`         | `number`                                    | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
@@ -295,7 +296,32 @@ X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽�
 
 `zoom-end.gesture` 用于区分 `wheel` 和 `box`。单轨道 payload 使用 `yStart/yEnd`；共享
 X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平移不会触发 `zoom-end`，
-因此不会自动发起新的区间加载请求。
+平移结束且 X 范围变化时触发 `pan-end`，可在此请求新的时间段。
+
+远端时间段平移可配置 `panXDomain` 为整条记录的起止时间。启用后，空格 + 拖动只改变 X
+范围，保持当前窗口宽度和 Y 轴；到达记录边界时停止。未配置或范围无效（非有限值、起点不小于
+终点）时保留原来的数据内 X/Y 平移行为。
+
+```vue
+<WaveformChart
+  :data="waveformData"
+  :pan-x-domain="[recordStartSeconds, recordEndSeconds]"
+  pannable
+  @pan-end="loadTimeWindow"
+/>
+```
+
+`pan-end` 的公开类型为 `WaveformPanEndPayload`，包含以秒表示的 `start/end`；独立模式还包含
+`trackIndex/seriesIds`，业务页面据此只更新对应图框的数据，保留其他序列及稳定 ID。松开鼠标后
+按端点请求，用新的 `data` 引用回填；组件会保持当前 X 视口，包括返回点稀疏、缓存范围更大或
+当前视口与旧数据窗口等宽的情况。不要为每次请求修改 `initialXDomain`，它仍表示重置范围。
+加载期间超出已加载数据的区域显示空白，加载状态和错误提示由业务页面提供。
+
+配置远端边界时，滚轮、框选和 `setViewportDomain` 在记录范围内约束，最小缩放跨度及倍率
+仍基于初始数据域；未加载区间没有真实点数，因此不会用 `minVisiblePoints` 将目标窗口拉回
+已加载数据。回填时保留 X 范围，不重新应用点数约束。取消拖动或范围没有变化不会触发 `pan-end`。
+平移过程中用 `zoom-change` 使旧请求失效，完成后用 `pan-end` 发起请求；对缩放仍使用
+`zoom-intent`。业务页面应使用请求序号或取消机制，避免旧响应覆盖更新的目标窗口。
 
 调用方应处理加载失败的情况（网络错误、超时等），并保持旧数据或显示加载状态。生产环境建议使用
 `AbortController` 取消过时的请求。
@@ -854,6 +880,7 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
 | `zoom-intent`                                                   | 真实滚轮或框选确定目标范围时同步触发，参数含端点和 `gesture`   |
 | `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
+| `pan-end`                                                       | 平移结束且范围变化时返回时间端点，独立模式附带轨道信息         |
 | `zoom-end`                                                      | 滚轮或框选结束后触发；`gesture` 区分二者，独立模式附带轨道信息 |
 | `zoom-reset`                                                    | 双击重置视口时触发；独立模式 payload 标识目标图框              |
 | `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
