@@ -1,4 +1,5 @@
 import type { WaveformData, WaveformPoint, WaveformSeries } from '../types'
+import { recordedDampedPoints } from './recordedDampedWaveform'
 
 const POINT_COUNT = 1_000
 const START_TIME = -5
@@ -6,6 +7,7 @@ const END_TIME = 5
 const TWO_PI = Math.PI * 2
 
 type SignalGenerator = (time: number, noise: number) => number
+type SignalSource = SignalGenerator | number[][]
 type ErrorGenerator = (
   time: number,
   value: number,
@@ -16,7 +18,7 @@ interface SimulatedSeriesDefinition extends Pick<
   WaveformSeries,
   'id' | 'trackId' | 'shotNo' | 'name' | 'unit' | 'color' | 'lineType' | 'pointType' | 'errorBar'
 > {
-  signal: SignalGenerator
+  signal: SignalSource
   errors?: ErrorGenerator
   minimumX?: number
 }
@@ -30,14 +32,17 @@ function createSeededNoise(seed: number) {
 }
 
 function createPoints(
-  signal: SignalGenerator,
+  signal: SignalSource,
   noise: () => number,
   errors?: ErrorGenerator,
   errorNoise: () => number = noise,
 ): WaveformPoint[] {
-  return Array.from({ length: POINT_COUNT }, (_, index) => {
+  return Array.from({ length: Array.isArray(signal) ? signal.length : POINT_COUNT }, (_, index) => {
     const time = START_TIME + (index * (END_TIME - START_TIME)) / (POINT_COUNT - 1)
-    const value = signal(time, noise())
+    const sampleNoise = noise()
+    // The recorded TXT uses milliseconds; chart coordinates are always seconds.
+    if (Array.isArray(signal)) return { x: signal[index][0] / 1_000, y: signal[index][1] }
+    const value = signal(time, sampleNoise)
     return {
       x: time,
       y: value,
@@ -98,15 +103,12 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
   {
     id: 'simulated-damped',
-    shotNo: '13300',
+    shotNo: '13921',
     name: '阻尼振荡',
-    unit: 'A',
+    unit: 'V',
     lineType: 'linear',
     pointType: 'none',
-    signal: (time) => {
-      const elapsed = time + 5
-      return 2.4 * Math.exp(-elapsed * 0.28) * Math.sin(TWO_PI * 1.25 * elapsed)
-    },
+    signal: recordedDampedPoints,
   },
   {
     id: 'simulated-step',
