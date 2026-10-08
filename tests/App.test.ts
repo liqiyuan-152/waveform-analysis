@@ -54,6 +54,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const zeroLineControls = panel.get('.zero-line-controls')
     expect(zeroLineControls.findAllComponents(ColorPicker)).toHaveLength(1)
     expect(zeroLineControls.find('[aria-label="零值参考线线宽"]').exists()).toBe(true)
+    expect(zeroLineControls.find('[aria-label="零值参考线透明度"]').exists()).toBe(true)
     expect(zeroLineControls.find('[aria-label="零值参考线线型"]').exists()).toBe(true)
     expect(frameControls.findAllComponents(ColorPicker)).toHaveLength(2)
     expect(frameControls.text()).toContain('边框颜色')
@@ -98,6 +99,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       visible: true,
       color: '#ff0000',
       width: 1,
+      opacity: 0.5,
       dash: '6 4',
     })
 
@@ -114,27 +116,34 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     wrapper.unmount()
   })
 
-  it('passes live zero-line color and line-style changes to the chart', async () => {
+  it('passes live zero-line color, opacity, and line-style changes to the chart', async () => {
     const wrapper = mount(App)
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
     const controls = wrapper.get('.zero-line-controls')
     const picker = controls.getComponent(ColorPicker)
     const style = controls.getComponent(Select)
+    const opacity = controls.findAllComponents(InputNumber)[1]
+    expect(opacity?.props()).toMatchObject({ value: 0.5, min: 0, max: 1, step: 0.05 })
 
     picker.vm.$emit('update:pureColor', '#0960bd')
     style.vm.$emit('update:value', '')
+    opacity?.vm.$emit('update:value', 0.25)
     await flushPromises()
     expect(chart.props('zeroLine')).toEqual({
       visible: true,
       color: '#0960bd',
       width: 1,
+      opacity: 0.25,
       dash: '',
     })
+    expect(wrapper.get('.waveform-chart__zero-line').attributes('stroke-opacity')).toBe('0.25')
 
     style.vm.$emit('update:value', '6 4')
+    opacity?.vm.$emit('update:value', 0)
     await flushPromises()
     expect(chart.props('zeroLine')?.dash).toBe('6 4')
+    expect(wrapper.get('.waveform-chart__zero-line').attributes('stroke-opacity')).toBe('0')
     wrapper.unmount()
   })
 

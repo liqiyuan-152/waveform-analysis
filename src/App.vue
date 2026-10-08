@@ -54,6 +54,7 @@ const plotMarginBottom = ref(52)
 const zeroLineVisible = ref(true)
 const zeroLineColor = ref('#ff0000')
 const zeroLineWidth = ref(1)
+const zeroLineOpacity = ref(0.5)
 const zeroLineDash = ref('6 4')
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
@@ -128,6 +129,7 @@ const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   visible: zeroLineVisible.value,
   color: zeroLineColor.value,
   width: zeroLineWidth.value,
+  opacity: zeroLineOpacity.value,
   dash: zeroLineDash.value,
 }))
 const plotMargin = computed<WaveformPlotMargin>(() => ({
@@ -311,6 +313,7 @@ const controlPanelModel = reactive({
   zeroLineVisible,
   zeroLineColor,
   zeroLineWidth,
+  zeroLineOpacity,
   zeroLineDash,
   zeroLineDashOptions,
   rowCount,

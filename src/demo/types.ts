@@ -39,6 +39,7 @@ export interface DemoControlPanelModel {
   zeroLineVisible: boolean
   zeroLineColor: string
   zeroLineWidth: number
+  zeroLineOpacity: number
   zeroLineDash: string
   zeroLineDashOptions: Array<SelectOption<string>>
   rowCount: number
