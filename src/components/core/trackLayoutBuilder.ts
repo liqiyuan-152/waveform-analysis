@@ -27,7 +27,6 @@ import {
 } from './grid'
 import {
   axisTextMetrics,
-  formatYAxisTickLabel,
   resolveRenderedYAxisSeriesGroups,
   resolveYAxisTicks,
   resolveYAxisTickCount,
@@ -35,6 +34,7 @@ import {
 } from './layout'
 import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
+import { alignLeftYAxisTitles } from './yAxisTitleLayout'
 import {
   alignIntegerZoomDomain,
   normalizeIntegerZoomDomain,
@@ -43,7 +43,6 @@ import {
 } from '../interaction/integerZoom'
 import {
   Y_AXIS_LABEL_BAND_WIDTH,
-  Y_AXIS_CHARACTER_WIDTH,
   Y_AXIS_LABEL_GAP,
   Y_AXIS_OUTER_PADDING,
   Y_AXIS_RIGHT_LABEL_OFFSET,
@@ -289,41 +288,6 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     }
   })
 
-  // Align names using the widest nearby tick text in each column and left-axis slot.
-  const titleDistances = new Map<string, number>()
-  for (const track of layouts) {
-    let leftIndex = 0
-    for (const axis of track.yAxes) {
-      if (axis.side !== 'left') continue
-      const key = `${track.column}:${leftIndex++}`
-      const series = axis.seriesList[0]
-      const title = series?.name.trim() || options.yLabel || ''
-      const halfTitleHeight = title.length * 8 + 6
-      const nearbyTicks = axis.tickValues.filter(
-        (value) => Math.abs(axis.scale(value) - track.height / 2) <= halfTitleHeight,
-      )
-      const tickWidth = Math.max(
-        Y_AXIS_CHARACTER_WIDTH,
-        ...nearbyTicks.map(
-          (value) =>
-            formatYAxisTickLabel(
-              value,
-              axis.scale.domain() as [number, number],
-              axis.tickValues,
-              series?.unit,
-            ).length * Y_AXIS_CHARACTER_WIDTH,
-        ),
-      )
-      const distance = tickWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_BAND_WIDTH / 2
-      titleDistances.set(key, Math.max(titleDistances.get(key) ?? 0, distance))
-    }
-  }
-  for (const track of layouts) {
-    let leftIndex = 0
-    for (const axis of track.yAxes) {
-      if (axis.side !== 'left') continue
-      axis.labelX = axis.x - titleDistances.get(`${track.column}:${leftIndex++}`)!
-    }
-  }
+  alignLeftYAxisTitles(layouts, options.yLabel)
   return layouts
 }
