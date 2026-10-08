@@ -239,7 +239,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   )
 
   watch(
-    () => props.displayMode,
+    () => [props.displayMode, props.integerZoom, props.integerZoom ? props.timeUnit : undefined],
     () => {
       const previousPage = currentPage.value
       currentPage.value = 1

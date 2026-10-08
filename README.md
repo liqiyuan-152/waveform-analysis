@@ -98,6 +98,7 @@ const data = ref<WaveformData>({
 | `zoomable` / `showTooltip` | `boolean`                                   | `true` / `true`                                                                       | 缩放和数值 tooltip 开关                       |
 | `pannable`                 | `boolean`                                   | `false`                                                                               | 空格拖拽平移开关                              |
 | `minZoomSpan`              | `number`                                    | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
+| `integerZoom`             | `boolean`                                   | `false`                                                                               | 缩放范围按 X 轴显示单位对齐整数               |
 | `minVisiblePoints`         | `number`                                    | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
 | `maxZoomScale`             | `number \| null`                            | 未设置                                                                                | 最大缩放倍数；`null` 表示不限制               |
 | `initialXDomain`           | `[number, number]`                          | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
@@ -303,6 +304,15 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 `initialXDomains` 按 track ID 或 series ID 分别配置。`minZoomSpan` 使用原始 X 数据单位，
 可防止每次区间数据回填后重新累计放大。未配置任何缩放约束时保留既有的 40 倍兜底；设置
 `minVisiblePoints: 2` 可缩放到两个真实采样点，`maxZoomScale: null` 可显式关闭倍率上限。
+
+设置 `:integer-zoom="true"` 可开启整数缩放，默认关闭。开启后滚轮、框选和
+`setViewportDomain` 的开始时间向下取整、结束时间向上取整；`timeUnit='ms'` 时对齐整毫秒，
+`timeUnit='s'` 时对齐整秒，最小跨度为一个显示单位。初始范围和重置范围也向外对齐，
+不会裁掉边缘数据，最小跨度、最大倍率和最少可见点数限制仍然生效。
+默认 X 轴标签和主刻度也使用整数显示单位，平移时保持整数端点及当前跨度。
+动态切换此开关或在开启时切换时间单位会重置视口。
+原始采样坐标不会被修改，缩放事件仍以秒返回实际对齐后的范围；自定义 formatter 不影响对齐粒度。
+关闭时 `timeUnit` 仍只影响展示，不改变缩放范围。
 显式设置多种限制时采用最严格的一项。双击图框会
 重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。
 外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。

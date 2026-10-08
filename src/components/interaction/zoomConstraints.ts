@@ -3,6 +3,7 @@ import { scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
 import type { WaveformPoint } from '../../types'
 import { pointSourceFromPoints, type WaveformPointSource } from '../../core/waveformPointSource'
 import { ZOOM_CONSTRAINTS } from '../core/constants'
+import { alignIntegerZoomDomain, type IntegerZoomOptions } from './integerZoom'
 
 interface PointSeriesSource {
   points: WaveformPoint[]
@@ -11,7 +12,7 @@ interface PointSeriesSource {
 
 export type ZoomSeriesGroup = readonly PointSeriesSource[]
 
-interface ZoomConstraintOptions {
+interface ZoomConstraintOptions extends IntegerZoomOptions {
   minZoomSpan?: number
   minVisiblePoints?: number
   maxZoomScale?: number | null
@@ -72,7 +73,7 @@ export function resolveMinimumZoomSpan(
   groups: readonly ZoomSeriesGroup[],
   options: ZoomConstraintOptions,
 ): number {
-  const normalized = normalizedBoundary(boundary)
+  const normalized = alignIntegerZoomDomain(normalizedBoundary(boundary), options)
   const boundarySpan = normalized[1] - normalized[0]
   if (!Number.isFinite(boundarySpan) || boundarySpan <= 0) return 0
   const configuredSpan =
@@ -88,7 +89,8 @@ export function resolveMinimumZoomSpan(
       : options.maxZoomScale !== null && configuredSpan === 0 && required === 0
         ? boundarySpan / ZOOM_CONSTRAINTS.DEFAULT_MAX_SCALE
         : 0
-  return Math.max(configuredSpan, pointSpan, scaleSpan)
+  const integerSpan = options.integerZoom ? (options.timeUnit === 's' ? 1 : 0.001) : 0
+  return Math.max(configuredSpan, pointSpan, scaleSpan, integerSpan)
 }
 
 function expandToMinimumPoints(
@@ -139,7 +141,7 @@ export function constrainZoomDomain(
   groups: readonly ZoomSeriesGroup[],
   options: ZoomConstraintOptions,
 ): [number, number] {
-  const normalized = normalizedBoundary(boundary)
+  const normalized = alignIntegerZoomDomain(normalizedBoundary(boundary), options)
   const boundarySpan = normalized[1] - normalized[0]
   if (!Number.isFinite(boundarySpan) || boundarySpan <= 0) return normalized
   if (Math.abs(domain[1] - domain[0]) >= boundarySpan * (1 - 1e-12)) return normalized
@@ -157,7 +159,7 @@ export function constrainZoomDomain(
   const span = Math.max(minimumSpan, Math.min(boundarySpan, expanded[1] - expanded[0]))
   const center = (expanded[0] + expanded[1]) / 2
   const start = Math.max(normalized[0], Math.min(center - span / 2, normalized[1] - span))
-  return [start, start + span]
+  return alignIntegerZoomDomain([start, start + span], options)
 }
 
 export function transformForDomain(

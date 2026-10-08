@@ -15,6 +15,7 @@ import { WHEEL_ZOOM_DEBOUNCE_MS, ZOOM_CONSTRAINTS } from '../core/constants'
 import type { TrackLayout } from '../core/types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from '../core/waveformChartTypes'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
+import { normalizeIntegerZoomDomain } from './integerZoom'
 import {
   constrainZoomDomain,
   resolveMinimumZoomSpan,
@@ -90,7 +91,8 @@ export function useWaveformZoom(context: ZoomContext) {
     const domain = event.transform
       .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
       .domain()
-    emit('zoom-intent', { start: domain[0], end: domain[1], gesture: 'wheel' })
+    const [start, end] = normalizeIntegerZoomDomain(domain as [number, number], props)
+    emit('zoom-intent', { start, end, gesture: 'wheel' })
     scheduleZoomCommit()
   }
   const handleIndependentZoom = (
@@ -108,8 +110,8 @@ export function useWaveformZoom(context: ZoomContext) {
         .rescaleX(scaleLinear(resolveInitialTrackDomain(track), [0, track.width]))
         .domain()
       emit('zoom-intent', {
-        start: domain[0],
-        end: domain[1],
+        start: normalizeIntegerZoomDomain(domain as [number, number], props)[0],
+        end: normalizeIntegerZoomDomain(domain as [number, number], props)[1],
         trackIndex,
         seriesIds: track.seriesList.map((series) => series.id),
         gesture: 'wheel',
@@ -131,7 +133,7 @@ export function useWaveformZoom(context: ZoomContext) {
       const domain = transform
         .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
         .domain()
-      emit('zoom-change', [domain[0], domain[1]])
+      emit('zoom-change', normalizeIntegerZoomDomain([domain[0], domain[1]], props))
     }
     if (!pendingIndependentZoomTransforms.size) return
     const nextTransforms = [...independentTransforms.value]

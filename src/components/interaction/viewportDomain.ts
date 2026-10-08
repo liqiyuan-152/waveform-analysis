@@ -21,6 +21,18 @@ interface ViewportDomainContext {
   configureZoom: () => void
 }
 
+export function clampViewportDomain(
+  domain: [number, number],
+  boundary: [number, number],
+): [number, number] {
+  const span = domain[1] - domain[0]
+  const boundarySpan = boundary[1] - boundary[0]
+  if (span >= boundarySpan) return [...boundary]
+  if (domain[0] < boundary[0]) return [boundary[0], boundary[0] + span]
+  if (domain[1] > boundary[1]) return [boundary[1] - span, boundary[1]]
+  return domain
+}
+
 export function createViewportDomainSetter(context: ViewportDomainContext) {
   return (domain: [number, number], trackIndex?: number) => {
     if (!Number.isFinite(domain[0]) || !Number.isFinite(domain[1]) || domain[0] === domain[1])

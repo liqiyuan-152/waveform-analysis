@@ -8,7 +8,8 @@ import type { WaveformChartEmit } from '../core/waveformChartTypes'
 import type { AnnotationSeriesCandidate } from '../annotation'
 import { tryReleasePointerCapture } from './pointerCapture'
 import { transitionViewportInteraction } from './viewportInteractionState'
-import { createViewportDomainSetter } from './viewportDomain'
+import { clampViewportDomain as clampDomain, createViewportDomainSetter } from './viewportDomain'
+import { alignIntegerPanDomain } from './integerZoom'
 import { constrainZoomDomain, transformForDomain } from './zoomConstraints'
 import { emitBoxZoomIntent } from './zoomEventPayload'
 interface ViewportContext {
@@ -92,14 +93,6 @@ export function useWaveformViewport(context: ViewportContext) {
       height: Math.abs(active.currentY - active.startY),
     }
   })
-  const clampDomain = (domain: [number, number], boundary: [number, number]): [number, number] => {
-    const span = domain[1] - domain[0]
-    const boundarySpan = boundary[1] - boundary[0]
-    if (span >= boundarySpan) return [...boundary]
-    if (domain[0] < boundary[0]) return [boundary[0], boundary[0] + span]
-    if (domain[1] > boundary[1]) return [boundary[1] - span, boundary[1]]
-    return domain
-  }
   const currentYDomains = (): Record<string, [number, number]> =>
     Object.fromEntries(
       trackLayouts.value
@@ -157,9 +150,12 @@ export function useWaveformViewport(context: ViewportContext) {
     const sourceXDomain = active.independent
       ? resolveInitialTrackDomain(track)
       : initialXDomain.value
-    const nextX = clampDomain(
-      [active.xDomain[0] - (dx / width) * xSpan, active.xDomain[1] - (dx / width) * xSpan],
-      sourceXDomain,
+    const nextX = alignIntegerPanDomain(
+      clampDomain(
+        [active.xDomain[0] - (dx / width) * xSpan, active.xDomain[1] - (dx / width) * xSpan],
+        sourceXDomain,
+      ),
+      props,
     )
     if (active.independent) {
       const nextTransforms = [...independentTransforms.value]

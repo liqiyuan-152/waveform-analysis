@@ -83,7 +83,7 @@ function renderAxes() {
           props.track.xScale.domain() as [number, number],
           props.timeUnit,
           'tick',
-          props.axes?.x?.labelFormatter,
+          props.axes?.x?.labelFormatter ?? props.track.xAxisLabelFormatter,
         ),
       )
       .tickSize(-4)

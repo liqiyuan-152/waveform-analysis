@@ -21,6 +21,7 @@ import { createFrameNumberResolver, resolvePageableTracks } from './trackPaginat
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
+import { alignIntegerZoomDomain, normalizeIntegerZoomDomain } from '../interaction/integerZoom'
 import { resolveYAxisLayoutMetrics, resolveViewportYDomains } from './yAxisLayoutMetrics'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
@@ -220,13 +221,19 @@ export function useWaveformLayout(context: LayoutContext) {
       Number.isFinite(domain[1]) &&
       domain[0] !== domain[1]
     ) {
-      return applyXDomainStrategy(
-        domain[0] < domain[1] ? domain : [domain[1], domain[0]],
-        props.xDomainStrategy,
-        true,
+      return alignIntegerZoomDomain(
+        applyXDomainStrategy(
+          domain[0] < domain[1] ? domain : [domain[1], domain[0]],
+          props.xDomainStrategy,
+          true,
+        ),
+        props,
       )
     }
-    return applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy)
+    return alignIntegerZoomDomain(
+      applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy),
+      props,
+    )
   })
   const resolveInitialTrackDomain = (track: TrackLayout): [number, number] => {
     const configuredDomain =
@@ -239,24 +246,32 @@ export function useWaveformLayout(context: LayoutContext) {
       Number.isFinite(configuredDomain[1]) &&
       configuredDomain[0] !== configuredDomain[1]
     ) {
-      return applyXDomainStrategy(
-        configuredDomain[0] < configuredDomain[1]
-          ? configuredDomain
-          : [configuredDomain[1], configuredDomain[0]],
-        props.xDomainStrategy,
-        true,
+      return alignIntegerZoomDomain(
+        applyXDomainStrategy(
+          configuredDomain[0] < configuredDomain[1]
+            ? configuredDomain
+            : [configuredDomain[1], configuredDomain[0]],
+          props.xDomainStrategy,
+          true,
+        ),
+        props,
       )
     }
-    return applyXDomainStrategy(
-      paddedDomain(track.seriesList.flatMap((series) => series.xDomain)),
-      props.xDomainStrategy,
+    return alignIntegerZoomDomain(
+      applyXDomainStrategy(
+        paddedDomain(track.seriesList.flatMap((series) => series.xDomain)),
+        props.xDomainStrategy,
+      ),
+      props,
     )
   }
-  const sharedZoomDomain = computed(
-    () =>
+  const sharedZoomDomain = computed(() =>
+    normalizeIntegerZoomDomain(
       sharedTransform.value
         .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
         .domain() as [number, number],
+      props,
+    ),
   )
   const gridCells = computed(() => {
     const cells = resolveGridCellGeometry(
@@ -280,6 +295,7 @@ export function useWaveformLayout(context: LayoutContext) {
       initialXDomain: props.initialXDomain ? initialXDomain.value : undefined,
       initialXDomains: props.initialXDomains,
       xDomainStrategy: props.xDomainStrategy,
+      integerZoom: props.integerZoom,
       fixedYDomain: props.yDomain,
       fixedYDomains: props.yDomains,
       yDomains: viewportYDomains.value,

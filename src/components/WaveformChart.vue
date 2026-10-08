@@ -14,6 +14,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   lineColor: '#0960bd',
   showTooltip: true,
   zoomable: true,
+  integerZoom: false,
   pannable: false,
   minVisiblePoints: 0,
   xDomainStrategy: () => ({ type: 'integer-ms' }),

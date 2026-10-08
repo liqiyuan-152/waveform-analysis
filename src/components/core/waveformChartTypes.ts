@@ -33,6 +33,8 @@ export interface WaveformChartProps {
   lineColor?: string
   showTooltip?: boolean
   zoomable?: boolean
+  /** Snap viewport endpoints outwards to integer X-axis display units. */
+  integerZoom?: boolean
   pannable?: boolean
   minZoomSpan?: number
   minVisiblePoints?: number
@@ -70,6 +72,7 @@ type DefaultedProp =
   | 'lineColor'
   | 'showTooltip'
   | 'zoomable'
+  | 'integerZoom'
   | 'pannable'
   | 'minVisiblePoints'
   | 'xDomainStrategy'

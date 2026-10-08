@@ -36,6 +36,12 @@ import {
 import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import {
+  alignIntegerZoomDomain,
+  normalizeIntegerZoomDomain,
+  integerZoomTicks,
+  formatIntegerZoomLabel,
+} from '../interaction/integerZoom'
+import {
   Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_CHARACTER_WIDTH,
   Y_AXIS_LABEL_GAP,
@@ -58,6 +64,7 @@ export interface BuildTrackLayoutsOptions {
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy
+  integerZoom?: boolean
   fixedYDomain?: [number, number]
   fixedYDomains?: Record<string, [number, number]>
   yDomains?: Record<string, [number, number]>
@@ -85,9 +92,12 @@ function resolveIndependentXDomain(
     options.initialXDomains?.[track.id] ??
     options.initialXDomains?.[seriesId] ??
     options.initialXDomain
-  return explicitDomain
-    ? applyXDomainStrategy(explicitDomain, strategy, true)
-    : applyXDomainStrategy(track.xDomain, strategy)
+  return alignIntegerZoomDomain(
+    explicitDomain
+      ? applyXDomainStrategy(explicitDomain, strategy, true)
+      : applyXDomainStrategy(track.xDomain, strategy),
+    options,
+  )
 }
 
 export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayout[] {
@@ -119,6 +129,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         ? (options.independentTransforms[index] ?? zoomIdentity)
         : zoomIdentity
     const xScale = transform.rescaleX(baseXScale)
+    xScale.domain(normalizeIntegerZoomDomain(xScale.domain() as [number, number], options))
     const yAxisGroups = resolveRenderedYAxisSeriesGroups(
       displayTrack,
       options.overlayMode,
@@ -181,25 +192,19 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const fallbackYScale = scaleLinear(displayTrack.yDomain, [cell.plotHeight, 0])
     if (options.yAxisNice !== false) fallbackYScale.nice()
     const yScale = yAxes[0]?.scale ?? fallbackYScale
-    const xMajorTicks = xScale.ticks(Math.max(2, Math.floor(cell.width / 100)))
+    const xMajorTicks = integerZoomTicks(
+      xScale.domain() as [number, number],
+      Math.max(2, Math.floor(cell.width / 100)),
+      options,
+    )
+    const xAxisLabelFormatter =
+      options.xAxisLabelFormatter ?? (options.integerZoom ? formatIntegerZoomLabel : undefined)
     const yMajorTicks = yAxes[0]?.majorTicks ?? []
     const yAxisTickValues = yAxes[0]?.tickValues ?? []
     const domain = xScale.domain() as [number, number]
     const endpointLabels = {
-      start: formatXAxisLabel(
-        domain[0],
-        domain,
-        options.timeUnit,
-        'start',
-        options.xAxisLabelFormatter,
-      ),
-      end: formatXAxisLabel(
-        domain[1],
-        domain,
-        options.timeUnit,
-        'end',
-        options.xAxisLabelFormatter,
-      ),
+      start: formatXAxisLabel(domain[0], domain, options.timeUnit, 'start', xAxisLabelFormatter),
+      end: formatXAxisLabel(domain[1], domain, options.timeUnit, 'end', xAxisLabelFormatter),
     }
     const leftClearance = endpointLabels.start.length * 7 + 10
     const rightClearance = endpointLabels.end.length * 7 + 10
@@ -262,6 +267,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       yScale,
       yAxes,
       xMajorTicks,
+      xAxisLabelFormatter,
       xMinorTicks: buildMinorTicks(xMajorTicks, 3, domain),
       yMajorTicks,
       yMinorTicks: yAxes[0]?.minorTicks ?? [],

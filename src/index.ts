@@ -5,6 +5,7 @@
 
 // Vue 组件
 export { default as WaveformChart } from './components/WaveformChart.vue'
+export type { WaveformChartProps } from './components/core/waveformChartTypes'
 
 // 类型定义
 export type {
