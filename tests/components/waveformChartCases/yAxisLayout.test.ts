@@ -7,7 +7,7 @@ import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart Y-axis layout', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
-    'moves only the lowest Y label up by one tenth of the domain in %s mode',
+    'bottom-aligns only the lowest Y label 5 pixels above its tick in %s mode',
     async (displayMode) => {
       const wrapper = await mountSizedChart(
         {
@@ -29,9 +29,22 @@ describe('WaveformChart Y-axis layout', () => {
             ticks[0].attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)?.[1],
           )
           expect(bottomPosition).toBeCloseTo(height + 0.5)
-          expect(Number(ticks[0].get('text').attributes('y'))).toBeCloseTo(-height * 0.1)
+          expect(ticks[0].get('text').attributes()).toMatchObject({
+            y: '-5',
+            dy: '0',
+            'dominant-baseline': 'text-after-edge',
+          })
           expect(
             ticks.slice(1).every((tick) => tick.get('text').attributes('y') === undefined),
+          ).toBe(true)
+          expect(
+            ticks.slice(1).every((tick) => {
+              const text = tick.get('text')
+              return (
+                text.attributes('dy') === '0.32em' &&
+                text.attributes('dominant-baseline') === undefined
+              )
+            }),
           ).toBe(true)
           expect(ticks.every((tick) => tick.get('line').attributes('y2') === undefined)).toBe(true)
         }
@@ -44,9 +57,11 @@ describe('WaveformChart Y-axis layout', () => {
         const track = wrapper.get('.waveform-chart__track')
         const bottom = track.get('.waveform-chart__axis--y .tick text')
         expect(bottom.text()).toBe('-40')
-        expect(Number(bottom.attributes('y'))).toBeCloseTo(
-          -Number(track.attributes('data-track-height')) * 0.1,
-        )
+        expect(bottom.attributes()).toMatchObject({
+          y: '-5',
+          dy: '0',
+          'dominant-baseline': 'text-after-edge',
+        })
       } finally {
         wrapper.unmount()
       }
@@ -73,11 +88,14 @@ describe('WaveformChart Y-axis layout', () => {
       { overlayMode: 'multi-axis', axes: { y: { nice: false } } },
     )
     try {
-      const height = Number(wrapper.get('.waveform-chart__track').attributes('data-track-height'))
       const axes = wrapper.findAll('.waveform-chart__axis--y')
       expect(axes).toHaveLength(2)
       for (const axis of axes) {
-        expect(Number(axis.get('.tick text').attributes('y'))).toBeCloseTo(-height * 0.1)
+        expect(axis.get('.tick text').attributes()).toMatchObject({
+          y: '-5',
+          dy: '0',
+          'dominant-baseline': 'text-after-edge',
+        })
       }
     } finally {
       wrapper.unmount()
