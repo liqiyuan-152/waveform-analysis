@@ -300,7 +300,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       expect(item.data.kind).toBe('points')
       if (item.data.kind === 'points') {
         expect(item.data.points).toHaveLength(item.name === '阶跃响应' ? 500 : 1000)
-        expect(item.data.points[0]?.x).toBeCloseTo(item.name === '阶跃响应' ? 5 / 999 : -5, 10)
+        const startTime = item.name === '阶跃响应' ? 5 / 999 : item.name === '阻尼振荡' ? -4 : -5
+        expect(item.data.points[0]?.x).toBeCloseTo(startTime, 10)
       }
     })
 
