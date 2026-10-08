@@ -329,7 +329,7 @@ body {
 
   .mobile-control-toggle {
     position: fixed;
-    top: 10px;
+    top: 58px;
     left: 10px;
     z-index: 20;
     display: inline-flex;
@@ -339,7 +339,7 @@ body {
   .control-backdrop {
     position: fixed;
     inset: 0 0 0 min(300px, calc(100vw - 48px));
-    z-index: 24;
+    z-index: 44;
     display: block;
     width: auto;
     height: 100%;
@@ -351,7 +351,7 @@ body {
   .control-panel {
     position: fixed;
     inset: 0 auto 0 0;
-    z-index: 30;
+    z-index: 50;
     width: min(300px, calc(100vw - 48px));
     visibility: hidden;
     border-radius: 0 6px 6px 0;
