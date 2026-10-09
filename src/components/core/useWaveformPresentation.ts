@@ -168,7 +168,7 @@ export function useWaveformPresentation(context: PresentationContext) {
   const resolvedPlotMargin = computed(() => ({
     top: resolvePlotMargin(props.plotMargin.top, margin.top),
     bottom: Math.max(
-      isEdgeCompact.value ? 40 : 0,
+      isEdgeCompact.value ? 44 : 0,
       resolvePlotMargin(props.plotMargin.bottom, margin.bottom),
     ),
   }))
@@ -176,9 +176,7 @@ export function useWaveformPresentation(context: PresentationContext) {
   const drawingHeight = computed(() =>
     Math.max(0, chartHeight.value - titleAreaHeight.value - paginationBandHeight.value),
   )
-  const xAxisTitleY = computed(() =>
-    Math.max(0, drawingHeight.value - (isEdgeCompact.value ? 4 : X_AXIS_TITLE_BOTTOM_OFFSET)),
-  )
+  const xAxisTitleY = computed(() => Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET))
   const innerHeight = computed(() =>
     Math.max(
       0,

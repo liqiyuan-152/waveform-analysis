@@ -313,7 +313,6 @@ function handleChartPointerLeave() {
         class="waveform-chart__label waveform-chart__x-label"
         :x="resolvedChartLeftMargin + innerWidth / 2"
         :y="xAxisTitleY"
-        :dominant-baseline="isEdgeCompact ? 'text-after-edge' : undefined"
         text-anchor="middle"
       >
         {{ resolvedXLabel }}
