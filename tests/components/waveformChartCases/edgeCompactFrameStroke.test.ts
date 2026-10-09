@@ -33,7 +33,10 @@ describe('edge-compact frame and pagination bounds', () => {
     expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y')) + 4).toBeLessThan(
       paginationTop,
     )
-    await wrapper.setProps({ data: gridSeries(2), xLabel: '很长的时间坐标轴标签（毫秒）' })
+    await wrapper.setProps({
+      data: gridSeries(2),
+      xLabel: '很长的时间坐标轴标签（毫秒，完整显示）',
+    })
     expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(320)
     await wrapper.setProps({ cleanView: true })
     expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
@@ -154,7 +157,7 @@ describe('edge-compact frame and pagination bounds', () => {
       expect(timeBaseline - plotBottom).toBeCloseTo(35)
       const time = wrapper.get('.waveform-chart__x-label')
       expect(getComputedStyle(time.element).fontSize).toBe('18px')
-      expect(getComputedStyle(time.element).fontWeight).toBe('700')
+      expect(getComputedStyle(time.element).fontWeight).toBe('600')
       if (width <= 520) {
         expect(titleArea + timeBaseline + 4).toBeLessThan(paginationTop)
       } else {

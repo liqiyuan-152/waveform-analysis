@@ -26,7 +26,7 @@ describe('WaveformChart edge-compact layout', () => {
     )
     const label = wrapper.get('.waveform-chart__x-label')
     expect(getComputedStyle(label.element).fontSize).toBe('18px')
-    expect(getComputedStyle(label.element).fontWeight).toBe('700')
+    expect(getComputedStyle(label.element).fontWeight).toBe('600')
     expect(label.attributes('dominant-baseline')).toBeUndefined()
     expect(Number(label.attributes('y'))).toBeCloseTo(360 - area - 9)
 
@@ -35,7 +35,7 @@ describe('WaveformChart edge-compact layout', () => {
     })
     expect(Number(wrapper.attributes('data-title-area-height'))).toBeCloseTo(12 * 1.2 + 8)
     expect(getComputedStyle(label.element).fontSize).toBe('18px')
-    expect(getComputedStyle(label.element).fontWeight).toBe('700')
+    expect(getComputedStyle(label.element).fontWeight).toBe('600')
   })
 
   it('uses measured multiline text height without multiplying the line count again', async () => {
