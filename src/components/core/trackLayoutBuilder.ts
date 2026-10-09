@@ -71,6 +71,7 @@ export interface BuildTrackLayoutsOptions {
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
   yAxisSplitNumber?: number
   yAxisNice?: boolean
+  yAxisUpperPaddingRatio?: number
   rendering: ResolvedWaveformRenderingOptions
   /** Latest sampling result for SVG lines only; source series remain complete for interaction. */
   linePointOverrides?: Readonly<Record<string, WaveformPoint[]>>
@@ -135,6 +136,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       options.fixedYDomain,
       options.fixedYDomains,
       options.yDomains,
+      options.yAxisUpperPaddingRatio,
     )
     const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }

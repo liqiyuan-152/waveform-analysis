@@ -261,6 +261,8 @@ export interface WaveformAxesOptions {
     splitNumber?: number
     /** Expands Y-axis domains to equal, human-friendly intervals. Defaults to true. */
     nice?: boolean
+    /** Adds this fraction of the automatic Y span above its maximum. Defaults to 0. */
+    upperPaddingRatio?: number
   }
 }
 

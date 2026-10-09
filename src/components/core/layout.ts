@@ -161,10 +161,21 @@ export function resolveRenderedYAxisSeriesGroups(
   yDomain?: WaveformYDomain,
   yDomains?: Record<string, WaveformYDomain>,
   viewportYDomains?: Record<string, [number, number]>,
+  upperPaddingRatio = 0,
 ): YAxisSeriesGroup[] {
   const viewportYDomain = viewportYDomains?.[track.id]
   return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).map((group) =>
-    !group.fixed && viewportYDomain ? { ...group, domain: viewportYDomain } : group,
+    !group.fixed && viewportYDomain
+      ? { ...group, domain: viewportYDomain }
+      : !group.fixed && Number.isFinite(upperPaddingRatio) && upperPaddingRatio > 0
+        ? {
+            ...group,
+            domain: [
+              group.domain[0],
+              group.domain[1] + (group.domain[1] - group.domain[0]) * upperPaddingRatio,
+            ] as WaveformYDomain,
+          }
+        : group,
   )
 }
 
@@ -255,6 +266,7 @@ export function buildYAxisSlots(
   nice = true,
   includeWithoutLastTick = false,
   viewportYDomains?: Record<string, [number, number]>,
+  upperPaddingRatio = 0,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
@@ -265,6 +277,7 @@ export function buildYAxisSlots(
       yDomain,
       yDomains,
       viewportYDomains,
+      upperPaddingRatio,
     ).forEach((group) => {
       const sideIndex = sideIndexes[group.side]++
       const key = `${group.side}:${sideIndex}`

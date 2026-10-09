@@ -40,11 +40,19 @@ export function resolveYAxisLayoutMetrics(
   nice: boolean,
   tickCount: number,
   compact: boolean,
+  upperPaddingRatio = 0,
 ): YAxisLayoutMetrics {
   const axisText = chartTracks
     .filter((track) => track.visibleSeries.length > 0)
     .flatMap((track) =>
-      resolveRenderedYAxisSeriesGroups(track, overlayMode, yDomain, yDomains, viewportYDomains),
+      resolveRenderedYAxisSeriesGroups(
+        track,
+        overlayMode,
+        yDomain,
+        yDomains,
+        viewportYDomains,
+        upperPaddingRatio,
+      ),
     )
     .map(
       (group) =>
