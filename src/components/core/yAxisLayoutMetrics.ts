@@ -41,6 +41,7 @@ export function resolveYAxisLayoutMetrics(
   tickCount: number,
   compact: boolean,
   upperPaddingRatio = 0,
+  showUnits = true,
 ): YAxisLayoutMetrics {
   const axisText = chartTracks
     .filter((track) => track.visibleSeries.length > 0)
@@ -60,7 +61,7 @@ export function resolveYAxisLayoutMetrics(
           group.domain,
           nice,
           undefined,
-          group.seriesList[0]?.unit,
+          showUnits ? group.seriesList[0]?.unit : undefined,
           tickCount,
           compact,
         ).tickTextWidth,

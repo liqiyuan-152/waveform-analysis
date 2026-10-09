@@ -267,6 +267,7 @@ export function buildYAxisSlots(
   includeWithoutLastTick = false,
   viewportYDomains?: Record<string, [number, number]>,
   upperPaddingRatio = 0,
+  showUnits = true,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
@@ -285,7 +286,7 @@ export function buildYAxisSlots(
         group.domain,
         nice,
         undefined,
-        group.seriesList[0]?.unit,
+        showUnits ? group.seriesList[0]?.unit : undefined,
         tickCount,
         includeWithoutLastTick,
       ).tickTextWidth

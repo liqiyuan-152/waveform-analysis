@@ -7,22 +7,17 @@ import {
   type AnnotationSeriesInfo,
   type AnnotationTrackLayout,
 } from '../annotation'
-import { channelColors, margin, MINIMUM_PLOT_WIDTH } from './constants'
-import {
-  getGridGap,
-  getPageCount,
-  normalizeGridOptions,
-  paginateSeries,
-  resolveGridCellGeometry,
-} from './grid'
-import { buildTrackLayouts, buildYAxisSlots, resolveYAxisTickCount } from './layout'
+import { channelColors } from './constants'
+import { getPageCount, normalizeGridOptions, paginateSeries, resolveGridCellGeometry } from './grid'
+import { buildTrackLayouts, resolveYAxisTickCount } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { createFrameNumberResolver, resolvePageableTracks } from './trackPagination'
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
 import { alignIntegerZoomDomain, normalizeIntegerZoomDomain } from '../interaction/integerZoom'
-import { resolveYAxisLayoutMetrics, resolveViewportYDomains } from './yAxisLayoutMetrics'
+import { resolveViewportYDomains } from './yAxisLayoutMetrics'
+import { useWaveformYAxisLayout } from './useWaveformYAxisLayout'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
   props: ResolvedWaveformChartProps
@@ -125,88 +120,21 @@ export function useWaveformLayout(context: LayoutContext) {
       independentYDomains.value,
     ),
   )
-  const yAxisMetrics = computed(() =>
-    resolveYAxisLayoutMetrics(
-      chartTracks.value,
-      props.overlayMode,
-      props.yDomain,
-      props.yDomains,
-      viewportYDomains.value,
-      props.axes?.y?.nice !== false,
-      yAxisTickCount.value,
-      props.displayMode === 'compact',
-      props.axes?.y?.upperPaddingRatio,
-    ),
-  )
-  const hasYAxisLabels = computed(() =>
-    chartTracks.value.some(
-      (track) =>
-        track.visibleSeries.length === 1 &&
-        Boolean(track.visibleSeries[0]?.name.trim() || props.yLabel),
-    ),
-  )
-  const hasVisibleWaveformData = computed(() =>
-    chartTracks.value.some((track) => track.visibleSeries.length > 0),
-  )
-  const chartLeftMargin = computed(() =>
-    Math.max(
-      margin.left,
-      hasYAxisLabels.value
-        ? yAxisMetrics.value.fullClearance
-        : hasVisibleWaveformData.value
-          ? yAxisMetrics.value.tickClearance
-          : 0,
-    ),
-  )
-  const yAxisSlots = computed(() =>
-    buildYAxisSlots(
-      layoutTracks.value.filter((track) => track.visibleSeries.length > 0),
-      props.overlayMode,
-      props.yDomain,
-      props.yDomains,
-      yAxisTickCount.value,
-      props.axes?.y?.nice !== false,
-      props.displayMode === 'compact',
-      viewportYDomains.value,
-      props.axes?.y?.upperPaddingRatio,
-    ),
-  )
-  const resolvedChartLeftMargin = computed(() =>
-    props.overlayMode === 'multi-axis'
-      ? Math.max(chartLeftMargin.value, yAxisSlots.value.clearance.left)
-      : chartLeftMargin.value,
-  )
-  const chartRightMargin = computed(() =>
-    props.overlayMode === 'multi-axis'
-      ? Math.max(margin.right, yAxisSlots.value.clearance.right)
-      : margin.right,
-  )
-  const innerWidth = computed(() =>
-    Math.max(0, chartWidth.value - resolvedChartLeftMargin.value - chartRightMargin.value),
-  )
-  const yAxisLayout = computed(() => {
-    const baseGap = getGridGap(props.displayMode)
-    const columnCount = gridOptions.value.columnCount
-    const hasMultipleColumns = columnCount > 1
-    const fullGap = Math.max(baseGap, yAxisMetrics.value.fullClearance)
-    const tickGap = Math.max(baseGap, yAxisMetrics.value.tickClearance)
-    const plotWidth = (innerWidth.value - fullGap * Math.max(0, columnCount - 1)) / columnCount
-    const canReserveLabelClearance = plotWidth >= MINIMUM_PLOT_WIDTH
-    return {
-      horizontalGap:
-        props.overlayMode === 'multi-axis' && hasMultipleColumns && hasVisibleWaveformData.value
-          ? Math.max(baseGap, yAxisSlots.value.clearance.left + yAxisSlots.value.clearance.right)
-          : hasMultipleColumns && hasVisibleWaveformData.value
-            ? hasYAxisLabels.value && canReserveLabelClearance
-              ? fullGap
-              : tickGap
-            : baseGap,
-      hideSecondaryLabels:
-        props.overlayMode !== 'multi-axis' &&
-        hasMultipleColumns &&
-        hasYAxisLabels.value &&
-        !canReserveLabelClearance,
-    }
+  const {
+    yAxisMetrics,
+    yAxisSlots,
+    resolvedChartLeftMargin,
+    innerWidth,
+    yAxisLayout,
+    hasVisibleWaveformData,
+  } = useWaveformYAxisLayout({
+    props,
+    chartTracks,
+    layoutTracks,
+    chartWidth,
+    gridOptions,
+    viewportYDomains,
+    yAxisTickCount,
   })
   const hasWaveformData = computed(() => chartSeries.value.length > 0)
   const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
@@ -300,6 +228,8 @@ export function useWaveformLayout(context: LayoutContext) {
       cells: gridCells.value,
       grid: gridOptions.value,
       useNonEmptyBottomTracks: props.layoutPreset === 'edge-compact',
+      compactYAxisLayout: props.layoutPreset === 'edge-compact',
+      showAxisUnits: props.layoutPreset !== 'edge-compact' || props.unitDisplayMode === 'axis',
       displayMode: props.displayMode,
       overlayMode: props.overlayMode,
       independentTransforms: independentTransforms.value,

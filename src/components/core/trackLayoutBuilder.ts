@@ -81,6 +81,8 @@ export interface BuildTrackLayoutsOptions {
   yAxisSlots?: readonly YAxisSlot[]
   showCompactEmptyTracks: boolean
   useNonEmptyBottomTracks?: boolean
+  compactYAxisLayout?: boolean
+  showAxisUnits?: boolean
 }
 
 function resolveIndependentXDomain(
@@ -159,7 +161,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         scale.domain() as [number, number],
         false,
         tickValues,
-        group.seriesList[0]?.unit,
+        options.showAxisUnits !== false ? group.seriesList[0]?.unit : undefined,
         tickCount,
       )
       const clearance =
@@ -182,7 +184,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         (slot
           ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
           : x + (group.side === 'left' ? -labelDistance : labelDistance)) -
-        (group.side === 'right' ? Y_AXIS_RIGHT_LABEL_OFFSET : 0)
+        (group.side === 'right' && !options.compactYAxisLayout ? Y_AXIS_RIGHT_LABEL_OFFSET : 0)
       if (!slot) sideOffsets[group.side] += clearance
       return {
         index: group.index,
@@ -296,6 +298,6 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     }
   })
 
-  alignLeftYAxisTitles(layouts, options.yLabel)
+  if (!options.compactYAxisLayout) alignLeftYAxisTitles(layouts, options.yLabel)
   return layouts
 }
