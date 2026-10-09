@@ -101,7 +101,7 @@ describe('WaveformChart edge-compact layout', () => {
       const titleHeight = () => Number(wrapper.attributes('data-title-area-height'))
       const drawingHeight = () => Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const labelY = () => Number(wrapper.get('.waveform-chart__x-label').attributes('y'))
-      const paginationBand = 40
+      const paginationBand = width <= 520 ? 40 : 16
       expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(true)
       expect(drawingHeight()).toBeCloseTo(360 - titleHeight() - paginationBand)
       expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 12)

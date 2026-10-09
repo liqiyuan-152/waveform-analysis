@@ -22,6 +22,7 @@ import { useWaveformZoom } from '../interaction/useWaveformZoom'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
 import { margin } from './constants'
 import { getPageSize } from './grid'
+import { resolveCompactPaginationBand } from './pagination'
 import type { WaveformHoverState } from './types'
 import { useWaveformChartLifecycle } from './useWaveformChartLifecycle'
 import { usePreparedWaveformSeries } from './useWaveformData'
@@ -170,11 +171,18 @@ export function useWaveformChartController(
     () => gridOptions.value.showPagination && pageCount.value > 1 && !isCleanView.value,
   )
   watchEffect(() => {
-    const reserveBand =
+    paginationBandHeight.value =
       props.layoutPreset === 'edge-compact'
-        ? paginationVisible.value
+        ? resolveCompactPaginationBand(
+            paginationVisible.value,
+            chartWidth.value,
+            pageCount.value,
+            resolvedChartLeftMargin.value + innerWidth.value / 2,
+            layout.resolvedXLabel.value,
+          )
         : gridOptions.value.showPagination && pageCount.value > 1 && chartWidth.value <= 520
-    paginationBandHeight.value = reserveBand ? 40 : 0
+          ? 40
+          : 0
   })
 
   const zoom = useWaveformZoom({
