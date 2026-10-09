@@ -49,7 +49,7 @@ function outerTitleLeft(
 
 describe('edge-compact Y-axis space', () => {
   it.each([320, 800])(
-    'matches the 24px right margin with the title band at width %s',
+    'halves the left outer space while retaining the 24px right margin at width %s',
     async (width) => {
       const wrapper = mount(WaveformChart, { props: { ...props, width, data: data(series('A')) } })
       await flushPromises()
@@ -59,8 +59,8 @@ describe('edge-compact Y-axis space', () => {
       expect(track.get('.waveform-chart__axis--y').text()).toContain('E+04')
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickWidth + 7 + 20 + 24)
-      expect(outerTitleLeft(wrapper, track)).toBe(24)
+      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickWidth + 7 + 20 + 12)
+      expect(outerTitleLeft(wrapper, track)).toBe(12)
       expect(
         width - Number(wrapper.attributes('data-chart-left-margin')) - plotWidth(wrapper),
       ).toBe(24)
@@ -81,7 +81,7 @@ describe('edge-compact Y-axis space', () => {
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(legacyMargin)
     await wrapper.setProps({ layoutPreset: 'edge-compact' })
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain(unit)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(24)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(12)
   })
 
   it.each([
@@ -107,7 +107,7 @@ describe('edge-compact Y-axis space', () => {
         const textLeft = Number(tick.attributes('x')) - tick.text().length * 7
         expect(textLeft).toBeGreaterThanOrEqual(bandRight)
       })
-      expect(outerTitleLeft(wrapper, track)).toBe(24)
+      expect(outerTitleLeft(wrapper, track)).toBe(12)
     },
   )
 
@@ -132,7 +132,7 @@ describe('edge-compact Y-axis space', () => {
       await flushPromises()
       const tracks = wrapper.findAll('.waveform-chart__track')
       expect(tracks).toHaveLength(4)
-      expect(outerTitleLeft(wrapper, tracks[0])).toBe(24)
+      expect(outerTitleLeft(wrapper, tracks[0])).toBe(12)
       tracks.forEach((track) => {
         expect(track.findAll('.waveform-chart__y-axis-label')).toHaveLength(count)
         expect(track.text()).not.toContain(unit)
@@ -182,6 +182,6 @@ describe('edge-compact Y-axis space', () => {
     const wrapper = mount(WaveformChart, {
       props: { ...props, data: data(series('A')), hiddenSeriesIds: ['A'] },
     })
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('24')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('12')
   })
 })
