@@ -60,13 +60,13 @@ describe('edge-compact Y-axis space', () => {
     })
     await flushPromises()
     // Six decimal characters used to reserve 42px. The 11px numeric font
-    // needs at most 35px, returning 7px to the plot while the name stays at 12px.
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(74)
-    expect(plotWidth(wrapper)).toBe(702)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(12)
+    // needs at most 35px, returning 13px to the plot with 6px of outer name space.
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(68)
+    expect(plotWidth(wrapper)).toBe(708)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
   })
   it.each([320, 800])(
-    'halves the left outer space while retaining the 24px right margin at width %s',
+    'quarters the left outer space while retaining the 24px right margin at width %s',
     async (width) => {
       const wrapper = mount(WaveformChart, { props: { ...props, width, data: data(series('A')) } })
       await flushPromises()
@@ -76,8 +76,8 @@ describe('edge-compact Y-axis space', () => {
       expect(track.get('.waveform-chart__axis--y').text()).toContain('E+04')
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickWidth + 7 + 20 + 12)
-      expect(outerTitleLeft(wrapper, track)).toBe(12)
+      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickWidth + 7 + 20 + 6)
+      expect(outerTitleLeft(wrapper, track)).toBe(6)
       expect(
         width - Number(wrapper.attributes('data-chart-left-margin')) - plotWidth(wrapper),
       ).toBe(24)
@@ -98,7 +98,7 @@ describe('edge-compact Y-axis space', () => {
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(legacyMargin)
     await wrapper.setProps({ layoutPreset: 'edge-compact' })
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain(unit)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(12)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
   })
 
   it.each([
@@ -124,7 +124,7 @@ describe('edge-compact Y-axis space', () => {
         const textLeft = Number(tick.attributes('x')) - measureYAxisTextWidth(tick.text())
         expect(textLeft).toBeGreaterThanOrEqual(bandRight)
       })
-      expect(outerTitleLeft(wrapper, track)).toBe(12)
+      expect(outerTitleLeft(wrapper, track)).toBe(6)
     },
   )
 
@@ -149,7 +149,7 @@ describe('edge-compact Y-axis space', () => {
       await flushPromises()
       const tracks = wrapper.findAll('.waveform-chart__track')
       expect(tracks).toHaveLength(4)
-      expect(outerTitleLeft(wrapper, tracks[0])).toBe(12)
+      expect(outerTitleLeft(wrapper, tracks[0])).toBe(6)
       tracks.forEach((track) => {
         expect(track.findAll('.waveform-chart__y-axis-label')).toHaveLength(count)
         expect(track.text()).not.toContain(unit)
@@ -199,6 +199,6 @@ describe('edge-compact Y-axis space', () => {
     const wrapper = mount(WaveformChart, {
       props: { ...props, data: data(series('A')), hiddenSeriesIds: ['A'] },
     })
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('12')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe('6')
   })
 })

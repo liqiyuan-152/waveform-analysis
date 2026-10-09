@@ -83,7 +83,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
   )
   const resolvedChartLeftMargin = computed(() =>
     isEdgeCompact.value
-      ? margin.right / 2 + Math.max(0, compactLeftClearance.value - Y_AXIS_OUTER_PADDING)
+      ? margin.right / 4 + Math.max(0, compactLeftClearance.value - Y_AXIS_OUTER_PADDING)
       : props.overlayMode === 'multi-axis'
         ? Math.max(chartLeftMargin.value, yAxisSlots.value.clearance.left)
         : chartLeftMargin.value,
