@@ -268,6 +268,16 @@ Y 轴会独立计算：
 <WaveformChart :data="chartData" :axes="{ y: { nice: false } }" />
 ```
 
+自动 Y 轴范围可通过 `axes.y.upperPaddingRatio` 设置上限留白比例，默认 `0`。
+例如 `0.1` 使用 `[min, max + (max - min) * 0.1]`，下限不变。
+单值轴按图框合并范围计算，多值轴按各轴对应曲线范围计算；固定范围及手动缩放的 Y
+视口不增加留白。常量数据先沿用非零范围回退，再计算留白。设置 `nice: false`
+可避免刻度算法进一步扩展范围。
+
+```vue
+<WaveformChart :data="chartData" :axes="{ y: { nice: false, upperPaddingRatio: 0.1 } }" />
+```
+
 ### 缩放后按可视区间加载数据
 
 组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放
