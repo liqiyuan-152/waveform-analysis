@@ -26,6 +26,6 @@ jobs:
       - run: pnpm check:file-length
       - run: pnpm lint:oxlint
       - run: pnpm lint
-      - run: pnpm test:coverage
+      - run: pnpm test:coverage --maxWorkers=2
       - run: pnpm build
       - run: pnpm test:package
