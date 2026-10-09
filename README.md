@@ -414,7 +414,7 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
   :data="waveformData"
   layout-preset="edge-compact"
   :title="{ text: 'shot: #1001', textStyle: { fontSize: 18, fontWeight: 700 } }"
-  x-label="time(ms)"
+  x-label="Time(ms)"
   :plot-margin="{ top: 0, bottom: 44 }"
 />
 ```
@@ -431,14 +431,18 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
 
 时间标签（`xLabel`，默认仍为 `时间（ms）` 或 `时间（s）`）单独使用 18px、字重 700，
 水平居中于绘图区，采用原始基线位置 `drawingHeight - 12px`，不设置额外的
-`dominant-baseline`。通过 `xLabel='time(ms)'` 传入严格的业务文字，组件不自动改写。
+`dominant-baseline`。通过 `xLabel='Time(ms)'` 传入严格的业务文字，组件不自动改写。
 桌面宽度大于 520px 时，分页在右下角，与时间标签共用底部区，不额外预留分页高度。
 宽度小于等于 520px 时，仅在按钮可见时预留 40px，时间标签位于分页区上方；预留
 条件为 `grid.showPagination && pageCount > 1 && !cleanView && chartWidth <= 520`。
 没有分页或净图模式不预留按钮区。`cleanView` 仍隐藏时间标签及标题文字，保留既有标题区域策略。
 
-紧凑模式的 `plotMargin.bottom` 最小为 44px（传入 35px 会按 44px 布局），与既有
-X 轴刻度带一起保证底部刻度和 18px 时间标签之间的间距；更大的有效边距仍保留。
+紧凑模式的 `plotMargin.bottom` 最小为 44px（传入 35px 会按 44px 布局），该总预算
+已包含最后一行的 30px X 轴刻度带，不再额外叠加；最下面的网格图框底边距绘制 SVG
+下沿为 44px（更大的有效边距仍保留）。中间行刻度带不变，尾部空行无 X 轴时不补偿。
+净图模式不应用刻度带补偿，保留现有刻度与网格布局。
+最高 Y 刻度（含科学指数和单位）在紧凑模式向图框内贴边，`top=0` 时有无标题均不会
+向 SVG 顶部越界；默认模式的刻度锚点不变。
 刻度字号保持原值。`plotMargin` 不改变标签距底部的位置。该布局只影响展示尺寸，
 既有平移事件与范围、单位模式、tooltip 和 Y 轴上限留白 API 保持不变。
 
