@@ -24,6 +24,7 @@ interface Props {
   timeUnit: 's' | 'ms'
   yLabel?: string
   showAxisUnits?: boolean
+  containYAxisEndpoints?: boolean
   cleanView?: boolean
   zeroLine?: Required<WaveformZeroLineOptions>
 }
@@ -101,6 +102,7 @@ const resolvedFrameStyle = computed(() => {
       :time-unit="timeUnit"
       :y-label="yLabel"
       :show-units="showAxisUnits"
+      :contain-y-axis-endpoints="containYAxisEndpoints"
     />
 
     <rect

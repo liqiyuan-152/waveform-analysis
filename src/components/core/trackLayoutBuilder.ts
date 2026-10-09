@@ -80,6 +80,7 @@ export interface BuildTrackLayoutsOptions {
   yLabel?: string
   yAxisSlots?: readonly YAxisSlot[]
   showCompactEmptyTracks: boolean
+  useNonEmptyBottomTracks?: boolean
 }
 
 function resolveIndependentXDomain(
@@ -101,7 +102,12 @@ function resolveIndependentXDomain(
 }
 
 export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayout[] {
-  const visibleCells = options.cells.map((cell) => ({ ...cell, hasSeries: Boolean(cell.series) }))
+  const visibleCells = options.cells.map((cell) => ({
+    ...cell,
+    hasSeries: options.useNonEmptyBottomTracks
+      ? Boolean(cell.series?.series.length)
+      : Boolean(cell.series),
+  }))
   const bottomCells = getBottomRowCellIndexes(visibleCells, options.grid.columnCount)
 
   const layouts: TrackLayout[] = visibleCells.flatMap((cell, index) => {

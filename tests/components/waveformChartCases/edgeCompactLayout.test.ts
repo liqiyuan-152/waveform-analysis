@@ -135,13 +135,13 @@ describe('WaveformChart edge-compact layout', () => {
           plotMargin: { top: 0, bottom: 35 },
           title,
           grid: { rowCount: 1 },
-          xLabel: 'time(ms)',
+          xLabel: 'Time(ms)',
         },
       })
       await flushPromises()
       expect(wrapper.attributes('data-plot-margin-bottom')).toBe('44')
       const label = wrapper.get('.waveform-chart__x-label')
-      expect(label.text()).toBe('time(ms)')
+      expect(label.text()).toBe('Time(ms)')
       expect(wrapper.attributes('data-plot-margin-top')).toBe('0')
       const visual = wrapper.get('.waveform-chart__title-visual').element as HTMLElement
       const titleArea = Number(wrapper.attributes('data-title-area-height'))
@@ -157,7 +157,12 @@ describe('WaveformChart edge-compact layout', () => {
         Number(track.attributes('data-track-top')) +
         Number(track.attributes('data-track-height'))
       // Bound tick descent and time-label ascent conservatively; the original baseline remains fixed.
-      expect(Number(label.attributes('y')) - 18 - (plotBottom + 18)).toBeGreaterThanOrEqual(4)
+      const drawingHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
+      expect(drawingHeight - plotBottom).toBeCloseTo(44)
+      expect(Number(label.attributes('y')) - plotBottom).toBeCloseTo(32)
+      const endpoint = wrapper.get('.waveform-chart__axis-endpoint--start')
+      const endpointBaseline = plotBottom + Number(endpoint.attributes('y')) + 10 * 0.71
+      expect(Number(label.attributes('y')) - endpointBaseline).toBeCloseTo(17.9)
       expect(wrapper.get('.waveform-chart__axis--x').attributes('font-size')).toBe('10')
       const labelY = Number(label.attributes('y'))
       await wrapper.setProps({ plotMargin: { top: 0, bottom: 44 } })

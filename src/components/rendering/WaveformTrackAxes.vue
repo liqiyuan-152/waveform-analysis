@@ -16,6 +16,7 @@ interface Props {
   timeUnit: 's' | 'ms'
   yLabel?: string
   showUnits?: boolean
+  containYAxisEndpoints?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), { showUnits: true })
@@ -63,11 +64,18 @@ function renderAxes() {
     const selection = select(element)
     selection.call(yAxis)
     const lowestTick = Math.min(...axis.tickValues)
+    const highestTick = props.containYAxisEndpoints ? Math.max(...axis.tickValues) : undefined
     selection
       .selectAll<SVGTextElement, number>('.tick text')
       .attr('y', null)
-      .attr('dy', (value) => (value === lowestTick ? '0' : '0.32em'))
-      .attr('dominant-baseline', (value) => (value === lowestTick ? 'text-after-edge' : null))
+      .attr('dy', (value) => (value === lowestTick || value === highestTick ? '0' : '0.32em'))
+      .attr('dominant-baseline', (value) =>
+        value === lowestTick
+          ? 'text-after-edge'
+          : value === highestTick
+            ? 'text-before-edge'
+            : null,
+      )
     selection
       .selectAll('path.domain')
       .attr('display', props.axes?.y?.lineVisible === false ? 'none' : null)
@@ -109,6 +117,7 @@ watch(
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
     () => props.showUnits,
+    () => props.containYAxisEndpoints,
     () => props.axes?.x?.labelFormatter,
     () => props.axes?.x?.lineVisible,
     () => props.axes?.y?.lineVisible,

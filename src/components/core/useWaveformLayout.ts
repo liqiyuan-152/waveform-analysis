@@ -95,7 +95,6 @@ export function useWaveformLayout(context: LayoutContext) {
       }
     })
   })
-  // Count complete tracks before pagination, including hidden series, for stable styling.
   const showLegendUnits = computed(
     () =>
       props.unitDisplayMode === 'legend-single-series' &&
@@ -287,8 +286,12 @@ export function useWaveformLayout(context: LayoutContext) {
       innerHeight.value,
       gridOptions.value,
       props.displayMode,
-      layoutTracks.value.map(Boolean),
+      layoutTracks.value.map((track) =>
+        props.layoutPreset === 'edge-compact' ? track.series.length > 0 : Boolean(track),
+      ),
       yAxisLayout.value.horizontalGap,
+      true,
+      props.layoutPreset === 'edge-compact' && !isCleanView.value,
     )
     return cells.map((cell, index) => ({ ...cell, series: layoutTracks.value[index] }))
   })
@@ -296,6 +299,7 @@ export function useWaveformLayout(context: LayoutContext) {
     buildTrackLayouts({
       cells: gridCells.value,
       grid: gridOptions.value,
+      useNonEmptyBottomTracks: props.layoutPreset === 'edge-compact',
       displayMode: props.displayMode,
       overlayMode: props.overlayMode,
       independentTransforms: independentTransforms.value,

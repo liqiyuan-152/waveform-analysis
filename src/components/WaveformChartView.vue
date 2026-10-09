@@ -238,6 +238,7 @@ function handleChartPointerLeave() {
           :frame-style="frameStyle"
           :axes="axes"
           :show-axis-units="unitDisplayMode === 'axis'"
+          :contain-y-axis-endpoints="isEdgeCompact"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"

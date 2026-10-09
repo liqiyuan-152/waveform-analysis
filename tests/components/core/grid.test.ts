@@ -10,6 +10,22 @@ import {
 } from '@/components/core/grid'
 
 describe('waveform grid helpers', () => {
+  it('does not credit a bottom axis band when X axes are absent', () => {
+    const grid = normalizeGridOptions({ rowCount: 2, columnCount: 2 })
+    const cells = resolveGridCellGeometry(
+      400,
+      300,
+      grid,
+      'independent',
+      [true, true, true, true],
+      undefined,
+      false,
+      true,
+    )
+    expect(cells.every((cell) => cell.xAxisBand === 0)).toBe(true)
+    expect(cells[3].top + cells[3].plotHeight).toBe(300)
+  })
+
   it('normalizes grid counts and uses a two by one default', () => {
     expect(normalizeGridOptions()).toEqual({
       rowCount: 2,
