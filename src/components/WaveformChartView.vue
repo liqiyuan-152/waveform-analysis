@@ -13,6 +13,8 @@ const {
   displayMode,
   activeInteractionMode,
   isCleanView,
+  isEdgeCompact,
+  paginationVisible,
   isPresentationMode,
   selection,
   containerStyle,
@@ -79,7 +81,6 @@ const {
   xAxisTitleY,
   hasChartArea,
   gridOptions,
-  pageCount,
   currentPage,
   getPageSize,
   pageableTracks,
@@ -118,6 +119,7 @@ function handleChartPointerLeave() {
       `waveform-chart--interaction-${activeInteractionMode}`,
       {
         'waveform-chart--clean': isCleanView,
+        'waveform-chart--edge-compact': isEdgeCompact,
         'waveform-chart--presentation': isPresentationMode,
         'waveform-chart--panning': selection?.kind === 'pan',
       },
@@ -311,6 +313,7 @@ function handleChartPointerLeave() {
         class="waveform-chart__label waveform-chart__x-label"
         :x="resolvedChartLeftMargin + innerWidth / 2"
         :y="xAxisTitleY"
+        :dominant-baseline="isEdgeCompact ? 'text-after-edge' : undefined"
         text-anchor="middle"
       >
         {{ resolvedXLabel }}
@@ -328,7 +331,7 @@ function handleChartPointerLeave() {
     </svg>
 
     <Pagination
-      v-if="gridOptions.showPagination && pageCount > 1 && !isCleanView"
+      v-if="paginationVisible"
       class="waveform-chart__pagination"
       aria-label="波形分页"
       :current="currentPage"

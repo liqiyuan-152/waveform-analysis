@@ -12,6 +12,9 @@ export interface WaveformPoint {
   upperError?: number
 }
 
+/** Optional compact title and time-label placement at the card edges. */
+export type WaveformLayoutPreset = 'default' | 'edge-compact'
+
 /** Controls unit placement without changing series metadata. */
 export type WaveformUnitDisplayMode = 'axis' | 'legend-single-series'
 

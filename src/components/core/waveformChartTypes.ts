@@ -4,6 +4,7 @@ import type {
   WaveformData,
   WaveformDisplayMode,
   WaveformUnitDisplayMode,
+  WaveformLayoutPreset,
   WaveformFrameStyle,
   WaveformInteractionMode,
   WaveformLegendOptions,
@@ -30,6 +31,8 @@ export interface WaveformChartProps {
   overlayMode?: WaveformOverlayMode
   /** Default axis units; optional chart-wide single-series legend units. */
   unitDisplayMode?: WaveformUnitDisplayMode
+  /** Default spacing or compact title/time labels with a separate pagination band. */
+  layoutPreset?: WaveformLayoutPreset
   width?: number
   height?: number
   xLabel?: string
@@ -75,6 +78,7 @@ type DefaultedProp =
   | 'displayMode'
   | 'overlayMode'
   | 'unitDisplayMode'
+  | 'layoutPreset'
   | 'yLabel'
   | 'lineColor'
   | 'showTooltip'

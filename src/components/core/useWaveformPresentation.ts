@@ -93,6 +93,7 @@ export function useWaveformPresentation(context: PresentationContext) {
     return position === 'top' || position === 'bottom' ? 'horizontal' : 'vertical'
   }
 
+  const isEdgeCompact = computed(() => props.layoutPreset === 'edge-compact')
   const resolvedTitleText = computed(() => props.title?.text.trim() ?? '')
   const titleAreaReserved = computed(
     () =>
@@ -146,10 +147,17 @@ export function useWaveformPresentation(context: PresentationContext) {
   }))
   const titleLayout = computed(() =>
     calculateRotatedTitleLayout({
-      naturalWidth: measuredTitleWidth.value || estimatedTitleWidth.value,
+      naturalWidth:
+        isEdgeCompact.value && !titleIsRotated.value && measuredTitleHeight.value > 0
+          ? Math.min(
+              measuredTitleWidth.value || titleAvailableWidth.value,
+              titleAvailableWidth.value,
+            )
+          : measuredTitleWidth.value || estimatedTitleWidth.value,
       naturalHeight: measuredTitleHeight.value || titleFontSize.value * TITLE_LINE_HEIGHT,
       availableWidth: titleAvailableWidth.value,
       rotation: titleRotation.value,
+      edgeCompact: isEdgeCompact.value,
     }),
   )
   const titleAreaHeight = computed(() =>
@@ -159,13 +167,18 @@ export function useWaveformPresentation(context: PresentationContext) {
     typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback
   const resolvedPlotMargin = computed(() => ({
     top: resolvePlotMargin(props.plotMargin.top, margin.top),
-    bottom: resolvePlotMargin(props.plotMargin.bottom, margin.bottom),
+    bottom: Math.max(
+      isEdgeCompact.value ? 40 : 0,
+      resolvePlotMargin(props.plotMargin.bottom, margin.bottom),
+    ),
   }))
   const chartTopMargin = computed(() => resolvedPlotMargin.value.top)
   const drawingHeight = computed(() =>
     Math.max(0, chartHeight.value - titleAreaHeight.value - paginationBandHeight.value),
   )
-  const xAxisTitleY = computed(() => Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET))
+  const xAxisTitleY = computed(() =>
+    Math.max(0, drawingHeight.value - (isEdgeCompact.value ? 4 : X_AXIS_TITLE_BOTTOM_OFFSET)),
+  )
   const innerHeight = computed(() =>
     Math.max(
       0,
@@ -202,6 +215,7 @@ export function useWaveformPresentation(context: PresentationContext) {
     chartHeight,
     containerStyle,
     isCleanView,
+    isEdgeCompact,
     isPresentationMode,
     resolvedZeroLine,
     legendBackgroundColor,

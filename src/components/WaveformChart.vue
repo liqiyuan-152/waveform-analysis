@@ -11,6 +11,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   displayMode: 'independent',
   overlayMode: 'single-axis',
   unitDisplayMode: 'axis',
+  layoutPreset: 'default',
   yLabel: '幅值',
   lineColor: '#0960bd',
   showTooltip: true,

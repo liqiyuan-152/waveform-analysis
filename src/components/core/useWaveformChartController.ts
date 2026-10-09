@@ -1,5 +1,6 @@
 import { zoomIdentity, type ZoomTransform } from 'd3'
 import {
+  computed,
   reactive,
   markRaw,
   ref,
@@ -165,9 +166,15 @@ export function useWaveformChartController(
     linePointOverrides,
   })
 
+  const paginationVisible = computed(
+    () => gridOptions.value.showPagination && pageCount.value > 1 && !isCleanView.value,
+  )
   watchEffect(() => {
-    paginationBandHeight.value =
-      gridOptions.value.showPagination && pageCount.value > 1 && chartWidth.value <= 520 ? 40 : 0
+    const reserveBand =
+      props.layoutPreset === 'edge-compact'
+        ? paginationVisible.value
+        : gridOptions.value.showPagination && pageCount.value > 1 && chartWidth.value <= 520
+    paginationBandHeight.value = reserveBand ? 40 : 0
   })
 
   const zoom = useWaveformZoom({
@@ -306,6 +313,7 @@ export function useWaveformChartController(
   return reactive({
     ...toRefs(props),
     ...presentation,
+    paginationVisible,
     ...layout,
     ...annotations,
     ...viewport,

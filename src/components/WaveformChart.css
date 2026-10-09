@@ -117,6 +117,11 @@
   font-size: 12px;
 }
 
+.waveform-chart--edge-compact .waveform-chart__x-label {
+  font-size: 18px;
+  font-weight: 700;
+}
+
 .waveform-chart__label {
   font-weight: 700;
 }
