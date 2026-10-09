@@ -91,6 +91,7 @@ const data = ref<WaveformData>({
 | `data`                     | `WaveformData`                              | 必填                                                                                  | 波形数据                                      |
 | `displayMode`              | `'independent' \| 'separated' \| 'compact'` | `'independent'`                                                                       | 图框布局                                      |
 | `overlayMode`              | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
+| `unitDisplayMode`          | `'axis' \| 'legend-single-series'`          | `'axis'`                                                                              | 可选的图表级单位展示规则                      |
 | `timeUnit`                 | `'s' \| 'ms'`                               | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
 | `xLabel` / `yLabel`        | `string`                                    | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
 | `lineColor`                | `string`                                    | `'#0960bd'`                                                                           | 单波形默认颜色                                |
@@ -403,7 +404,32 @@ chartRef.value?.setViewportDomain(trackDomain, trackIndex)
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
 
 Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`WaveformSeries.shotNo` 为空或未提供时，
-炮号显示为“未配置炮号”；Tooltip 不显示单位和误差附加文本。
+炮号显示为“未配置炮号”；配置 `series.unit` 时在通道名后显示 `(单位)`，不显示误差附加文本。
+
+### 客户图例单位规则（可选）
+
+```vue
+<WaveformChart :data="waveformData" unit-display-mode="legend-single-series" />
+```
+
+公共类型 `WaveformUnitDisplayMode = 'axis' | 'legend-single-series'`，也可通过
+`WaveformChartProps.unitDisplayMode` 配置。默认 `'axis'` 保持现有行为（单位在 Y 轴最高
+刻度中，单曲线图框不显示图例）。客户模式会为每个非空图框显示图例：
+
+- 整个图表的所有非空 track 都只有一条曲线时，图例显示 `名称 (单位)`，例如
+  `CH1(1001) (V)`；单位去除两端空白，缺失、空白或占位值 `--` 不追加括号。
+- 任一 track 包含多条曲线时，整个图表的图例只显示原始名称，所有 Y 轴也隐藏单位。
+  判定依据是曲线数量，而非 Y 轴分组数量，同单位共用一根轴的多曲线图框同样适用。
+- 判定使用分页前完整的 track 曲线列表，跨页一致；`grid.trackOrder` 的空图框和补齐
+  槽位不参与判定；隐藏曲线仍计数，包括全部曲线隐藏的图框，切换可见性不会改变规则。
+  替换 `data` 后重新判定。只有从数据中移除曲线才改变曲线数量。
+- 客户模式始终隐藏轴单位，科学计数法 `E+04` 等仍保留在最高刻度（左侧 Y 轴顶端
+  左侧；多 Y 轴各自保留倍率），刻度缩放和数值不变。多曲线规则不隐藏倍率。
+
+继续将真实单位写入 `series.unit`，名称写入 `series.name`（可已包含炮号）。组件只在
+展示层组合图例文字，不修改名称或单位；tooltip 仍使用原始名称和单位字段，例如
+`CH1(1001)(V)`，标注元数据也保持原值。图例位置、排列、交互仍由 `legend` 控制，
+`cleanView` 仍隐藏图例。`pan-end`、`panXDomain`、`axes.y.upperPaddingRatio` 不受影响。
 
 ### 纵轴单位
 
