@@ -7,6 +7,7 @@
 export type {
   WaveformPoint,
   WaveformDisplayMode,
+  WaveformUnitDisplayMode,
   WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformXDomainStrategy,

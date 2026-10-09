@@ -15,9 +15,10 @@ interface Props {
   axes?: WaveformAxesOptions
   timeUnit: 's' | 'ms'
   yLabel?: string
+  showUnits?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { showUnits: true })
 const xAxisElement = ref<SVGGElement>()
 const yAxisElements = ref<SVGGElement[]>([])
 
@@ -44,7 +45,7 @@ function renderAxes() {
   props.track.yAxes.forEach((axis, index) => {
     const element = yAxisElements.value[index]
     if (!element) return
-    const unit = axis.seriesList[0]?.unit
+    const unit = props.showUnits ? axis.seriesList[0]?.unit : undefined
     const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
       .tickFormat((value) =>
         formatYAxisTickLabel(
@@ -107,6 +108,7 @@ watch(
     () => props.track.xAxisTickValues,
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
+    () => props.showUnits,
     () => props.axes?.x?.labelFormatter,
     () => props.axes?.x?.lineVisible,
     () => props.axes?.y?.lineVisible,

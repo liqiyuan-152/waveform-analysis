@@ -12,6 +12,7 @@ export type {
   // 图表类型
   WaveformPoint,
   WaveformDisplayMode,
+  WaveformUnitDisplayMode,
   WaveformOverlayMode,
   WaveformInteractionMode,
   WaveformXDomainStrategy,

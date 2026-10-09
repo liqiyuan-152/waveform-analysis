@@ -95,6 +95,12 @@ export function useWaveformLayout(context: LayoutContext) {
       }
     })
   })
+  // Count complete tracks before pagination, including hidden series, for stable styling.
+  const showLegendUnits = computed(
+    () =>
+      props.unitDisplayMode === 'legend-single-series' &&
+      !chartTracks.value.some((track) => track.series.length > 1),
+  )
   const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
   const pageableTracks = computed(() =>
     resolvePageableTracks(chartTracks.value, gridOptions.value.hideEmptyTracks),
@@ -361,6 +367,7 @@ export function useWaveformLayout(context: LayoutContext) {
   return {
     chartSeries,
     chartTracks,
+    showLegendUnits,
     pageableTracks,
     renderingOptions,
     gridOptions,

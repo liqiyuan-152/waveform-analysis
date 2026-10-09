@@ -3,6 +3,7 @@ import type {
   WaveformAxesOptions,
   WaveformData,
   WaveformDisplayMode,
+  WaveformUnitDisplayMode,
   WaveformFrameStyle,
   WaveformInteractionMode,
   WaveformLegendOptions,
@@ -27,6 +28,8 @@ export interface WaveformChartProps {
   data: WaveformData
   displayMode?: WaveformDisplayMode
   overlayMode?: WaveformOverlayMode
+  /** Default axis units; optional chart-wide single-series legend units. */
+  unitDisplayMode?: WaveformUnitDisplayMode
   width?: number
   height?: number
   xLabel?: string
@@ -71,6 +74,7 @@ export interface WaveformChartProps {
 type DefaultedProp =
   | 'displayMode'
   | 'overlayMode'
+  | 'unitDisplayMode'
   | 'yLabel'
   | 'lineColor'
   | 'showTooltip'

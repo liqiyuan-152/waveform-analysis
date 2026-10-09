@@ -12,6 +12,9 @@ export interface WaveformPoint {
   upperError?: number
 }
 
+/** Controls unit placement without changing series metadata. */
+export type WaveformUnitDisplayMode = 'axis' | 'legend-single-series'
+
 /**
  * 显示模式
  * - independent: 每个波形独立 Y 轴和缩放

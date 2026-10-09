@@ -23,6 +23,7 @@ interface Props {
   axes?: WaveformAxesOptions
   timeUnit: 's' | 'ms'
   yLabel?: string
+  showAxisUnits?: boolean
   cleanView?: boolean
   zeroLine?: Required<WaveformZeroLineOptions>
 }
@@ -41,6 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
   interactive: true,
   cleanView: false,
+  showAxisUnits: true,
   zeroLine: () => ({
     visible: true,
     color: ZERO_LINE_DEFAULTS.COLOR,
@@ -98,6 +100,7 @@ const resolvedFrameStyle = computed(() => {
       :axes="axes"
       :time-unit="timeUnit"
       :y-label="yLabel"
+      :show-units="showAxisUnits"
     />
 
     <rect

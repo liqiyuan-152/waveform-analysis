@@ -18,17 +18,24 @@ interface Props {
   width: number
   height: number
   interactive?: boolean
+  showUnits?: boolean
   hiddenSeriesIds?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   interactive: false,
+  showUnits: false,
   hiddenSeriesIds: () => [],
 })
 const emit = defineEmits<{
   toggle: [seriesId: string]
 }>()
 const hiddenSeriesIdSet = computed(() => new Set(props.hiddenSeriesIds))
+
+function legendLabel(series: DisplaySeries): string {
+  const unit = series.unit?.trim()
+  return props.showUnits && unit && unit !== '--' ? `${series.name} (${unit})` : series.name
+}
 
 function isHidden(seriesId: string): boolean {
   return hiddenSeriesIdSet.value.has(seriesId)
@@ -113,7 +120,9 @@ function toggleSeries(seriesId: string) {
               transform="translate(13 8)"
             />
           </svg>
-          <span class="waveform-legend__label" :title="item.name">{{ item.name }}</span>
+          <span class="waveform-legend__label" :title="legendLabel(item)">{{
+            legendLabel(item)
+          }}</span>
         </button>
       </div>
     </div>

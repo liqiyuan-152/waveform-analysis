@@ -17,6 +17,8 @@ const {
   selection,
   containerStyle,
   overlayMode,
+  unitDisplayMode,
+  showLegendUnits,
   resolvedChartLeftMargin,
   titleAreaHeight,
   resolvedPlotMargin,
@@ -233,6 +235,7 @@ function handleChartPointerLeave() {
           :frame-number="resolveFrameNumber(track.id)"
           :frame-style="frameStyle"
           :axes="axes"
+          :show-axis-units="unitDisplayMode === 'axis'"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"
@@ -284,8 +287,12 @@ function handleChartPointerLeave() {
             :transform="`translate(${track.left}, ${track.top})`"
           >
             <WaveformLegend
-              v-if="!track.isEmpty && track.legendSeries.length > 1"
+              v-if="
+                !track.isEmpty &&
+                (track.legendSeries.length > 1 || unitDisplayMode === 'legend-single-series')
+              "
               :series="track.legendSeries"
+              :show-units="showLegendUnits"
               :position="resolveLegendPosition(track.id)"
               :orientation="resolveLegendOrientation(resolveLegendPosition(track.id))"
               :background-color="legendBackgroundColor"
