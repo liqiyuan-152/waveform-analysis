@@ -34,7 +34,7 @@ describe('edge-compact actual plot bounds', () => {
       for (const index of [2, 3]) expect(svgHeight - plotBottom(index)).toBeCloseTo(44)
       expect(
         Number(wrapper.get('.waveform-chart__x-label').attributes('y')) - plotBottom(3),
-      ).toBeCloseTo(32)
+      ).toBeCloseTo(35)
       const betweenRows = Number(tracks[2].attributes('data-track-top')) - plotBottom(0)
       expect(betweenRows).toBeCloseTo(
         displayMode === 'independent' ? 44 : displayMode === 'separated' ? 16 : 0,
@@ -97,7 +97,7 @@ describe('edge-compact actual plot bounds', () => {
       Number(tracks[2].attributes('data-track-top')) -
         Number(tracks[0].attributes('data-track-height')),
     ).toBeCloseTo(46)
-    expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y')) - bottom).toBeCloseTo(32)
+    expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y')) - bottom).toBeCloseTo(35)
   })
 
   it.each(['independent', 'separated', 'compact'] as const)(
@@ -150,7 +150,7 @@ describe('edge-compact actual plot bounds', () => {
       expect(svgHeight).toBeCloseTo(500 - area - (width <= 520 ? 40 : 16))
       expect(svgHeight - bottom).toBeCloseTo(44)
       expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y')) - bottom).toBeCloseTo(
-        32,
+        35,
       )
     },
   )

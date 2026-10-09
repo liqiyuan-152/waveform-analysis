@@ -28,7 +28,7 @@ describe('WaveformChart edge-compact layout', () => {
     expect(getComputedStyle(label.element).fontSize).toBe('18px')
     expect(getComputedStyle(label.element).fontWeight).toBe('700')
     expect(label.attributes('dominant-baseline')).toBeUndefined()
-    expect(Number(label.attributes('y'))).toBeCloseTo(360 - area - 12)
+    expect(Number(label.attributes('y'))).toBeCloseTo(360 - area - 9)
 
     await wrapper.setProps({
       title: { text: 'Small', textStyle: { fontSize: 12, fontWeight: 400 } },
@@ -104,14 +104,14 @@ describe('WaveformChart edge-compact layout', () => {
       const paginationBand = width <= 520 ? 40 : 16
       expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(true)
       expect(drawingHeight()).toBeCloseTo(360 - titleHeight() - paginationBand)
-      expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 12)
+      expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 9)
       await wrapper.get('.ant-pagination-next button').trigger('click')
-      expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 12)
+      expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 9)
 
       await wrapper.setProps({ grid: { rowCount: 1, columnCount: 1, showPagination: false } })
       expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
       expect(drawingHeight()).toBeCloseTo(360 - titleHeight())
-      expect(titleHeight() + labelY()).toBeCloseTo(348)
+      expect(titleHeight() + labelY()).toBeCloseTo(351)
       await wrapper.setProps({ grid: { rowCount: 1 }, cleanView: true })
       expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
       expect(wrapper.find('.waveform-chart__x-label').exists()).toBe(false)
@@ -156,13 +156,15 @@ describe('WaveformChart edge-compact layout', () => {
         Number(wrapper.attributes('data-plot-margin-top')) +
         Number(track.attributes('data-track-top')) +
         Number(track.attributes('data-track-height'))
-      // Bound tick descent and time-label ascent conservatively; the original baseline remains fixed.
+      // Bound tick descent and time-label ascent conservatively; the compact baseline adds 3px of clearance.
       const drawingHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       expect(drawingHeight - plotBottom).toBeCloseTo(44)
-      expect(Number(label.attributes('y')) - plotBottom).toBeCloseTo(32)
+      expect(Number(label.attributes('y')) - plotBottom).toBeCloseTo(35)
+      // Allow 4px of text descent; the label stays inside the SVG after moving down.
+      expect(Number(label.attributes('y')) + 4).toBeLessThan(drawingHeight)
       const endpoint = wrapper.get('.waveform-chart__axis-endpoint--start')
       const endpointBaseline = plotBottom + Number(endpoint.attributes('y')) + 10 * 0.71
-      expect(Number(label.attributes('y')) - endpointBaseline).toBeCloseTo(17.9)
+      expect(Number(label.attributes('y')) - endpointBaseline).toBeCloseTo(20.9)
       expect(wrapper.get('.waveform-chart__axis--x').attributes('font-size')).toBe('10')
       const labelY = Number(label.attributes('y'))
       await wrapper.setProps({ plotMargin: { top: 0, bottom: 44 } })
@@ -170,7 +172,7 @@ describe('WaveformChart edge-compact layout', () => {
       expect(Number(label.attributes('y'))).toBe(labelY)
       await wrapper.setProps({ plotMargin: { bottom: 70 } })
       expect(wrapper.attributes('data-plot-margin-bottom')).toBe('70')
-      expect(Number(label.attributes('y'))).toBeCloseTo(360 - titleArea - 12)
+      expect(Number(label.attributes('y'))).toBeCloseTo(360 - titleArea - 9)
     },
   )
 

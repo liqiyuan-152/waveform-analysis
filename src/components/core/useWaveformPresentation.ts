@@ -176,7 +176,9 @@ export function useWaveformPresentation(context: PresentationContext) {
   const drawingHeight = computed(() =>
     Math.max(0, chartHeight.value - titleAreaHeight.value - paginationBandHeight.value),
   )
-  const xAxisTitleY = computed(() => Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET))
+  const xAxisTitleY = computed(() =>
+    Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET + (isEdgeCompact.value ? 3 : 0)),
+  )
   const innerHeight = computed(() =>
     Math.max(
       0,
