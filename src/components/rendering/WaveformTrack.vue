@@ -25,6 +25,7 @@ interface Props {
   yLabel?: string
   showAxisUnits?: boolean
   containYAxisEndpoints?: boolean
+  containFrameStroke?: boolean
   cleanView?: boolean
   zeroLine?: Required<WaveformZeroLineOptions>
 }
@@ -70,6 +71,9 @@ const resolvedFrameStyle = computed(() => {
     backgroundColor: props.frameStyle?.backgroundColor || 'transparent',
   }
 })
+const frameInset = computed(() =>
+  props.containFrameStroke ? resolvedFrameStyle.value.borderWidth / 2 : 0,
+)
 </script>
 
 <template>
@@ -108,8 +112,10 @@ const resolvedFrameStyle = computed(() => {
     <rect
       v-if="!track.isEmpty"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
-      :width="track.width ?? innerWidth"
-      :height="track.height"
+      :x="containFrameStroke ? frameInset : undefined"
+      :y="containFrameStroke ? frameInset : undefined"
+      :width="Math.max(0, (track.width ?? innerWidth) - frameInset * 2)"
+      :height="Math.max(0, track.height - frameInset * 2)"
       fill="none"
       :stroke="resolvedFrameStyle.borderColor"
       :stroke-width="resolvedFrameStyle.borderWidth"

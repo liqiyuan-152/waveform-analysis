@@ -239,6 +239,7 @@ function handleChartPointerLeave() {
           :axes="axes"
           :show-axis-units="unitDisplayMode === 'axis'"
           :contain-y-axis-endpoints="isEdgeCompact"
+          :contain-frame-stroke="isEdgeCompact"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"

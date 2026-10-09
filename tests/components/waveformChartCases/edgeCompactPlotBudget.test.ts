@@ -147,7 +147,7 @@ describe('edge-compact actual plot bounds', () => {
       const area = Number(wrapper.attributes('data-title-area-height'))
       const svgHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const bottom = Number(wrapper.get('.waveform-chart__track').attributes('data-track-height'))
-      expect(svgHeight).toBeCloseTo(500 - area - (width <= 520 ? 40 : 0))
+      expect(svgHeight).toBeCloseTo(500 - area - 40)
       expect(svgHeight - bottom).toBeCloseTo(44)
       expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y')) - bottom).toBeCloseTo(
         32,
