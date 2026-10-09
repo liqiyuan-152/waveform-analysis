@@ -42,6 +42,7 @@ export function resolveYAxisLayoutMetrics(
   compact: boolean,
   upperPaddingRatio = 0,
   showUnits = true,
+  measureTextWidth?: (text: string) => number,
 ): YAxisLayoutMetrics {
   const axisText = chartTracks
     .filter((track) => track.visibleSeries.length > 0)
@@ -64,6 +65,7 @@ export function resolveYAxisLayoutMetrics(
           showUnits ? group.seriesList[0]?.unit : undefined,
           tickCount,
           compact,
+          measureTextWidth,
         ).tickTextWidth,
     )
   const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)

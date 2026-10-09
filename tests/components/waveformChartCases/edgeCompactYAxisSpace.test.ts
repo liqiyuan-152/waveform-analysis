@@ -3,6 +3,7 @@ import type { DOMWrapper, VueWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 import type { WaveformData, WaveformSeries } from '@/index'
 
 const unit = 'VERY-LONG-HIDDEN-UNIT'
@@ -48,6 +49,22 @@ function outerTitleLeft(
 }
 
 describe('edge-compact Y-axis space', () => {
+  it('expands the frame into the overestimated decimal tick space', async () => {
+    const wrapper = mount(WaveformChart, {
+      props: {
+        ...props,
+        data: data(series('A', 'A', 0.0066, 0.8485)),
+        yDomain: [0.0066, 0.8485],
+        axes: { y: { nice: false } },
+      },
+    })
+    await flushPromises()
+    // Six decimal characters used to reserve 42px. The 11px numeric font
+    // needs at most 35px, returning 7px to the plot while the name stays at 12px.
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(74)
+    expect(plotWidth(wrapper)).toBe(702)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(12)
+  })
   it.each([320, 800])(
     'halves the left outer space while retaining the 24px right margin at width %s',
     async (width) => {
@@ -55,7 +72,7 @@ describe('edge-compact Y-axis space', () => {
       await flushPromises()
       const track = wrapper.get('.waveform-chart__track')
       const ticks = track.findAll('.waveform-chart__axis--y .tick text')
-      const tickWidth = Math.max(...ticks.map((tick) => tick.text().length * 7))
+      const tickWidth = Math.max(...ticks.map((tick) => measureYAxisTextWidth(tick.text())))
       expect(track.get('.waveform-chart__axis--y').text()).toContain('E+04')
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
@@ -104,7 +121,7 @@ describe('edge-compact Y-axis space', () => {
       const band = track.get('.waveform-chart__y-axis-label-bg')
       const bandRight = Number(band.attributes('x')) + Number(band.attributes('width'))
       track.findAll('.waveform-chart__axis--y .tick text').forEach((tick) => {
-        const textLeft = Number(tick.attributes('x')) - tick.text().length * 7
+        const textLeft = Number(tick.attributes('x')) - measureYAxisTextWidth(tick.text())
         expect(textLeft).toBeGreaterThanOrEqual(bandRight)
       })
       expect(outerTitleLeft(wrapper, track)).toBe(12)
@@ -146,9 +163,9 @@ describe('edge-compact Y-axis space', () => {
           axis.findAll('.tick text').forEach((tick) => {
             const anchor = axisX + Number(tick.attributes('x'))
             if (axis.attributes('data-y-axis-side') === 'left') {
-              expect(anchor - tick.text().length * 7).toBeGreaterThanOrEqual(bandRight)
+              expect(anchor - measureYAxisTextWidth(tick.text())).toBeGreaterThanOrEqual(bandRight)
             } else {
-              expect(anchor + tick.text().length * 7).toBeLessThanOrEqual(bandLeft)
+              expect(anchor + measureYAxisTextWidth(tick.text())).toBeLessThanOrEqual(bandLeft)
             }
           })
         })

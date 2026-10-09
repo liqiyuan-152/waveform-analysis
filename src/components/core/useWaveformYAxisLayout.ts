@@ -7,6 +7,7 @@ import type { DisplayTrack } from './types'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { resolveYAxisLayoutMetrics } from './yAxisLayoutMetrics'
 import { Y_AXIS_OUTER_PADDING } from './yAxisConstants'
+import { measureYAxisTextWidth } from './yAxisTextWidth'
 
 interface YAxisLayoutContext {
   props: ResolvedWaveformChartProps
@@ -42,6 +43,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
       props.displayMode === 'compact',
       props.axes?.y?.upperPaddingRatio,
       showUnits.value,
+      isEdgeCompact.value ? measureYAxisTextWidth : undefined,
     ),
   )
   const hasYAxisLabels = computed(() =>
@@ -76,6 +78,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
       viewportYDomains.value,
       props.axes?.y?.upperPaddingRatio,
       showUnits.value,
+      isEdgeCompact.value ? measureYAxisTextWidth : undefined,
     ),
   )
   const resolvedChartLeftMargin = computed(() =>

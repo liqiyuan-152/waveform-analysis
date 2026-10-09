@@ -186,6 +186,7 @@ export function axisTextMetrics(
   unit?: string,
   tickCount = 5,
   includeWithoutLastTick = false,
+  measureTextWidth?: (text: string) => number,
 ): { tickTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
@@ -194,14 +195,17 @@ export function axisTextMetrics(
   if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
     tickValueSets.push(resolvedTicks.values.slice(0, -1))
   }
-  const maximumTickCharacters = Math.max(
-    1,
+  const maximumTickWidth = Math.max(
+    Y_AXIS_CHARACTER_WIDTH,
     ...tickValueSets.flatMap((values) =>
-      values.map((value) => formatYAxisTickLabel(value, resolvedTicks.domain, values, unit).length),
+      values.map((value) => {
+        const text = formatYAxisTickLabel(value, resolvedTicks.domain, values, unit)
+        return measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH
+      }),
     ),
   )
   return {
-    tickTextWidth: maximumTickCharacters * Y_AXIS_CHARACTER_WIDTH,
+    tickTextWidth: maximumTickWidth,
   }
 }
 
@@ -268,6 +272,7 @@ export function buildYAxisSlots(
   viewportYDomains?: Record<string, [number, number]>,
   upperPaddingRatio = 0,
   showUnits = true,
+  measureTextWidth?: (text: string) => number,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
@@ -289,6 +294,7 @@ export function buildYAxisSlots(
         showUnits ? group.seriesList[0]?.unit : undefined,
         tickCount,
         includeWithoutLastTick,
+        measureTextWidth,
       ).tickTextWidth
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))
     })
