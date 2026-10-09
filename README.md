@@ -91,7 +91,7 @@ const data = ref<WaveformData>({
 | `data`                     | `WaveformData`                              | 必填                                                                                  | 波形数据                                      |
 | `displayMode`              | `'independent' \| 'separated' \| 'compact'` | `'independent'`                                                                       | 图框布局                                      |
 | `overlayMode`              | `'single-axis' \| 'multi-axis'`             | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
-| `layoutPreset`             | `'default' \| 'edge-compact'`               | `'default'`                                                                           | 标题/时间标签贴边及独立分页区布局             |
+| `layoutPreset`             | `'default' \| 'edge-compact'`               | `'default'`                                                                           | 标题贴边、时间标签与响应式分页布局            |
 | `unitDisplayMode`          | `'axis' \| 'legend-single-series'`          | `'axis'`                                                                              | 可选的图表级单位展示规则                      |
 | `timeUnit`                 | `'s' \| 'ms'`                               | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
 | `xLabel` / `yLabel`        | `string`                                    | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
@@ -414,8 +414,8 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
   :data="waveformData"
   layout-preset="edge-compact"
   :title="{ text: 'shot: #1001', textStyle: { fontSize: 18, fontWeight: 700 } }"
-  x-label="Time"
-  :plot-margin="{ bottom: 35 }"
+  x-label="time(ms)"
+  :plot-margin="{ top: 0, bottom: 44 }"
 />
 ```
 
@@ -424,17 +424,20 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
 布局；可与 `unitDisplayMode='legend-single-series'` 一起使用。
 
 `'edge-compact'` 下，标题区域使用实际测量的文字显示高度加 8px，顶部约 4px 留白，
-不再强制最少 44px。无标题、空标题或 `title.visible=false` 时不预留标题区。
+不再强制最少 44px。设置 `plotMargin.top=0` 时，标题底部距内部绘图上边框约 4px。
+无标题、空标题或 `title.visible=false` 时不预留标题区。
 标题字体仍由 `title.textStyle` 控制，保留长标题换行及旋转缩放（旋转标题区域上限
 仍为 160px）。测量完成前使用文字尺寸估计，不重复放大已经测量的多行高度。
 
 时间标签（`xLabel`，默认仍为 `时间（ms）` 或 `时间（s）`）单独使用 18px、字重 700，
-水平居中于绘图区，文字下边缘距 SVG 内容区下沿约 4px。分页按钮显示时，在卡片
-底部独立预留 40px，时间标签位于分页区上方；宽窄图表均相同。预留条件与按钮
-显隐完全一致：`grid.showPagination && pageCount > 1 && !cleanView`，没有分页时
-不预留按钮区。`cleanView` 仍隐藏时间标签及标题文字，保留既有标题区域策略。
+水平居中于绘图区，采用原始基线位置 `drawingHeight - 12px`，不设置额外的
+`dominant-baseline`。通过 `xLabel='time(ms)'` 传入严格的业务文字，组件不自动改写。
+桌面宽度大于 520px 时，分页在右下角，与时间标签共用底部区，不额外预留分页高度。
+宽度小于等于 520px 时，仅在按钮可见时预留 40px，时间标签位于分页区上方；预留
+条件为 `grid.showPagination && pageCount > 1 && !cleanView && chartWidth <= 520`。
+没有分页或净图模式不预留按钮区。`cleanView` 仍隐藏时间标签及标题文字，保留既有标题区域策略。
 
-紧凑模式的 `plotMargin.bottom` 最小为 40px（传入 35px 会按 40px 布局），与既有
+紧凑模式的 `plotMargin.bottom` 最小为 44px（传入 35px 会按 44px 布局），与既有
 X 轴刻度带一起保证底部刻度和 18px 时间标签之间的间距；更大的有效边距仍保留。
 刻度字号保持原值。`plotMargin` 不改变标签距底部的位置。该布局只影响展示尺寸，
 既有平移事件与范围、单位模式、tooltip 和 Y 轴上限留白 API 保持不变。
