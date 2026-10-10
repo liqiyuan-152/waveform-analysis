@@ -3,6 +3,7 @@ import { computed } from 'vue'
 
 import type { WaveformLegendPosition } from '../../types'
 import type { DisplaySeries } from '../core/types'
+import { formatChannelLabel } from './channelLabel'
 import {
   waveformLegendErrorBarPath,
   waveformLegendLinePath,
@@ -33,8 +34,7 @@ const emit = defineEmits<{
 const hiddenSeriesIdSet = computed(() => new Set(props.hiddenSeriesIds))
 
 function legendLabel(series: DisplaySeries): string {
-  const unit = series.unit?.trim()
-  return props.showUnits && unit && unit !== '--' ? `${series.name} (${unit})` : series.name
+  return props.showUnits ? formatChannelLabel(series.name, series.unit, ' ') : series.name
 }
 
 function isHidden(seriesId: string): boolean {
@@ -193,7 +193,9 @@ function toggleSeries(seriesId: string) {
   padding: 5px 7px;
   overflow: hidden;
   color: #344054;
-  font: 12px/1.35 sans-serif;
+  font:
+    11px/1.35 'Times New Roman',
+    serif;
   border: 1px solid rgb(208 213 221 / 90%);
   border-radius: 4px;
 }

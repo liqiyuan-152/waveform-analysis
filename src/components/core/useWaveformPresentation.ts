@@ -73,9 +73,7 @@ export function useWaveformPresentation(context: PresentationContext) {
           : ZERO_LINE_DEFAULTS.BOUNDARY_THRESHOLD,
     }
   })
-  const legendBackgroundColor = computed(
-    () => props.legend.backgroundColor || 'rgba(255, 255, 255, 0.7)',
-  )
+  const legendBackgroundColor = computed(() => props.legend.backgroundColor || 'transparent')
   const legendInteractive = computed(() => props.legend.interactive === true)
   const hiddenSeriesIdSet = computed(() =>
     props.hiddenSeriesIds === undefined

@@ -45,6 +45,9 @@ describe('WaveformTooltip', () => {
 
     expect(tooltip.attributes('style')).toContain('left: 112px')
     expect(tooltip.attributes('style')).not.toContain('right:')
+    const style = getComputedStyle(tooltip.element)
+    expect(style.fontSize).toBe('11px')
+    expect(style.fontFamily).toContain('Times New Roman')
   })
 
   it('flips the tooltip to the left near the right boundary', async () => {

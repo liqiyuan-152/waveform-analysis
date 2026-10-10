@@ -16,7 +16,11 @@ export interface WaveformPoint {
 export type WaveformLayoutPreset = 'default' | 'edge-compact'
 
 /** Controls unit placement without changing series metadata. */
-export type WaveformUnitDisplayMode = 'axis' | 'legend-single-series'
+export type WaveformUnitDisplayMode =
+  | 'axis'
+  | 'legend-single-series'
+  /** Label and legend units; hide all channel titles on pages containing a multi-series track. */
+  | 'channel-label-or-legend'
 
 /**
  * 显示模式

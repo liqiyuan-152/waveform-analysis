@@ -22,6 +22,7 @@ const {
   overlayMode,
   unitDisplayMode,
   showLegendUnits,
+  hideYAxisTitles,
   resolvedChartLeftMargin,
   titleAreaHeight,
   resolvedPlotMargin,
@@ -255,6 +256,8 @@ function sharesFrameTop(track: TrackLayout): boolean {
           :frame-style="frameStyle"
           :axes="axes"
           :show-axis-units="unitDisplayMode === 'axis'"
+          :show-label-units="unitDisplayMode === 'channel-label-or-legend'"
+          :hide-y-axis-titles="hideYAxisTitles"
           :contain-y-axis-endpoints="isEdgeCompact"
           :contain-frame-stroke="isEdgeCompact"
           :omit-frame-top="sharesFrameTop(track)"
@@ -309,10 +312,7 @@ function sharesFrameTop(track: TrackLayout): boolean {
             :transform="`translate(${track.left}, ${track.top})`"
           >
             <WaveformLegend
-              v-if="
-                !track.isEmpty &&
-                (track.legendSeries.length > 1 || unitDisplayMode === 'legend-single-series')
-              "
+              v-if="!track.isEmpty && (track.legendSeries.length > 1 || hideYAxisTitles)"
               :series="track.legendSeries"
               :show-units="showLegendUnits"
               :position="resolveLegendPosition(track.id)"

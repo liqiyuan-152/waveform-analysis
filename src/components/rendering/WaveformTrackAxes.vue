@@ -7,6 +7,7 @@ import { formatXAxisLabel } from '../../utils'
 import { formatYAxisTickLabel } from '../core/layout'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
 import { Y_AXIS_LABEL_BAND_WIDTH } from '../core/yAxisConstants'
+import { formatChannelLabel } from './channelLabel'
 
 interface Props {
   track: TrackLayout
@@ -16,6 +17,8 @@ interface Props {
   timeUnit: 's' | 'ms'
   yLabel?: string
   showUnits?: boolean
+  showLabelUnits?: boolean
+  hideYAxisTitles?: boolean
   containYAxisEndpoints?: boolean
 }
 
@@ -24,7 +27,8 @@ const xAxisElement = ref<SVGGElement>()
 const yAxisElements = ref<SVGGElement[]>([])
 
 function resolveYAxisLabel(series: DisplaySeries): string {
-  return series.name.trim() || props.yLabel || ''
+  const name = series.name.trim() || props.yLabel || ''
+  return props.showLabelUnits ? formatChannelLabel(name, series.unit) : name
 }
 
 function hasYAxisTitle(axis: WaveformYAxisLayout): boolean {
@@ -34,12 +38,6 @@ function hasYAxisTitle(axis: WaveformYAxisLayout): boolean {
 
 function setYAxisElement(element: unknown, index: number) {
   if (element) yAxisElements.value[index] = element as SVGGElement
-}
-
-function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean {
-  const minimumHeightForLabel = 80
-  if (trackHeight >= minimumHeightForLabel) return true
-  return trackIndex % Math.ceil(minimumHeightForLabel / trackHeight) === 0
 }
 
 function renderAxes() {
@@ -182,13 +180,13 @@ watch(
   <g
     v-if="
       !cleanView &&
+      !hideYAxisTitles &&
       !track.isEmpty &&
       track.hasVisibleSeries &&
       track.seriesList.length === 1 &&
       track.showYAxisLabel &&
       track.series &&
-      resolveYAxisLabel(track.series) &&
-      shouldShowYAxisLabel(track.height, track.index)
+      resolveYAxisLabel(track.series)
     "
   >
     <rect
@@ -211,7 +209,9 @@ watch(
   </g>
 
   <g
-    v-for="axis in !cleanView && track.yAxes.length > 1 ? track.yAxes.filter(hasYAxisTitle) : []"
+    v-for="axis in !cleanView && !hideYAxisTitles && track.yAxes.length > 1
+      ? track.yAxes.filter(hasYAxisTitle)
+      : []"
     :key="`y-axis-title-${track.index}-${axis.index}`"
     class="waveform-track__multi-axis-title"
     :data-y-axis-title-index="axis.index"

@@ -93,8 +93,9 @@ export function useWaveformLayout(context: LayoutContext) {
   })
   const showLegendUnits = computed(
     () =>
-      props.unitDisplayMode === 'legend-single-series' &&
-      !chartTracks.value.some((track) => track.series.length > 1),
+      props.unitDisplayMode === 'channel-label-or-legend' ||
+      (props.unitDisplayMode === 'legend-single-series' &&
+        !chartTracks.value.some((track) => track.series.length > 1)),
   )
   const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
   const pageableTracks = computed(() =>
@@ -103,6 +104,11 @@ export function useWaveformLayout(context: LayoutContext) {
   const pageCount = computed(() => getPageCount(pageableTracks.value.length, gridOptions.value))
   const pagedTracks = computed(() =>
     paginateSeries(pageableTracks.value, currentPage.value, gridOptions.value),
+  )
+  const hideYAxisTitles = computed(
+    () =>
+      props.unitDisplayMode === 'channel-label-or-legend' &&
+      pagedTracks.value.some((track) => track.series.length > 1),
   )
   const layoutTracks = computed(() => {
     const tracksWithSeries = pagedTracks.value.filter((track) => track.series.length > 0)
@@ -233,7 +239,9 @@ export function useWaveformLayout(context: LayoutContext) {
       grid: gridOptions.value,
       useNonEmptyBottomTracks: props.layoutPreset === 'edge-compact',
       compactYAxisLayout: props.layoutPreset === 'edge-compact',
-      showAxisUnits: props.layoutPreset !== 'edge-compact' || props.unitDisplayMode === 'axis',
+      showAxisUnits:
+        props.unitDisplayMode !== 'channel-label-or-legend' &&
+        (props.layoutPreset !== 'edge-compact' || props.unitDisplayMode === 'axis'),
       displayMode: props.displayMode,
       overlayMode: props.overlayMode,
       independentTransforms: independentTransforms.value,
@@ -306,6 +314,7 @@ export function useWaveformLayout(context: LayoutContext) {
     chartSeries,
     chartTracks,
     showLegendUnits,
+    hideYAxisTitles,
     pageableTracks,
     renderingOptions,
     gridOptions,

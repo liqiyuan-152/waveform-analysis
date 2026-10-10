@@ -133,8 +133,8 @@ const tooltipStyle = computed(() => {
   padding: 9px 12px;
   color: #505050;
   font:
-    14px/1.35 Arial,
-    sans-serif;
+    11px/1.35 'Times New Roman',
+    serif;
   pointer-events: none;
   background: #fff;
   border: 1px solid #e3e7eb;

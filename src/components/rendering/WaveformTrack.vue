@@ -24,6 +24,8 @@ interface Props {
   timeUnit: 's' | 'ms'
   yLabel?: string
   showAxisUnits?: boolean
+  showLabelUnits?: boolean
+  hideYAxisTitles?: boolean
   containYAxisEndpoints?: boolean
   containFrameStroke?: boolean
   omitFrameTop?: boolean
@@ -113,6 +115,8 @@ const openFramePath = computed(() => {
       :time-unit="timeUnit"
       :y-label="yLabel"
       :show-units="showAxisUnits"
+      :show-label-units="showLabelUnits"
+      :hide-y-axis-titles="hideYAxisTitles"
       :contain-y-axis-endpoints="containYAxisEndpoints || displayMode === 'compact'"
     />
 

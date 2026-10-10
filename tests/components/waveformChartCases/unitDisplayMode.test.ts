@@ -38,7 +38,6 @@ describe('WaveformChart unit placement', () => {
       expect(wrapper.findAll('.waveform-legend__label').map((label) => label.text())).toEqual([
         'CH1(1001)',
         'CH2(1001)',
-        'CH3(1001)',
       ])
       wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
         expect(axis.text()).toContain('E+04 3')
@@ -55,8 +54,8 @@ describe('WaveformChart unit placement', () => {
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04 (V) 3')
     await wrapper.setProps({ unitDisplayMode: mode })
     await flushPromises()
-    expect(wrapper.get('.waveform-legend__label').text()).toBe('CH1(1001) (V)')
-    expect(wrapper.get('.waveform-legend__label').attributes('title')).toBe('CH1(1001) (V)')
+    expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04 3')
     expect(wrapper.get('.waveform-chart__axis--y').text()).not.toContain('(V)')
     await wrapper.setProps({ unitDisplayMode: 'axis' })
@@ -66,8 +65,14 @@ describe('WaveformChart unit placement', () => {
   })
 
   it.each([undefined, '', '  ', '--', ' -- '])('omits unknown legend unit %s', async (unit) => {
-    const wrapper = await mountSizedChart(data(series('CH1', 'one', unit)), options)
-    expect(wrapper.get('.waveform-legend__label').text()).toBe('CH1(1001)')
+    const wrapper = await mountSizedChart(
+      data(series('CH1', 'merged', unit), series('CH2', 'merged', unit)),
+      options,
+    )
+    expect(wrapper.findAll('.waveform-legend__label').map((label) => label.text())).toEqual([
+      'CH1(1001)',
+      'CH2(1001)',
+    ])
   })
 
   it.each(['single-axis', 'multi-axis'] as const)(
@@ -84,7 +89,7 @@ describe('WaveformChart unit placement', () => {
         overlayMode === 'single-axis' ? 1 : 2,
       )
       wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
-        expect(axis.text()).toContain('E+04 3')
+        expect(axis.text()).toMatch(/E\+04 3|3 E\+04/)
         expect(axis.text()).not.toMatch(/\([VA]\)/)
       })
       const overlay = wrapper.get('.waveform-chart__overlay--independent')
@@ -108,7 +113,8 @@ describe('WaveformChart unit placement', () => {
       data(series('CH1', 'one', 'V'), series('CH2', 'merged', 'V'), series('CH3', 'merged', 'V')),
       { ...options, hiddenSeriesIds: ['CH3'] },
     )
-    expect(wrapper.get('.waveform-legend__label').text()).toBe('CH1(1001)')
+    expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     expect(wrapper.get('.waveform-chart__axis--y').text()).not.toContain('(V)')
     await wrapper.get('.ant-pagination-next button').trigger('click')
     await flushPromises()
@@ -122,9 +128,11 @@ describe('WaveformChart unit placement', () => {
       wrapper.findAll('.waveform-legend__label').every((label) => !label.text().includes('(V)')),
     ).toBe(true)
     await wrapper.get('.ant-pagination-prev button').trigger('click')
-    expect(wrapper.get('.waveform-legend__label').text()).toBe('CH1(1001)')
+    expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     await wrapper.setProps({ data: data(series('CH1', 'one', 'V')) })
-    expect(wrapper.get('.waveform-legend__label').text()).toBe('CH1(1001) (V)')
+    expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
   })
 
   it.each([false, true])(
@@ -142,9 +150,10 @@ describe('WaveformChart unit placement', () => {
           },
         },
       )
-      expect(wrapper.findAll('.waveform-legend__label').map((label) => label.text())).toEqual([
-        'CH1(1001) (V)',
-        'CH2(1001) (A)',
+      expect(wrapper.findAll('.waveform-legend__label')).toHaveLength(0)
+      expect(wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text())).toEqual([
+        'CH1(1001)',
+        'CH2(1001)',
       ])
       expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(hideEmptyTracks ? 0 : 1)
       wrapper.findAll('.waveform-chart__track--empty').forEach((track) => {

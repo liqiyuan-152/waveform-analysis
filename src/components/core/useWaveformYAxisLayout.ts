@@ -30,7 +30,11 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
     yAxisTickCount,
   } = context
   const isEdgeCompact = computed(() => props.layoutPreset === 'edge-compact')
-  const showUnits = computed(() => !isEdgeCompact.value || props.unitDisplayMode === 'axis')
+  const showUnits = computed(
+    () =>
+      props.unitDisplayMode !== 'channel-label-or-legend' &&
+      (!isEdgeCompact.value || props.unitDisplayMode === 'axis'),
+  )
   const yAxisMetrics = computed(() =>
     resolveYAxisLayoutMetrics(
       chartTracks.value,
