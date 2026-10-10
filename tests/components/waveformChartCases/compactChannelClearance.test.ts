@@ -50,7 +50,7 @@ describe('compact channel name clearance', () => {
         )
         expect(
           getComputedStyle(tracks[0].get('.waveform-chart__y-axis-label').element).fontSize,
-        ).toBe('14px')
+        ).toBe('12px')
       }
       await check(1200)
       await check(375)

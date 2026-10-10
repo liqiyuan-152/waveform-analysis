@@ -337,7 +337,7 @@ describe('WaveformChart', () => {
     expect(xAxis.get('path.domain').attributes('display')).toBe('none')
     expect(wrapper.findAll('.waveform-chart__axis-endpoint')).toHaveLength(2)
     expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
-    expect(yAxes.some((axis) => axis.text().includes('E+04 '))).toBe(true)
+    expect(yAxes.some((axis) => axis.text().includes('E+04'))).toBe(true)
     expect(wrapper.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({

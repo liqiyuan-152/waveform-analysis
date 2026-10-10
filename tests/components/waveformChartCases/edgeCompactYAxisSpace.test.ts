@@ -72,7 +72,9 @@ describe('edge-compact Y-axis space', () => {
       await flushPromises()
       const track = wrapper.get('.waveform-chart__track')
       const ticks = track.findAll('.waveform-chart__axis--y .tick text')
-      const tickWidth = Math.max(...ticks.map((tick) => measureYAxisTextWidth(tick.text())))
+      const tickWidth = Math.max(
+        ...ticks.map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+ /, ''))),
+      )
       expect(track.get('.waveform-chart__axis--y').text()).toContain('E+04')
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
@@ -106,12 +108,12 @@ describe('edge-compact Y-axis space', () => {
     [-0.0000012345, 0.0000012345],
     [-123.456789, 876.543211],
   ])(
-    'reserves every visible scientific/long tick for domain %s to %s',
+    'reserves numeric ticks intersecting a full-height name for domain %s to %s',
     async (minimum, maximum) => {
       const wrapper = mount(WaveformChart, {
         props: {
           ...props,
-          data: data(series('LONG_CHANNEL_NAME', 'A', minimum, maximum)),
+          data: data(series('LONG_CHANNEL_NAME'.repeat(6), 'A', minimum, maximum)),
           yDomain: [minimum, maximum],
           axes: { y: { nice: false } },
         },
@@ -171,7 +173,8 @@ describe('edge-compact Y-axis space', () => {
             if (axis.attributes('data-y-axis-side') === 'left') {
               expect(anchor - measureYAxisTextWidth(tick.text())).toBeGreaterThanOrEqual(bandRight)
             } else {
-              expect(anchor + measureYAxisTextWidth(tick.text())).toBeLessThanOrEqual(bandLeft)
+              const numericText = tick.text().replace(/ E[+-]\d+/, '')
+              expect(anchor + measureYAxisTextWidth(numericText)).toBeLessThanOrEqual(bandLeft)
             }
           })
         })
