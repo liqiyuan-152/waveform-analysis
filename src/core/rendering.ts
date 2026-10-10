@@ -1,6 +1,6 @@
 import { bisector } from 'd3'
 
-import type { WaveformPoint } from '@/types'
+import type { WaveformPoint } from '../types'
 import { resolveWaveformPointErrors } from './data'
 import type { ResolvedWaveformRenderingOptions } from './renderingOptions'
 import {

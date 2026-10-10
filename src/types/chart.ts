@@ -28,7 +28,8 @@ export type WaveformInteractionMode = 'zoom' | 'annotation'
 
 /** Controls how the initial X viewport is derived when no explicit domain is configured. */
 export interface WaveformXDomainStrategy {
-  type: 'data' | 'nice'
+  /** integer-ms rounds initial bounds outward to range-appropriate multiples of 10 ms. */
+  type: 'data' | 'nice' | 'integer-ms'
   /** Selects which bounds are expanded when type is `nice`. Defaults to `both`. */
   bounds?: 'both' | 'end'
   /** Stable tick count used to calculate nice bounds. Defaults to 10. */
@@ -47,6 +48,15 @@ export interface WaveformZoomEndPayload {
   trackIndex?: number
   seriesIds?: string[]
   gesture?: 'wheel' | 'box'
+}
+
+/** Describes the X-axis viewport targeted by a user zoom gesture before rendering settles. */
+export interface WaveformZoomIntentPayload {
+  start: number
+  end: number
+  gesture: 'wheel' | 'box'
+  trackIndex?: number
+  seriesIds?: string[]
 }
 
 /** Identifies the viewport reset by a double-click gesture. */

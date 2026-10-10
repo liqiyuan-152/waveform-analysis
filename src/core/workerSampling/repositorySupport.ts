@@ -1,6 +1,6 @@
 import { bisector } from 'd3'
 
-import type { WaveformPoint } from '@/types'
+import type { WaveformPoint } from '../../types'
 import {
   DEFAULT_WORKER_SAMPLING_AUTO_THRESHOLD,
   DEFAULT_WORKER_SAMPLING_MAX_POINTS_PER_PIXEL,

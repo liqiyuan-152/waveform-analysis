@@ -1,4 +1,4 @@
-import type { WaveformPoint } from '@/types'
+import type { WaveformPoint } from '../../types'
 
 import type { WorkerSamplingOutput } from './protocol'
 

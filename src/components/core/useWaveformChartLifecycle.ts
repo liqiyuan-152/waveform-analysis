@@ -9,12 +9,12 @@ import {
   type ShallowRef,
 } from 'vue'
 
-import type { AnnotationSeriesCandidate } from '../annotation'
-import type { useWaveformAnnotationInteraction } from '../annotation'
+import type { AnnotationSeriesCandidate, useWaveformAnnotationInteraction } from '../annotation'
 import type { NormalizedWaveformGridOptions } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
 import { constrainZoomDomain, transformForDomain } from '../interaction/zoomConstraints'
+import { seriesIdentity } from '../interaction/zoomEventPayload'
 
 interface LifecycleContext {
   props: ResolvedWaveformChartProps
@@ -152,16 +152,20 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   }
 
   let pendingSharedXDomain: [number, number] | undefined
-  let pendingIndependentXDomains: Array<[number, number] | undefined> | undefined
+  let pendingIndependentXDomains: Map<string, [number, number]> | undefined
 
   function handleBeforeDataReferenceChange() {
     if (props.displayMode === 'independent') {
       pendingSharedXDomain = undefined
-      pendingIndependentXDomains = trackLayouts.value.map((track) => {
-        const current = track.xScale.domain() as [number, number]
-        const boundary = resolveInitialTrackDomain(track)
-        return current[1] - current[0] < boundary[1] - boundary[0] - 1e-12 ? current : undefined
-      })
+      pendingIndependentXDomains = new Map(
+        trackLayouts.value.flatMap((track) => {
+          const current = track.xScale.domain() as [number, number]
+          const boundary = resolveInitialTrackDomain(track)
+          return current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
+            ? [[seriesIdentity(track.seriesList.map((series) => series.id)), current]]
+            : []
+        }),
+      )
       return
     }
     pendingIndependentXDomains = undefined
@@ -184,7 +188,9 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
       if (props.displayMode === 'independent' && pendingIndependentXDomains) {
         const nextTransforms = chartTracks.value.map(() => zoomIdentity)
         trackLayouts.value.forEach((track) => {
-          const previousDomain = pendingIndependentXDomains?.[track.index]
+          const previousDomain = pendingIndependentXDomains?.get(
+            seriesIdentity(track.seriesList.map((series) => series.id)),
+          )
           if (!previousDomain) return
           const boundary = resolveInitialTrackDomain(track)
           const domain = constrainZoomDomain(previousDomain, boundary, [track.seriesList], props)

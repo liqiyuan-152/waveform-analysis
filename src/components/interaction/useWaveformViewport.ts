@@ -10,6 +10,7 @@ import { tryReleasePointerCapture } from './pointerCapture'
 import { transitionViewportInteraction } from './viewportInteractionState'
 import { createViewportDomainSetter } from './viewportDomain'
 import { constrainZoomDomain, transformForDomain } from './zoomConstraints'
+import { emitBoxZoomIntent } from './zoomEventPayload'
 interface ViewportContext {
   props: ResolvedWaveformChartProps
   emit: WaveformChartEmit
@@ -254,6 +255,7 @@ export function useWaveformViewport(context: ViewportContext) {
     } else {
       sharedTransform.value = transformForDomain(xDomain, baseXDomain, innerWidth.value)
     }
+    emitBoxZoomIntent(emit, xDomain, track, active.independent)
     const targets = active.independent
       ? [track]
       : trackLayouts.value.filter((target) => target.hasVisibleSeries)

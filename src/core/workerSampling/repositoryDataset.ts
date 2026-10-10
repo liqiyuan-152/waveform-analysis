@@ -1,4 +1,4 @@
-import type { WaveformPoint } from '@/types'
+import type { WaveformPoint } from '../../types'
 import type { WorkerSamplingDataset } from '../waveformPointSource'
 import type { WasmDatasetSamplingBackend } from '../wasmSampling'
 import { MultiResolutionSamplingIndex } from './multiresolution'

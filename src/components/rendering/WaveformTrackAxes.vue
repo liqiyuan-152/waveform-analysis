@@ -3,7 +3,8 @@ import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import { nextTick, onMounted, ref, watch } from 'vue'
 
 import type { WaveformAxesOptions } from '../../types'
-import { formatScientificAxisLabel, formatXAxisLabel } from '../../utils'
+import { formatXAxisLabel } from '../../utils'
+import { formatYAxisTickLabel } from '../core/layout'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
 import { Y_AXIS_LABEL_BAND_WIDTH } from '../core/yAxisConstants'
 
@@ -43,12 +44,15 @@ function renderAxes() {
   props.track.yAxes.forEach((axis, index) => {
     const element = yAxisElements.value[index]
     if (!element) return
-    const [axisMin, axisMax] = axis.scale.domain()
-    const topTickValue = Math.max(...axis.tickValues)
     const unit = axis.seriesList[0]?.unit
     const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
       .tickFormat((value) =>
-        formatScientificAxisLabel(Number(value), { axisMin, axisMax, topTickValue, unit }),
+        formatYAxisTickLabel(
+          Number(value),
+          axis.scale.domain() as [number, number],
+          axis.tickValues,
+          unit,
+        ),
       )
       .tickSize(-4)
       .tickPadding(7)

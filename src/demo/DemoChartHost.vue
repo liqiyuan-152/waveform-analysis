@@ -24,6 +24,7 @@ defineExpose({ resetViewport })
       :data="model.data"
       :min-visible-points="2"
       :initial-x-domain="model.initialXDomain"
+      :x-domain-strategy="{ type: 'integer-ms', includeExplicit: true }"
       :display-mode="model.displayMode"
       :overlay-mode="model.overlayMode"
       :grid="{

@@ -87,9 +87,13 @@ export function useWaveformChartController(
   const pointerInsideChart = ref(false)
   let handleBeforeDataReferenceChange: () => void = () => undefined
   let handleDataReferenceChange: () => void = () => undefined
+  let prepareForDataChange: () => void = () => undefined
   const preparedSeries = usePreparedWaveformSeries(
     () => props.data,
-    () => handleBeforeDataReferenceChange(),
+    () => {
+      prepareForDataChange()
+      handleBeforeDataReferenceChange()
+    },
     () => handleDataReferenceChange(),
   )
 
@@ -184,6 +188,7 @@ export function useWaveformChartController(
     resolveInitialTrackDomain,
     cancelPendingHover: () => hover.cancelPendingHover(),
   })
+  prepareForDataChange = zoom.prepareForDataChange
 
   const annotations = useWaveformChartAnnotations({
     props,

@@ -86,7 +86,7 @@ unit and annotation Y uses full plain decimal text. Raw numeric values remain un
 
 ## Testing
 
-Tests are in [WaveformChart.test.ts](src/components/WaveformChart.test.ts) using Vitest + @vue/test-utils. Test setup is in [src/test/setup.ts](src/test/setup.ts).
+Tests are organized under [tests/](tests/) using Vitest + @vue/test-utils. Shared test setup is in [tests/support/setup.ts](tests/support/setup.ts).
 
 When adding features, verify:
 

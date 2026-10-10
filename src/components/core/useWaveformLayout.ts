@@ -7,16 +7,7 @@ import {
   type AnnotationSeriesInfo,
   type AnnotationTrackLayout,
 } from '../annotation'
-import {
-  channelColors,
-  margin,
-  MINIMUM_PLOT_WIDTH,
-  Y_AXIS_CHARACTER_WIDTH,
-  Y_AXIS_LABEL_BAND_WIDTH,
-  Y_AXIS_LABEL_GAP,
-  Y_AXIS_OUTER_PADDING,
-  Y_AXIS_TICK_PADDING,
-} from './constants'
+import { channelColors, margin, MINIMUM_PLOT_WIDTH } from './constants'
 import {
   getGridGap,
   getPageCount,
@@ -24,17 +15,13 @@ import {
   paginateSeries,
   resolveGridCellGeometry,
 } from './grid'
-import {
-  buildTrackLayouts,
-  axisTextMetrics,
-  buildYAxisSlots,
-  resolveYAxisSeriesGroups,
-} from './layout'
+import { buildTrackLayouts, buildYAxisSlots, resolveYAxisTickCount } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { createFrameNumberResolver, resolvePageableTracks } from './trackPagination'
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
+import { resolveYAxisLayoutMetrics, resolveViewportYDomains } from './yAxisLayoutMetrics'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
   props: ResolvedWaveformChartProps
@@ -121,38 +108,29 @@ export function useWaveformLayout(context: LayoutContext) {
       ? tracksWithSeries
       : pagedTracks.value
   })
-  const yAxisMetrics = computed(() => {
-    const axisText = chartTracks.value
-      .filter((track) => track.visibleSeries.length > 0)
-      .flatMap((track) =>
-        resolveYAxisSeriesGroups(track, props.overlayMode, props.yDomain, props.yDomains),
-      )
-      .map(
-        (group) =>
-          axisTextMetrics(
-            group.domain,
-            props.axes?.y?.nice !== false,
-            undefined,
-            group.seriesList[0]?.unit,
-            props.axes?.y?.splitNumber,
-          ).tickTextWidth,
-      )
-    const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)
-    const tickClearance = tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_OUTER_PADDING
-    const labelCenterX = -(
-      Y_AXIS_TICK_PADDING +
-      tickTextWidth +
-      Y_AXIS_LABEL_GAP +
-      Y_AXIS_LABEL_BAND_WIDTH / 2
-    )
-    const fullClearance =
-      tickTextWidth +
-      Y_AXIS_TICK_PADDING +
-      Y_AXIS_LABEL_GAP +
-      Y_AXIS_LABEL_BAND_WIDTH +
-      Y_AXIS_OUTER_PADDING
-    return { tickClearance, fullClearance, labelCenterX }
-  })
+  const yAxisTickCount = computed(() =>
+    resolveYAxisTickCount(innerHeight.value, props.axes?.y?.splitNumber),
+  )
+  const viewportYDomains = computed(() =>
+    resolveViewportYDomains(
+      props.displayMode,
+      chartTracks.value,
+      sharedYDomains.value,
+      independentYDomains.value,
+    ),
+  )
+  const yAxisMetrics = computed(() =>
+    resolveYAxisLayoutMetrics(
+      chartTracks.value,
+      props.overlayMode,
+      props.yDomain,
+      props.yDomains,
+      viewportYDomains.value,
+      props.axes?.y?.nice !== false,
+      yAxisTickCount.value,
+      props.displayMode === 'compact',
+    ),
+  )
   const hasYAxisLabels = computed(() =>
     chartTracks.value.some(
       (track) =>
@@ -179,8 +157,10 @@ export function useWaveformLayout(context: LayoutContext) {
       props.overlayMode,
       props.yDomain,
       props.yDomains,
-      props.axes?.y?.splitNumber,
+      yAxisTickCount.value,
       props.axes?.y?.nice !== false,
+      props.displayMode === 'compact',
+      viewportYDomains.value,
     ),
   )
   const resolvedChartLeftMargin = computed(() =>
@@ -302,15 +282,7 @@ export function useWaveformLayout(context: LayoutContext) {
       xDomainStrategy: props.xDomainStrategy,
       fixedYDomain: props.yDomain,
       fixedYDomains: props.yDomains,
-      yDomains:
-        props.displayMode === 'independent'
-          ? Object.fromEntries(
-              chartTracks.value.flatMap((track, index) => {
-                const domain = independentYDomains.value[index]
-                return domain ? [[track.id, domain]] : []
-              }),
-            )
-          : sharedYDomains.value,
+      yDomains: viewportYDomains.value,
       timeUnit: props.timeUnit,
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
       yAxisSplitNumber: props.axes?.y?.splitNumber,
