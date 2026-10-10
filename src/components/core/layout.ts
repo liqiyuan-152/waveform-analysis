@@ -164,7 +164,11 @@ export function resolveRenderedYAxisSeriesGroups(
   upperPaddingRatio = 0,
 ): YAxisSeriesGroup[] {
   const viewportYDomain = viewportYDomains?.[track.id]
-  return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).map((group) =>
+  const axisTrack =
+    track.visibleSeries.length || !track.series.length
+      ? track
+      : { ...track, visibleSeries: track.series }
+  return resolveYAxisSeriesGroups(axisTrack, overlayMode, yDomain, yDomains).map((group) =>
     !group.fixed && viewportYDomain
       ? { ...group, domain: viewportYDomain }
       : !group.fixed && Number.isFinite(upperPaddingRatio) && upperPaddingRatio > 0

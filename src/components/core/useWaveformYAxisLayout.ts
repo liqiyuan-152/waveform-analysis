@@ -47,28 +47,28 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
     ),
   )
   const hasYAxisLabels = computed(() =>
-    chartTracks.value.some(
-      (track) =>
-        track.visibleSeries.length === 1 &&
-        Boolean(track.visibleSeries[0]?.name.trim() || props.yLabel),
-    ),
+    chartTracks.value.some((track) => {
+      const series = track.visibleSeries.length ? track.visibleSeries : track.series
+      return series.length === 1 && Boolean(series[0]?.name.trim() || props.yLabel)
+    }),
   )
   const hasVisibleWaveformData = computed(() =>
     chartTracks.value.some((track) => track.visibleSeries.length > 0),
   )
+  const hasAxisData = computed(() => chartTracks.value.some((track) => track.series.length > 0))
   const chartLeftMargin = computed(() =>
     Math.max(
       margin.left,
       hasYAxisLabels.value
         ? yAxisMetrics.value.fullClearance
-        : hasVisibleWaveformData.value
+        : hasAxisData.value
           ? yAxisMetrics.value.tickClearance
           : 0,
     ),
   )
   const yAxisSlots = computed(() =>
     buildYAxisSlots(
-      layoutTracks.value.filter((track) => track.visibleSeries.length > 0),
+      layoutTracks.value.filter((track) => track.series.length > 0),
       props.overlayMode,
       props.yDomain,
       props.yDomains,
@@ -91,7 +91,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
   // The same slot places the title and reserves its entire 20px band. The outer
   // padding belongs to the chart edge, rather than the old fixed 48px minimum.
   const compactLeftClearance = computed(() =>
-    !hasVisibleWaveformData.value
+    !hasAxisData.value
       ? 0
       : props.overlayMode === 'multi-axis' || hasYAxisLabels.value
         ? yAxisSlots.value.clearance.left
@@ -118,9 +118,9 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
     const canReserveLabelClearance = plotWidth >= MINIMUM_PLOT_WIDTH
     return {
       horizontalGap:
-        props.overlayMode === 'multi-axis' && hasMultipleColumns && hasVisibleWaveformData.value
+        props.overlayMode === 'multi-axis' && hasMultipleColumns && hasAxisData.value
           ? Math.max(baseGap, yAxisSlots.value.clearance.left + yAxisSlots.value.clearance.right)
-          : hasMultipleColumns && hasVisibleWaveformData.value
+          : hasMultipleColumns && hasAxisData.value
             ? hasYAxisLabels.value && canReserveLabelClearance
               ? fullGap
               : tickGap

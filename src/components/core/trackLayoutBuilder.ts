@@ -290,11 +290,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         vertical: true,
       },
       showXAxis:
-        (isEmpty || hasVisibleSeries) &&
-        (options.displayMode === 'independent' ||
-          (options.displayMode === 'compact'
-            ? (cell.isLastRow ?? cell.row === options.grid.rowCount - 1)
-            : bottomCells.has(cell.slotIndex))),
+        options.displayMode === 'independent' ||
+        (options.displayMode === 'compact'
+          ? (cell.isLastRow ?? cell.row === options.grid.rowCount - 1)
+          : bottomCells.has(cell.slotIndex)),
     }
   })
 

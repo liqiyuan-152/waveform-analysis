@@ -45,7 +45,7 @@ export function resolveYAxisLayoutMetrics(
   measureTextWidth?: (text: string) => number,
 ): YAxisLayoutMetrics {
   const axisText = chartTracks
-    .filter((track) => track.visibleSeries.length > 0)
+    .filter((track) => track.series.length > 0)
     .flatMap((track) =>
       resolveRenderedYAxisSeriesGroups(
         track,

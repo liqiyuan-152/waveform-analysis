@@ -77,7 +77,8 @@ export function useWaveformLayout(context: LayoutContext) {
       const visibleSeries = series.filter((item) => !hiddenSeriesIdSet.value.has(item.id))
       const xDomainValues: number[] = []
       const yDomainValues: number[] = []
-      visibleSeries.forEach((item) => {
+      const domainSeries = visibleSeries.length ? visibleSeries : series
+      domainSeries.forEach((item) => {
         xDomainValues.push(item.xDomain[0], item.xDomain[1])
         yDomainValues.push(item.yDomain[0], item.yDomain[1])
       })
@@ -143,8 +144,11 @@ export function useWaveformLayout(context: LayoutContext) {
   const isZoomMode = computed(() => activeInteractionMode.value !== 'annotation')
   const sharedXDomain = computed(() => {
     const values: number[] = []
-    chartTracks.value.forEach((track) => {
-      if (track.visibleSeries.length) values.push(track.xDomain[0], track.xDomain[1])
+    const tracks = chartTracks.value.some((track) => track.visibleSeries.length)
+      ? chartTracks.value.filter((track) => track.visibleSeries.length)
+      : chartTracks.value.filter((track) => track.series.length)
+    tracks.forEach((track) => {
+      values.push(track.xDomain[0], track.xDomain[1])
     })
     return paddedDomain(values)
   })

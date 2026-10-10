@@ -263,7 +263,14 @@ describe('WaveformChart', () => {
     })
 
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__axis')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(3)
+    expect(wrapper.get('.waveform-chart__axis--x').findAll('.tick text').length).toBeGreaterThan(0)
+    wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
+      expect(axis.findAll('.tick text').length).toBeGreaterThan(0)
+    })
+    expect(wrapper.findAll('[data-grid-direction="horizontal"]').length).toBeGreaterThan(0)
+    expect(wrapper.findAll('[data-grid-direction="vertical"]').length).toBeGreaterThan(0)
     expect(wrapper.findAll('.waveform-chart__overlay')).toHaveLength(0)
     expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(3)
     expect(wrapper.get('.waveform-track__no-visible-series').text()).toBe('暂无可见曲线')

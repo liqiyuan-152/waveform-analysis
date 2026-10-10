@@ -26,7 +26,7 @@ defineProps<Props>()
   />
 
   <g
-    v-if="!track.isEmpty && track.hasVisibleSeries && !cleanView"
+    v-if="!track.isEmpty && !cleanView"
     :clip-path="`url(#${clipPathId}-${track.index})`"
     aria-hidden="true"
   >
