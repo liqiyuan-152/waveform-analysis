@@ -266,7 +266,7 @@ describe('WaveformChart', () => {
     expect(legend.attributes('data-position')).toBe('top-right')
     expect(legend.attributes('data-orientation')).toBe('vertical')
     expect(legend.get('.waveform-legend__panel').attributes('style')).toContain(
-      'background-color: rgba(255, 255, 255, 0.7)',
+      'background-color: transparent',
     )
     expect(legend.findAll('.waveform-chart__legend-item').map((item) => item.text())).toEqual([
       'BT2_2M',
