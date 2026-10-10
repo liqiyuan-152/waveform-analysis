@@ -180,13 +180,7 @@ export function useWaveformChartController(
   watchEffect(() => {
     paginationBandHeight.value =
       props.layoutPreset === 'edge-compact'
-        ? resolveCompactPaginationBand(
-            paginationVisible.value,
-            chartWidth.value,
-            pageCount.value,
-            resolvedChartLeftMargin.value + innerWidth.value / 2,
-            layout.resolvedXLabel.value,
-          )
+        ? resolveCompactPaginationBand(paginationVisible.value)
         : gridOptions.value.showPagination && pageCount.value > 1 && chartWidth.value <= 520
           ? 40
           : 0

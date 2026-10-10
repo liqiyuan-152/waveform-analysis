@@ -6,10 +6,10 @@ import WaveformChart from '@/components/WaveformChart.vue'
 import { gridSeries } from '@tests/support/waveformChart'
 
 describe('edge-compact frame and pagination bounds', () => {
-  it('restores the safe band when more pages or a longer Time label fills a medium width', async () => {
+  it('keeps the same height for 3 and 64 pages and long Time labels', async () => {
     const wrapper = mount(WaveformChart, {
       props: {
-        data: gridSeries(2),
+        data: gridSeries(3),
         width: 640,
         height: 360,
         layoutPreset: 'edge-compact',
@@ -21,23 +21,15 @@ describe('edge-compact frame and pagination bounds', () => {
     await flushPromises()
     const compactHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
     expect(compactHeight).toBe(344)
-    await wrapper.setProps({ data: gridSeries(7) })
-    expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(
-      compactHeight - 24,
-    )
-    const pagination = wrapper.get('.waveform-chart__pagination')
-    const paginationTop =
-      360 -
-      Number.parseFloat(getComputedStyle(pagination.element).bottom) -
-      Number.parseFloat(getComputedStyle(wrapper.get('.ant-pagination-item').element).height)
-    expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y')) + 4).toBeLessThan(
-      paginationTop,
-    )
+    const timeBaseline = wrapper.get('.waveform-chart__x-label').attributes('y')
+    await wrapper.setProps({ data: gridSeries(64) })
+    expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(compactHeight)
+    expect(wrapper.get('.waveform-chart__x-label').attributes('y')).toBe(timeBaseline)
     await wrapper.setProps({
       data: gridSeries(2),
       xLabel: '很长的时间坐标轴标签（毫秒，完整显示）',
     })
-    expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(320)
+    expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(compactHeight)
     await wrapper.setProps({ cleanView: true })
     expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
     expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(360)
@@ -147,7 +139,7 @@ describe('edge-compact frame and pagination bounds', () => {
       )
       expect(itemHeight).toBe(32)
       const paginationTop = 360 - Number.parseFloat(paginationStyle.bottom) - itemHeight
-      const paginationBand = width <= 520 ? 40 : 16
+      const paginationBand = 16
       expect(titleArea + svgHeight).toBeCloseTo(360 - paginationBand)
       const track = wrapper.get('.waveform-chart__track')
       const plotBottom =
@@ -158,18 +150,13 @@ describe('edge-compact frame and pagination bounds', () => {
       const time = wrapper.get('.waveform-chart__x-label')
       expect(getComputedStyle(time.element).fontSize).toBe('18px')
       expect(getComputedStyle(time.element).fontWeight).toBe('600')
-      if (width <= 520) {
-        expect(titleArea + timeBaseline + 4).toBeLessThan(paginationTop)
-      } else {
-        expect(360 - titleArea - plotBottom).toBeCloseTo(60)
-        expect(titleArea + plotBottom - (360 - 40 - 44)).toBeCloseTo(24)
-        expect(360 - titleArea - timeBaseline).toBeCloseTo(25)
-      }
+      expect(360 - titleArea - plotBottom).toBeCloseTo(60)
+      expect(360 - titleArea - timeBaseline).toBeCloseTo(25)
       const endpoint = wrapper.get('.waveform-chart__axis-endpoint--end')
       const endpointBaseline = plotBottom + Number(endpoint.attributes('y')) + 10 * 0.71
       // Allow a conservative 3px descent for the unchanged 10px endpoint text.
       const endpointBottom = titleArea + endpointBaseline + 3
-      expect(paginationTop - endpointBottom).toBeCloseTo(width <= 520 ? 28.9 : 4.9)
+      expect(paginationTop - endpointBottom).toBeCloseTo(4.9)
       expect(endpointBottom).toBeLessThan(paginationTop)
     },
   )
