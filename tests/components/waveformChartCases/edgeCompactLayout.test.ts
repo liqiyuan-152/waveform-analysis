@@ -10,7 +10,7 @@ const preset: WaveformLayoutPreset = 'edge-compact'
 const title = { text: 'shot: #1001', textStyle: { fontSize: 18, fontWeight: 700 } }
 
 describe('WaveformChart edge-compact layout', () => {
-  it('uses title visual height plus 8px while keeping existing title styles', async () => {
+  it('uses title visual height plus 8px and normalizes an 18px bold title', async () => {
     const wrapper = mount(WaveformChart, {
       props: { data: gridSeries(1), width: 800, height: 360, title, layoutPreset: preset },
     })
@@ -22,11 +22,25 @@ describe('WaveformChart edge-compact layout', () => {
       'font-size: 18px',
     )
     expect(wrapper.get('.waveform-chart__title-text').attributes('style')).toContain(
-      'font-weight: 700',
+      'font-weight: 600',
     )
     const label = wrapper.get('.waveform-chart__x-label')
     expect(getComputedStyle(label.element).fontSize).toBe('18px')
     expect(getComputedStyle(label.element).fontWeight).toBe('600')
+
+    await wrapper.setProps({
+      title: { text: 'Large', textStyle: { fontSize: 24, fontWeight: 700 } },
+    })
+    expect(wrapper.get('.waveform-chart__title-text').attributes('style')).toContain(
+      'font-weight: 700',
+    )
+
+    await wrapper.setProps({
+      title: { text: 'Regular', textStyle: { fontSize: 18, fontWeight: 400 } },
+    })
+    expect(wrapper.get('.waveform-chart__title-text').attributes('style')).toContain(
+      'font-weight: 400',
+    )
     expect(label.attributes('dominant-baseline')).toBeUndefined()
     expect(Number(label.attributes('y'))).toBeCloseTo(360 - area - 9)
 

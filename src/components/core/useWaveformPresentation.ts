@@ -118,7 +118,12 @@ export function useWaveformPresentation(context: PresentationContext) {
     color: props.title?.textStyle?.color ?? '#1f2937',
     fontSize: `${titleFontSize.value}px`,
     fontFamily: props.title?.textStyle?.fontFamily || '"Microsoft YaHei", "微软雅黑", sans-serif',
-    fontWeight: props.title?.textStyle?.fontWeight ?? 400,
+    fontWeight:
+      isEdgeCompact.value &&
+      titleFontSize.value === 18 &&
+      props.title?.textStyle?.fontWeight === 700
+        ? 600
+        : (props.title?.textStyle?.fontWeight ?? 400),
     fontStyle: props.title?.textStyle?.fontStyle ?? 'normal',
     textDecoration: props.title?.textStyle?.textDecoration ?? 'none',
     letterSpacing: props.title?.textStyle?.letterSpacing ?? 'normal',

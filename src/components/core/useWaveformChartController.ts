@@ -28,6 +28,7 @@ import { useWaveformChartLifecycle } from './useWaveformChartLifecycle'
 import { usePreparedWaveformSeries } from './useWaveformData'
 import { useWaveformLayout } from './useWaveformLayout'
 import { useWaveformPresentation } from './useWaveformPresentation'
+import { usePlotLabelLayout } from './usePlotLabelLayout'
 import { useWaveformRenderSampling } from './useWaveformRenderSampling'
 import type {
   ResolvedWaveformChartProps,
@@ -156,6 +157,12 @@ export function useWaveformChartController(
     annotationLayoutsForTrack,
     resolveSeriesYScale,
   } = layout
+  const plotLabels = usePlotLabelLayout(
+    props,
+    layout.resolvedChartLeftMargin,
+    layout.innerWidth,
+    presentation.titleAreaStyle,
+  )
 
   useWaveformRenderSampling({
     props,
@@ -321,6 +328,8 @@ export function useWaveformChartController(
   return reactive({
     ...toRefs(props),
     ...presentation,
+    plotCenterX: plotLabels.plotCenterX,
+    titleAreaStyle: plotLabels.plotTitleAreaStyle,
     paginationVisible,
     ...layout,
     ...annotations,

@@ -79,6 +79,7 @@ const {
   toggleSeriesVisibility,
   resolvedXLabel,
   xAxisTitleY,
+  plotCenterX,
   hasChartArea,
   gridOptions,
   currentPage,
@@ -313,7 +314,7 @@ function handleChartPointerLeave() {
       <text
         v-if="resolvedXLabel && !isCleanView"
         class="waveform-chart__label waveform-chart__x-label"
-        :x="resolvedChartLeftMargin + innerWidth / 2"
+        :x="plotCenterX"
         :y="xAxisTitleY"
         text-anchor="middle"
       >
