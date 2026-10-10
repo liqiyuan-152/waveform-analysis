@@ -5,6 +5,7 @@ import { toRefs } from 'vue'
 import { WaveformAnnotationContextMenu, WaveformAnnotationLayer } from './annotation'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
 import type { WaveformChartController } from './core/useWaveformChartController'
+import type { TrackLayout } from './core/types'
 import { WaveformHoverHost } from './interaction'
 import { WaveformHoverLayer, WaveformLegend, WaveformTrack } from './rendering'
 
@@ -108,6 +109,21 @@ const {
 function handleChartPointerLeave() {
   pointerInsideChart.value = false
   handlePointerLeave.value()
+}
+
+function sharesFrameTop(track: TrackLayout): boolean {
+  return (
+    displayMode.value === 'compact' &&
+    trackLayouts.value.some(
+      (above) =>
+        !above.isEmpty &&
+        above !== track &&
+        above.column === track.column &&
+        Math.abs(above.left - track.left) < 1e-6 &&
+        Math.abs(above.width - track.width) < 1e-6 &&
+        Math.abs(above.top + above.height - track.top) < 1e-6,
+    )
+  )
 }
 </script>
 
@@ -241,6 +257,7 @@ function handleChartPointerLeave() {
           :show-axis-units="unitDisplayMode === 'axis'"
           :contain-y-axis-endpoints="isEdgeCompact"
           :contain-frame-stroke="isEdgeCompact"
+          :omit-frame-top="sharesFrameTop(track)"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"

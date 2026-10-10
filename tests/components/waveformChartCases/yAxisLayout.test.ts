@@ -48,7 +48,7 @@ describe('WaveformChart Y-axis layout', () => {
   })
 
   it.each(['independent', 'separated', 'compact'] as const)(
-    'bottom-aligns only the lowest Y label with its tick without an offset in %s mode',
+    'aligns Y endpoint labels with their ticks without an offset in %s mode',
     async (displayMode) => {
       const wrapper = await mountSizedChart(
         {
@@ -79,7 +79,7 @@ describe('WaveformChart Y-axis layout', () => {
             ticks.slice(1).every((tick) => tick.get('text').attributes('y') === undefined),
           ).toBe(true)
           expect(
-            ticks.slice(1).every((tick) => {
+            ticks.slice(1, displayMode === 'compact' ? -1 : undefined).every((tick) => {
               const text = tick.get('text')
               return (
                 text.attributes('dy') === '0.32em' &&
@@ -87,6 +87,12 @@ describe('WaveformChart Y-axis layout', () => {
               )
             }),
           ).toBe(true)
+          if (displayMode === 'compact') {
+            expect(ticks.at(-1)!.get('text').attributes()).toMatchObject({
+              dy: '0',
+              'dominant-baseline': 'text-before-edge',
+            })
+          }
           expect(ticks.every((tick) => tick.get('line').attributes('y2') === undefined)).toBe(true)
         }
         assertLabelAlignment()
@@ -206,7 +212,7 @@ describe('WaveformChart Y-axis layout', () => {
     )
   })
 
-  it('measures the compact-row unit label after omitting the top endpoint', async () => {
+  it('reserves room for compact-row units while keeping the top endpoint', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -233,8 +239,6 @@ describe('WaveformChart Y-axis layout', () => {
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe('101')
     expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-87')
-    expect(tracks[1]?.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe(
-      '(V) 75.031',
-    )
+    expect(tracks[1]?.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe('(V) 100')
   })
 })

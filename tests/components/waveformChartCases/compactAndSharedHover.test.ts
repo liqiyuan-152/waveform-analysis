@@ -6,7 +6,12 @@ import { flushAnimationFrames } from '@tests/support/setup'
 import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
-  it('shows Y-axis end values only on the top row in compact mode', async () => {
+  it.each([
+    { width: 800, layoutPreset: 'default' },
+    { width: 320, layoutPreset: 'default' },
+    { width: 800, layoutPreset: 'edge-compact' },
+    { width: 320, layoutPreset: 'edge-compact' },
+  ] as const)('shows every compact maximum tick at $width px with $layoutPreset', async (size) => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -53,7 +58,7 @@ describe('WaveformChart', () => {
           },
         ],
       },
-      { displayMode: 'compact', grid: { rowCount: 2, columnCount: 2 } },
+      { ...size, displayMode: 'compact', grid: { rowCount: 2, columnCount: 2 } },
     )
 
     const tracks = wrapper.findAll('.waveform-chart__track')
@@ -68,11 +73,17 @@ describe('WaveformChart', () => {
     expect(Number(endTicks[0][0].text())).toBe(1)
     expect(endTicks[1]).toHaveLength(1)
     expect(Number(endTicks[1][0].text())).toBe(2)
-    expect(endTicks[2]).toHaveLength(0)
-    expect(endTicks[3]).toHaveLength(0)
+    expect(endTicks[2]).toHaveLength(1)
+    expect(Number(endTicks[2][0].text())).toBe(3)
+    expect(endTicks[3]).toHaveLength(1)
+    expect(Number(endTicks[3][0].text())).toBe(5)
+    endTicks.forEach(([tick]) => {
+      expect(tick.get('text').attributes('dominant-baseline')).toBe('text-before-edge')
+      expect(tick.get('text').attributes('dy')).toBe('0')
+    })
   })
 
-  it('removes the later compact row top tick when the Y-axis end has a floating-point tail', async () => {
+  it('keeps adjacent compact endpoint labels inside their tracks with floating-point tails', async () => {
     const yDomain: [number, number] = [-1, 0.2]
     const calculatedAxisEnd = yDomain[0] + ((yDomain[1] - yDomain[0]) * 4) / 4
     expect(calculatedAxisEnd).not.toBe(yDomain[1])
@@ -116,14 +127,17 @@ describe('WaveformChart', () => {
 
     expect(ticksAt(topTrack, 0)).toHaveLength(1)
     expect(ticksAt(topTrack, 0)[0].text()).toBe('0.2')
-    expect(ticksAt(bottomTrack, 0)).toHaveLength(0)
+    expect(ticksAt(bottomTrack, 0)).toHaveLength(1)
+    expect(ticksAt(bottomTrack, 0)[0].text()).toBe('0.2')
     expect(Number(bottomTrack.attributes('data-track-top'))).toBeCloseTo(
       Number(topTrack.attributes('data-track-top')) + topTrackHeight,
       6,
     )
 
     const boundaryLabels = [...ticksAt(topTrack, topTrackHeight), ...ticksAt(bottomTrack, 0)]
-    expect(boundaryLabels).toHaveLength(1)
+    expect(boundaryLabels).toHaveLength(2)
+    expect(boundaryLabels[0].get('text').attributes('dominant-baseline')).toBe('text-after-edge')
+    expect(boundaryLabels[1].get('text').attributes('dominant-baseline')).toBe('text-before-edge')
   })
 
   it('prefixes one shared exponent to the largest visible tick on every compact Y axis', async () => {

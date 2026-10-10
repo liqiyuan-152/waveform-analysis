@@ -155,9 +155,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const resolvedTicks = resolveYAxisTicks(group.domain, tickCount, options.yAxisNice !== false)
       const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
       const majorTicks = resolvedTicks.values
-      const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
-      const visibleMajorTicks = showAxisEnd ? majorTicks : majorTicks.slice(0, -1)
-      const tickValues = visibleMajorTicks
+      const tickValues = majorTicks
       const { tickTextWidth } = axisTextMetrics(
         scale.domain() as [number, number],
         false,
