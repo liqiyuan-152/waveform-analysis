@@ -35,6 +35,7 @@ import {
 import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import { alignLeftYAxisTitles } from './yAxisTitleLayout'
+import { measureYAxisTextWidth } from './yAxisTextWidth'
 import {
   alignIntegerZoomDomain,
   normalizeIntegerZoomDomain,
@@ -297,6 +298,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     }
   })
 
-  if (!options.compactYAxisLayout) alignLeftYAxisTitles(layouts, options.yLabel)
+  alignLeftYAxisTitles(layouts, options.yLabel, {
+    showUnits: options.showAxisUnits,
+    compact: options.compactYAxisLayout,
+    measureTextWidth: options.compactYAxisLayout ? measureYAxisTextWidth : undefined,
+  })
   return layouts
 }

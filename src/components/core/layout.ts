@@ -1,7 +1,7 @@
 import { scaleLinear } from 'd3'
 
 import type { WaveformOverlayMode } from '../../types'
-import { formatScientificAxisLabel, paddedDomain } from '../../utils'
+import { formatScientificAxisLabel, formatScientificAxisExponent, paddedDomain } from '../../utils'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { MAX_MULTI_Y_AXIS_COUNT } from './constants'
 import {
@@ -59,13 +59,35 @@ export function formatYAxisTickLabel(
   domain: [number, number],
   tickValues: readonly number[],
   unit?: string,
+  side: 'left' | 'right' = 'left',
 ): string {
-  return formatScientificAxisLabel(value, {
+  const topTickValue = Math.max(...tickValues)
+  const suffixMetadata = side === 'right' && value === topTickValue
+  const label = formatScientificAxisLabel(value, {
     axisMin: domain[0],
     axisMax: domain[1],
-    topTickValue: Math.max(...tickValues),
-    unit,
+    topTickValue: suffixMetadata ? Number.NaN : topTickValue,
+    unit: suffixMetadata ? undefined : unit,
   })
+  if (suffixMetadata) {
+    const unitLabel = unit?.trim()
+    return [label, formatScientificAxisExponent(...domain), unitLabel ? `(${unitLabel})` : null]
+      .filter(Boolean)
+      .join(' ')
+  }
+  return label
+}
+
+/** Scientific multipliers retain their rendered position but do not reserve horizontal space. */
+export function formatYAxisTickLayoutLabel(
+  value: number,
+  domain: [number, number],
+  tickValues: readonly number[],
+  unit?: string,
+): string {
+  const label = formatYAxisTickLabel(value, domain, tickValues, unit)
+  const exponent = formatScientificAxisExponent(domain[0], domain[1])
+  return exponent && label.startsWith(`${exponent} `) ? label.slice(exponent.length + 1) : label
 }
 
 export interface YAxisSeriesGroup {
@@ -203,7 +225,7 @@ export function axisTextMetrics(
     Y_AXIS_CHARACTER_WIDTH,
     ...tickValueSets.flatMap((values) =>
       values.map((value) => {
-        const text = formatYAxisTickLabel(value, resolvedTicks.domain, values, unit)
+        const text = formatYAxisTickLayoutLabel(value, resolvedTicks.domain, values, unit)
         return measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH
       }),
     ),

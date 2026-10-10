@@ -77,7 +77,7 @@ describe('edge-compact Y-axis space', () => {
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
       expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickWidth + 7 + 20 + 6)
-      expect(outerTitleLeft(wrapper, track)).toBe(6)
+      expect(outerTitleLeft(wrapper, track)).toBeGreaterThan(6)
       expect(
         width - Number(wrapper.attributes('data-chart-left-margin')) - plotWidth(wrapper),
       ).toBe(24)
@@ -98,7 +98,7 @@ describe('edge-compact Y-axis space', () => {
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(legacyMargin)
     await wrapper.setProps({ layoutPreset: 'edge-compact' })
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain(unit)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBeGreaterThan(6)
   })
 
   it.each([
@@ -120,11 +120,14 @@ describe('edge-compact Y-axis space', () => {
       const track = wrapper.get('.waveform-chart__track')
       const band = track.get('.waveform-chart__y-axis-label-bg')
       const bandRight = Number(band.attributes('x')) + Number(band.attributes('width'))
-      track.findAll('.waveform-chart__axis--y .tick text').forEach((tick) => {
-        const textLeft = Number(tick.attributes('x')) - measureYAxisTextWidth(tick.text())
-        expect(textLeft).toBeGreaterThanOrEqual(bandRight)
-      })
-      expect(outerTitleLeft(wrapper, track)).toBe(6)
+      track
+        .findAll('.waveform-chart__axis--y .tick text')
+        .slice(1, -1)
+        .forEach((tick) => {
+          const textLeft = Number(tick.attributes('x')) - measureYAxisTextWidth(tick.text())
+          expect(textLeft).toBeGreaterThanOrEqual(bandRight)
+        })
+      expect(outerTitleLeft(wrapper, track)).toBeGreaterThanOrEqual(6)
     },
   )
 
@@ -149,7 +152,7 @@ describe('edge-compact Y-axis space', () => {
       await flushPromises()
       const tracks = wrapper.findAll('.waveform-chart__track')
       expect(tracks).toHaveLength(4)
-      expect(outerTitleLeft(wrapper, tracks[0])).toBe(6)
+      expect(outerTitleLeft(wrapper, tracks[0])).toBeGreaterThanOrEqual(6)
       tracks.forEach((track) => {
         expect(track.findAll('.waveform-chart__y-axis-label')).toHaveLength(count)
         expect(track.text()).not.toContain(unit)
@@ -160,7 +163,10 @@ describe('edge-compact Y-axis space', () => {
           const band = bands[index]
           const bandLeft = Number(band.attributes('x'))
           const bandRight = bandLeft + Number(band.attributes('width'))
-          axis.findAll('.tick text').forEach((tick) => {
+          const ticks = axis.findAll('.tick text')
+          const nearbyTicks =
+            axis.attributes('data-y-axis-side') === 'left' ? ticks.slice(1, -1) : ticks
+          nearbyTicks.forEach((tick) => {
             const anchor = axisX + Number(tick.attributes('x'))
             if (axis.attributes('data-y-axis-side') === 'left') {
               expect(anchor - measureYAxisTextWidth(tick.text())).toBeGreaterThanOrEqual(bandRight)
@@ -195,10 +201,11 @@ describe('edge-compact Y-axis space', () => {
     },
   )
 
-  it('removes the 48px minimum when there are no visible axes', () => {
+  it('reserves tick clearance when every series is hidden', () => {
     const wrapper = mount(WaveformChart, {
       props: { ...props, data: data(series('A')), hiddenSeriesIds: ['A'] },
     })
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('6')
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThan(6)
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
   })
 })

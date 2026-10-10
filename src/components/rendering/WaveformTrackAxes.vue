@@ -54,6 +54,7 @@ function renderAxes() {
           axis.scale.domain() as [number, number],
           axis.tickValues,
           unit,
+          axis.side,
         ),
       )
       .tickSize(-4)

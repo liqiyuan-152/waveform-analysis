@@ -58,12 +58,12 @@ describe('WaveformChart', () => {
         axis
           .findAll('.tick text')
           .map((label) => label.text())
-          .filter((label) => label.startsWith('E')),
+          .filter((label) => /E[+-]\d+/.test(label)),
       ),
     ).toEqual([
       [],
-      [expect.stringMatching(/^E\+03 \(A\) /)],
-      [expect.stringMatching(/^E-04 \(T\) /)],
+      [expect.stringMatching(/ E\+03 \(A\)$/)],
+      [expect.stringMatching(/ E-04 \(T\)$/)],
     ])
   })
 

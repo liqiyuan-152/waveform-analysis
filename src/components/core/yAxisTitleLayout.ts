@@ -1,4 +1,4 @@
-import { formatYAxisTickLabel } from './layout'
+import { formatYAxisTickLayoutLabel } from './layout'
 import type { TrackLayout, WaveformYAxisLayout } from './types'
 import {
   Y_AXIS_CHARACTER_WIDTH,
@@ -6,10 +6,16 @@ import {
   Y_AXIS_TICK_PADDING,
 } from './yAxisConstants'
 
-// Match the existing 14px channel names and 11px ticks in WaveformTrack.css.
-const TITLE_FONT_SIZE = 14
+// Match the 12px channel names and 11px ticks in WaveformTrack.css.
+const TITLE_FONT_SIZE = 12
 const TICK_FONT_SIZE = 11
 const TEXT_GAP = 2
+
+interface TitleLayoutOptions {
+  showUnits?: boolean
+  compact?: boolean
+  measureTextWidth?: (text: string) => number
+}
 
 function estimateTitleWidth(title: string): number {
   return Array.from(title).reduce((width, character) => {
@@ -27,30 +33,37 @@ function estimateTitleWidth(title: string): number {
 
 type TitleTrack = Pick<TrackLayout, 'height' | 'column' | 'yAxes'>
 
-function titleDistance(track: TitleTrack, axis: WaveformYAxisLayout, yLabel?: string): number {
+function titleDistance(
+  track: TitleTrack,
+  axis: WaveformYAxisLayout,
+  yLabel: string | undefined,
+  options: TitleLayoutOptions,
+): number {
   const series = axis.seriesList[0]
   const title = series?.name.trim() || yLabel || ''
   const halfTitleHeight = estimateTitleWidth(title) / 2
   const titleTop = track.height / 2 - halfTitleHeight - TEXT_GAP
   const titleBottom = track.height / 2 + halfTitleHeight + TEXT_GAP
   const lowestTick = Math.min(...axis.tickValues)
+  const highestTick = Math.max(...axis.tickValues)
   const tickWidths = axis.tickValues.flatMap((value) => {
     // D3 places ticks at scale(value) + 0.5. The lowest label is bottom-aligned;
     // all other labels are vertically centered using dy="0.32em".
     const y = axis.scale(value) + 0.5
-    const top = y - (value === lowestTick ? TICK_FONT_SIZE : TICK_FONT_SIZE / 2)
-    const bottom = value === lowestTick ? y : y + TICK_FONT_SIZE / 2
+    const isTopAligned = options.compact && value === highestTick
+    const top = y - (value === lowestTick ? TICK_FONT_SIZE : isTopAligned ? 0 : TICK_FONT_SIZE / 2)
+    const bottom =
+      value === lowestTick ? y : y + (isTopAligned ? TICK_FONT_SIZE : TICK_FONT_SIZE / 2)
     if (bottom < titleTop || top > titleBottom) return []
-    return [
-      formatYAxisTickLabel(
-        value,
-        axis.scale.domain() as [number, number],
-        axis.tickValues,
-        series?.unit,
-      ).length * Y_AXIS_CHARACTER_WIDTH,
-    ]
+    const text = formatYAxisTickLayoutLabel(
+      value,
+      axis.scale.domain() as [number, number],
+      axis.tickValues,
+      options.showUnits === false ? undefined : series?.unit,
+    )
+    return [options.measureTextWidth?.(text) ?? text.length * Y_AXIS_CHARACTER_WIDTH]
   })
-  // The 20px title band already leaves 3px beside a 14px glyph.
+  // The 20px title band leaves 4px beside a 12px glyph.
   return (
     Math.max(Y_AXIS_CHARACTER_WIDTH, ...tickWidths) +
     Y_AXIS_TICK_PADDING +
@@ -58,14 +71,22 @@ function titleDistance(track: TitleTrack, axis: WaveformYAxisLayout, yLabel?: st
   )
 }
 
-export function alignLeftYAxisTitles(layouts: TitleTrack[], yLabel?: string): void {
+export function alignLeftYAxisTitles(
+  layouts: TitleTrack[],
+  yLabel?: string,
+  options: TitleLayoutOptions = {},
+): void {
   const distances = new Map<string, number>()
   for (const track of layouts) {
     let leftIndex = 0
     for (const axis of track.yAxes) {
       if (axis.side !== 'left') continue
       const key = `${track.column}:${leftIndex++}`
-      distances.set(key, Math.max(distances.get(key) ?? 0, titleDistance(track, axis, yLabel)))
+      const distance = titleDistance(track, axis, yLabel, options)
+      // Compact slots already reserve every tick. Only move names inward, so
+      // alignment can never push them beyond the space reserved at the chart edge.
+      const boundedDistance = options.compact ? Math.min(axis.x - axis.labelX, distance) : distance
+      distances.set(key, Math.max(distances.get(key) ?? 0, boundedDistance))
     }
   }
   for (const track of layouts) {

@@ -278,15 +278,15 @@ describe('multi-value Y-axis grouping', () => {
       })),
     ).toEqual([
       { side: 'left', labelOffset: 24 },
-      { side: 'right', labelOffset: 49 },
+      { side: 'right', labelOffset: 28 },
     ])
   })
 
-  it('retains enough outer clearance for long scientific exponents', () => {
+  it('reserves only numeric tick clearance for long scientific exponents', () => {
     const [group] = buildYAxisSeriesGroups(track([series('long', -1e120, 1e120)]), 'multi-axis')
 
     expect(group).toBeDefined()
-    expect(measureYAxisGroupClearance(group!)).toBe(80)
+    expect(measureYAxisGroupClearance(group!)).toBe(59)
   })
 })
 
