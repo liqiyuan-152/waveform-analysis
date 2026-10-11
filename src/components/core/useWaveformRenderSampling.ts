@@ -103,6 +103,7 @@ function errorPayload(
 }
 
 export function useWaveformRenderSampling(context: SamplingContext) {
+  const settledSignature = shallowRef<string>()
   const dataEpoch = shallowRef(0)
   const session = createWaveformSamplingSession()
   const {
@@ -365,13 +366,25 @@ export function useWaveformRenderSampling(context: SamplingContext) {
     emitDiagnostics(diagnostics)
   }
 
+  const scheduleSampling = (hysteresis: boolean) => {
+    settledSignature.value = undefined
+    const signature = targetSignature.value
+    samplingScheduler.schedule(async (token) => {
+      try {
+        await runSampling(token, hysteresis)
+      } finally {
+        if (samplingScheduler.isCurrent(token)) settledSignature.value = signature
+      }
+    })
+  }
+
   watch(
     targetSignature,
     () => {
       if (session.autoModeSettleTimer) clearTimeout(session.autoModeSettleTimer)
       const useAutoHysteresis = session.hasInitialSamplingRun
       session.hasInitialSamplingRun = true
-      samplingScheduler.schedule((token) => runSampling(token, useAutoHysteresis))
+      scheduleSampling(useAutoHysteresis)
       if (
         useAutoHysteresis &&
         context.renderingOptions.value.sampling.mode === 'auto' &&
@@ -379,7 +392,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
       ) {
         session.autoModeSettleTimer = setTimeout(() => {
           session.autoModeSettleTimer = undefined
-          samplingScheduler.schedule((token) => runSampling(token, false))
+          scheduleSampling(false)
         }, AUTO_MODE_SETTLE_DELAY_MS)
       }
     },
@@ -396,5 +409,8 @@ export function useWaveformRenderSampling(context: SamplingContext) {
   )
   onScopeDispose(() => session.dispose())
 
-  return { linePointOverrides: context.linePointOverrides }
+  return {
+    linePointOverrides: context.linePointOverrides,
+    ready: () => settledSignature.value === targetSignature.value && !session.autoModeSettleTimer,
+  }
 }

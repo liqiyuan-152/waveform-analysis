@@ -100,3 +100,39 @@ it('ignores a delayed sampling response after replacing the data reference', asy
   expect(wrapper.emitted('sampling-error')).toBeUndefined()
   wrapper.unmount()
 })
+
+it('waits for controlled Worker sampling before exporting and rejects stale versions', async () => {
+  vi.stubGlobal('Worker', ControlledWorker)
+  const wrapper = await mountSizedChart(input(0), { rendering })
+  const worker = ControlledWorker.instances[0]!
+  let completed = false
+  const exported = wrapper.vm.exportImage({ format: 'svg' }).then((blob) => {
+    completed = true
+    return blob
+  })
+  await flushPromises()
+  expect(completed).toBe(false)
+  worker.respond()
+  await flushPromises()
+  expect(completed).toBe(false)
+  worker.respond()
+  await flushPromises()
+  for (let i = 0; i < 10 && worker.requests.length; i++) {
+    worker.respond()
+    await flushPromises()
+  }
+  const blob = await exported
+  expect(blob.type).toBe('image/svg+xml')
+  wrapper.vm.zoomIn()
+  await flushPromises()
+  const stale = wrapper.vm.exportImage({ format: 'svg' })
+  const assertion = expect(stale).rejects.toMatchObject({ code: 'export-stale' })
+  await wrapper.setProps({
+    annotations: [{ id: 'note', seriesId: 'waveform-0', x: 1, y: 1, text: 'changed' }],
+  })
+  await assertion
+  const cancelled = wrapper.vm.exportImage({ format: 'svg' })
+  const cancellation = expect(cancelled).rejects.toMatchObject({ code: 'export-cancelled' })
+  wrapper.unmount()
+  await cancellation
+})

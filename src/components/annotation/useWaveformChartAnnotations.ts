@@ -282,7 +282,12 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
   }
 
   function handleAnnotationContextMenu(event: MouseEvent, trackIndex?: number) {
-    if (isPresentationMode.value || !props.annotationsVisible) return
+    if (
+      isPresentationMode.value ||
+      !props.annotationsVisible ||
+      activeInteractionMode.value === 'none'
+    )
+      return
     event.preventDefault()
     event.stopPropagation()
     const candidateContext = resolveAnnotationCandidates(event, trackIndex)

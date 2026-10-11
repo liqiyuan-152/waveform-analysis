@@ -19,7 +19,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
           : 0
       const initialPointCount = pointCount(chart.props('data') as WaveformData)
       chart.vm.$emit('zoom-end', { start: 0, end: 0.001 })
-      await wrapper.get('[aria-label="重置波形视图"]').trigger('click')
+      await wrapper.get('[data-command="reset"]').trigger('click')
       await vi.advanceTimersByTimeAsync(100)
       await flushPromises()
       expect(pointCount(chart.props('data') as WaveformData)).toBe(initialPointCount)

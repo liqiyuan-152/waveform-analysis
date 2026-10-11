@@ -49,7 +49,9 @@ defineExpose({ resetViewport })
       :zero-line="model.zeroLine"
       :frame-number="model.frameWatermarkVisible ? 1 : undefined"
       :annotations-visible="model.annotationsVisible"
-      :interaction-mode="model.interactionMode"
+      v-model:interaction-mode="model.interactionMode"
+      :toolbar="model.toolbarVisible"
+      pannable
       @zoom-end="model.handleZoomEnd"
       @zoom-reset="model.resetWaveformViewport"
     />

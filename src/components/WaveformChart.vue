@@ -35,6 +35,12 @@ const emit = defineEmits<WaveformChartEmit>()
 const controller = useWaveformChartController(props as ResolvedWaveformChartProps, emit)
 
 defineExpose({
+  exportImage: controller.exportImage,
+  zoomIn: controller.zoomIn,
+  zoomOut: controller.zoomOut,
+  fitToData: controller.fitToData,
+  setInteractionMode: controller.setInteractionMode,
+  getControlState: controller.getControlState,
   resetViewport: controller.resetViewport,
   setViewportDomain: controller.setViewportDomain,
 })

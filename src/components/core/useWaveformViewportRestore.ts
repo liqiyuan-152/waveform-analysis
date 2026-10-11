@@ -7,6 +7,7 @@ import type { LifecycleContext } from './useWaveformChartLifecycle'
 export function useWaveformViewportRestore(
   context: Pick<
     LifecycleContext,
+    | 'preserveFullViewport'
     | 'props'
     | 'trackLayouts'
     | 'resolveInitialTrackDomain'
@@ -45,7 +46,8 @@ export function useWaveformViewportRestore(
         trackLayouts.value.flatMap((track) => {
           const current = track.xScale.domain() as [number, number]
           const boundary = resolveInitialTrackDomain(track)
-          return current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
+          return context.preserveFullViewport?.() ||
+            current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
             ? [[seriesIdentity(track.seriesList.map((series) => series.id)), current]]
             : []
         }),
@@ -56,7 +58,10 @@ export function useWaveformViewportRestore(
     const current = sharedZoomDomain.value
     const boundary = initialXDomain.value
     pendingSharedXDomain =
-      current[1] - current[0] < boundary[1] - boundary[0] - 1e-12 ? [...current] : undefined
+      context.preserveFullViewport?.() ||
+      current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
+        ? [...current]
+        : undefined
   }
 
   function handleDataReferenceChange() {

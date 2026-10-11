@@ -1,3 +1,5 @@
+import type { WaveformCommandMetadata } from './controls'
+
 /**
  * 波形数据点
  */
@@ -24,7 +26,7 @@ export type WaveformDisplayMode = 'independent' | 'separated' | 'compact'
 export type WaveformOverlayMode = 'single-axis' | 'multi-axis'
 
 /** 标注工具模式 */
-export type WaveformInteractionMode = 'zoom' | 'annotation'
+export type WaveformInteractionMode = 'zoom' | 'annotation' | 'pan' | 'none'
 
 /** Controls how the initial X viewport is derived when no explicit domain is configured. */
 export interface WaveformXDomainStrategy {
@@ -39,7 +41,7 @@ export interface WaveformXDomainStrategy {
 }
 
 /** Describes the X-axis viewport after a zoom gesture completes. */
-export interface WaveformZoomEndPayload {
+export interface WaveformZoomEndPayload extends WaveformCommandMetadata {
   start: number
   end: number
   yStart?: number
@@ -47,20 +49,20 @@ export interface WaveformZoomEndPayload {
   yRanges?: Record<string, [number, number]>
   trackIndex?: number
   seriesIds?: string[]
-  gesture?: 'wheel' | 'box'
+  gesture?: 'wheel' | 'box' | 'command'
 }
 
 /** Describes the X-axis viewport targeted by a user zoom gesture before rendering settles. */
-export interface WaveformZoomIntentPayload {
+export interface WaveformZoomIntentPayload extends WaveformCommandMetadata {
   start: number
   end: number
-  gesture: 'wheel' | 'box'
+  gesture: 'wheel' | 'box' | 'command'
   trackIndex?: number
   seriesIds?: string[]
 }
 
 /** Identifies the viewport reset by a double-click gesture. */
-export interface WaveformZoomResetPayload {
+export interface WaveformZoomResetPayload extends WaveformCommandMetadata {
   trackIndex?: number
   seriesIds?: string[]
 }

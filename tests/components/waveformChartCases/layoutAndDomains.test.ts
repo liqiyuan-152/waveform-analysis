@@ -360,7 +360,7 @@ describe('WaveformChart', () => {
 
     expect(initialPath).toContain('L')
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
-    expect(wrapper.attributes('data-interaction-mode')).toBeUndefined()
+    expect(wrapper.attributes('data-interaction-mode')).toBe('zoom')
 
     resizeObservers.at(-1)?.resize(500, 360)
     await flushPromises()

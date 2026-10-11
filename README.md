@@ -118,7 +118,8 @@ const data = ref<WaveformData>({
 | `presentationMode`         | `boolean`                                   | `false`                                                                               | 禁用绘图区交互的展示模式                      |
 | `annotations`              | `WaveformAnnotation[]`                      | `[]`                                                                                  | 受控标注数据                                  |
 | `annotationsVisible`       | `boolean`                                   | `true`                                                                                | 标注图层显隐                                  |
-| `interactionMode`          | `'zoom' \| 'annotation'`                    | `'zoom'`                                                                              | 左键交互模式                                  |
+| `interactionMode`          | `'zoom' \| 'pan' \| 'annotation' \| 'none'` | `'zoom'`                                                                              | 左键模式；传入时由宿主控制                    |
+| `toolbar`                  | `boolean \| WaveformToolbarOptions`         | `false`                                                                               | 内置工具栏配置                                |
 | `hiddenSeriesIds`          | `string[]`                                  | 未设置                                                                                | 受控隐藏系列 ID                               |
 | `defaultHiddenSeriesIds`   | `string[]`                                  | `[]`                                                                                  | 非受控模式的初始隐藏系列                      |
 
@@ -289,7 +290,7 @@ X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽�
 的工作。标注数据应由父组件独立持有，替换波形数据时不要清空标注，组件会根据当前数据域
 自动隐藏或恢复对应标注。
 
-`zoom-end.gesture` 用于区分 `wheel` 和 `box`。单轨道 payload 使用 `yStart/yEnd`；共享
+`zoom-end.gesture` 用于区分 `wheel`、`box` 和新增的 `command`。单轨道 payload 使用 `yStart/yEnd`；共享
 X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平移不会触发 `zoom-end`，
 因此不会自动发起新的区间加载请求。
 
@@ -665,9 +666,9 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 是否显示毫秒。时间戳数据仍按组件的秒坐标契约传入，使用默认毫秒显示单位时 formatter 会收到
 可直接传给 `Date` 的毫秒时间戳。
 
-`interactionMode` 可选 `zoom` 或 `annotation`，默认使用缩放模式。右键绘图区可直接打开
-标注编辑器，无需切换交互模式。`zoomable`、`pannable` 和 `showTooltip` 可分别控制缩放、
-空格拖拽平移和 tooltip；平移默认关闭。
+`interactionMode` 可选 `zoom`、`pan`、`annotation` 或 `none`，默认使用缩放模式。除 `none` 外，右键绘图区可直接打开
+标注编辑器。`zoomable`、`pannable` 和 `showTooltip` 分别控制缩放、平移和 tooltip；平移默认关闭，
+启用后在 `pan` 模式直接拖拽，`zoom` 模式按 Space 临时平移。传入模式 prop 时请接入更新回传，详见工具栏章节。
 
 展示场景可启用 `presentationMode`，统一禁用绘图区的 tooltip、缩放、平移、双击复位和
 标注交互。该模式不会隐藏任何图形内容，也不会禁用图例切换或分页；关闭后恢复原交互配置。
@@ -820,19 +821,22 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 
 组件提供以下事件，名称与 Vue 模板写法一致：
 
-| 事件                                                            | 说明                                                           |
-| --------------------------------------------------------------- | -------------------------------------------------------------- |
-| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`                    |
-| `zoom-intent`                                                   | 真实滚轮或框选确定目标范围时同步触发，参数含端点和 `gesture`   |
-| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                          |
-| `zoom-end`                                                      | 滚轮或框选结束后触发；`gesture` 区分二者，独立模式附带轨道信息 |
-| `zoom-reset`                                                    | 双击重置视口时触发；独立模式 payload 标识目标图框              |
-| `page-change`                                                   | 分页变化，参数为当前页和总页数                                 |
-| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                         |
-| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                           |
-| `sampling-complete`                                             | 每条系列当前采样结果的 `WaveformSamplingDiagnostics`           |
-| `sampling-backend-change`                                       | 某系列在 `raw`、`javascript` 或 `wasm` 后端之间切换时触发      |
-| `sampling-error`                                                | Worker/WASM 不可用或强制 WASM 无法满足时的降级/失败信息        |
+| 事件                                                            | 说明                                                      |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`               |
+| `update:interactionMode`                                        | 受控模式更新请求，由宿主回传后生效                        |
+| `interaction-mode-change`                                       | 实际模式改变后通知                                        |
+| `control-state-change`                                          | 合并通知控制状态快照，不作为加载入口                      |
+| `zoom-intent`                                                   | 滚轮、框选或新缩放命令确定范围时触发；fit 不发 intent     |
+| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                     |
+| `zoom-end`                                                      | 滚轮、框选或新命令提交后触发；加载器需忽略 action=fit     |
+| `zoom-reset`                                                    | 双击或新对象 reset 恢复意图；独立模式标识目标图框         |
+| `page-change`                                                   | 分页变化，参数为当前页和总页数                            |
+| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                    |
+| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                      |
+| `sampling-complete`                                             | 每条系列当前采样结果的 `WaveformSamplingDiagnostics`      |
+| `sampling-backend-change`                                       | 某系列在 `raw`、`javascript` 或 `wasm` 后端之间切换时触发 |
+| `sampling-error`                                                | Worker/WASM 不可用或强制 WASM 无法满足时的降级/失败信息   |
 
 `annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
 `interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
@@ -927,3 +931,116 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 视口内原始点，`renderedPointCount` 包含连接点。average/sum 仅聚合视口内部数据，连接点
 不参与聚合；视口内无采样点但存在跨越视口的线段时，保留两侧连接点。
 域、误差范围、悬浮查询及注解仍使用完整数据，时间单位仅影响显示。
+
+### 内置工具栏与外部控制
+
+工具栏默认关闭。`toolbar=true` 开启悬浮工具栏；Demo 默认开启，参数区可关闭。
+默认依次显示模式组（框选、平移、注解）、视口组（放大、缩小、重置、显示全部）和导出组。
+`items` 按首次出现去重并保留输入顺序，仅相邻同类别项目合组，不提供公共按钮注册或分组 API。
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { WaveformChart } from 'waveform-analysis'
+import type { WaveformChartHandle, WaveformData, WaveformInteractionMode } from 'waveform-analysis'
+
+const chart = ref<WaveformChartHandle>()
+const mode = ref<WaveformInteractionMode>('zoom')
+const data: WaveformData = {
+  kind: 'points',
+  points: [
+    { x: 0, y: 0 },
+    { x: 1, y: 2 },
+    { x: 2, y: 1 },
+  ],
+}
+// 可在宿主自己的事件中调用；隐藏工具栏后仍可用。
+function focusRange() {
+  return chart.value?.setViewportDomain([0.5, 1.5], {})
+}
+async function createImage() {
+  return chart.value?.exportImage({ format: 'png', scale: 2 })
+}
+</script>
+<template>
+  <WaveformChart
+    ref="chart"
+    :data="data"
+    v-model:interaction-mode="mode"
+    pannable
+    :toolbar="{ visible: true, display: 'always', position: 'top-right' }"
+  />
+</template>
+```
+
+`toolbar` 支持 `false | true | { visible?, display?: 'hover' | 'always', position?: 'top-right' | 'top-left', items? }`。
+按钮 ID 为 `zoom-box`、`pan`、`annotate`、`zoom-in`、`zoom-out`、`reset`、`fit`、`export`。
+空 `items` 不显示工具栏；关闭工具栏不改变模式或视口。小容器默认折叠为“工具”入口，展开后自动换行，键盘焦点保持可见，触屏常驻。
+
+`interactionMode` 支持 `zoom | pan | annotation | none`。省略时使用内部状态，默认 `zoom`；传入时为受控状态：
+命令只发 `update:interactionMode` 请求，宿主回传后才改变模式、高亮和 `aria-pressed`。
+`interaction-mode-change` 只通知实际变化。`pan` 需要 `pannable`，直接拖动；`zoom` 仍支持 Space 临时平移。
+`none` 禁止拖动、滚轮和创建注解，但保留悬浮和外部视口方法。展示模式禁用新交互命令，允许导出。
+
+| 方法                                           | 语义                                                               |
+| ---------------------------------------------- | ------------------------------------------------------------------ |
+| `zoomIn(target?)` / `zoomOut(target?)`         | X 跨度乘 0.5 / 2，Y 不变，遵守缩放约束                             |
+| `fitToData(target?)`                           | 当前已加载可见完整数据的 X 域及自动 Y；固定 Y 优先，不触发远端加载 |
+| `resetViewport({ trackId? })`                  | 初始 X/Y，发恢复数据意图；即使 unchanged 也可发 `zoom-reset`       |
+| `setViewportDomain([start,end], { trackId? })` | 按当前有效边界设置秒坐标 X 范围                                    |
+| `setInteractionMode(mode)`                     | 返回 applied/requested/unchanged/disabled                          |
+| `getControlState()`                            | 实际模式、逐目标视口及操作可用性副本                               |
+| `exportImage(options?)`                        | 返回 `Promise<Blob>`，外部调用不自动下载                           |
+
+独立模式的默认目标是当前页全部图框，`trackId` 使用稳定图框 ID；未知/非当前页 ID 返回 `invalid-target`，不翻页。
+共享 X 模式不接受 `trackId`，返回一个 `shared` 目标。新视口结果为 `{ kind: 'viewport', status, targets }`，
+逐目标包含 `trackId/status/before/after`；快照包含 `xDomain/yDomains`。总状态优先级为
+`applied > unchanged > disabled > empty-data`，因此 `applied` 不代表全部图框都改变。非法目标/范围不部分执行。
+模式结果为 `{ kind: 'mode', status, targets: [] }`。`control-state-change` 按 Vue 更新批次合并，不用作加载入口。
+
+旧 `resetViewport(trackIndex?)`、`setViewportDomain(domain, trackIndex?)` 仍返回 void，保持静默；
+无参 reset 是旧接口，使用 `resetViewport({})` 才执行当前页新命令。
+fit 后所有手势和新方法共用数据边界，`maxZoomScale`（无其他限制时默认 40 倍）以该边界计算。
+reset 或旧数字 setter 退出对应 fit 状态；数据引用、可见系列、初始域改变时清理旧适配边界。
+
+新命令的 intent/end/reset 附带 `commandId`、`source: 'toolbar' | 'api'`、`action`。
+同次多图框命令共享 commandId，按页顺序通知。放大/缩小/对象 setter 为 `zoom-intent → zoom-change → zoom-end`；
+fit 只有 change/end；对象 reset 只有 reset。其他无变化/禁用/非法/空数据不发操作事件。
+`zoom-change` 仍为 `[start,end]`。`gesture` 新增 `'command'`，穷举旧 wheel/box 或旧 interactionMode 联合的 TypeScript 消费者需适配新增分支。
+
+宿主应在以下加载方式中选择一种，不同时监听 intent 和 end 发请求：
+
+```ts
+import type { WaveformZoomEndPayload, WaveformZoomIntentPayload } from 'waveform-analysis'
+// 方式一：提交后加载；fit 仅显示已加载数据，必须忽略。
+function onZoomEnd(payload: WaveformZoomEndPayload) {
+  if (payload.action === 'fit') return
+  // 按 payload.start/end 与 seriesIds 加载，替换 data 引用。
+  // 多目标按 commandId 聚合或逐目标取消请求，避免后一个目标取消前一个目标。
+}
+// 方式二：在渲染稳定前加载。只绑定 zoom-intent，不再用 zoom-end 加载。
+function onZoomIntent(payload: WaveformZoomIntentPayload) {
+  // 根据 payload.start/end 发请求；新请求取消该目标旧请求。
+}
+// zoom-reset 单独负责取消在途请求并恢复宿主初始数据。
+```
+
+导出支持 `format: 'png' | 'svg'`（默认 png）、PNG `scale`（默认 1，有限正数且不超过 4）及 `backgroundColor`。
+SVG 不接受非 1 的 scale。图片包含当前页标题、轴、图例、可见曲线/点/误差条和注解，排除工具栏、分页、悬浮和编辑层。
+导出等待当前采样、字体和渲染，最长 5 秒；数据/视口/布局等改变则拒绝，不导出混合版本。
+工具栏负责下载及显示失败反馈。外部可按错误码处理：
+
+```ts
+import type { WaveformChartHandle, WaveformImageExportError } from 'waveform-analysis'
+async function exportSvg(chart: WaveformChartHandle): Promise<Blob | undefined> {
+  try {
+    return await chart.exportImage({ format: 'svg' })
+  } catch (error) {
+    const { code } = error as WaveformImageExportError
+    if (code === 'export-stale' || code === 'export-busy') return undefined
+    throw error
+  }
+}
+```
+
+错误码还包括 `export-invalid-options`、`export-unavailable`、`export-cancelled`、`export-render-failed`、`export-timeout`。

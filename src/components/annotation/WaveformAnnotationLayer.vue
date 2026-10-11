@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onBeforeUnmount } from 'vue'
 
 import type { RenderedAnnotation } from './types'
 import { ANNOTATION_TEXT_FONT, ANNOTATION_TEXT_LINE_HEIGHT } from './markup'
@@ -8,6 +8,8 @@ interface Props {
   annotations: RenderedAnnotation[]
   visible: boolean
   interactive?: boolean
+  cancelKey?: string
+  dataVersion?: unknown
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -210,6 +212,9 @@ watch(
     if (!interactive) cancelActiveDrag()
   },
 )
+
+watch([() => props.cancelKey, () => props.dataVersion, () => props.visible], cancelActiveDrag)
+onBeforeUnmount(cancelActiveDrag)
 
 function handleContextMenu(annotationId: string, event: MouseEvent) {
   if (!props.interactive) return

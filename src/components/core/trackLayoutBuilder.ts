@@ -52,6 +52,7 @@ export interface BuildTrackLayoutsOptions {
   overlayMode: WaveformOverlayMode
   independentTransforms: ZoomTransform[]
   sharedZoomDomain: [number, number]
+  effectiveXDomains?: Record<string, [number, number]>
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy
@@ -76,6 +77,7 @@ function resolveIndependentXDomain(
   seriesId: string,
   options: BuildTrackLayoutsOptions,
 ): [number, number] {
+  if (options.effectiveXDomains?.[track.id]) return options.effectiveXDomains[track.id]
   const strategy = options.xDomainStrategy ?? { type: 'data' }
   const explicitDomain =
     options.initialXDomains?.[track.id] ??

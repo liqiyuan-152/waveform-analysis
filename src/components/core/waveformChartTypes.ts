@@ -1,3 +1,4 @@
+import type { WaveformToolbarOptions, WaveformControlState } from '../../types/controls'
 import type {
   WaveformAnnotation,
   WaveformAxesOptions,
@@ -23,6 +24,7 @@ import type {
 import type { WaveformGridOptions } from './grid'
 
 export interface WaveformChartProps {
+  toolbar?: boolean | WaveformToolbarOptions
   data: WaveformData
   displayMode?: WaveformDisplayMode
   overlayMode?: WaveformOverlayMode
@@ -90,6 +92,9 @@ export type ResolvedWaveformChartProps = Readonly<
 >
 
 export interface WaveformChartEmit {
+  (event: 'update:interactionMode', mode: WaveformInteractionMode): void
+  (event: 'interaction-mode-change', mode: WaveformInteractionMode): void
+  (event: 'control-state-change', state: WaveformControlState): void
   (event: 'point-hover', point: WaveformPoint | null): void
   (event: 'zoom-intent', payload: WaveformZoomIntentPayload): void
   (event: 'zoom-change', domain: [number, number]): void

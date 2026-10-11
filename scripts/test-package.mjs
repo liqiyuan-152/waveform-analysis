@@ -86,9 +86,27 @@ writeFileSync(
   normalizeWaveformData,
   type WasmSamplingRequest,
   type WaveformData,
+  type WaveformChartHandle,
+  type WaveformControlResult,
+  type WaveformInteractionMode,
+  type WaveformToolbarOptions,
+  type WaveformZoomEndPayload,
 } from 'waveform-analysis'
 
-const data: WaveformData = { kind: 'samples', values: [1, 2], sampleRate: 1 }
+function verifyControls(chart: WaveformChartHandle) {
+  const oldReset: void = chart.resetViewport(0)
+  const oldSet: void = chart.setViewportDomain([0, 1], 0)
+  const result: WaveformControlResult = chart.zoomIn({ trackId: 'channel-a' })
+  const reset: WaveformControlResult = chart.resetViewport({})
+  const mode: WaveformInteractionMode = 'pan'
+  chart.setInteractionMode(mode)
+  const image: Promise<Blob> = chart.exportImage({ format: 'svg' })
+  const toolbar: WaveformToolbarOptions = { items: ['pan', 'reset', 'export'] }
+  const payload: WaveformZoomEndPayload = { start: 0, end: 1, gesture: 'command', action: 'fit' }
+  return { oldReset, oldSet, result, reset, image, toolbar, payload }
+}
+void verifyControls
+const data: WaveformData = { kind: 'samples' , values: [1, 2], sampleRate: 1 }
 const request: WasmSamplingRequest = {
   x: new Float64Array([0, 1]),
   y: new Float64Array([1, 2]),

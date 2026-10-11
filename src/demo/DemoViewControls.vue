@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button, InputNumber, Radio, Select, Switch } from 'ant-design-vue'
+import { InputNumber, Radio, Select, Switch } from 'ant-design-vue'
 
 import type { DemoControlPanelModel } from './types'
 
@@ -36,7 +36,10 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
   </section>
   <section class="control-section">
     <h2>视图</h2>
-    <Button block aria-label="重置波形视图" @click="model.resetWaveformViewport"> 重置视图 </Button>
+    <label class="frame-style-control frame-style-control--switch">
+      <span>内置工具栏</span>
+      <Switch v-model:checked="model.toolbarVisible" size="small" aria-label="显示内置工具栏" />
+    </label>
     <div class="auxiliary-style-controls" style="margin-top: 10px">
       <label class="frame-style-control frame-style-control--switch">
         <span>数值 Tooltip</span>

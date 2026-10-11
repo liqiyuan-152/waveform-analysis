@@ -12,6 +12,7 @@ import { createViewportDomainSetter } from './viewportDomain'
 import { constrainZoomDomain, transformForDomain } from './zoomConstraints'
 import { emitBoxZoomIntent } from './zoomEventPayload'
 interface ViewportContext {
+  clearBoundaries?: (trackIndex?: number) => void
   props: ResolvedWaveformChartProps
   emit: WaveformChartEmit
   selection: Ref<ViewportSelectionState | null>
@@ -111,8 +112,15 @@ export function useWaveformViewport(context: ViewportContext) {
     )
   const beginViewportDrag = (event: PointerEvent, trackIndex: number, independent: boolean) => {
     if (isPresentationMode.value) return
-    const panRequested = props.pannable && spacePressed.value
-    if ((!props.zoomable && !panRequested) || !isZoomMode.value || event.button !== 0) return
+    const panRequested =
+      props.pannable &&
+      (props.interactionMode === 'pan' || (isZoomMode.value && spacePressed.value))
+    if (
+      (!props.zoomable && !panRequested) ||
+      (!isZoomMode.value && !panRequested) ||
+      event.button !== 0
+    )
+      return
     const overlay = event.currentTarget as SVGRectElement
     const track = trackLayouts.value.find((item) => item.index === trackIndex)
     if (!track) return
@@ -333,6 +341,7 @@ export function useWaveformViewport(context: ViewportContext) {
     }
   }
   const resetViewport = (trackIndex?: number) => {
+    context.clearBoundaries?.(trackIndex)
     cancelPendingZoom()
     cancelViewportDrag()
     if (props.displayMode === 'independent' && trackIndex !== undefined) {

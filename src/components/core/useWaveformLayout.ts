@@ -24,6 +24,7 @@ import { applyXDomainStrategy } from './xDomain'
 import { resolveYAxisLayoutMetrics, resolveViewportYDomains } from './yAxisLayoutMetrics'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
+  boundaries?: ShallowRef<Record<string, [number, number]>>
   props: ResolvedWaveformChartProps
   preparedSeries: ShallowRef<PreparedWaveformSeries[]>
   currentPage: Ref<number>
@@ -204,7 +205,7 @@ export function useWaveformLayout(context: LayoutContext) {
   const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
   const resolvedXLabel = computed(() => props.xLabel ?? `时间（${props.timeUnit}）`)
   const activeInteractionMode = computed(() => props.interactionMode)
-  const isZoomMode = computed(() => activeInteractionMode.value !== 'annotation')
+  const isZoomMode = computed(() => activeInteractionMode.value === 'zoom')
   const sharedXDomain = computed(() => {
     const values: number[] = []
     chartTracks.value.forEach((track) => {
@@ -212,7 +213,7 @@ export function useWaveformLayout(context: LayoutContext) {
     })
     return paddedDomain(values)
   })
-  const initialXDomain = computed<[number, number]>(() => {
+  const originalXDomain = computed<[number, number]>(() => {
     const domain = props.initialXDomain
     if (
       domain &&
@@ -228,7 +229,7 @@ export function useWaveformLayout(context: LayoutContext) {
     }
     return applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy)
   })
-  const resolveInitialTrackDomain = (track: TrackLayout): [number, number] => {
+  const resolveOriginalTrackDomain = (track: TrackLayout): [number, number] => {
     const configuredDomain =
       props.initialXDomains?.[track.series?.trackId ?? track.series?.id ?? track.id] ??
       (track.series ? props.initialXDomains?.[track.series.id] : undefined) ??
@@ -252,6 +253,13 @@ export function useWaveformLayout(context: LayoutContext) {
       props.xDomainStrategy,
     )
   }
+  const initialXDomain = computed(
+    () =>
+      (props.displayMode !== 'independent' ? context.boundaries?.value.shared : undefined) ??
+      originalXDomain.value,
+  )
+  const resolveInitialTrackDomain = (track: TrackLayout): [number, number] =>
+    context.boundaries?.value[track.id] ?? resolveOriginalTrackDomain(track)
   const sharedZoomDomain = computed(
     () =>
       sharedTransform.value
@@ -279,6 +287,7 @@ export function useWaveformLayout(context: LayoutContext) {
       sharedZoomDomain: sharedZoomDomain.value,
       initialXDomain: props.initialXDomain ? initialXDomain.value : undefined,
       initialXDomains: props.initialXDomains,
+      effectiveXDomains: context.boundaries?.value,
       xDomainStrategy: props.xDomainStrategy,
       fixedYDomain: props.yDomain,
       fixedYDomains: props.yDomains,
@@ -355,6 +364,8 @@ export function useWaveformLayout(context: LayoutContext) {
     activeInteractionMode,
     isZoomMode,
     initialXDomain,
+    originalXDomain,
+    resolveOriginalTrackDomain,
     sharedZoomDomain,
     resolveInitialTrackDomain,
     gridCells,

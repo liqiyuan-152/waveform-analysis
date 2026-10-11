@@ -17,6 +17,7 @@ import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
 
 export interface LifecycleContext {
+  preserveFullViewport?: () => boolean
   props: ResolvedWaveformChartProps
   emit: WaveformChartEmit
   container: Ref<HTMLDivElement | undefined>
@@ -105,6 +106,10 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   } = context
 
   function handleInteractionKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      cancelViewportDrag()
+      cancelAnnotation()
+    }
     if (
       isPresentationMode.value ||
       event.code !== 'Space' ||

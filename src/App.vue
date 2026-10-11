@@ -54,6 +54,7 @@ const zeroLineVisible = ref(false)
 const zeroLineColor = ref('#98a2b3')
 const zeroLineWidth = ref(1)
 const zeroLineDash = ref('6 4')
+const toolbarVisible = ref(true)
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
 const legendOrientation = ref<WaveformLegendOrientation>('auto')
@@ -240,7 +241,17 @@ function mergeIndependentWindow(
   }
 }
 
+let pendingCommandId: string | undefined
+let pendingPayloads: WaveformZoomEndPayload[] = []
 async function handleZoomEnd(payload: WaveformZoomEndPayload) {
+  if (payload.action === 'fit') return
+  if (payload.commandId && payload.commandId === pendingCommandId) {
+    pendingPayloads.push(payload)
+    return
+  }
+  pendingCommandId = payload.commandId
+  const batch = [payload]
+  pendingPayloads = batch
   // Demo-only sequence number cancellation. Production code should use AbortController
   // to cancel in-flight requests when a newer zoom gesture arrives.
   const requestSequence = ++zoomRequestSequence
@@ -249,11 +260,16 @@ async function handleZoomEnd(payload: WaveformZoomEndPayload) {
 
   // Demo-only stand-in for the backend response. Production code should replace this
   // with a request using payload.start/payload.end and the optional channel metadata.
-  const responseData = filterWaveformData(fullChartData, payload.start, payload.end)
-  chartData.value =
-    payload.trackIndex !== undefined && payload.seriesIds?.length
-      ? mergeIndependentWindow(chartData.value, responseData, payload.seriesIds)
-      : responseData
+  let nextData = chartData.value
+  batch.forEach((item) => {
+    const responseData = filterWaveformData(fullChartData, item.start, item.end)
+    nextData =
+      item.trackIndex !== undefined && item.seriesIds?.length
+        ? mergeIndependentWindow(nextData, responseData, item.seriesIds)
+        : responseData
+  })
+  chartData.value = nextData
+  pendingCommandId = undefined
 }
 
 function resetWaveformViewport() {
@@ -294,6 +310,7 @@ onMounted(() => window.addEventListener('keydown', handleWindowKeydown))
 onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown))
 
 const controlPanelModel = reactive({
+  toolbarVisible,
   controlsOpen,
   displayMode,
   overlayMode,
@@ -349,6 +366,7 @@ const controlPanelModel = reactive({
 }) satisfies DemoControlPanelModel
 
 const chartModel = reactive({
+  toolbarVisible,
   data: displayChartData,
   initialXDomain,
   displayMode,

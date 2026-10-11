@@ -116,3 +116,13 @@
   fill: #595959;
   font-size: 12px;
 }
+
+.waveform-chart--interaction-pan:not(.waveform-chart--presentation) .waveform-chart__overlay {
+  cursor: grab;
+}
+.waveform-chart--interaction-pan.waveform-chart--panning .waveform-chart__overlay {
+  cursor: grabbing;
+}
+.waveform-chart--interaction-none .waveform-chart__overlay {
+  cursor: default;
+}

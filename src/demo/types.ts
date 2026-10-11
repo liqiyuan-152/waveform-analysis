@@ -23,6 +23,7 @@ interface SelectOption<T> {
 }
 
 export interface DemoControlPanelModel {
+  toolbarVisible: boolean
   controlsOpen: boolean
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
@@ -85,6 +86,7 @@ export interface DemoControlPanelModel {
 }
 
 export interface DemoChartModel {
+  toolbarVisible: boolean
   data: WaveformData
   initialXDomain?: [number, number]
   displayMode: WaveformDisplayMode

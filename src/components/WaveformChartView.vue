@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import WaveformToolbar from './controls/WaveformToolbar.vue'
 import { Pagination } from 'ant-design-vue'
 import { toRefs } from 'vue'
 
@@ -264,10 +265,12 @@ function handleChartPointerLeave() {
         />
 
         <WaveformAnnotationLayer
+          :cancel-key="activeInteractionMode"
+          :data-version="controller.data"
           v-if="!isCleanView"
           :annotations="renderedAnnotations"
           :visible="annotationsVisible"
-          :interactive="!isPresentationMode"
+          :interactive="!isPresentationMode && activeInteractionMode !== 'none'"
           @contextmenu="handleExistingAnnotationContextMenu"
           @drag-start="beginAnnotationDrag"
           @move="handleAnnotationMove"
@@ -319,6 +322,8 @@ function handleChartPointerLeave() {
         暂无有效波形数据
       </text>
     </svg>
+
+    <WaveformToolbar :controller="controller" />
 
     <Pagination
       v-if="gridOptions.showPagination && pageCount > 1 && !isCleanView"
