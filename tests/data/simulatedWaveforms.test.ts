@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createSimulatedWaveformData } from '@/data/simulatedWaveforms'
 
 describe('simulated waveform data', () => {
-  it('creates deterministic, finite eight-channel data with a three-series second frame', () => {
+  it('creates deterministic, finite twelve-channel data with a three-series second frame', () => {
     const first = createSimulatedWaveformData()
     const second = createSimulatedWaveformData()
 
@@ -11,8 +11,8 @@ describe('simulated waveform data', () => {
     expect(first.kind).toBe('series')
     if (first.kind !== 'series') return
 
-    expect(first.series).toHaveLength(8)
-    expect(new Set(first.series.map((series) => series.id)).size).toBe(8)
+    expect(first.series).toHaveLength(12)
+    expect(new Set(first.series.map((series) => series.id)).size).toBe(12)
     const secondFrame = first.series.filter(
       (series) => series.trackId === 'simulated-harmonic-frame',
     )

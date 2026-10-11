@@ -48,20 +48,20 @@ describe('WaveformChart unit placement', () => {
 
   it('preserves default axis units and restores them when switching back', async () => {
     const wrapper = await mountSizedChart(data(series('CH1', 'one', 'V')), {
-      yDomain: [0, 30000],
+      yDomain: [0, 3],
     })
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
-    expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04 (V) 3')
+    expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('(V) 3')
     await wrapper.setProps({ unitDisplayMode: mode })
     await flushPromises()
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
-    expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04 3')
+    expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('3')
     expect(wrapper.get('.waveform-chart__axis--y').text()).not.toContain('(V)')
     await wrapper.setProps({ unitDisplayMode: 'axis' })
     await flushPromises()
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
-    expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04 (V) 3')
+    expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('(V) 3')
   })
 
   it.each([undefined, '', '  ', '--', ' -- '])('omits unknown legend unit %s', async (unit) => {

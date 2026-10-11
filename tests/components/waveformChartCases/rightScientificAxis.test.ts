@@ -6,8 +6,8 @@ import { resizeObservers } from '@tests/support/setup'
 
 describe('multi-axis right tick formatting', () => {
   it.each([
-    { domain: [0, 3000], left: 'E+03 (V) 3', right: '3 E+03 (V)' },
-    { domain: [-0.0003, 0], left: 'E-04 (V) 0', right: '0 E-04 (V)' },
+    { domain: [0, 3000], left: 'E+03 3', right: '3 E+03' },
+    { domain: [-0.0003, 0], left: 'E-04 0', right: '0 E-04' },
     { domain: [0, 3], left: '(V) 3', right: '3 (V)' },
   ])('places right-axis metadata after the value for $domain', async ({ domain, left, right }) => {
     const wrapper = await mountSizedChart(

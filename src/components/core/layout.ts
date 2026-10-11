@@ -74,7 +74,8 @@ export function formatYAxisTickLabel(
   })
   if (suffixMetadata) {
     const unitLabel = unit?.trim()
-    return [label, formatScientificAxisExponent(...domain), unitLabel ? `(${unitLabel})` : null]
+    const exponent = formatScientificAxisExponent(...domain)
+    return [label, exponent, !exponent && unitLabel ? `(${unitLabel})` : null]
       .filter(Boolean)
       .join(' ')
   }

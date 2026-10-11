@@ -11,6 +11,7 @@ export interface ScientificAxisLabelOptions {
   axisMin?: number
   axisMax?: number
   topTickValue?: number
+  /** Unit prefix for ordinary top ticks; scientific ticks omit it. */
   unit?: string
 }
 
@@ -75,7 +76,7 @@ export function formatScientificAxisLabel(
   const topTickValue = options.topTickValue ?? options.axisMax
   if (value !== topTickValue) return formattedValue
   const unit = options.unit?.trim()
-  const unitLabel = unit ? `(${unit}) ` : ''
+  const unitLabel = exponent === null && unit ? `(${unit}) ` : ''
   const exponentLabel = exponent === null ? '' : `${formatExponent(exponent)} `
   return `${exponentLabel}${unitLabel}${formattedValue}`
 }

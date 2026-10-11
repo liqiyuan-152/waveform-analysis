@@ -140,6 +140,42 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     signal: (time, noise) => 0.7 * Math.sin(TWO_PI * 0.45 * time) + noise * 0.36,
     errors: () => ({ error: 0.12 }),
   },
+  {
+    id: 'simulated-mega-voltage',
+    shotNo: '13300',
+    name: '百万量级电压',
+    unit: 'V',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => 2.4e6 * Math.sin(TWO_PI * 0.6 * time),
+  },
+  {
+    id: 'simulated-micro-current',
+    shotNo: '13300',
+    name: '微量级电流',
+    unit: 'A',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time, noise) => 3.2e-6 * Math.sin(TWO_PI * 0.45 * time) + noise * 2e-7,
+  },
+  {
+    id: 'simulated-giga-pressure',
+    shotNo: '13300',
+    name: '十亿量级压力脉冲',
+    unit: 'Pa',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => 1.8e9 + 4e8 * Math.exp(-((time - 0.75) ** 2) / 0.4),
+  },
+  {
+    id: 'simulated-nano-displacement',
+    shotNo: '13300',
+    name: '纳量级阻尼位移',
+    unit: 'm',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => 6e-9 * Math.exp(-(time + 5) * 0.2) * Math.cos(TWO_PI * 0.8 * time),
+  },
 ]
 
 export function createSimulatedWaveformData(): WaveformData {

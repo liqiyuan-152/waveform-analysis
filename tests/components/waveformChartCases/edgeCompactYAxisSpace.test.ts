@@ -88,11 +88,12 @@ describe('edge-compact Y-axis space', () => {
   )
 
   it('gains plot width by excluding hidden units from all axis sizing paths', async () => {
-    const wrapper = mount(WaveformChart, { props: { ...props, data: data(series('A')) } })
+    const ordinarySeries = series('A', 'A', 0, 3)
+    const wrapper = mount(WaveformChart, { props: { ...props, data: data(ordinarySeries) } })
     const compactWidth = plotWidth(wrapper)
-    await wrapper.setProps({ data: data({ ...series('A'), unit: undefined }) })
+    await wrapper.setProps({ data: data({ ...ordinarySeries, unit: undefined }) })
     expect(plotWidth(wrapper)).toBe(compactWidth)
-    await wrapper.setProps({ data: data(series('A')), layoutPreset: 'default' })
+    await wrapper.setProps({ data: data(ordinarySeries), layoutPreset: 'default' })
     expect(plotWidth(wrapper)).toBeLessThan(compactWidth)
     expect(wrapper.get('.waveform-chart__x-label').attributes('y')).toBe('488')
     const legacyMargin = Number(wrapper.attributes('data-chart-left-margin'))

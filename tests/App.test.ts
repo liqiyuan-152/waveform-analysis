@@ -295,6 +295,10 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '阶跃响应',
       '脉冲响应',
       '带噪信号',
+      '百万量级电压',
+      '微量级电流',
+      '十亿量级压力脉冲',
+      '纳量级阻尼位移',
     ])
     simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
@@ -311,7 +315,15 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       wrapper
         .findAll('.waveform-chart__track')
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
-    ).toEqual(['脉冲响应', '带噪信号'])
+    ).toEqual(['脉冲响应', '带噪信号', '百万量级电压', '微量级电流'])
+
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await flushPromises()
+    expect(
+      wrapper
+        .findAll('.waveform-chart__track')
+        .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
+    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移'])
 
     wrapper.unmount()
   })
