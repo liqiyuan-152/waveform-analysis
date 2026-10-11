@@ -3,7 +3,11 @@ import { describe, expect, it } from 'vitest'
 
 import { DEFAULT_WAVEFORM_RENDERING_OPTIONS } from '@/core'
 import type { DisplaySeries, DisplayTrack } from '@/components/core/types'
-import { buildTrackLayouts, resolveYAxisSeriesGroups } from '@/components/core/layout'
+import {
+  buildTrackLayouts,
+  resolveYAxisSeriesGroups,
+  resolveRenderedYAxisSeriesGroups,
+} from '@/components/core/layout'
 
 function series(id: string, minimum: number, maximum: number): DisplaySeries {
   return {
@@ -35,6 +39,100 @@ function track(seriesList: DisplaySeries[]): DisplayTrack {
 }
 
 describe('fixed Y-domain layout', () => {
+  it.each(['independent', 'separated', 'compact'] as const)(
+    'adds ten percent above automatic domains in %s mode',
+    (displayMode) => {
+      const sourceTrack = track([series('a', -20, 80), series('b', -200, -100)])
+      sourceTrack.yDomain = [-200, 80]
+      for (const overlayMode of ['single-axis', 'multi-axis'] as const) {
+        const result = buildTrackLayouts({
+          cells: [
+            {
+              slotIndex: 0,
+              row: 0,
+              column: 0,
+              left: 0,
+              top: 0,
+              width: 300,
+              height: 130,
+              plotHeight: 100,
+              cellHeight: 130,
+              xAxisBand: 30,
+              series: sourceTrack,
+            },
+          ],
+          grid: {
+            rowCount: 1,
+            columnCount: 1,
+            showPagination: false,
+            fillIncompleteLastRow: false,
+            trackLines: {},
+          },
+          displayMode,
+          overlayMode,
+          independentTransforms: [zoomIdentity],
+          sharedZoomDomain: [0, 1],
+          timeUnit: 'ms',
+          rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
+          hideSecondaryLabels: false,
+          yAxisLabelX: -50,
+          showCompactEmptyTracks: false,
+          yAxisNice: false,
+          yAxisUpperPaddingRatio: 0.1,
+        })[0]!
+        expect(result.yAxes.map((axis) => axis.scale.domain())).toEqual(
+          overlayMode === 'single-axis'
+            ? [[-200, 108]]
+            : [
+                [-20, 90],
+                [-200, -90],
+              ],
+        )
+      }
+    },
+  )
+
+  it('preserves explicit fixed ranges and manually zoomed Y viewports', () => {
+    const sourceTrack = track([series('a', 0, 100)])
+    expect(
+      resolveRenderedYAxisSeriesGroups(
+        sourceTrack,
+        'single-axis',
+        [0, 80],
+        undefined,
+        undefined,
+        0.1,
+      )[0]?.domain,
+    ).toEqual([0, 80])
+    expect(
+      resolveRenderedYAxisSeriesGroups(
+        sourceTrack,
+        'single-axis',
+        undefined,
+        undefined,
+        { track: [20, 40] },
+        0.1,
+      )[0]?.domain,
+    ).toEqual([20, 40])
+  })
+
+  it.each([0, -0.1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'keeps automatic ranges unchanged for invalid or zero padding %s',
+    (ratio) => {
+      const sourceTrack = track([series('a', 0, 100)])
+      expect(
+        resolveRenderedYAxisSeriesGroups(
+          sourceTrack,
+          'single-axis',
+          undefined,
+          undefined,
+          undefined,
+          ratio,
+        )[0]?.domain,
+      ).toEqual([0, 100])
+    },
+  )
+
   it('expands a global fixed domain to nice equal intervals', () => {
     const sourceTrack = track([series('a', 0, 100)])
     const result = buildTrackLayouts({
@@ -115,7 +213,7 @@ describe('fixed Y-domain layout', () => {
       showCompactEmptyTracks: false,
     })[0]
 
-    expect(result?.yAxes[0]?.majorTicks).toEqual([0, 25, 50, 75, 100])
+    expect(result?.yAxes[0]?.majorTicks).toEqual([0, 20, 40, 60, 80, 100])
   })
 
   it('defaults to five ticks and supports a two-tick axis', () => {
@@ -156,7 +254,7 @@ describe('fixed Y-domain layout', () => {
         showCompactEmptyTracks: false,
       })[0]?.yAxes[0]?.majorTicks
 
-    expect(build()).toHaveLength(5)
+    expect(build()).toHaveLength(6)
     expect(build(2)).toEqual([0, 100])
   })
 

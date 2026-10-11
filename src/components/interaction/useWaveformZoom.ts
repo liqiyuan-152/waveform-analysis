@@ -15,12 +15,9 @@ import { WHEEL_ZOOM_DEBOUNCE_MS, ZOOM_CONSTRAINTS } from '../core/constants'
 import type { TrackLayout } from '../core/types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from '../core/waveformChartTypes'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
-import {
-  constrainZoomDomain,
-  resolveMinimumZoomSpan,
-  transformForDomain,
-  type ZoomSeriesGroup,
-} from './zoomConstraints'
+import { constrainViewportZoom, remotePanBoundary } from './remoteViewport'
+import { normalizeIntegerZoomDomain } from './integerZoom'
+import { resolveMinimumZoomSpan, transformForDomain, type ZoomSeriesGroup } from './zoomConstraints'
 import {
   emitIndependentWheelZoomEnds,
   emitSharedWheelZoomEnd,
@@ -90,7 +87,8 @@ export function useWaveformZoom(context: ZoomContext) {
     const domain = event.transform
       .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
       .domain()
-    emit('zoom-intent', { start: domain[0], end: domain[1], gesture: 'wheel' })
+    const [start, end] = normalizeIntegerZoomDomain(domain as [number, number], props)
+    emit('zoom-intent', { start, end, gesture: 'wheel' })
     scheduleZoomCommit()
   }
   const handleIndependentZoom = (
@@ -108,8 +106,8 @@ export function useWaveformZoom(context: ZoomContext) {
         .rescaleX(scaleLinear(resolveInitialTrackDomain(track), [0, track.width]))
         .domain()
       emit('zoom-intent', {
-        start: domain[0],
-        end: domain[1],
+        start: normalizeIntegerZoomDomain(domain as [number, number], props)[0],
+        end: normalizeIntegerZoomDomain(domain as [number, number], props)[1],
         trackIndex,
         seriesIds: track.seriesList.map((series) => series.id),
         gesture: 'wheel',
@@ -131,7 +129,7 @@ export function useWaveformZoom(context: ZoomContext) {
       const domain = transform
         .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
         .domain()
-      emit('zoom-change', [domain[0], domain[1]])
+      emit('zoom-change', normalizeIntegerZoomDomain([domain[0], domain[1]], props))
     }
     if (!pendingIndependentZoomTransforms.size) return
     const nextTransforms = [...independentTransforms.value]
@@ -238,7 +236,11 @@ export function useWaveformZoom(context: ZoomContext) {
       number,
       number,
     ]
-    return transformForDomain(constrainZoomDomain(requested, domain, groups, props), domain, width)
+    return transformForDomain(
+      constrainViewportZoom(requested, domain, groups, props),
+      domain,
+      width,
+    )
   }
   const canZoomTrack = (track: TrackLayout): boolean => {
     const minimum = Number(props.minVisiblePoints)
@@ -252,13 +254,28 @@ export function useWaveformZoom(context: ZoomContext) {
     const tracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
     return tracks.length > 0 && tracks.every(canZoomTrack)
   }
-  const canHandleWheelZoom = (event: Event, canZoomIn: boolean): boolean => {
+  const resolveMinimumZoomScale = (domain: [number, number]): number => {
+    const boundary = remotePanBoundary(props)
+    return boundary
+      ? Math.min(1, (domain[1] - domain[0]) / (boundary[1] - boundary[0]))
+      : ZOOM_CONSTRAINTS.MIN_SCALE
+  }
+  const canHandleWheelZoom = (event: Event, canZoomIn: boolean, minimumScale: number): boolean => {
     if (event.type !== 'wheel') return false
     const deltaY = (event as WheelEvent).deltaY
+    const currentScale = zoomTransform(event.currentTarget as Element).k
+
+    // 放大操作：需要检查是否还有足够的数据点支持继续放大
     if (deltaY < 0) return canZoomIn
+
+    // 缩小操作：只要当前缩放级别大于最小比例就允许
+    // 即使已达到最小可见点数限制，用户也应该能够缩小视图
     if (deltaY > 0) {
-      return zoomTransform(event.currentTarget as Element).k > ZOOM_CONSTRAINTS.MIN_SCALE
+      // 使用小的容差避免浮点精度问题导致无法缩小到边界
+      const scaleTolerance = 1e-6
+      return currentScale > minimumScale * (1 + scaleTolerance)
     }
+
     return false
   }
   const configureZoom = () => {
@@ -282,13 +299,14 @@ export function useWaveformZoom(context: ZoomContext) {
         if (!overlay) return
         const dataDomain = resolveInitialTrackDomain(track)
         const groups = [track.seriesList]
+        const minimumScale = resolveMinimumZoomScale(dataDomain)
         const behavior = zoom<SVGRectElement, unknown>()
           .filter((event) => {
             const currentTrack =
               trackLayouts.value.find((item) => item.index === track.index) ?? track
-            return canHandleWheelZoom(event, canZoomTrack(currentTrack))
+            return canHandleWheelZoom(event, canZoomTrack(currentTrack), minimumScale)
           })
-          .scaleExtent([1, resolveMaximumZoomScale(dataDomain, groups)])
+          .scaleExtent([minimumScale, resolveMaximumZoomScale(dataDomain, groups)])
           .constrain((transform) => constrainTransform(transform, dataDomain, track.width, groups))
           .extent([
             [0, 0],
@@ -318,9 +336,10 @@ export function useWaveformZoom(context: ZoomContext) {
     const groups = trackLayouts.value
       .filter((track) => track.hasVisibleSeries)
       .map((track) => track.seriesList)
+    const minimumScale = resolveMinimumZoomScale(initialXDomain.value)
     const behavior = zoom<SVGRectElement, unknown>()
-      .filter((event) => canHandleWheelZoom(event, canZoomSharedTracks()))
-      .scaleExtent([1, resolveMaximumZoomScale(initialXDomain.value, groups)])
+      .filter((event) => canHandleWheelZoom(event, canZoomSharedTracks(), minimumScale))
+      .scaleExtent([minimumScale, resolveMaximumZoomScale(initialXDomain.value, groups)])
       .constrain((transform) =>
         constrainTransform(transform, initialXDomain.value, innerWidth.value, groups),
       )

@@ -134,6 +134,7 @@ export function resolveGridCellGeometry(
   slotHasSeries: boolean[] = [],
   horizontalGap?: number,
   showXAxis = true,
+  bottomAxisBandInMargin = false,
 ): GridCellGeometry[] {
   const pageSize = getPageSize(options)
   const seriesCount = slotHasSeries.filter(Boolean).length
@@ -164,7 +165,9 @@ export function resolveGridCellGeometry(
     }
   }
   const totalVerticalGap = Math.max(0, rowCount - 1) * defaultGap
-  const totalAxisBand = axisRows.size * X_AXIS_BAND
+  // The final row's ticks may use the chart bottom margin; intermediate bands stay in-grid.
+  const bottomBandCredit = bottomAxisBandInMargin && axisRows.has(rowCount - 1) ? X_AXIS_BAND : 0
+  const totalAxisBand = axisRows.size * X_AXIS_BAND - bottomBandCredit
   const plotHeight = Math.max(1, (innerHeight - totalVerticalGap - totalAxisBand) / rowCount)
 
   return Array.from({ length: filledLastRow ? seriesCount : pageSize }, (_, slotIndex) => {

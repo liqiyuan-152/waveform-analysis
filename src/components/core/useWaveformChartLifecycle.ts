@@ -15,6 +15,7 @@ import type { AnnotationSeriesCandidate, useWaveformAnnotationInteraction } from
 import type { NormalizedWaveformGridOptions } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
+import { isEditableTarget } from '../interaction/interactionTarget'
 
 export interface LifecycleContext {
   preserveFullViewport?: () => boolean
@@ -60,17 +61,6 @@ export interface LifecycleContext {
   cancelViewportDrag: () => void
   cancelPendingHover: () => void
   clearZoomBindings: () => void
-}
-
-function isEditableTarget(target: EventTarget | null): boolean {
-  return (
-    target instanceof Element &&
-    Boolean(
-      target.closest(
-        'button, input, select, textarea, [contenteditable]:not([contenteditable="false"])',
-      ),
-    )
-  )
 }
 
 export function useWaveformChartLifecycle(context: LifecycleContext) {
@@ -173,7 +163,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   )
 
   watch(
-    () => props.displayMode,
+    () => [props.displayMode, props.integerZoom, props.integerZoom ? props.timeUnit : undefined],
     () => {
       const previousPage = currentPage.value
       currentPage.value = 1

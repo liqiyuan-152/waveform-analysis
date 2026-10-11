@@ -1,8 +1,10 @@
+import { chartExportOptions } from '../controls/chartExportOptions'
 import { useChartImageExport } from '../controls/useChartImageExport'
 import { useControlMode } from '../controls/useControlMode'
 import { useChartCommands } from '../controls/useChartCommands'
 import { zoomIdentity, type ZoomTransform } from 'd3'
 import {
+  computed,
   reactive,
   nextTick,
   onBeforeUnmount,
@@ -26,11 +28,13 @@ import { useWaveformZoom } from '../interaction/useWaveformZoom'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
 import { margin } from './constants'
 import { getPageSize } from './grid'
+import { resolveCompactPaginationBand } from './pagination'
 import type { WaveformHoverState } from './types'
 import { useWaveformChartLifecycle } from './useWaveformChartLifecycle'
 import { usePreparedWaveformSeries } from './useWaveformData'
 import { useWaveformLayout } from './useWaveformLayout'
 import { useWaveformPresentation } from './useWaveformPresentation'
+import { usePlotLabelLayout } from './usePlotLabelLayout'
 import { useWaveformRenderSampling } from './useWaveformRenderSampling'
 import type {
   ResolvedWaveformChartProps,
@@ -166,6 +170,12 @@ export function useWaveformChartController(
     annotationLayoutsForTrack,
     resolveSeriesYScale,
   } = layout
+  const plotLabels = usePlotLabelLayout(
+    props,
+    layout.resolvedChartLeftMargin,
+    layout.innerWidth,
+    presentation.titleAreaStyle,
+  )
 
   const sampling = useWaveformRenderSampling({
     props,
@@ -177,9 +187,16 @@ export function useWaveformChartController(
     linePointOverrides,
   })
 
+  const paginationVisible = computed(
+    () => gridOptions.value.showPagination && pageCount.value > 1 && !isCleanView.value,
+  )
   watchEffect(() => {
     paginationBandHeight.value =
-      gridOptions.value.showPagination && pageCount.value > 1 && chartWidth.value <= 520 ? 40 : 0
+      props.layoutPreset === 'edge-compact'
+        ? resolveCompactPaginationBand(paginationVisible.value)
+        : gridOptions.value.showPagination && pageCount.value > 1 && chartWidth.value <= 520
+          ? 40
+          : 0
   })
 
   const zoom = useWaveformZoom({
@@ -375,38 +392,17 @@ export function useWaveformChartController(
     version: () => [
       props.data,
       JSON.stringify({
-        annotations: props.annotations,
-        annotationsVisible: props.annotationsVisible,
-        title: props.title,
-        axes: props.axes,
-        frameStyle: props.frameStyle,
-        frameNumber: props.frameNumber,
-        frameNumbers: props.frameNumbers,
-        legend: props.legend,
-        cleanView: props.cleanView,
-        rendering: props.rendering,
+        ...chartExportOptions(props),
         hidden: [...hiddenSeriesIdSet.value],
         width: chartWidth.value,
         height: chartHeight.value,
         titleHeight: titleAreaHeight.value,
         page: currentPage.value,
-        display: props.displayMode,
-        overlay: props.overlayMode,
         shared: sharedTransform.value,
         independent: independentTransforms.value,
         sharedY: sharedYDomains.value,
         independentY: independentYDomains.value,
         boundaries: boundaries.value,
-        initial: props.initialXDomain,
-        initials: props.initialXDomains,
-        y: props.yDomain,
-        ys: props.yDomains,
-        grid: props.grid,
-        margin: props.plotMargin,
-        xLabel: props.xLabel,
-        yLabel: props.yLabel,
-        timeUnit: props.timeUnit,
-        zeroLine: props.zeroLine,
       }),
     ],
     ready: sampling.ready,
@@ -415,6 +411,9 @@ export function useWaveformChartController(
   return reactive({
     ...toRefs(props),
     ...presentation,
+    plotCenterX: plotLabels.plotCenterX,
+    titleAreaStyle: plotLabels.plotTitleAreaStyle,
+    paginationVisible,
     ...layout,
     ...annotations,
     ...viewport,

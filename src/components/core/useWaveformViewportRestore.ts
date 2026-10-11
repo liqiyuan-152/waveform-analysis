@@ -1,6 +1,7 @@
+import { remotePanBoundary, restoreViewportDomain } from '../interaction/remoteViewport'
 import { nextTick } from 'vue'
 import { zoomIdentity } from 'd3'
-import { constrainZoomDomain, transformForDomain } from '../interaction/zoomConstraints'
+import { transformForDomain } from '../interaction/zoomConstraints'
 import { seriesIdentity } from '../interaction/zoomEventPayload'
 import type { LifecycleContext } from './useWaveformChartLifecycle'
 
@@ -46,7 +47,7 @@ export function useWaveformViewportRestore(
         trackLayouts.value.flatMap((track) => {
           const current = track.xScale.domain() as [number, number]
           const boundary = resolveInitialTrackDomain(track)
-          return context.preserveFullViewport?.() ||
+          return context.preserveFullViewport?.() || remotePanBoundary(props) ||
             current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
             ? [[seriesIdentity(track.seriesList.map((series) => series.id)), current]]
             : []
@@ -58,7 +59,7 @@ export function useWaveformViewportRestore(
     const current = sharedZoomDomain.value
     const boundary = initialXDomain.value
     pendingSharedXDomain =
-      context.preserveFullViewport?.() ||
+      context.preserveFullViewport?.() || remotePanBoundary(props) ||
       current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
         ? [...current]
         : undefined
@@ -82,7 +83,7 @@ export function useWaveformViewportRestore(
           )
           if (!previousDomain) return
           const boundary = resolveInitialTrackDomain(track)
-          const domain = constrainZoomDomain(previousDomain, boundary, [track.seriesList], props)
+          const domain = restoreViewportDomain(previousDomain, boundary, [track.seriesList], props)
           nextTransforms[track.index] = transformForDomain(domain, boundary, track.width)
         })
         independentTransforms.value = nextTransforms
@@ -92,7 +93,7 @@ export function useWaveformViewportRestore(
         const groups = trackLayouts.value
           .filter((track) => track.hasVisibleSeries)
           .map((track) => track.seriesList)
-        const domain = constrainZoomDomain(pendingSharedXDomain, boundary, groups, props)
+        const domain = restoreViewportDomain(pendingSharedXDomain, boundary, groups, props)
         sharedTransform.value = transformForDomain(domain, boundary, innerWidth.value)
         pendingSharedXDomain = undefined
       }

@@ -5,7 +5,7 @@
 // ==================== 布局常量 ====================
 
 /** 图表边距 */
-export const margin = { top: 18, right: 24, bottom: 52, left: 80 }
+export const margin = { top: 18, right: 24, bottom: 52, left: 48 }
 
 /** Distance from the drawing SVG bottom edge to the X-axis title baseline. */
 export const X_AXIS_TITLE_BOTTOM_OFFSET = 12
@@ -49,7 +49,7 @@ export const Y_AXIS_LABEL_GAP = 0
 /**
  * Y轴标签带宽度（像素）
  */
-export const Y_AXIS_LABEL_BAND_WIDTH = 12
+export const Y_AXIS_LABEL_BAND_WIDTH = 20
 
 /**
  * Y轴指数标签间距（像素）
@@ -177,11 +177,13 @@ export const ERROR_BAR_DEFAULTS = {
  */
 export const ZERO_LINE_DEFAULTS = {
   /** 颜色 */
-  COLOR: '#98a2b3',
+  COLOR: '#ff0000',
   /** 线宽（像素） */
   WIDTH: 1,
   /** 虚线样式 */
   DASH: '6 4',
+  OPACITY: 0.5,
+  BOUNDARY_THRESHOLD: 0.02,
 }
 
 /**

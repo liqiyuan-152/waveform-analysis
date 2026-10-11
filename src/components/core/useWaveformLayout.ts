@@ -7,21 +7,17 @@ import {
   type AnnotationSeriesInfo,
   type AnnotationTrackLayout,
 } from '../annotation'
-import { channelColors, margin, MINIMUM_PLOT_WIDTH } from './constants'
-import {
-  getGridGap,
-  getPageCount,
-  normalizeGridOptions,
-  paginateSeries,
-  resolveGridCellGeometry,
-} from './grid'
-import { buildTrackLayouts, buildYAxisSlots, resolveYAxisTickCount } from './layout'
+import { channelColors } from './constants'
+import { getPageCount, normalizeGridOptions, paginateSeries, resolveGridCellGeometry } from './grid'
+import { buildTrackLayouts, resolveYAxisTickCount } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { createFrameNumberResolver, resolvePageableTracks } from './trackPagination'
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
-import { resolveYAxisLayoutMetrics, resolveViewportYDomains } from './yAxisLayoutMetrics'
+import { alignIntegerZoomDomain, normalizeIntegerZoomDomain } from '../interaction/integerZoom'
+import { resolveViewportYDomains } from './yAxisLayoutMetrics'
+import { useWaveformYAxisLayout } from './useWaveformYAxisLayout'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
   boundaries?: ShallowRef<Record<string, [number, number]>>
@@ -82,7 +78,8 @@ export function useWaveformLayout(context: LayoutContext) {
       const visibleSeries = series.filter((item) => !hiddenSeriesIdSet.value.has(item.id))
       const xDomainValues: number[] = []
       const yDomainValues: number[] = []
-      visibleSeries.forEach((item) => {
+      const domainSeries = visibleSeries.length ? visibleSeries : series
+      domainSeries.forEach((item) => {
         xDomainValues.push(item.xDomain[0], item.xDomain[1])
         yDomainValues.push(item.yDomain[0], item.yDomain[1])
       })
@@ -95,6 +92,12 @@ export function useWaveformLayout(context: LayoutContext) {
       }
     })
   })
+  const showLegendUnits = computed(
+    () =>
+      props.unitDisplayMode === 'channel-label-or-legend' ||
+      (props.unitDisplayMode === 'legend-single-series' &&
+        !chartTracks.value.some((track) => track.series.length > 1)),
+  )
   const renderingOptions = computed(() => resolveWaveformRenderingOptions(props.rendering))
   const pageableTracks = computed(() =>
     resolvePageableTracks(chartTracks.value, gridOptions.value.hideEmptyTracks),
@@ -102,6 +105,11 @@ export function useWaveformLayout(context: LayoutContext) {
   const pageCount = computed(() => getPageCount(pageableTracks.value.length, gridOptions.value))
   const pagedTracks = computed(() =>
     paginateSeries(pageableTracks.value, currentPage.value, gridOptions.value),
+  )
+  const hideYAxisTitles = computed(
+    () =>
+      props.unitDisplayMode === 'channel-label-or-legend' &&
+      pagedTracks.value.some((track) => track.series.length > 1),
   )
   const layoutTracks = computed(() => {
     const tracksWithSeries = pagedTracks.value.filter((track) => track.series.length > 0)
@@ -120,88 +128,21 @@ export function useWaveformLayout(context: LayoutContext) {
       independentYDomains.value,
     ),
   )
-  const yAxisMetrics = computed(() =>
-    resolveYAxisLayoutMetrics(
-      chartTracks.value,
-      props.overlayMode,
-      props.yDomain,
-      props.yDomains,
-      viewportYDomains.value,
-      props.axes?.y?.nice !== false,
-      yAxisTickCount.value,
-      props.displayMode === 'compact',
-      props.axes?.y,
-    ),
-  )
-  const hasYAxisLabels = computed(() =>
-    chartTracks.value.some(
-      (track) =>
-        track.visibleSeries.length === 1 &&
-        Boolean(track.visibleSeries[0]?.name.trim() || props.yLabel),
-    ),
-  )
-  const hasVisibleWaveformData = computed(() =>
-    chartTracks.value.some((track) => track.visibleSeries.length > 0),
-  )
-  const chartLeftMargin = computed(() =>
-    Math.max(
-      margin.left,
-      hasYAxisLabels.value
-        ? yAxisMetrics.value.fullClearance
-        : hasVisibleWaveformData.value
-          ? yAxisMetrics.value.tickClearance
-          : 0,
-    ),
-  )
-  const yAxisSlots = computed(() =>
-    buildYAxisSlots(
-      layoutTracks.value.filter((track) => track.visibleSeries.length > 0),
-      props.overlayMode,
-      props.yDomain,
-      props.yDomains,
-      yAxisTickCount.value,
-      props.axes?.y?.nice !== false,
-      props.displayMode === 'compact',
-      viewportYDomains.value,
-      props.axes?.y,
-    ),
-  )
-  const resolvedChartLeftMargin = computed(() =>
-    props.overlayMode === 'multi-axis'
-      ? Math.max(chartLeftMargin.value, yAxisSlots.value.clearance.left)
-      : chartLeftMargin.value,
-  )
-  const chartRightMargin = computed(() =>
-    props.overlayMode === 'multi-axis'
-      ? Math.max(margin.right, yAxisSlots.value.clearance.right)
-      : margin.right,
-  )
-  const innerWidth = computed(() =>
-    Math.max(0, chartWidth.value - resolvedChartLeftMargin.value - chartRightMargin.value),
-  )
-  const yAxisLayout = computed(() => {
-    const baseGap = getGridGap(props.displayMode)
-    const columnCount = gridOptions.value.columnCount
-    const hasMultipleColumns = columnCount > 1
-    const fullGap = Math.max(baseGap, yAxisMetrics.value.fullClearance)
-    const tickGap = Math.max(baseGap, yAxisMetrics.value.tickClearance)
-    const plotWidth = (innerWidth.value - fullGap * Math.max(0, columnCount - 1)) / columnCount
-    const canReserveLabelClearance = plotWidth >= MINIMUM_PLOT_WIDTH
-    return {
-      horizontalGap:
-        props.overlayMode === 'multi-axis' && hasMultipleColumns && hasVisibleWaveformData.value
-          ? Math.max(baseGap, yAxisSlots.value.clearance.left + yAxisSlots.value.clearance.right)
-          : hasMultipleColumns && hasVisibleWaveformData.value
-            ? hasYAxisLabels.value && canReserveLabelClearance
-              ? fullGap
-              : tickGap
-            : baseGap,
-      hideSecondaryLabels:
-        props.overlayMode !== 'multi-axis' &&
-        hasMultipleColumns &&
-        hasYAxisLabels.value &&
-        !canReserveLabelClearance,
-    }
+  const {
+    yAxisMetrics,
+    yAxisSlots,
+    resolvedChartLeftMargin,
+    innerWidth,
+    yAxisLayout,
+    hasVisibleWaveformData,
+  } = useWaveformYAxisLayout({
+    props,
+    chartTracks,
+    layoutTracks,
+    chartWidth,
+    gridOptions,
+    viewportYDomains,
+    yAxisTickCount,
   })
   const hasWaveformData = computed(() => chartSeries.value.length > 0)
   const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
@@ -210,8 +151,11 @@ export function useWaveformLayout(context: LayoutContext) {
   const isZoomMode = computed(() => activeInteractionMode.value === 'zoom')
   const sharedXDomain = computed(() => {
     const values: number[] = []
-    chartTracks.value.forEach((track) => {
-      if (track.visibleSeries.length) values.push(track.xDomain[0], track.xDomain[1])
+    const tracks = chartTracks.value.some((track) => track.visibleSeries.length)
+      ? chartTracks.value.filter((track) => track.visibleSeries.length)
+      : chartTracks.value.filter((track) => track.series.length)
+    tracks.forEach((track) => {
+      values.push(track.xDomain[0], track.xDomain[1])
     })
     return paddedDomain(values)
   })
@@ -223,13 +167,19 @@ export function useWaveformLayout(context: LayoutContext) {
       Number.isFinite(domain[1]) &&
       domain[0] !== domain[1]
     ) {
-      return applyXDomainStrategy(
-        domain[0] < domain[1] ? domain : [domain[1], domain[0]],
-        props.xDomainStrategy,
-        true,
+      return alignIntegerZoomDomain(
+        applyXDomainStrategy(
+          domain[0] < domain[1] ? domain : [domain[1], domain[0]],
+          props.xDomainStrategy,
+          true,
+        ),
+        props,
       )
     }
-    return applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy)
+    return alignIntegerZoomDomain(
+      applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy),
+      props,
+    )
   })
   const resolveOriginalTrackDomain = (track: TrackLayout): [number, number] => {
     const configuredDomain =
@@ -242,17 +192,23 @@ export function useWaveformLayout(context: LayoutContext) {
       Number.isFinite(configuredDomain[1]) &&
       configuredDomain[0] !== configuredDomain[1]
     ) {
-      return applyXDomainStrategy(
-        configuredDomain[0] < configuredDomain[1]
-          ? configuredDomain
-          : [configuredDomain[1], configuredDomain[0]],
-        props.xDomainStrategy,
-        true,
+      return alignIntegerZoomDomain(
+        applyXDomainStrategy(
+          configuredDomain[0] < configuredDomain[1]
+            ? configuredDomain
+            : [configuredDomain[1], configuredDomain[0]],
+          props.xDomainStrategy,
+          true,
+        ),
+        props,
       )
     }
-    return applyXDomainStrategy(
-      paddedDomain(track.seriesList.flatMap((series) => series.xDomain)),
-      props.xDomainStrategy,
+    return alignIntegerZoomDomain(
+      applyXDomainStrategy(
+        paddedDomain(track.seriesList.flatMap((series) => series.xDomain)),
+        props.xDomainStrategy,
+      ),
+      props,
     )
   }
   const initialXDomain = computed(
@@ -262,11 +218,13 @@ export function useWaveformLayout(context: LayoutContext) {
   )
   const resolveInitialTrackDomain = (track: TrackLayout): [number, number] =>
     context.boundaries?.value[track.id] ?? resolveOriginalTrackDomain(track)
-  const sharedZoomDomain = computed(
-    () =>
+  const sharedZoomDomain = computed(() =>
+    normalizeIntegerZoomDomain(
       sharedTransform.value
         .rescaleX(scaleLinear(initialXDomain.value, [0, innerWidth.value]))
         .domain() as [number, number],
+      props,
+    ),
   )
   const gridCells = computed(() => {
     const cells = resolveGridCellGeometry(
@@ -274,8 +232,12 @@ export function useWaveformLayout(context: LayoutContext) {
       innerHeight.value,
       gridOptions.value,
       props.displayMode,
-      layoutTracks.value.map(Boolean),
+      layoutTracks.value.map((track) =>
+        props.layoutPreset === 'edge-compact' ? track.series.length > 0 : Boolean(track),
+      ),
       yAxisLayout.value.horizontalGap,
+      true,
+      props.layoutPreset === 'edge-compact' && !isCleanView.value,
     )
     return cells.map((cell, index) => ({ ...cell, series: layoutTracks.value[index] }))
   })
@@ -283,6 +245,11 @@ export function useWaveformLayout(context: LayoutContext) {
     buildTrackLayouts({
       cells: gridCells.value,
       grid: gridOptions.value,
+      useNonEmptyBottomTracks: props.layoutPreset === 'edge-compact',
+      compactYAxisLayout: props.layoutPreset === 'edge-compact',
+      showAxisUnits:
+        props.unitDisplayMode !== 'channel-label-or-legend' &&
+        (props.layoutPreset !== 'edge-compact' || props.unitDisplayMode === 'axis'),
       displayMode: props.displayMode,
       overlayMode: props.overlayMode,
       independentTransforms: independentTransforms.value,
@@ -291,6 +258,7 @@ export function useWaveformLayout(context: LayoutContext) {
       initialXDomains: props.initialXDomains,
       effectiveXDomains: context.boundaries?.value,
       xDomainStrategy: props.xDomainStrategy,
+      integerZoom: props.integerZoom,
       fixedYDomain: props.yDomain,
       fixedYDomains: props.yDomains,
       yDomains: viewportYDomains.value,
@@ -302,10 +270,11 @@ export function useWaveformLayout(context: LayoutContext) {
       rendering: renderingOptions.value,
       linePointOverrides: linePointOverrides?.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
+      yLabel: props.yLabel,
       yAxisLabelX:
         yAxisSlots.value.slots.find((slot) => slot.side === 'left' && slot.sideIndex === 0)
           ?.labelOffset ?? yAxisMetrics.value.labelCenterX,
-      yAxisSlots: props.overlayMode === 'multi-axis' ? yAxisSlots.value.slots : undefined,
+      yAxisSlots: yAxisSlots.value.slots,
       showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
     }),
   )
@@ -353,6 +322,8 @@ export function useWaveformLayout(context: LayoutContext) {
   return {
     chartSeries,
     chartTracks,
+    showLegendUnits,
+    hideYAxisTitles,
     pageableTracks,
     renderingOptions,
     gridOptions,

@@ -9,6 +9,7 @@ import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/ty
 import { updateMaximumTickVisibility } from './yAxisTickVisibility'
 import { sameTick } from '../core/yAxisPadding'
 import { Y_AXIS_LABEL_BAND_WIDTH } from '../core/yAxisConstants'
+import { formatChannelLabel } from './channelLabel'
 
 interface Props {
   track: TrackLayout
@@ -17,14 +18,19 @@ interface Props {
   axes?: WaveformAxesOptions
   timeUnit: 's' | 'ms'
   yLabel?: string
+  showUnits?: boolean
+  showLabelUnits?: boolean
+  hideYAxisTitles?: boolean
+  containYAxisEndpoints?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), { showUnits: true })
 const xAxisElement = ref<SVGGElement>()
 const yAxisElements = ref<SVGGElement[]>([])
 
 function resolveYAxisLabel(series: DisplaySeries): string {
-  return series.name.trim() || props.yLabel || ''
+  const name = series.name.trim() || props.yLabel || ''
+  return props.showLabelUnits ? formatChannelLabel(name, series.unit) : name
 }
 
 function hasYAxisTitle(axis: WaveformYAxisLayout): boolean {
@@ -36,17 +42,11 @@ function setYAxisElement(element: unknown, index: number) {
   if (element) yAxisElements.value[index] = element as SVGGElement
 }
 
-function shouldShowYAxisLabel(trackHeight: number, trackIndex: number): boolean {
-  const minimumHeightForLabel = 80
-  if (trackHeight >= minimumHeightForLabel) return true
-  return trackIndex % Math.ceil(minimumHeightForLabel / trackHeight) === 0
-}
-
 function renderAxes() {
   props.track.yAxes.forEach((axis, index) => {
     const element = yAxisElements.value[index]
     if (!element) return
-    const unit = axis.seriesList[0]?.unit
+    const unit = props.showUnits ? axis.seriesList[0]?.unit : undefined
     const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
       .tickFormat((value) =>
         formatYAxisTickLabel(
@@ -54,6 +54,7 @@ function renderAxes() {
           axis.scale.domain() as [number, number],
           axis.tickValues,
           unit,
+          axis.side,
         ),
       )
       .tickSize(-4)
@@ -63,6 +64,19 @@ function renderAxes() {
 
     const selection = select(element)
     selection.call(yAxis)
+    const lowestTick = Math.min(...axis.tickValues)
+    const highestTick = props.containYAxisEndpoints ? Math.max(...axis.tickValues) : undefined
+    selection
+      .selectAll<SVGTextElement, number>('.tick text')
+      .attr('y', null)
+      .attr('dy', (value) => (value === lowestTick || value === highestTick ? '0' : '0.32em'))
+      .attr('dominant-baseline', (value) =>
+        value === lowestTick
+          ? 'text-after-edge'
+          : value === highestTick
+            ? 'text-before-edge'
+            : null,
+      )
     selection
       .selectAll<SVGGElement, number>('.tick')
       .attr('data-maximum-tick', (value) =>
@@ -87,7 +101,7 @@ function renderAxes() {
           props.track.xScale.domain() as [number, number],
           props.timeUnit,
           'tick',
-          props.axes?.x?.labelFormatter,
+          props.axes?.x?.labelFormatter ?? props.track.xAxisLabelFormatter,
         ),
       )
       .tickSize(-4)
@@ -128,6 +142,8 @@ watch(
     () => props.track.xAxisTickValues,
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
+    () => props.showUnits,
+    () => props.containYAxisEndpoints,
     () => props.axes?.x?.labelFormatter,
     () => props.axes?.x?.lineVisible,
     () => props.axes?.y?.lineVisible,
@@ -191,18 +207,18 @@ watch(
   <g
     v-if="
       !cleanView &&
+      !hideYAxisTitles &&
       !track.isEmpty &&
       track.hasVisibleSeries &&
       track.seriesList.length === 1 &&
       track.showYAxisLabel &&
       track.series &&
-      resolveYAxisLabel(track.series) &&
-      shouldShowYAxisLabel(track.height, track.index)
+      resolveYAxisLabel(track.series)
     "
   >
     <rect
       class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
-      :x="track.yAxisLabelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
+      :x="track.yAxes[0].labelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
       :y="track.height / 2 - 40"
       :width="Y_AXIS_LABEL_BAND_WIDTH"
       height="80"
@@ -211,7 +227,7 @@ watch(
     <text
       class="waveform-track__y-axis-label waveform-chart__y-axis-label"
       :fill="track.series?.color"
-      :transform="`translate(${track.yAxisLabelX}, ${track.height / 2}) rotate(-90)`"
+      :transform="`translate(${track.yAxes[0].labelX}, ${track.height / 2}) rotate(-90)`"
       text-anchor="middle"
       dominant-baseline="central"
     >
@@ -220,7 +236,9 @@ watch(
   </g>
 
   <g
-    v-for="axis in !cleanView && track.yAxes.length > 1 ? track.yAxes.filter(hasYAxisTitle) : []"
+    v-for="axis in !cleanView && !hideYAxisTitles && track.yAxes.length > 1
+      ? track.yAxes.filter(hasYAxisTitle)
+      : []"
     :key="`y-axis-title-${track.index}-${axis.index}`"
     class="waveform-track__multi-axis-title"
     :data-y-axis-title-index="axis.index"

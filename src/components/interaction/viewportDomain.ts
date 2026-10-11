@@ -4,7 +4,8 @@ import type { ZoomTransform } from 'd3'
 import type { TrackLayout } from '../core/types'
 import type { ResolvedWaveformChartProps } from '../core/waveformChartTypes'
 import type { AnnotationSeriesCandidate } from '../annotation'
-import { constrainZoomDomain, transformForDomain } from './zoomConstraints'
+import { transformForDomain } from './zoomConstraints'
+import { constrainViewportZoom } from './remoteViewport'
 
 interface ViewportDomainContext {
   props: ResolvedWaveformChartProps
@@ -20,6 +21,8 @@ interface ViewportDomainContext {
   editorSeriesOptions: Ref<AnnotationSeriesCandidate[]>
   configureZoom: () => void
 }
+
+export { clampViewportDomain } from './remoteViewport'
 
 export function createViewportDomainSetter(context: ViewportDomainContext) {
   return (domain: [number, number], trackIndex?: number) => {
@@ -37,7 +40,12 @@ export function createViewportDomainSetter(context: ViewportDomainContext) {
         const track = context.trackLayouts.value.find((item) => item.index === index)
         if (!track) return
         const boundary = context.resolveInitialTrackDomain(track)
-        const constrained = constrainZoomDomain(domain, boundary, [track.seriesList], context.props)
+        const constrained = constrainViewportZoom(
+          domain,
+          boundary,
+          [track.seriesList],
+          context.props,
+        )
         nextTransforms[index] = transformForDomain(constrained, boundary, track.width)
       })
       context.independentTransforms.value = nextTransforms
@@ -46,7 +54,7 @@ export function createViewportDomainSetter(context: ViewportDomainContext) {
       const groups = context.trackLayouts.value
         .filter((track) => track.hasVisibleSeries)
         .map((track) => track.seriesList)
-      const constrained = constrainZoomDomain(domain, boundary, groups, context.props)
+      const constrained = constrainViewportZoom(domain, boundary, groups, context.props)
       context.sharedTransform.value = transformForDomain(
         constrained,
         boundary,

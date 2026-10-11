@@ -5,6 +5,7 @@ import type {
   WaveformLineStyle,
   WaveformPoint,
   WaveformPointType,
+  WaveformXAxisLabelFormatter,
 } from '../../types'
 import type { WaveformPointSource } from '../../core/waveformPointSource'
 import type { NormalizedWaveformGridLineOptions } from './grid'
@@ -117,6 +118,7 @@ export interface TrackLayout {
   yMinorTicks: number[]
   yAxisTickValues: number[]
   xAxisTickValues: number[]
+  xAxisLabelFormatter?: WaveformXAxisLabelFormatter
   endpointLabels: { start: string; end: string }
   path: string | null
   seriesPaths: TrackSeriesPath[]

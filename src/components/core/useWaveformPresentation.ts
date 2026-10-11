@@ -53,19 +53,27 @@ export function useWaveformPresentation(context: PresentationContext) {
   const isPresentationMode = computed(() => props.presentationMode === true)
   const resolvedZeroLine = computed(() => {
     const width = props.zeroLine.width
+    const opacity = props.zeroLine.opacity
+    const threshold = props.zeroLine.boundaryThreshold
     return {
-      visible: props.zeroLine.visible === true,
+      visible: props.zeroLine.visible !== false,
       color: props.zeroLine.color || ZERO_LINE_DEFAULTS.COLOR,
       width:
         typeof width === 'number' && Number.isFinite(width) && width > 0
           ? width
           : ZERO_LINE_DEFAULTS.WIDTH,
       dash: props.zeroLine.dash ?? ZERO_LINE_DEFAULTS.DASH,
+      opacity:
+        typeof opacity === 'number' && Number.isFinite(opacity) && opacity >= 0 && opacity <= 1
+          ? opacity
+          : ZERO_LINE_DEFAULTS.OPACITY,
+      boundaryThreshold:
+        typeof threshold === 'number' && Number.isFinite(threshold) && threshold >= 0
+          ? threshold
+          : ZERO_LINE_DEFAULTS.BOUNDARY_THRESHOLD,
     }
   })
-  const legendBackgroundColor = computed(
-    () => props.legend.backgroundColor || 'rgba(255, 255, 255, 0.7)',
-  )
+  const legendBackgroundColor = computed(() => props.legend.backgroundColor || 'transparent')
   const legendInteractive = computed(() => props.legend.interactive === true)
   const hiddenSeriesIdSet = computed(() =>
     props.hiddenSeriesIds === undefined
@@ -83,6 +91,7 @@ export function useWaveformPresentation(context: PresentationContext) {
     return position === 'top' || position === 'bottom' ? 'horizontal' : 'vertical'
   }
 
+  const isEdgeCompact = computed(() => props.layoutPreset === 'edge-compact')
   const resolvedTitleText = computed(() => props.title?.text.trim() ?? '')
   const titleAreaReserved = computed(
     () =>
@@ -107,7 +116,12 @@ export function useWaveformPresentation(context: PresentationContext) {
     color: props.title?.textStyle?.color ?? '#1f2937',
     fontSize: `${titleFontSize.value}px`,
     fontFamily: props.title?.textStyle?.fontFamily || '"Microsoft YaHei", "微软雅黑", sans-serif',
-    fontWeight: props.title?.textStyle?.fontWeight ?? 400,
+    fontWeight:
+      isEdgeCompact.value &&
+      titleFontSize.value === 18 &&
+      props.title?.textStyle?.fontWeight === 700
+        ? 600
+        : (props.title?.textStyle?.fontWeight ?? 400),
     fontStyle: props.title?.textStyle?.fontStyle ?? 'normal',
     textDecoration: props.title?.textStyle?.textDecoration ?? 'none',
     letterSpacing: props.title?.textStyle?.letterSpacing ?? 'normal',
@@ -136,10 +150,17 @@ export function useWaveformPresentation(context: PresentationContext) {
   }))
   const titleLayout = computed(() =>
     calculateRotatedTitleLayout({
-      naturalWidth: measuredTitleWidth.value || estimatedTitleWidth.value,
+      naturalWidth:
+        isEdgeCompact.value && !titleIsRotated.value && measuredTitleHeight.value > 0
+          ? Math.min(
+              measuredTitleWidth.value || titleAvailableWidth.value,
+              titleAvailableWidth.value,
+            )
+          : measuredTitleWidth.value || estimatedTitleWidth.value,
       naturalHeight: measuredTitleHeight.value || titleFontSize.value * TITLE_LINE_HEIGHT,
       availableWidth: titleAvailableWidth.value,
       rotation: titleRotation.value,
+      edgeCompact: isEdgeCompact.value,
     }),
   )
   const titleAreaHeight = computed(() =>
@@ -149,13 +170,18 @@ export function useWaveformPresentation(context: PresentationContext) {
     typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : fallback
   const resolvedPlotMargin = computed(() => ({
     top: resolvePlotMargin(props.plotMargin.top, margin.top),
-    bottom: resolvePlotMargin(props.plotMargin.bottom, margin.bottom),
+    bottom: Math.max(
+      isEdgeCompact.value ? 44 : 0,
+      resolvePlotMargin(props.plotMargin.bottom, margin.bottom),
+    ),
   }))
   const chartTopMargin = computed(() => resolvedPlotMargin.value.top)
   const drawingHeight = computed(() =>
     Math.max(0, chartHeight.value - titleAreaHeight.value - paginationBandHeight.value),
   )
-  const xAxisTitleY = computed(() => Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET))
+  const xAxisTitleY = computed(() =>
+    Math.max(0, drawingHeight.value - X_AXIS_TITLE_BOTTOM_OFFSET + (isEdgeCompact.value ? 3 : 0)),
+  )
   const innerHeight = computed(() =>
     Math.max(
       0,
@@ -192,6 +218,7 @@ export function useWaveformPresentation(context: PresentationContext) {
     chartHeight,
     containerStyle,
     isCleanView,
+    isEdgeCompact,
     isPresentationMode,
     resolvedZeroLine,
     legendBackgroundColor,

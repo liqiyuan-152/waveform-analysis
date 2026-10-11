@@ -3,7 +3,7 @@ import type { TrackLayout } from '../core/types'
 type Frame = Pick<TrackLayout, 'left' | 'top' | 'width' | 'height' | 'isEmpty'>
 
 /** Keep the lower frame's top edge as the single owner of a shared boundary. */
-export function compactFramePath(track: Frame, tracks: Frame[]): string | undefined {
+export function compactFramePath(track: Frame, tracks: Frame[], inset = 0): string | undefined {
   let uncovered: [number, number][] = [[0, track.width]]
   for (const below of tracks) {
     if (below === track || below.isEmpty) continue
@@ -21,6 +21,9 @@ export function compactFramePath(track: Frame, tracks: Frame[]): string | undefi
   }
   if (uncovered.length === 1 && uncovered[0][0] === 0 && uncovered[0][1] === track.width)
     return undefined
-  const bottom = uncovered.map(([left, right]) => `M${left},${track.height}H${right}`).join('')
-  return `M0,${track.height}V0H${track.width}V${track.height}${bottom}`
+  inset = Number.isFinite(inset) ? Math.max(0, inset) : 0
+  const rightEdge = Math.max(inset, track.width - inset)
+  const bottomEdge = Math.max(inset, track.height - inset)
+  const bottom = uncovered.map(([left, right]) => `M${Math.max(inset, left)},${bottomEdge}H${Math.min(rightEdge, right)}`).join('')
+  return `M${inset},${bottomEdge}V${inset}H${rightEdge}V${bottomEdge}${bottom}`
 }

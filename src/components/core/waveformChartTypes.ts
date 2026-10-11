@@ -4,6 +4,8 @@ import type {
   WaveformAxesOptions,
   WaveformData,
   WaveformDisplayMode,
+  WaveformUnitDisplayMode,
+  WaveformLayoutPreset,
   WaveformFrameStyle,
   WaveformInteractionMode,
   WaveformLegendOptions,
@@ -19,6 +21,7 @@ import type {
   WaveformZeroLineOptions,
   WaveformZoomIntentPayload,
   WaveformZoomEndPayload,
+  WaveformPanEndPayload,
   WaveformZoomResetPayload,
 } from '../data/types'
 import type { WaveformGridOptions } from './grid'
@@ -28,6 +31,10 @@ export interface WaveformChartProps {
   data: WaveformData
   displayMode?: WaveformDisplayMode
   overlayMode?: WaveformOverlayMode
+  /** Default axis units; optional chart-wide single-series legend units. */
+  unitDisplayMode?: WaveformUnitDisplayMode
+  /** Default spacing or compact title/time labels with a separate pagination band. */
+  layoutPreset?: WaveformLayoutPreset
   width?: number
   height?: number
   xLabel?: string
@@ -35,7 +42,11 @@ export interface WaveformChartProps {
   lineColor?: string
   showTooltip?: boolean
   zoomable?: boolean
+  /** Snap viewport endpoints outwards to integer X-axis display units. */
+  integerZoom?: boolean
   pannable?: boolean
+  /** Global record bounds in seconds; enables horizontal panning beyond loaded data. */
+  panXDomain?: [number, number]
   minZoomSpan?: number
   minVisiblePoints?: number
   maxZoomScale?: number | null
@@ -68,10 +79,13 @@ export interface WaveformChartProps {
 type DefaultedProp =
   | 'displayMode'
   | 'overlayMode'
+  | 'unitDisplayMode'
+  | 'layoutPreset'
   | 'yLabel'
   | 'lineColor'
   | 'showTooltip'
   | 'zoomable'
+  | 'integerZoom'
   | 'pannable'
   | 'minVisiblePoints'
   | 'xDomainStrategy'
@@ -99,6 +113,7 @@ export interface WaveformChartEmit {
   (event: 'zoom-intent', payload: WaveformZoomIntentPayload): void
   (event: 'zoom-change', domain: [number, number]): void
   (event: 'zoom-end', payload: WaveformZoomEndPayload): void
+  (event: 'pan-end', payload: WaveformPanEndPayload): void
   (event: 'zoom-reset', payload: WaveformZoomResetPayload): void
   (event: 'update:annotations', annotations: WaveformAnnotation[]): void
   (event: 'update:hidden-series-ids', ids: string[]): void

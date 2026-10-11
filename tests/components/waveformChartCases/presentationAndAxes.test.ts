@@ -59,6 +59,42 @@ describe('WaveformChart', () => {
     expect(second.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
   })
 
+  it('shows a red dashed zero line by default and reacts to partial style options', async () => {
+    const wrapper = await mountSizedChart({
+      kind: 'points',
+      points: [
+        { x: 0, y: -2 },
+        { x: 1, y: 4 },
+      ],
+    })
+    try {
+      const line = () => wrapper.get('.waveform-chart__zero-line')
+      expect(line().attributes()).toMatchObject({
+        stroke: '#ff0000',
+        'stroke-width': '1',
+        'stroke-dasharray': '6 4',
+      })
+
+      await wrapper.setProps({ zeroLine: { color: '#0960bd' } })
+      expect(line().attributes('stroke')).toBe('#0960bd')
+      expect(line().attributes('stroke-dasharray')).toBe('6 4')
+
+      await wrapper.setProps({ zeroLine: { dash: '' } })
+      expect(line().attributes('stroke')).toBe('#ff0000')
+      expect(line().attributes('stroke-dasharray')).toBeUndefined()
+
+      await wrapper.setProps({ zeroLine: { dash: '3 2' } })
+      expect(line().attributes('stroke-dasharray')).toBe('3 2')
+
+      await wrapper.setProps({ zeroLine: { visible: false } })
+      expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
+      await wrapper.setProps({ zeroLine: {} })
+      expect(line().attributes('stroke-dasharray')).toBe('6 4')
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
   it('renders a configurable zero line only when the Y domain contains zero', async () => {
     const wrapper = await mountSizedChart(
       {
@@ -301,7 +337,7 @@ describe('WaveformChart', () => {
     expect(xAxis.get('path.domain').attributes('display')).toBe('none')
     expect(wrapper.findAll('.waveform-chart__axis-endpoint')).toHaveLength(2)
     expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
-    expect(yAxes.some((axis) => axis.text().includes('E+04 '))).toBe(true)
+    expect(yAxes.some((axis) => axis.text().includes('E+04'))).toBe(true)
     expect(wrapper.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({

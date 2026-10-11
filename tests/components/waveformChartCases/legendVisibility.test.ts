@@ -16,6 +16,40 @@ function annotationEditorExists() {
 }
 
 describe('WaveformChart', () => {
+  it.each(['axis', 'legend-single-series', 'channel-label-or-legend'] as const)(
+    'hides single-series legends and keeps multi-series legends recoverable (%s)',
+    async (unitDisplayMode) => {
+      const input = visibilitySeries()
+      if (input.kind !== 'series') throw new Error('Expected multi-series fixture')
+      const wrapper = await mountSizedChart(
+        { ...input, series: input.series.slice(0, 1) },
+        {
+          unitDisplayMode,
+          legend: { interactive: true },
+          grid: { rowCount: 1, columnCount: 1 },
+        },
+      )
+      try {
+        expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
+        await wrapper.setProps({ data: { ...input, series: input.series.slice(0, 2) } })
+        const panel = wrapper.get('.waveform-legend__panel')
+        expect(panel.attributes('style')).toContain('background-color: transparent')
+        const style = getComputedStyle(panel.element)
+        expect(style.fontSize).toBe('11px')
+        expect(style.fontFamily).toContain('Times New Roman')
+        await wrapper.findAll('.waveform-chart__legend-item')[1].trigger('click')
+        expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(2)
+        expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(1)
+        await wrapper.findAll('.waveform-chart__legend-item')[1].trigger('click')
+        expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(2)
+        await wrapper.setProps({ data: { ...input, series: input.series.slice(0, 1) } })
+        expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
+      } finally {
+        wrapper.unmount()
+      }
+    },
+  )
+
   it('shows legends when a track contains at least two series', async () => {
     const oneSeries = visibilitySeries()
     if (oneSeries.kind === 'series') oneSeries.series = oneSeries.series.slice(0, 1)
@@ -119,7 +153,7 @@ describe('WaveformChart', () => {
 
     await wrapper.setProps({ legend: { backgroundColor: '' } })
     wrapper.findAll('.waveform-legend__panel').forEach((panel) => {
-      expect(panel.attributes('style')).toContain('background-color: rgba(255, 255, 255, 0.7)')
+      expect(panel.attributes('style')).toContain('background-color: transparent')
     })
   })
 
@@ -263,7 +297,14 @@ describe('WaveformChart', () => {
     })
 
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__axis')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(3)
+    expect(wrapper.get('.waveform-chart__axis--x').findAll('.tick text').length).toBeGreaterThan(0)
+    wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
+      expect(axis.findAll('.tick text').length).toBeGreaterThan(0)
+    })
+    expect(wrapper.findAll('[data-grid-direction="horizontal"]').length).toBeGreaterThan(0)
+    expect(wrapper.findAll('[data-grid-direction="vertical"]').length).toBeGreaterThan(0)
     expect(wrapper.findAll('.waveform-chart__overlay')).toHaveLength(0)
     expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(3)
     expect(wrapper.get('.waveform-track__no-visible-series').text()).toBe('暂无可见曲线')

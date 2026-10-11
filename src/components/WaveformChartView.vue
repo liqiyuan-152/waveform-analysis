@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import WaveformToolbar from './controls/WaveformToolbar.vue'
 import { Pagination } from 'ant-design-vue'
-import { toRefs } from 'vue'
+import { computed, toRefs } from 'vue'
 
 import { WaveformAnnotationContextMenu, WaveformAnnotationLayer } from './annotation'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
@@ -11,14 +11,25 @@ import { WaveformHoverLayer, WaveformLegend, WaveformTrack } from './rendering'
 import { compactFramePath } from './rendering/compactFrame'
 
 const props = defineProps<{ controller: WaveformChartController }>()
+const compactFrameInset = computed(() => {
+  const width = props.controller.frameStyle?.borderWidth
+  return props.controller.isEdgeCompact
+    ? (typeof width === 'number' && Number.isFinite(width) && width >= 0 ? width : 1) / 2
+    : 0
+})
 const {
   displayMode,
   activeInteractionMode,
   isCleanView,
+  isEdgeCompact,
+  paginationVisible,
   isPresentationMode,
   selection,
   containerStyle,
   overlayMode,
+  unitDisplayMode,
+  showLegendUnits,
+  hideYAxisTitles,
   resolvedChartLeftMargin,
   titleAreaHeight,
   resolvedPlotMargin,
@@ -77,9 +88,9 @@ const {
   toggleSeriesVisibility,
   resolvedXLabel,
   xAxisTitleY,
+  plotCenterX,
   hasChartArea,
   gridOptions,
-  pageCount,
   currentPage,
   getPageSize,
   pageableTracks,
@@ -118,6 +129,7 @@ function handleChartPointerLeave() {
       `waveform-chart--interaction-${activeInteractionMode}`,
       {
         'waveform-chart--clean': isCleanView,
+        'waveform-chart--edge-compact': isEdgeCompact,
         'waveform-chart--presentation': isPresentationMode,
         'waveform-chart--panning': selection?.kind === 'pan',
       },
@@ -227,7 +239,9 @@ function handleChartPointerLeave() {
           :key="`${track.index}-${track.id}`"
           :track="track"
           :frame-path="
-            displayMode === 'compact' ? compactFramePath(track, trackLayouts) : undefined
+            displayMode === 'compact'
+              ? compactFramePath(track, trackLayouts, compactFrameInset)
+              : undefined
           "
           :clip-path-id="clipPathId"
           :inner-width="innerWidth"
@@ -238,6 +252,11 @@ function handleChartPointerLeave() {
           :frame-number="resolveFrameNumber(track.id)"
           :frame-style="frameStyle"
           :axes="axes"
+          :show-axis-units="unitDisplayMode === 'axis'"
+          :show-label-units="unitDisplayMode === 'channel-label-or-legend'"
+          :hide-y-axis-titles="hideYAxisTitles"
+          :contain-y-axis-endpoints="isEdgeCompact"
+          :contain-frame-stroke="isEdgeCompact"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"
@@ -291,8 +310,9 @@ function handleChartPointerLeave() {
             :transform="`translate(${track.left}, ${track.top})`"
           >
             <WaveformLegend
-              v-if="!track.isEmpty && track.legendSeries.length > 1"
+              v-if="!track.isEmpty && (track.legendSeries.length > 1 || hideYAxisTitles)"
               :series="track.legendSeries"
+              :show-units="showLegendUnits"
               :position="resolveLegendPosition(track.id)"
               :orientation="resolveLegendOrientation(resolveLegendPosition(track.id))"
               :background-color="legendBackgroundColor"
@@ -309,7 +329,7 @@ function handleChartPointerLeave() {
       <text
         v-if="resolvedXLabel && !isCleanView"
         class="waveform-chart__label waveform-chart__x-label"
-        :x="resolvedChartLeftMargin + innerWidth / 2"
+        :x="plotCenterX"
         :y="xAxisTitleY"
         text-anchor="middle"
       >
@@ -330,7 +350,7 @@ function handleChartPointerLeave() {
     <WaveformToolbar :controller="controller" />
 
     <Pagination
-      v-if="gridOptions.showPagination && pageCount > 1 && !isCleanView"
+      v-if="paginationVisible"
       class="waveform-chart__pagination"
       aria-label="波形分页"
       :current="currentPage"

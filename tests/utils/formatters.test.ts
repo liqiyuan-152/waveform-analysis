@@ -19,9 +19,31 @@ describe('waveform number formatters', () => {
   it('uses the reference Y-axis scientific notation boundaries', () => {
     expect(shouldUseScientificAxisLabel(0)).toBe(false)
     expect(shouldUseScientificAxisLabel(0.000999)).toBe(true)
-    expect(shouldUseScientificAxisLabel(0.001)).toBe(false)
+    expect(shouldUseScientificAxisLabel(0.001)).toBe(true)
+    expect(shouldUseScientificAxisLabel(0.001001)).toBe(false)
     expect(shouldUseScientificAxisLabel(999.999)).toBe(false)
     expect(shouldUseScientificAxisLabel(1000)).toBe(true)
+    expect(shouldUseScientificAxisLabel(-1000)).toBe(true)
+    expect(shouldUseScientificAxisLabel(-0.001)).toBe(true)
+    expect(shouldUseScientificAxisLabel(-999.999)).toBe(false)
+    expect(shouldUseScientificAxisLabel(-0.001001)).toBe(false)
+    expect(shouldUseScientificAxisLabel(NaN)).toBe(false)
+    expect(shouldUseScientificAxisLabel(Infinity)).toBe(false)
+  })
+
+  it('uses a shared exponent at the inclusive small-magnitude boundary', () => {
+    expect(resolveScientificAxisExponent(0, 0.001)).toBe(-3)
+    expect(resolveScientificAxisExponent(-0.001, 0)).toBe(-3)
+    expect(resolveScientificAxisExponent(-0.001, 0.001)).toBe(-3)
+    expect(formatScientificAxisLabel(0.001, { axisMin: 0, axisMax: 0.001 })).toBe('E-03 1')
+    expect(
+      formatScientificAxisLabel(-0.001, {
+        axisMin: -0.001,
+        axisMax: 0,
+        topTickValue: -0.001,
+      }),
+    ).toBe('E-03 -1')
+    expect(resolveScientificAxisExponent(0, 0.001001)).toBeNull()
   })
 
   it('prefixes one shared exponent to the largest visible tick', () => {

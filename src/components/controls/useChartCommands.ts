@@ -13,7 +13,9 @@ import type { useWaveformLayout } from '../core/useWaveformLayout'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from '../core/waveformChartTypes'
 import { applyXDomainStrategy } from '../core/xDomain'
 import { paddedDomain } from '../../utils'
-import { constrainZoomDomain, transformForDomain } from '../interaction/zoomConstraints'
+import { transformForDomain } from '../interaction/zoomConstraints'
+import { constrainViewportZoom } from '../interaction/remoteViewport'
+import { normalizeIntegerZoomDomain } from '../interaction/integerZoom'
 import type { useControlMode } from './useControlMode'
 
 type Domain = [number, number]
@@ -108,8 +110,8 @@ export function useChartCommands(c: Context) {
         const half = (b - a) * (action === 'zoom-in' ? 0.25 : 1)
         requested = [(a + b) / 2 - half, (a + b) / 2 + half]
       }
-      const xDomain = constrainZoomDomain(
-        requested,
+      const xDomain = constrainViewportZoom(
+        normalizeIntegerZoomDomain(requested, c.props),
         bounds,
         tracks.filter((t) => t.hasVisibleSeries).map((t) => t.seriesList),
         c.props,

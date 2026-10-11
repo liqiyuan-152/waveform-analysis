@@ -20,6 +20,7 @@ export interface RotatedTitleLayoutOptions {
   naturalHeight: number
   availableWidth: number
   rotation: number
+  edgeCompact?: boolean
 }
 
 function clampPositive(value: number): number {
@@ -31,7 +32,10 @@ export function calculateRotatedTitleLayout({
   naturalHeight,
   availableWidth,
   rotation,
+  edgeCompact = false,
 }: RotatedTitleLayoutOptions): RotatedTitleLayout {
+  const verticalPadding = edgeCompact ? 8 : TITLE_AREA_VERTICAL_PADDING
+  const minimumHeight = edgeCompact ? 0 : TITLE_AREA_MIN_HEIGHT
   const safeNaturalWidth = clampPositive(naturalWidth)
   const safeNaturalHeight = clampPositive(naturalHeight)
   const safeAvailableWidth = clampPositive(availableWidth)
@@ -53,13 +57,13 @@ export function calculateRotatedTitleLayout({
       textHeight,
       visualWidth: textWidth,
       visualHeight: textHeight,
-      areaHeight: Math.max(TITLE_AREA_MIN_HEIGHT, textHeight + TITLE_AREA_VERTICAL_PADDING),
+      areaHeight: Math.max(minimumHeight, textHeight + verticalPadding),
       scale: 1,
       wrapped: lineCount > 1,
     }
   }
 
-  const maximumVisualHeight = TITLE_AREA_MAX_HEIGHT - TITLE_AREA_VERTICAL_PADDING
+  const maximumVisualHeight = TITLE_AREA_MAX_HEIGHT - verticalPadding
   const naturalVisualWidth = safeNaturalWidth * absoluteCosine + safeNaturalHeight * absoluteSine
   const naturalVisualHeight = safeNaturalWidth * absoluteSine + safeNaturalHeight * absoluteCosine
   const scale = Math.min(
@@ -71,7 +75,7 @@ export function calculateRotatedTitleLayout({
   const visualHeight = naturalVisualHeight * scale
   const areaHeight = Math.min(
     TITLE_AREA_MAX_HEIGHT,
-    Math.max(TITLE_AREA_MIN_HEIGHT, visualHeight + TITLE_AREA_VERTICAL_PADDING),
+    Math.max(minimumHeight, visualHeight + verticalPadding),
   )
 
   return {

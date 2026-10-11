@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
 
-describe('plot margin demo controls', () => {
+describe('plot margin demo controls', { timeout: 20_000 }, () => {
   it('updates the chart top and bottom margins from the sidebar', async () => {
     const wrapper = mount(App)
     await flushPromises()

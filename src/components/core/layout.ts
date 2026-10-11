@@ -1,7 +1,5 @@
-import { scaleLinear } from 'd3'
-
 import type { WaveformOverlayMode } from '../../types'
-import { formatScientificAxisLabel, paddedDomain } from '../../utils'
+import { formatScientificAxisLabel, formatScientificAxisExponent, paddedDomain } from '../../utils'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { MAX_MULTI_Y_AXIS_COUNT } from './constants'
 import {
@@ -10,6 +8,7 @@ import {
   resolveTrackFixedYDomain,
   type WaveformYDomain,
 } from './yDomain'
+import { resolveYAxisTicksECharts } from './niceScale'
 import { applyYAxisPadding, withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
 
 // 导出常量供外部使用
@@ -19,7 +18,7 @@ const Y_AXIS_CHARACTER_WIDTH = 7
 const Y_AXIS_TICK_PADDING = 7
 const Y_AXIS_OUTER_PADDING = 4
 const Y_AXIS_LABEL_GAP = 0
-const Y_AXIS_LABEL_BAND_WIDTH = 12
+const Y_AXIS_LABEL_BAND_WIDTH = 20
 
 export function resolveYAxisTickCount(_plotHeight: number, splitNumber?: number): number {
   if (typeof splitNumber === 'number' && Number.isFinite(splitNumber)) {
@@ -38,21 +37,24 @@ export function resolveYAxisTicks(
   tickCount = 5,
   nice = true,
 ): ResolvedYAxisTicks {
-  const effectiveTickCount =
-    typeof tickCount === 'number' && Number.isFinite(tickCount)
-      ? Math.max(2, Math.floor(tickCount))
-      : 5
-  const scale = scaleLinear(domain, [1, 0])
-  if (nice) scale.nice(Math.max(1, effectiveTickCount - 1))
-  const resolvedDomain = scale.domain() as [number, number]
-  const [axisStart, axisEnd] = resolvedDomain
-  return {
-    domain: resolvedDomain,
-    values: Array.from(
-      { length: effectiveTickCount },
-      (_, index) => axisStart + ((axisEnd - axisStart) * index) / (effectiveTickCount - 1),
-    ),
+  if (!nice) {
+    // 如果不需要 nice，使用简单的线性分割
+    const effectiveTickCount =
+      typeof tickCount === 'number' && Number.isFinite(tickCount)
+        ? Math.max(2, Math.floor(tickCount))
+        : 5
+    const [axisStart, axisEnd] = domain
+    return {
+      domain,
+      values: Array.from(
+        { length: effectiveTickCount },
+        (_, index) => axisStart + ((axisEnd - axisStart) * index) / (effectiveTickCount - 1),
+      ),
+    }
   }
+
+  // 使用 ECharts 兼容的 1/2/5 系列算法
+  return resolveYAxisTicksECharts(domain, tickCount)
 }
 
 export function formatYAxisTickLabel(
@@ -60,13 +62,35 @@ export function formatYAxisTickLabel(
   domain: [number, number],
   tickValues: readonly number[],
   unit?: string,
+  side: 'left' | 'right' = 'left',
 ): string {
-  return formatScientificAxisLabel(value, {
+  const topTickValue = Math.max(...tickValues)
+  const suffixMetadata = side === 'right' && value === topTickValue
+  const label = formatScientificAxisLabel(value, {
     axisMin: domain[0],
     axisMax: domain[1],
-    topTickValue: Math.max(...tickValues),
-    unit,
+    topTickValue: suffixMetadata ? Number.NaN : topTickValue,
+    unit: suffixMetadata ? undefined : unit,
   })
+  if (suffixMetadata) {
+    const unitLabel = unit?.trim()
+    return [label, formatScientificAxisExponent(...domain), unitLabel ? `(${unitLabel})` : null]
+      .filter(Boolean)
+      .join(' ')
+  }
+  return label
+}
+
+/** Scientific multipliers retain their rendered position but do not reserve horizontal space. */
+export function formatYAxisTickLayoutLabel(
+  value: number,
+  domain: [number, number],
+  tickValues: readonly number[],
+  unit?: string,
+): string {
+  const label = formatYAxisTickLabel(value, domain, tickValues, unit)
+  const exponent = formatScientificAxisExponent(domain[0], domain[1])
+  return exponent && label.startsWith(`${exponent} `) ? label.slice(exponent.length + 1) : label
 }
 
 export interface YAxisSeriesGroup {
@@ -166,7 +190,11 @@ export function resolveRenderedYAxisSeriesGroups(
   padding?: YAxisPaddingOptions | number,
 ): YAxisSeriesGroup[] {
   const viewportYDomain = viewportYDomains?.[track.id]
-  return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).map((group) =>
+  const axisTrack =
+    track.visibleSeries.length || !track.series.length
+      ? track
+      : { ...track, visibleSeries: track.series }
+  return resolveYAxisSeriesGroups(axisTrack, overlayMode, yDomain, yDomains).map((group) =>
     applyYAxisPadding(group, viewportYDomain, padding),
   )
 }
@@ -178,6 +206,7 @@ export function axisTextMetrics(
   unit?: string,
   tickCount = 5,
   includeWithoutLastTick = false,
+  measureTextWidth?: (text: string) => number,
   maximumTick?: number,
 ): { tickTextWidth: number } {
   const resolvedTicks = tickValues
@@ -187,14 +216,17 @@ export function axisTextMetrics(
   if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
     tickValueSets.push(resolvedTicks.values.slice(0, -1))
   }
-  const maximumTickCharacters = Math.max(
-    1,
+  const maximumTickWidth = Math.max(
+    Y_AXIS_CHARACTER_WIDTH,
     ...tickValueSets.flatMap((values) =>
-      values.map((value) => formatYAxisTickLabel(value, resolvedTicks.domain, values, unit).length),
+      values.map((value) => {
+        const text = formatYAxisTickLayoutLabel(value, resolvedTicks.domain, values, unit)
+        return measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH
+      }),
     ),
   )
   return {
-    tickTextWidth: maximumTickCharacters * Y_AXIS_CHARACTER_WIDTH,
+    tickTextWidth: maximumTickWidth,
   }
 }
 
@@ -259,7 +291,9 @@ export function buildYAxisSlots(
   nice = true,
   includeWithoutLastTick = false,
   viewportYDomains?: Record<string, [number, number]>,
-  padding?: YAxisPaddingOptions,
+  padding?: YAxisPaddingOptions | number,
+  showUnits = true,
+  measureTextWidth?: (text: string) => number,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
@@ -278,9 +312,10 @@ export function buildYAxisSlots(
         group.domain,
         nice,
         undefined,
-        group.seriesList[0]?.unit,
+        showUnits ? group.seriesList[0]?.unit : undefined,
         tickCount,
         includeWithoutLastTick,
+        measureTextWidth,
         group.maximumTick,
       ).tickTextWidth
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))

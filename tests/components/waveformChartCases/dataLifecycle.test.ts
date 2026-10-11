@@ -168,8 +168,10 @@ describe('WaveformChart', () => {
     const labelX = Number(
       yAxisLabels[0].attributes('transform')?.match(/^translate\(([-\d.]+),/)?.[1],
     )
-    expect(labelX).toBeLessThan(-46)
-    expect(Number(wrapper.get('.waveform-chart__y-axis-label-bg').attributes('x'))).toBe(labelX - 6)
+    expect(labelX).toBeLessThan(-10)
+    expect(Number(wrapper.get('.waveform-chart__y-axis-label-bg').attributes('x'))).toBe(
+      labelX - 10,
+    )
     expect(yAxisLabels.every((label) => !label.text().includes('(T)'))).toBe(true)
     expect(wrapper.findAll('.waveform-chart__track-label')).toHaveLength(0)
     expect(

@@ -10,10 +10,13 @@ import WaveformChartView from './WaveformChartView.vue'
 const props = withDefaults(defineProps<WaveformChartProps>(), {
   displayMode: 'independent',
   overlayMode: 'single-axis',
+  unitDisplayMode: 'axis',
+  layoutPreset: 'default',
   yLabel: '幅值',
   lineColor: '#0960bd',
   showTooltip: true,
   zoomable: true,
+  integerZoom: false,
   pannable: false,
   minVisiblePoints: 0,
   xDomainStrategy: () => ({ type: 'integer-ms' }),
@@ -29,7 +32,7 @@ const props = withDefaults(defineProps<WaveformChartProps>(), {
   defaultHiddenSeriesIds: () => [],
   cleanView: false,
   presentationMode: false,
-  zeroLine: () => ({ visible: false }),
+  zeroLine: () => ({ visible: true }),
 })
 const emit = defineEmits<WaveformChartEmit>()
 const controller = useWaveformChartController(props as ResolvedWaveformChartProps, emit)

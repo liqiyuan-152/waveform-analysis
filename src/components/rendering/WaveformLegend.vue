@@ -3,6 +3,7 @@ import { computed } from 'vue'
 
 import type { WaveformLegendPosition } from '../../types'
 import type { DisplaySeries } from '../core/types'
+import { formatChannelLabel } from './channelLabel'
 import {
   waveformLegendErrorBarPath,
   waveformLegendLinePath,
@@ -18,17 +19,23 @@ interface Props {
   width: number
   height: number
   interactive?: boolean
+  showUnits?: boolean
   hiddenSeriesIds?: string[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
   interactive: false,
+  showUnits: false,
   hiddenSeriesIds: () => [],
 })
 const emit = defineEmits<{
   toggle: [seriesId: string]
 }>()
 const hiddenSeriesIdSet = computed(() => new Set(props.hiddenSeriesIds))
+
+function legendLabel(series: DisplaySeries): string {
+  return props.showUnits ? formatChannelLabel(series.name, series.unit, ' ') : series.name
+}
 
 function isHidden(seriesId: string): boolean {
   return hiddenSeriesIdSet.value.has(seriesId)
@@ -113,7 +120,9 @@ function toggleSeries(seriesId: string) {
               transform="translate(13 8)"
             />
           </svg>
-          <span class="waveform-legend__label" :title="item.name">{{ item.name }}</span>
+          <span class="waveform-legend__label" :title="legendLabel(item)">{{
+            legendLabel(item)
+          }}</span>
         </button>
       </div>
     </div>
@@ -184,7 +193,9 @@ function toggleSeries(seriesId: string) {
   padding: 5px 7px;
   overflow: hidden;
   color: #344054;
-  font: 12px/1.35 sans-serif;
+  font:
+    11px/1.35 'Times New Roman',
+    serif;
   border: 1px solid rgb(208 213 221 / 90%);
   border-radius: 4px;
 }

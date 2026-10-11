@@ -163,7 +163,7 @@ describe('Y-axis slots', () => {
       viewportYDomains,
     )
 
-    expect(slots.clearance.left).toBe(100)
+    expect(slots.clearance.left).toBe(108)
     expect(slots.clearance.right).toBeGreaterThan(180)
   })
 })

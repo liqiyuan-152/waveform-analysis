@@ -41,10 +41,12 @@ export function resolveYAxisLayoutMetrics(
   nice: boolean,
   tickCount: number,
   compact: boolean,
-  padding?: YAxisPaddingOptions,
+  padding?: YAxisPaddingOptions | number,
+  showUnits = true,
+  measureTextWidth?: (text: string) => number,
 ): YAxisLayoutMetrics {
   const axisText = chartTracks
-    .filter((track) => track.visibleSeries.length > 0)
+    .filter((track) => track.series.length > 0)
     .flatMap((track) =>
       resolveRenderedYAxisSeriesGroups(
         track,
@@ -61,9 +63,10 @@ export function resolveYAxisLayoutMetrics(
           group.domain,
           nice,
           undefined,
-          group.seriesList[0]?.unit,
+          showUnits ? group.seriesList[0]?.unit : undefined,
           tickCount,
           compact,
+          measureTextWidth,
           group.maximumTick,
         ).tickTextWidth,
     )

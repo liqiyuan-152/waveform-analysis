@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import { ZERO_LINE_DEFAULTS } from '../core/constants'
 import type { WaveformAxesOptions, WaveformFrameStyle, WaveformZeroLineOptions } from '../../types'
 import type { TrackLayout } from '../core/types'
 import type { WaveformDisplayMode, WaveformInteractionMode } from '../data/types'
 import WaveformSeriesLayer from './WaveformSeriesLayer.vue'
+import WaveformZeroLines from './WaveformZeroLines.vue'
 import WaveformTrackAxes from './WaveformTrackAxes.vue'
 import WaveformTrackBackdrop from './WaveformTrackBackdrop.vue'
 
@@ -22,10 +24,13 @@ interface Props {
   axes?: WaveformAxesOptions
   timeUnit: 's' | 'ms'
   yLabel?: string
+  showAxisUnits?: boolean
+  showLabelUnits?: boolean
+  hideYAxisTitles?: boolean
+  containYAxisEndpoints?: boolean
+  containFrameStroke?: boolean
   cleanView?: boolean
-  zeroLine?: Required<Pick<WaveformZeroLineOptions, 'color' | 'width' | 'dash'>> & {
-    visible: boolean
-  }
+  zeroLine?: Required<WaveformZeroLineOptions>
 }
 
 interface Emits {
@@ -42,7 +47,15 @@ const props = withDefaults(defineProps<Props>(), {
   interactionMode: 'zoom',
   interactive: true,
   cleanView: false,
-  zeroLine: () => ({ visible: false, color: '#98a2b3', width: 1, dash: '6 4' }),
+  showAxisUnits: true,
+  zeroLine: () => ({
+    visible: true,
+    color: ZERO_LINE_DEFAULTS.COLOR,
+    width: ZERO_LINE_DEFAULTS.WIDTH,
+    dash: ZERO_LINE_DEFAULTS.DASH,
+    opacity: ZERO_LINE_DEFAULTS.OPACITY,
+    boundaryThreshold: ZERO_LINE_DEFAULTS.BOUNDARY_THRESHOLD,
+  }),
 })
 const emit = defineEmits<Emits>()
 
@@ -61,6 +74,9 @@ const resolvedFrameStyle = computed(() => {
     backgroundColor: props.frameStyle?.backgroundColor || 'transparent',
   }
 })
+const frameInset = computed(() =>
+  props.containFrameStroke ? resolvedFrameStyle.value.borderWidth / 2 : 0,
+)
 </script>
 
 <template>
@@ -84,7 +100,6 @@ const resolvedFrameStyle = computed(() => {
       :clean-view="cleanView"
       :frame-number="frameNumber"
       :frame-style="resolvedFrameStyle"
-      :zero-line="zeroLine"
     />
     <WaveformTrackAxes
       :track="track"
@@ -93,6 +108,10 @@ const resolvedFrameStyle = computed(() => {
       :axes="axes"
       :time-unit="timeUnit"
       :y-label="yLabel"
+      :show-units="showAxisUnits"
+      :show-label-units="showLabelUnits"
+      :hide-y-axis-titles="hideYAxisTitles"
+      :contain-y-axis-endpoints="containYAxisEndpoints || displayMode === 'compact'"
     />
 
     <component
@@ -100,8 +119,10 @@ const resolvedFrameStyle = computed(() => {
       v-if="!track.isEmpty"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
       :d="framePath"
-      :width="track.width ?? innerWidth"
-      :height="track.height"
+      :x="containFrameStroke ? frameInset : undefined"
+      :y="containFrameStroke ? frameInset : undefined"
+      :width="Math.max(0, (track.width ?? innerWidth) - frameInset * 2)"
+      :height="Math.max(0, track.height - frameInset * 2)"
       fill="none"
       :stroke="resolvedFrameStyle.borderColor"
       :stroke-width="resolvedFrameStyle.borderWidth"
@@ -117,6 +138,13 @@ const resolvedFrameStyle = computed(() => {
     />
 
     <WaveformSeriesLayer :track="track" :clip-path-id="clipPathId" />
+    <WaveformZeroLines
+      :track="track"
+      :clip-path-id="clipPathId"
+      :inner-width="innerWidth"
+      :clean-view="cleanView"
+      :zero-line="zeroLine"
+    />
 
     <rect
       v-if="!track.isEmpty && track.hasVisibleSeries && displayMode === 'independent'"

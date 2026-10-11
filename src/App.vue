@@ -52,11 +52,13 @@ const annotationsVisible = ref(true)
 const cleanView = ref(false)
 const presentationMode = ref(false)
 const showTooltip = ref(true)
+const integerZoom = ref(true)
 const plotMarginTop = ref(18)
 const plotMarginBottom = ref(52)
-const zeroLineVisible = ref(false)
-const zeroLineColor = ref('#98a2b3')
+const zeroLineVisible = ref(true)
+const zeroLineColor = ref('#ff0000')
 const zeroLineWidth = ref(1)
+const zeroLineOpacity = ref(0.5)
 const zeroLineDash = ref('6 4')
 const toolbarVisible = ref(true)
 const interactionMode = ref<WaveformInteractionMode>('zoom')
@@ -138,6 +140,7 @@ const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   visible: zeroLineVisible.value,
   color: zeroLineColor.value,
   width: zeroLineWidth.value,
+  opacity: zeroLineOpacity.value,
   dash: zeroLineDash.value,
 }))
 const plotMargin = computed<WaveformPlotMargin>(() => ({
@@ -325,6 +328,7 @@ const controlPanelModel = reactive({
   displayMode,
   overlayMode,
   showTooltip,
+  integerZoom,
   plotMarginTop,
   plotMarginBottom,
   cleanView,
@@ -336,6 +340,7 @@ const controlPanelModel = reactive({
   zeroLineVisible,
   zeroLineColor,
   zeroLineWidth,
+  zeroLineOpacity,
   zeroLineDash,
   zeroLineDashOptions,
   rowCount,
@@ -397,6 +402,7 @@ const chartModel = reactive({
   cleanView,
   presentationMode,
   showTooltip,
+  integerZoom,
   plotMargin,
   zeroLine,
   frameWatermarkVisible,

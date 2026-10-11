@@ -69,6 +69,18 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         />
       </label>
       <label class="frame-style-control">
+        <span>透明度</span>
+        <InputNumber
+          v-model:value="model.zeroLineOpacity"
+          :min="0"
+          :max="1"
+          :step="0.05"
+          :precision="2"
+          size="small"
+          aria-label="零值参考线透明度"
+        />
+      </label>
+      <label class="frame-style-control">
         <span>线型</span>
         <Select
           v-model:value="model.zeroLineDash"

@@ -33,10 +33,11 @@ function formatFixedNumber(value: number, precision: number): string {
 
 /** Whether an axis magnitude should use one shared scientific exponent. */
 export function shouldUseScientificAxisLabel(maxAbsoluteValue: number): boolean {
+  const magnitude = Math.abs(maxAbsoluteValue)
   return (
-    Number.isFinite(maxAbsoluteValue) &&
-    (maxAbsoluteValue >= SCIENTIFIC_MAX_PLAIN_ABSOLUTE_VALUE ||
-      (maxAbsoluteValue > 0 && maxAbsoluteValue < SCIENTIFIC_MIN_ABSOLUTE_VALUE))
+    Number.isFinite(magnitude) &&
+    (magnitude >= SCIENTIFIC_MAX_PLAIN_ABSOLUTE_VALUE ||
+      (magnitude > 0 && magnitude <= SCIENTIFIC_MIN_ABSOLUTE_VALUE))
   )
 }
 

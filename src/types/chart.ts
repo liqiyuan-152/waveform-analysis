@@ -14,6 +14,16 @@ export interface WaveformPoint {
   upperError?: number
 }
 
+/** Optional compact title and time-label placement at the card edges. */
+export type WaveformLayoutPreset = 'default' | 'edge-compact'
+
+/** Controls unit placement without changing series metadata. */
+export type WaveformUnitDisplayMode =
+  | 'axis'
+  | 'legend-single-series'
+  /** Label and legend units; hide all channel titles on pages containing a multi-series track. */
+  | 'channel-label-or-legend'
+
 /**
  * 显示模式
  * - independent: 每个波形独立 Y 轴和缩放
@@ -50,6 +60,14 @@ export interface WaveformZoomEndPayload extends WaveformCommandMetadata {
   trackIndex?: number
   seriesIds?: string[]
   gesture?: 'wheel' | 'box' | 'command'
+}
+
+/** Final horizontal viewport after a pan; endpoints are always seconds. */
+export interface WaveformPanEndPayload {
+  start: number
+  end: number
+  trackIndex?: number
+  seriesIds?: string[]
 }
 
 /** Describes the X-axis viewport targeted by a user zoom gesture before rendering settles. */
@@ -268,8 +286,16 @@ export interface WaveformAxesOptions {
 
 /** Styling and visibility options for the horizontal zero-value reference line. */
 export interface WaveformZeroLineOptions {
+  /** Defaults to true. Set false to hide the reference line. */
   visible?: boolean
+  /** Defaults to red (#ff0000). */
   color?: string
+  /** Positive stroke width in pixels. Defaults to 1. */
   width?: number
+  /** SVG stroke-dasharray. Defaults to '6 4'; use '' for a solid line. */
   dash?: string
+  /** Stroke opacity from 0 to 1. Defaults to 0.5; multiplies the color's alpha. */
+  opacity?: number
+  /** Hide within this fraction of a Y-axis tick interval from either boundary. Defaults to 0.02. */
+  boundaryThreshold?: number
 }

@@ -17,7 +17,9 @@ describe('simulated waveform data', () => {
       (series) => series.trackId === 'simulated-harmonic-frame',
     )
     expect(secondFrame).toHaveLength(3)
-    expect(new Set(first.series.map((series) => series.shotNo))).toEqual(new Set(['13300']))
+    expect(new Set(first.series.map((series) => series.shotNo))).toEqual(
+      new Set(['13300', '13921']),
+    )
     const firstSeries = first.series[0]
     expect(firstSeries).toMatchObject({
       id: 'simulated-sine',
@@ -43,11 +45,19 @@ describe('simulated waveform data', () => {
       if (series.id === 'simulated-step') {
         expect(series.data.points).toHaveLength(500)
         expect(series.data.points.every((point) => point.x >= 0)).toBe(true)
+      } else if (series.id === 'simulated-damped') {
+        expect(series).toMatchObject({ shotNo: '13921', unit: 'V' })
+        expect(series.data.points).toHaveLength(1_000)
+        expect(series.data.points[0]).toEqual({ x: -4, y: 184.7562 })
+        expect(series.data.points[1]?.x).toBeCloseTo(-3.98999, 10)
+        expect(series.data.points[1]?.y).toBe(-189.8833)
+        expect(series.data.points.at(-1)?.x).toBeCloseTo(5.9999, 10)
+        expect(series.data.points.at(-1)?.y).toBe(1.037613)
       } else {
         expect(series.data.points).toHaveLength(1_000)
         expect(series.data.points[0]?.x).toBe(-5)
       }
-      expect(series.data.points.at(-1)?.x).toBe(5)
+      if (series.id !== 'simulated-damped') expect(series.data.points.at(-1)?.x).toBe(5)
       series.data.points.forEach((point) => {
         expect(Number.isFinite(point.x)).toBe(true)
         expect(Number.isFinite(point.y)).toBe(true)

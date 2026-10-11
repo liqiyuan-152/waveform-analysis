@@ -6,7 +6,7 @@ import { resizeObservers } from '@tests/support/setup'
 import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
-  it('expands the Y-axis label gutter for signed values and long exponents', async () => {
+  it('expands the Y-axis label gutter for signed numeric ticks without counting long exponents', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -33,13 +33,22 @@ describe('WaveformChart', () => {
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
     const longestTickLabel = Math.max(
-      ...tracks[0].findAll('.waveform-chart__axis--y .tick text').map((tick) => tick.text().length),
+      ...tracks[0]
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
     )
 
     expect(Math.abs(labelX)).toBeGreaterThanOrEqual(7 + longestTickLabel * 7 + 6)
-    expect(labelBackgroundX).toBe(labelX - 6)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(80)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(72)
+    const renderedLabelX = Number(
+      tracks[0]
+        .get('.waveform-chart__y-axis-label')
+        .attributes('transform')
+        ?.match(/^translate\(([-\d.]+),/)?.[1],
+    )
+    expect(labelBackgroundX).toBe(renderedLabelX - 10)
+    expect(labelBackgroundX).toBeGreaterThanOrEqual(labelX - 10)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(59)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(59)
   })
 
   it('keeps a tick-only gutter when channel labels are empty', async () => {
@@ -65,8 +74,8 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(80)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(60)
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(48)
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(24)
   })
 
   it('updates the Y-axis label position while preserving the chart gutter between pages', async () => {
@@ -105,10 +114,10 @@ describe('WaveformChart', () => {
     const initialLongestTickLabel = Math.max(
       ...initialTrack
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().length),
+        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
     )
     expect(initialTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + initialLongestTickLabel * 7 + 6)),
+      String(-(7 + initialLongestTickLabel * 7 + 10)),
     )
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
@@ -118,10 +127,10 @@ describe('WaveformChart', () => {
     const pagedLongestTickLabel = Math.max(
       ...pagedTrack
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().length),
+        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
     )
     expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + pagedLongestTickLabel * 7 + 6)),
+      String(-(7 + pagedLongestTickLabel * 7 + 10)),
     )
   })
 

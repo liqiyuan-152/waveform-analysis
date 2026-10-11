@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { WaveformZeroLineOptions } from '../../types'
-import type { TrackLayout, WaveformYAxisLayout } from '../core/types'
+import type { TrackLayout } from '../core/types'
 
 interface Props {
   track: TrackLayout
@@ -11,18 +10,9 @@ interface Props {
   frameStyle: {
     backgroundColor: string
   }
-  zeroLine: Required<Pick<WaveformZeroLineOptions, 'color' | 'width' | 'dash'>> & {
-    visible: boolean
-  }
 }
 
-const props = defineProps<Props>()
-
-function zeroLineY(axis: WaveformYAxisLayout): number | null {
-  const [minimum, maximum] = axis.scale.domain()
-  if (!props.zeroLine.visible || minimum > 0 || maximum < 0) return null
-  return axis.scale(0)
-}
+defineProps<Props>()
 </script>
 
 <template>
@@ -36,7 +26,7 @@ function zeroLineY(axis: WaveformYAxisLayout): number | null {
   />
 
   <g
-    v-if="!track.isEmpty && track.hasVisibleSeries && !cleanView"
+    v-if="!track.isEmpty && !cleanView"
     :clip-path="`url(#${clipPathId}-${track.index})`"
     aria-hidden="true"
   >
@@ -96,28 +86,6 @@ function zeroLineY(axis: WaveformYAxisLayout): number | null {
         />
       </template>
     </g>
-  </g>
-
-  <g
-    v-if="!track.isEmpty && track.hasVisibleSeries && zeroLine.visible && !cleanView"
-    class="waveform-track__zero-lines waveform-chart__zero-lines"
-    :clip-path="`url(#${clipPathId}-${track.index})`"
-    aria-hidden="true"
-  >
-    <template v-for="axis in track.yAxes" :key="`zero-line-${track.index}-${axis.index}`">
-      <line
-        v-if="zeroLineY(axis) !== null"
-        class="waveform-track__zero-line waveform-chart__zero-line"
-        :data-y-axis-index="axis.index"
-        x1="0"
-        :x2="track.width ?? innerWidth"
-        :y1="zeroLineY(axis) ?? 0"
-        :y2="zeroLineY(axis) ?? 0"
-        :stroke="zeroLine.color"
-        :stroke-width="zeroLine.width"
-        :stroke-dasharray="zeroLine.dash || undefined"
-      />
-    </template>
   </g>
 
   <text
