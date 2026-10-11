@@ -1,3 +1,5 @@
+import { createWaveformSamplingSession } from './waveformSamplingSession'
+import { lineBoundaryIndexes, withLineBoundaries } from '../../core/lineBoundary'
 import { computed, onScopeDispose, shallowRef, watch, type ComputedRef, type ShallowRef } from 'vue'
 
 import {
@@ -11,12 +13,8 @@ import { pointSourceFromPoints, type WaveformPointSource } from '../../core/wave
 import type { PreparedWaveformSeries } from './useWaveformData'
 import type { DisplaySeries, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
-import { createLatestTaskScheduler, resolveAutoSelectedMode } from './latestTaskScheduler'
-import {
-  createWorkerSamplingClient,
-  isDatasetResponse,
-  type WorkerSamplingClient,
-} from './workerSamplingClient'
+import { resolveAutoSelectedMode } from './latestTaskScheduler'
+import { isDatasetResponse, type WorkerSamplingClient } from './workerSamplingClient'
 
 interface SamplingTarget {
   series: DisplaySeries
@@ -62,7 +60,8 @@ function rawDiagnostics(target: SamplingTarget, requestId: number): WorkerSampli
     strategy: sampling.strategy === 'auto' ? 'peak' : sampling.strategy,
     sourcePointCount: target.source.length,
     visiblePointCount,
-    renderedPointCount: visiblePointCount,
+    renderedPointCount:
+      visiblePointCount + lineBoundaryIndexes(target.visibleRange, target.source.length).length,
     durationMs: 0,
     cacheHit: false,
     requestId,
@@ -75,7 +74,7 @@ function rawDiagnostics(target: SamplingTarget, requestId: number): WorkerSampli
   }
 }
 
-function fallbackPoints(target: SamplingTarget) {
+function fallbackInteriorPoints(target: SamplingTarget) {
   const { source } = target
   const { start, end } = target.visibleRange
   const count = end - start
@@ -105,17 +104,15 @@ function errorPayload(
 
 export function useWaveformRenderSampling(context: SamplingContext) {
   const dataEpoch = shallowRef(0)
-  let client: WorkerSamplingClient | undefined
-  let requestId = 0
-  const revisions = new Map<string, number>()
-  const backendBySeries = new Map<string, WorkerSamplingDiagnostics['backend']>()
-  const selectedModeBySeries = new Map<string, 'raw' | 'sampled'>()
-  const emittedErrors = new Set<string>()
-  const pendingDiagnostics = new Map<string, WorkerSamplingDiagnostics>()
-  const samplingScheduler = createLatestTaskScheduler()
-  let diagnosticsTimer: ReturnType<typeof setTimeout> | undefined
-  let autoModeSettleTimer: ReturnType<typeof setTimeout> | undefined
-  let hasInitialSamplingRun = false
+  const session = createWaveformSamplingSession()
+  const {
+    revisions,
+    backendBySeries,
+    selectedModeBySeries,
+    emittedErrors,
+    pendingDiagnostics,
+    scheduler: samplingScheduler,
+  } = session
 
   const targets = computed(() => {
     const sampling = context.renderingOptions.value.sampling
@@ -169,7 +166,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
   )
 
   const flushDiagnostics = () => {
-    diagnosticsTimer = undefined
+    session.diagnosticsTimer = undefined
     pendingDiagnostics.forEach((diagnostic) => {
       const previousBackend = backendBySeries.get(diagnostic.seriesId)
       if (previousBackend && previousBackend !== diagnostic.backend) {
@@ -193,7 +190,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         maxPendingRequestCount: samplingScheduler.metrics.maxPending,
       }),
     )
-    if (!diagnosticsTimer) diagnosticsTimer = setTimeout(flushDiagnostics, 100)
+    if (!session.diagnosticsTimer) session.diagnosticsTimer = setTimeout(flushDiagnostics, 100)
   }
 
   const emitErrorOnce = (payload: WaveformSamplingError) => {
@@ -213,7 +210,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         if (revisions.has(target.request.datasetId)) return
         const response = await workerClient.send({
           type: 'register-dataset',
-          requestId: ++requestId,
+          requestId: ++session.requestId,
           datasetId: target.request.datasetId,
           revision: 0,
           dataset: target.source.toWorkerDataset(),
@@ -249,15 +246,22 @@ export function useWaveformRenderSampling(context: SamplingContext) {
           previousSelectedMode,
         ) === 'raw'
       if (target.request.mode === 'raw' || autoRaw) {
-        nextOverrides[target.series.id] = target.source.pointsInRange(
-          target.visibleRange.start,
-          target.visibleRange.end,
+        nextOverrides[target.series.id] = withLineBoundaries(
+          target.source.pointsInRange(target.visibleRange.start, target.visibleRange.end),
+          target.visibleRange,
+          target.source.length,
+          (index) => target.source.pointAt(index)!,
         )
         selectedModeBySeries.set(target.series.id, 'raw')
         diagnostics.push(rawDiagnostics(target, token))
       } else {
         if (!nextOverrides[target.series.id]?.length) {
-          nextOverrides[target.series.id] = fallbackPoints(target)
+          nextOverrides[target.series.id] = withLineBoundaries(
+            fallbackInteriorPoints(target),
+            target.visibleRange,
+            target.source.length,
+            (index) => target.source.pointAt(index)!,
+          )
         }
         sampledTargets.push({
           ...target,
@@ -273,18 +277,18 @@ export function useWaveformRenderSampling(context: SamplingContext) {
     }
 
     context.linePointOverrides.value = nextOverrides
-    client ??= createWorkerSamplingClient()
-    await registerTargets(client, sampledTargets, token)
-    if (!samplingScheduler.isCurrent(token)) return
-    const batch = sampledTargets.map((target) => ({
-      ...target.request,
-      revision: revisions.get(target.request.datasetId) ?? 1,
-    }))
+    const client = session.getClient()
     let response: SampleViewportResponse
     try {
+      await registerTargets(client, sampledTargets, token)
+      if (!samplingScheduler.isCurrent(token)) return
+      const batch = sampledTargets.map((target) => ({
+        ...target.request,
+        revision: revisions.get(target.request.datasetId) ?? 1,
+      }))
       const result = await client.send({
         type: 'sample-viewport',
-        requestId: ++requestId,
+        requestId: ++session.requestId,
         series: batch,
       })
       if (result.type !== 'sample-viewport-response') return
@@ -295,7 +299,10 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         errorPayload(
           error instanceof Error ? error.message : String(error),
           context.renderingOptions.value.sampling.mode,
-          'javascript',
+          context.renderingOptions.value.sampling.mode === 'wasm' &&
+            context.renderingOptions.value.sampling.wasmFailureFallback === 'error'
+            ? 'none'
+            : 'javascript',
           sampledTargets.map((target) => target.series.id),
         ),
       )
@@ -322,12 +329,18 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         )
       }
     })
-    if (response.workerError) {
+    if (
+      response.workerError &&
+      response.results.every((result) => result.status !== 'wasm-unavailable')
+    ) {
       emitErrorOnce(
         errorPayload(
           response.workerError,
           context.renderingOptions.value.sampling.mode,
-          'javascript',
+          context.renderingOptions.value.sampling.mode === 'wasm' &&
+            context.renderingOptions.value.sampling.wasmFailureFallback === 'error'
+            ? 'none'
+            : 'javascript',
           sampledTargets.map((target) => target.series.id),
         ),
       )
@@ -340,7 +353,10 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         errorPayload(
           client.workerFailureReason,
           context.renderingOptions.value.sampling.mode,
-          'javascript',
+          context.renderingOptions.value.sampling.mode === 'wasm' &&
+            context.renderingOptions.value.sampling.wasmFailureFallback === 'error'
+            ? 'none'
+            : 'javascript',
           sampledTargets.map((target) => target.series.id),
         ),
       )
@@ -352,17 +368,17 @@ export function useWaveformRenderSampling(context: SamplingContext) {
   watch(
     targetSignature,
     () => {
-      if (autoModeSettleTimer) clearTimeout(autoModeSettleTimer)
-      const useAutoHysteresis = hasInitialSamplingRun
-      hasInitialSamplingRun = true
+      if (session.autoModeSettleTimer) clearTimeout(session.autoModeSettleTimer)
+      const useAutoHysteresis = session.hasInitialSamplingRun
+      session.hasInitialSamplingRun = true
       samplingScheduler.schedule((token) => runSampling(token, useAutoHysteresis))
       if (
         useAutoHysteresis &&
         context.renderingOptions.value.sampling.mode === 'auto' &&
         context.renderingOptions.value.sampling.autoHysteresis > 0
       ) {
-        autoModeSettleTimer = setTimeout(() => {
-          autoModeSettleTimer = undefined
+        session.autoModeSettleTimer = setTimeout(() => {
+          session.autoModeSettleTimer = undefined
           samplingScheduler.schedule((token) => runSampling(token, false))
         }, AUTO_MODE_SETTLE_DELAY_MS)
       }
@@ -372,24 +388,13 @@ export function useWaveformRenderSampling(context: SamplingContext) {
   watch(
     context.preparedSeries,
     () => {
-      samplingScheduler.cancelPending()
+      session.invalidate()
       dataEpoch.value += 1
       context.linePointOverrides.value = {}
-      revisions.clear()
-      backendBySeries.clear()
-      selectedModeBySeries.clear()
-      emittedErrors.clear()
-      client?.dispose()
-      client = undefined
     },
     { flush: 'sync' },
   )
-  onScopeDispose(() => {
-    if (diagnosticsTimer) clearTimeout(diagnosticsTimer)
-    if (autoModeSettleTimer) clearTimeout(autoModeSettleTimer)
-    samplingScheduler.dispose()
-    client?.dispose()
-  })
+  onScopeDispose(() => session.dispose())
 
   return { linePointOverrides: context.linePointOverrides }
 }

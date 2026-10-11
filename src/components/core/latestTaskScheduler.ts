@@ -26,7 +26,9 @@ interface ScheduledTask {
 }
 
 /** Runs at most one task at a time and retains only the newest pending task. */
-export function createLatestTaskScheduler() {
+export function createLatestTaskScheduler(
+  onError: (error: unknown, generation: number) => void = () => undefined,
+) {
   let generation = 0
   let running = false
   let pending: ScheduledTask | undefined
@@ -40,7 +42,17 @@ export function createLatestTaskScheduler() {
       while (pending && !disposed) {
         const task = pending
         pending = undefined
-        await task.run(task.generation)
+        try {
+          await task.run(task.generation)
+        } catch (error) {
+          if (!disposed && task.generation === generation) {
+            try {
+              onError(error, task.generation)
+            } catch {
+              /* Reporting must not stall the queue. */
+            }
+          }
+        }
       }
     } finally {
       running = false

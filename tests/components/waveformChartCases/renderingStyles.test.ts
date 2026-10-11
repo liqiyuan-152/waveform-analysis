@@ -118,7 +118,7 @@ describe('WaveformChart', () => {
       false,
     )
     const stepLine = wrapper.get('.waveform-chart__line[data-series-id="step-errors"]')
-    expect(getComputedStyle(stepLine.element).strokeWidth).toBe('2.5')
+    expect(getComputedStyle(stepLine.element).strokeWidth).toBe('1')
     expect(stepLine.attributes('data-line-type')).toBe('step-after')
     expect(stepLine.attributes('data-line-style')).toBe('dash-dot')
     expect(stepLine.attributes('stroke-dasharray')).toBe('8 5 1.5 5')
@@ -183,7 +183,7 @@ describe('WaveformChart', () => {
     expect(stepSwatchPaths[0]?.attributes()).toMatchObject({
       d: 'M1 8H25',
       stroke: '#2ca02c',
-      'stroke-width': '2.5',
+      'stroke-width': '1',
     })
     expect(stepSwatchPaths[1]?.attributes()).toMatchObject({
       d: 'M8 2H18M13 2V14M8 14H18',

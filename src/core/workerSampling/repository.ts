@@ -1,3 +1,4 @@
+import { addOutputBoundaries } from './outputBoundaries'
 import type { WaveformPoint } from '../../types'
 import type { WorkerSamplingDataset } from '../waveformPointSource'
 import { javascriptSamplingBackend } from './javascriptBackend'
@@ -194,13 +195,17 @@ export class WorkerSamplingRepository {
         requestId,
         request,
         'ok',
-        {
-          kind: 'source-indexes',
-          sourceIndexes: Uint32Array.from(
-            { length: visiblePointCount },
-            (_, index) => range.start + index,
-          ),
-        },
+        addOutputBoundaries(
+          {
+            kind: 'source-indexes',
+            sourceIndexes: Uint32Array.from(
+              { length: visiblePointCount },
+              (_, index) => range.start + index,
+            ),
+          },
+          range,
+          dataset,
+        ),
         'raw',
         'raw',
         visiblePointCount,
@@ -256,18 +261,21 @@ export class WorkerSamplingRepository {
             )
           : undefined
         : dataset.index?.sample(range.start, range.end, strategy, target)
-    const output =
+    const output = addOutputBoundaries(
       indexed ??
-      outputWithGlobalIndexes(
-        backend.sample({
-          x: datasetXRange(dataset, range.start, range.end),
-          y: dataset.y.subarray(range.start, range.end),
-          points: dataset.points?.slice(range.start, range.end) ?? [],
-          strategy,
-          targetPointCount: target,
-        }),
-        range.start,
-      )
+        outputWithGlobalIndexes(
+          backend.sample({
+            x: datasetXRange(dataset, range.start, range.end),
+            y: dataset.y.subarray(range.start, range.end),
+            points: dataset.points?.slice(range.start, range.end) ?? [],
+            strategy,
+            targetPointCount: target,
+          }),
+          range.start,
+        ),
+      range,
+      dataset,
+    )
     this.cache.set(key, output)
     if (dataset.wasmDatasetHandle !== undefined && isWasmDatasetBackend(backend)) {
       dataset.wasmIndexBytes = backend.datasetIndexBytes(dataset.wasmDatasetHandle)

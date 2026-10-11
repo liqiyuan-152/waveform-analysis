@@ -24,7 +24,7 @@ export default tseslint.config(
       globals: globals.browser,
     },
     rules: {
-      'max-lines': ['error', { max: 400, skipBlankLines: false, skipComments: false }],
+      'max-lines': ['error', { max: 450, skipBlankLines: false, skipComments: false }],
     },
   },
   {

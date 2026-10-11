@@ -69,8 +69,16 @@ export function isWasmDatasetBackend(
 }
 
 function copyFiniteNumericValues(sourceX: Float64Array, sourceY: Float32Array | Float64Array) {
-  const indexes: number[] = []
   const length = Math.min(sourceX.length, sourceY.length)
+  let denseOrdered = sourceX.length === sourceY.length
+  for (let index = 0; index < length && denseOrdered; index += 1) {
+    denseOrdered =
+      Number.isFinite(sourceX[index]) &&
+      Number.isFinite(sourceY[index]) &&
+      (index === 0 || sourceX[index]! >= sourceX[index - 1]!)
+  }
+  if (denseOrdered) return { x: sourceX.slice(), y: Float64Array.from(sourceY) }
+  const indexes: number[] = []
   for (let index = 0; index < length; index += 1) {
     if (Number.isFinite(sourceX[index]) && Number.isFinite(sourceY[index])) indexes.push(index)
   }
@@ -117,6 +125,30 @@ export function createStoredDataset(
           validPointCount: 0,
           xDomain: null,
           yDomain: null,
+        },
+      }
+    }
+    // Compact, already-valid sample messages need neither an index array nor a sort.
+    if (!numeric.sourceIndexes && numeric.values.every(Number.isFinite)) {
+      const y = Float64Array.from(numeric.values)
+      let min = Infinity
+      let max = -Infinity
+      for (const value of y) {
+        min = Math.min(min, value)
+        max = Math.max(max, value)
+      }
+      return {
+        y,
+        sampleStartTime: numeric.startTime,
+        sampleRate: numeric.sampleRate,
+        revision,
+        metrics: {
+          inputPointCount: y.length,
+          validPointCount: y.length,
+          xDomain: y.length
+            ? [numeric.startTime, numeric.startTime + (y.length - 1) / numeric.sampleRate]
+            : null,
+          yDomain: y.length ? [min, max] : null,
         },
       }
     }

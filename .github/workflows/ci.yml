@@ -1,31 +1,35 @@
-name: CI
+name: waveform-analysis-ci
 
 on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          version: 10.32.1
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
+          node-version: 22.20.0
       - uses: dtolnay/rust-toolchain@1.95.0
         with:
           targets: wasm32-unknown-unknown
       - run: cargo install wasm-pack --version 0.14.0 --locked
-      - run: pnpm install --frozen-lockfile
+      - name: Install locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.32.1 --activate && pnpm install --frozen-lockfile
+      - run: pnpm prepare:wasm
       - run: python3 scripts/issue_triage_agent.py --self-test
-      - run: pnpm typecheck
-      - run: pnpm check:file-length
-      - run: pnpm lint:oxlint
-      - run: pnpm lint
-      - run: pnpm test:coverage
-      - run: pnpm build
+      - run: pnpm lint:all
+      - name: Verify source length
+        run: pnpm check:file-length
+      - name: Type check
+        run: pnpm typecheck
+      - name: Test
+        run: pnpm test:coverage
+      - name: Build package and Demo
+        run: pnpm build
       - run: pnpm test:package

@@ -11,6 +11,30 @@ function deferred() {
 }
 
 describe('createLatestTaskScheduler', () => {
+  it('continues latest work after a rejected task without unhandled rejection', async () => {
+    const onError = vi.fn()
+    const scheduler = createLatestTaskScheduler(onError)
+    let reject!: (error: Error) => void
+    const first = new Promise<void>((_resolve, fail) => {
+      reject = fail
+    })
+    const calls: string[] = []
+    scheduler.schedule(async () => first)
+    scheduler.schedule(async () => {
+      calls.push('superseded')
+    })
+    scheduler.schedule(async () => {
+      calls.push('latest')
+    })
+    reject(new Error('cancelled registration'))
+    await vi.waitFor(() => expect(calls).toEqual(['latest']))
+    expect(onError).not.toHaveBeenCalled()
+    scheduler.schedule(async () => {
+      throw new Error('current failure')
+    })
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledOnce())
+    scheduler.dispose()
+  })
   it('runs one task at a time and coalesces pending work to the latest task', async () => {
     const scheduler = createLatestTaskScheduler()
     const first = deferred()

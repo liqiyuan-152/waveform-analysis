@@ -171,7 +171,7 @@ describe('WorkerSamplingRepository', () => {
     if (response.type !== 'sample-viewport-response') return
     expect(response.results[0]).toMatchObject({
       status: 'ok',
-      output: { kind: 'source-indexes', sourceIndexes: Uint32Array.from([2, 3, 4]) },
+      output: { kind: 'source-indexes', sourceIndexes: Uint32Array.from([1, 2, 3, 4, 5]) },
       diagnostics: { selectedMode: 'raw', backend: 'raw', visiblePointCount: 3 },
     })
     expect(response.results[1]).toMatchObject({
@@ -320,7 +320,7 @@ describe('WorkerSamplingRepository', () => {
     expect(backendRequest?.points).toEqual([])
     expect(response).toMatchObject({
       results: [
-        { output: { sourceIndexes: Uint32Array.from([2]) }, diagnostics: { backend: 'wasm' } },
+        { output: { sourceIndexes: Uint32Array.from([0, 2]) }, diagnostics: { backend: 'wasm' } },
       ],
     })
     expect(repository.resourceMetrics.indexBytes).toBe(0)

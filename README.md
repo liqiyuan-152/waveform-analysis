@@ -913,3 +913,17 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 
 `pnpm build` 同时生成 `dist/` 组件库产物和 `dist-demo/` 演示应用。正式公开入口为
 `src/index.ts`，样式入口为 `src/styles.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
+
+### WASM 构建准备与源文件长度
+
+开发命令 `typecheck`、`test`、`test:coverage`、`build` 和打包的 `prepack` 自动校验并准备 WASM。
+准备记录位于忽略的 `node_modules/.cache/waveform/wasm.json`，同时校验 Rust 输入、工具版本及生成文件摘要；
+源码、工具链或产物变化时自动重建。同一输入的连续检查及嵌套打包复用有效产物。
+`pnpm prepare:wasm` 可提前准备，`pnpm build:wasm` 强制重建；不需要在每次测试前手动构建。
+`src/` 文本文件上限为 450 物理行（包含注释和空行），ESLint 与独立长度检查保持一致。
+
+采样的 `maxPointCount` 是视口内主体点数的目标；为了保持线性和阶梯线在视口边缘连续，
+绘图输出还可能包含左右各一个相邻原始点（最多额外 2 点）。`visiblePointCount` 只统计
+视口内原始点，`renderedPointCount` 包含连接点。average/sum 仅聚合视口内部数据，连接点
+不参与聚合；视口内无采样点但存在跨越视口的线段时，保留两侧连接点。
+域、误差范围、悬浮查询及注解仍使用完整数据，时间单位仅影响显示。

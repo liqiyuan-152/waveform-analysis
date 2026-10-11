@@ -1,3 +1,4 @@
+import { pointSourceFromPoints, type WaveformPointSource } from './waveformPointSource'
 import type { WaveformPoint } from '../types'
 import type { ResolvedWaveformRenderingOptions } from './renderingOptions'
 
@@ -7,6 +8,7 @@ export interface VisiblePointRange {
 }
 
 export interface RenderablePointSelectionContext {
+  source?: WaveformPointSource
   points: WaveformPoint[]
   range: VisiblePointRange
   domain: [number, number]
@@ -25,17 +27,15 @@ function selectionBounds(range: VisiblePointRange, pointCount: number) {
   }
 }
 
-function pushUniquePoint(target: WaveformPoint[], point: WaveformPoint | undefined) {
-  if (point && target[target.length - 1] !== point) target.push(point)
-}
-
 export const completePointSelectionStrategy: RenderablePointSelectionStrategy = (context) => {
-  const { start, end } = selectionBounds(context.range, context.points.length)
-  return context.points.slice(start, end)
+  const source = context.source ?? pointSourceFromPoints(context.points)
+  const { start, end } = selectionBounds(context.range, source.length)
+  return source.pointsInRange(start, end)
 }
 
 export const peakPreservingPointSelectionStrategy: RenderablePointSelectionStrategy = (context) => {
-  const { points, range, domain, width, options } = context
+  const { range, domain, width, options } = context
+  const points = context.source ?? pointSourceFromPoints(context.points)
   const { start, end } = selectionBounds(range, points.length)
   const visibleCount = end - start
   if (visibleCount <= 0) return []
@@ -48,6 +48,12 @@ export const peakPreservingPointSelectionStrategy: RenderablePointSelectionStrat
   )
   const bucketCount = Math.max(1, Math.floor(maximumPointCount / 4))
   const result: WaveformPoint[] = []
+  let lastSelectedIndex = -1
+  const pushIndex = (index: number) => {
+    if (index < 0 || index >= points.length || index === lastSelectedIndex) return
+    result.push(points.pointAt(index)!)
+    lastSelectedIndex = index
+  }
   const span = domainEnd - domainStart || 1
   const bucketIndexes = Array.from({ length: 4 }, () => -1)
   let activeBucket = -1
@@ -82,13 +88,13 @@ export const peakPreservingPointSelectionStrategy: RenderablePointSelectionStrat
       bucketIndexes[position + 1] = value
     }
     for (let index = 0; index < count; index += 1) {
-      pushUniquePoint(result, points[bucketIndexes[index]])
+      pushIndex(bucketIndexes[index])
     }
   }
 
-  pushUniquePoint(result, points[start])
+  pushIndex(start)
   for (let index = range.start; index < range.end; index += 1) {
-    const point = points[index]
+    const point = points.pointAt(index)!
     const bucket = Math.min(
       bucketCount - 1,
       Math.max(0, Math.floor(((point.x - domainStart) / span) * bucketCount)),
@@ -103,11 +109,11 @@ export const peakPreservingPointSelectionStrategy: RenderablePointSelectionStrat
       continue
     }
     lastIndex = index
-    if (point.y < points[minimumIndex].y) minimumIndex = index
-    if (point.y > points[maximumIndex].y) maximumIndex = index
+    if (point.y < points.pointAt(minimumIndex)!.y) minimumIndex = index
+    if (point.y > points.pointAt(maximumIndex)!.y) maximumIndex = index
   }
   flushBucket()
-  pushUniquePoint(result, points[end - 1])
+  pushIndex(end - 1)
   return result
 }
 

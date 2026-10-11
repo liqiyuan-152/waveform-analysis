@@ -1,3 +1,5 @@
+import { selectSeriesRenderSourcePoints } from '../../core/rendering'
+import { pointSourceFromPoints } from '../../core/waveformPointSource'
 import {
   curveStep,
   curveStepAfter,
@@ -8,10 +10,7 @@ import {
   type ZoomTransform,
 } from 'd3'
 
-import {
-  selectSeriesRenderPoints,
-  type ResolvedWaveformRenderingOptions,
-} from '../../core/rendering'
+import { type ResolvedWaveformRenderingOptions } from '../../core/rendering'
 import type {
   WaveformDisplayMode,
   WaveformOverlayMode,
@@ -209,8 +208,8 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         axis.seriesList.some((series) => series.id === trackSeries.id),
       )
       const seriesYScale = yAxis?.scale ?? yScale
-      const renderPoints = selectSeriesRenderPoints(
-        trackSeries.points,
+      const renderPoints = selectSeriesRenderSourcePoints(
+        trackSeries.source ?? pointSourceFromPoints(trackSeries.points),
         domain,
         cell.width,
         options.rendering,
