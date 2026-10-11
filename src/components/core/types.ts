@@ -26,6 +26,7 @@ export interface DisplaySeries {
   points: WaveformPoint[]
   source?: WaveformPointSource
   xDomain: [number, number]
+  rawYMaximum?: number
   yDomain: [number, number]
   hasErrorPoints: boolean
 }
@@ -37,6 +38,7 @@ export interface DisplayTrack {
   /** Series currently participating in layout, rendering, and interaction. */
   visibleSeries: DisplaySeries[]
   xDomain: [number, number]
+  rawYMaximum?: number
   yDomain: [number, number]
 }
 
@@ -50,6 +52,7 @@ export interface TrackSeriesPath {
 }
 
 export interface WaveformYAxisLayout {
+  maximumTick?: number
   index: number
   side: 'left' | 'right'
   x: number

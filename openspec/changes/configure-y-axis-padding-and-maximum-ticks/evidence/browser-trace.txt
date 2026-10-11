@@ -1,0 +1,4 @@
+Script ran on page and returned:
+```json
+{"modes":[{"mode":"independent","maxima":["80","-100"],"domains":[{"a":[14,86],"b":[-210,-90]}]},{"mode":"separated","maxima":["80","-100"],"domains":[{"a":[14,86],"b":[-210,-90]}]},{"mode":"compact","maxima":["80","-100"],"domains":[{"a":[14,86],"b":[-210,-90]}]}],"small":{"width":360,"maxima":[{"value":"80","display":"block"},{"value":"-100","display":"block"}],"hiddenLabels":2,"png":{"width":358,"height":258,"bytes":19032},"upperOffMaximumCount":0,"lowerOnly":{"a":[14,80],"b":[-210,-100]},"upperOnly":{"a":[20,86],"b":[-200,-90]}}}
+```

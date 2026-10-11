@@ -86,6 +86,7 @@ writeFileSync(
   normalizeWaveformData,
   type WasmSamplingRequest,
   type WaveformData,
+  type WaveformAxesOptions,
   type WaveformChartHandle,
   type WaveformControlResult,
   type WaveformInteractionMode,
@@ -106,6 +107,10 @@ function verifyControls(chart: WaveformChartHandle) {
   return { oldReset, oldSet, result, reset, image, toolbar, payload }
 }
 void verifyControls
+const axes: WaveformAxesOptions = { y: { nice: false, upperPaddingEnabled: true, lowerPaddingEnabled: true, upperPaddingRatio: 0.1, lowerPaddingRatio: 0.1 } }
+const legacyAxes: WaveformAxesOptions = { y: { upperPaddingRatio: 0.1 } }
+void axes
+void legacyAxes
 const data: WaveformData = { kind: 'samples' , values: [1, 2], sampleRate: 1 }
 const request: WasmSamplingRequest = {
   x: new Float64Array([0, 1]),

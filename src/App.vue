@@ -42,6 +42,10 @@ const verticalGridVisible = ref(true)
 const verticalGridColor = ref('#dfe5ef')
 const xAxisLineVisible = ref(false)
 const yAxisLineVisible = ref(false)
+const upperPaddingEnabled = ref(true)
+const lowerPaddingEnabled = ref(true)
+const upperPaddingPercent = ref(10)
+const lowerPaddingPercent = ref(10)
 const { controlModel: xAxisLabelControlModel, xAxisLabelFormatter } = useDemoXAxisLabelControls()
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
@@ -122,7 +126,13 @@ const axes = computed<WaveformAxesOptions>(() => ({
     lineVisible: xAxisLineVisible.value,
     ...(xAxisLabelFormatter.value ? { labelFormatter: xAxisLabelFormatter.value } : {}),
   },
-  y: { lineVisible: yAxisLineVisible.value },
+  y: {
+    lineVisible: yAxisLineVisible.value,
+    upperPaddingEnabled: upperPaddingEnabled.value,
+    lowerPaddingEnabled: lowerPaddingEnabled.value,
+    upperPaddingRatio: upperPaddingPercent.value / 100,
+    lowerPaddingRatio: lowerPaddingPercent.value / 100,
+  },
 }))
 const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   visible: zeroLineVisible.value,
@@ -336,6 +346,10 @@ const controlPanelModel = reactive({
   verticalGridColor,
   xAxisLineVisible,
   yAxisLineVisible,
+  upperPaddingEnabled,
+  lowerPaddingEnabled,
+  upperPaddingPercent,
+  lowerPaddingPercent,
   ...xAxisLabelControlModel,
   frameBorderColor,
   frameBackgroundColor,

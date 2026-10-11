@@ -130,6 +130,7 @@ export function useWaveformLayout(context: LayoutContext) {
       props.axes?.y?.nice !== false,
       yAxisTickCount.value,
       props.displayMode === 'compact',
+      props.axes?.y,
     ),
   )
   const hasYAxisLabels = computed(() =>
@@ -162,6 +163,7 @@ export function useWaveformLayout(context: LayoutContext) {
       props.axes?.y?.nice !== false,
       props.displayMode === 'compact',
       viewportYDomains.value,
+      props.axes?.y,
     ),
   )
   const resolvedChartLeftMargin = computed(() =>
@@ -296,6 +298,7 @@ export function useWaveformLayout(context: LayoutContext) {
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
       yAxisSplitNumber: props.axes?.y?.splitNumber,
       yAxisNice: props.axes?.y?.nice,
+      yAxisPadding: props.axes?.y,
       rendering: renderingOptions.value,
       linePointOverrides: linePointOverrides?.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,

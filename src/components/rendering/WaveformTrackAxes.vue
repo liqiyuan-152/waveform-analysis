@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { axisBottom, axisLeft, axisRight, select } from 'd3'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 import type { WaveformAxesOptions } from '../../types'
 import { formatXAxisLabel } from '../../utils'
 import { formatYAxisTickLabel } from '../core/layout'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
+import { updateMaximumTickVisibility } from './yAxisTickVisibility'
+import { sameTick } from '../core/yAxisPadding'
 import { Y_AXIS_LABEL_BAND_WIDTH } from '../core/yAxisConstants'
 
 interface Props {
@@ -62,10 +64,18 @@ function renderAxes() {
     const selection = select(element)
     selection.call(yAxis)
     selection
+      .selectAll<SVGGElement, number>('.tick')
+      .attr('data-maximum-tick', (value) =>
+        axis.maximumTick !== undefined && sameTick(value, axis.maximumTick) ? 'true' : null,
+      )
+      .attr('data-tick-value', (value) => value)
+      .attr('data-tick-y', (value) => axis.scale(value))
+    selection
       .selectAll('path.domain')
       .attr('display', props.axes?.y?.lineVisible === false ? 'none' : null)
   })
 
+  scheduleVisibility()
   if (!xAxisElement.value) return
   const selection = select(xAxisElement.value)
   selection.call(
@@ -89,7 +99,24 @@ function renderAxes() {
     .attr('display', props.axes?.x?.lineVisible === false ? 'none' : null)
 }
 
+let disposed = false
+function scheduleVisibility() {
+  if (disposed) return
+  const apply = () => {
+    const svg = yAxisElements.value[0]?.ownerSVGElement
+    if (svg) updateMaximumTickVisibility(svg)
+  }
+  apply()
+}
+onBeforeUnmount(() => {
+  disposed = true
+  document.fonts?.removeEventListener?.('loadingdone', scheduleVisibility)
+})
 onMounted(async () => {
+  document.fonts?.addEventListener?.('loadingdone', scheduleVisibility)
+  void document.fonts?.ready.then(() => {
+    if (!disposed) scheduleVisibility()
+  })
   await nextTick()
   renderAxes()
 })

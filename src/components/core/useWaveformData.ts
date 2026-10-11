@@ -25,6 +25,7 @@ export interface PreparedWaveformSeries {
   points: WaveformPoint[]
   source: WaveformPointSource
   xDomain: [number, number]
+  rawYMaximum?: number
   yDomain: [number, number]
   hasErrorPoints: boolean
 }
@@ -48,6 +49,7 @@ export function prepareWaveformSeries(data: WaveformData): PreparedWaveformSerie
           ? [sourceMetrics.yMinimum, sourceMetrics.yMaximum]
           : [],
       ),
+      rawYMaximum: Number.isFinite(sourceMetrics.yMaximum) ? sourceMetrics.yMaximum : undefined,
       hasErrorPoints: sourceMetrics.hasErrorPoints,
     }
   })

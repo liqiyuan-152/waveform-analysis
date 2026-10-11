@@ -1,3 +1,4 @@
+import { withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
 import { selectSeriesRenderSourcePoints } from '../../core/rendering'
 import { pointSourceFromPoints } from '../../core/waveformPointSource'
 import {
@@ -63,6 +64,7 @@ export interface BuildTrackLayoutsOptions {
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
   yAxisSplitNumber?: number
   yAxisNice?: boolean
+  yAxisPadding?: YAxisPaddingOptions
   rendering: ResolvedWaveformRenderingOptions
   /** Latest sampling result for SVG lines only; source series remain complete for interaction. */
   linePointOverrides?: Readonly<Record<string, WaveformPoint[]>>
@@ -123,6 +125,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       options.fixedYDomain,
       options.fixedYDomains,
       options.yDomains,
+      options.yAxisPadding,
     )
     const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }
@@ -134,7 +137,13 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const majorTicks = resolvedTicks.values
       const showAxisEnd = options.displayMode !== 'compact' || cell.row === 0
       const visibleMajorTicks = showAxisEnd ? majorTicks : majorTicks.slice(0, -1)
-      const tickValues = visibleMajorTicks
+      const maximumTick =
+        group.maximumTick !== undefined &&
+        group.maximumTick >= resolvedTicks.domain[0] &&
+        group.maximumTick <= resolvedTicks.domain[1]
+          ? group.maximumTick
+          : undefined
+      const tickValues = withMaximumTick(visibleMajorTicks, maximumTick)
       const { tickTextWidth } = axisTextMetrics(
         scale.domain() as [number, number],
         false,
@@ -170,6 +179,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         x,
         labelX,
         scale,
+        maximumTick,
         majorTicks,
         minorTicks: buildMinorTicks(majorTicks, 2),
         tickValues,

@@ -10,6 +10,7 @@ import {
   resolveTrackFixedYDomain,
   type WaveformYDomain,
 } from './yDomain'
+import { applyYAxisPadding, withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
 
 // 导出常量供外部使用
 export { MAX_MULTI_Y_AXIS_COUNT } from './constants'
@@ -74,6 +75,7 @@ export interface YAxisSeriesGroup {
   seriesList: DisplaySeries[]
   domain: [number, number]
   fixed: boolean
+  maximumTick?: number
 }
 
 export interface YAxisSlot {
@@ -161,10 +163,11 @@ export function resolveRenderedYAxisSeriesGroups(
   yDomain?: WaveformYDomain,
   yDomains?: Record<string, WaveformYDomain>,
   viewportYDomains?: Record<string, [number, number]>,
+  padding?: YAxisPaddingOptions | number,
 ): YAxisSeriesGroup[] {
   const viewportYDomain = viewportYDomains?.[track.id]
   return resolveYAxisSeriesGroups(track, overlayMode, yDomain, yDomains).map((group) =>
-    !group.fixed && viewportYDomain ? { ...group, domain: viewportYDomain } : group,
+    applyYAxisPadding(group, viewportYDomain, padding),
   )
 }
 
@@ -175,11 +178,12 @@ export function axisTextMetrics(
   unit?: string,
   tickCount = 5,
   includeWithoutLastTick = false,
+  maximumTick?: number,
 ): { tickTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
     : resolveYAxisTicks(domain, tickCount, nice)
-  const tickValueSets = [resolvedTicks.values]
+  const tickValueSets = [withMaximumTick(resolvedTicks.values, maximumTick)]
   if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
     tickValueSets.push(resolvedTicks.values.slice(0, -1))
   }
@@ -255,6 +259,7 @@ export function buildYAxisSlots(
   nice = true,
   includeWithoutLastTick = false,
   viewportYDomains?: Record<string, [number, number]>,
+  padding?: YAxisPaddingOptions,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
@@ -265,6 +270,7 @@ export function buildYAxisSlots(
       yDomain,
       yDomains,
       viewportYDomains,
+      padding,
     ).forEach((group) => {
       const sideIndex = sideIndexes[group.side]++
       const key = `${group.side}:${sideIndex}`
@@ -275,6 +281,7 @@ export function buildYAxisSlots(
         group.seriesList[0]?.unit,
         tickCount,
         includeWithoutLastTick,
+        group.maximumTick,
       ).tickTextWidth
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))
     })

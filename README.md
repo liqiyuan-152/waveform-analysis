@@ -1044,3 +1044,36 @@ async function exportSvg(chart: WaveformChartHandle): Promise<Blob | undefined> 
 ```
 
 错误码还包括 `export-invalid-options`、`export-unavailable`、`export-cancelled`、`export-render-failed`、`export-timeout`。
+
+
+### Y 轴上下留白与最大值刻度
+
+组件统一计算自动 Y 范围留白，调用方无需修改数据或自行设置扩展后的 `yDomain`：
+
+```ts
+const axes: WaveformAxesOptions = {
+  y: {
+    lineVisible: false,
+    nice: false,
+    upperPaddingEnabled: true,
+    lowerPaddingEnabled: true,
+    upperPaddingRatio: 0.1,
+    lowerPaddingRatio: 0.1,
+  },
+}
+```
+
+上下分别使用同一个原始自动跨度。例如 `[20, 80]` 上下各 10% 得到 `[14, 86]`。
+`upperPaddingRatio` 的旧用法继续生效：只指定 `0.1` 仍仅增加上方留白。
+每侧开关显式 `false` 优先关闭；显式 `true` 且未提供比例时使用 `0.1`。
+全部省略则不增加留白；零、负数或非有限比例不生效。关闭开关不清除配置比例。
+
+固定 `yDomain` / `yDomains` 和手动 Y 视口不添加比例留白；重置或适应数据后恢复自动规则。
+nice 在添加留白后执行，可能进一步扩域，关闭留白不等于关闭 nice。
+常量沿用非零范围回退后计算跨度；误差棒开启时包含其端点；单轴合并范围，多轴分别计算。
+
+上方有效留白开启后，组件显示原始最大值的刻度和标签，常量标记仍为原始值。
+相同值刻度合并；最大值标签优先，隐藏距离不足 4px 的相邻普通标签；过近的普通短刻度及
+关联水平网格线也会隐藏，图框边框始终保留。不会移动数值位置或为避让扩大范围。
+手动视口中仅显示域内的最大值，固定范围和仅下方留白不生成特殊最大值标记。
+Demo 的“Y 轴留白”配置区默认显式启用上下各 10%，与组件省略配置时的默认值不同。

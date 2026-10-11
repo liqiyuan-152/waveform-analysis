@@ -18,6 +18,7 @@ interface Props {
   interactionMode?: WaveformInteractionMode
   frameNumber?: string | number
   frameStyle?: WaveformFrameStyle
+  framePath?: string
   axes?: WaveformAxesOptions
   timeUnit: 's' | 'ms'
   yLabel?: string
@@ -94,9 +95,11 @@ const resolvedFrameStyle = computed(() => {
       :y-label="yLabel"
     />
 
-    <rect
+    <component
+      :is="framePath ? 'path' : 'rect'"
       v-if="!track.isEmpty"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
+      :d="framePath"
       :width="track.width ?? innerWidth"
       :height="track.height"
       fill="none"

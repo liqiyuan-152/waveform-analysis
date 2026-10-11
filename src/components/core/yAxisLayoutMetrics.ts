@@ -9,6 +9,7 @@ import {
 import { axisTextMetrics, resolveRenderedYAxisSeriesGroups } from './layout'
 import type { DisplayTrack } from './types'
 import type { WaveformYDomain } from './yDomain'
+import type { YAxisPaddingOptions } from './yAxisPadding'
 
 export interface YAxisLayoutMetrics {
   tickClearance: number
@@ -40,11 +41,19 @@ export function resolveYAxisLayoutMetrics(
   nice: boolean,
   tickCount: number,
   compact: boolean,
+  padding?: YAxisPaddingOptions,
 ): YAxisLayoutMetrics {
   const axisText = chartTracks
     .filter((track) => track.visibleSeries.length > 0)
     .flatMap((track) =>
-      resolveRenderedYAxisSeriesGroups(track, overlayMode, yDomain, yDomains, viewportYDomains),
+      resolveRenderedYAxisSeriesGroups(
+        track,
+        overlayMode,
+        yDomain,
+        yDomains,
+        viewportYDomains,
+        padding,
+      ),
     )
     .map(
       (group) =>
@@ -55,6 +64,7 @@ export function resolveYAxisLayoutMetrics(
           group.seriesList[0]?.unit,
           tickCount,
           compact,
+          group.maximumTick,
         ).tickTextWidth,
     )
   const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)

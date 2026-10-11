@@ -8,6 +8,7 @@ import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
 import type { WaveformChartController } from './core/useWaveformChartController'
 import { WaveformHoverHost } from './interaction'
 import { WaveformHoverLayer, WaveformLegend, WaveformTrack } from './rendering'
+import { compactFramePath } from './rendering/compactFrame'
 
 const props = defineProps<{ controller: WaveformChartController }>()
 const {
@@ -225,6 +226,9 @@ function handleChartPointerLeave() {
           v-for="track in trackLayouts"
           :key="`${track.index}-${track.id}`"
           :track="track"
+          :frame-path="
+            displayMode === 'compact' ? compactFramePath(track, trackLayouts) : undefined
+          "
           :clip-path-id="clipPathId"
           :inner-width="innerWidth"
           :zoomable="zoomable"

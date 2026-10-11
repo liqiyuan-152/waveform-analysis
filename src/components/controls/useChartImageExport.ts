@@ -4,6 +4,7 @@ import type {
   WaveformImageExportErrorCode,
   WaveformImageExportOptions,
 } from '../../types/controls'
+import { updateMaximumTickVisibility } from '../rendering/yAxisTickVisibility'
 import { createChartSnapshot } from './chartSnapshot'
 export function imageExportError(code: WaveformImageExportErrorCode): WaveformImageExportError {
   const messages = {
@@ -93,6 +94,7 @@ export function useChartImageExport(c: Context) {
       await document.fonts?.ready
       await nextTick()
       check()
+      updateMaximumTickVisibility(svg)
       const snapshot = createChartSnapshot(
         container,
         svg,
