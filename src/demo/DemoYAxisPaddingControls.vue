@@ -24,9 +24,17 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         :aria-label="side === 'upper' ? '上方留白比例' : '下方留白比例'"
       />
     </div>
-    <div class="y-axis-padding-control extrema-control">
-      <span>显示最值刻度</span>
-      <Switch v-model:checked="model.extremaTicksVisible" size="small" aria-label="显示最值刻度" />
+    <div
+      v-for="side in ['maximum', 'minimum'] as const"
+      :key="side"
+      class="y-axis-padding-control extrema-control"
+    >
+      <span>{{ side === 'maximum' ? '显示最大值刻度' : '显示最小值刻度' }}</span>
+      <Switch
+        v-model:checked="model[`${side}TickVisible`]"
+        size="small"
+        :aria-label="side === 'maximum' ? '显示最大值刻度' : '显示最小值刻度'"
+      />
     </div>
     <small>仅作用于自动 Y 范围；刻度取整可能增加实际留白。</small>
   </section>

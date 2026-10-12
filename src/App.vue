@@ -56,7 +56,8 @@ const xAxisLineVisible = ref(false)
 const yAxisLineVisible = ref(false)
 const upperPaddingEnabled = ref(true)
 const lowerPaddingEnabled = ref(true)
-const extremaTicksVisible = ref(true)
+const maximumTickVisible = ref(true)
+const minimumTickVisible = ref(true)
 const upperPaddingPercent = ref(10)
 const lowerPaddingPercent = ref(10)
 const { controlModel: xAxisLabelControlModel, xAxisLabelFormatter } = useDemoXAxisLabelControls()
@@ -145,7 +146,8 @@ const axes = computed<WaveformAxesOptions>(() => ({
     lineVisible: yAxisLineVisible.value,
     upperPaddingEnabled: upperPaddingEnabled.value,
     lowerPaddingEnabled: lowerPaddingEnabled.value,
-    extremaTicksVisible: extremaTicksVisible.value,
+    maximumTickVisible: maximumTickVisible.value,
+    minimumTickVisible: minimumTickVisible.value,
     upperPaddingRatio: upperPaddingPercent.value / 100,
     lowerPaddingRatio: lowerPaddingPercent.value / 100,
   },
@@ -367,7 +369,8 @@ const controlPanelModel = reactive({
   yAxisLineVisible,
   upperPaddingEnabled,
   lowerPaddingEnabled,
-  extremaTicksVisible,
+  maximumTickVisible,
+  minimumTickVisible,
   upperPaddingPercent,
   lowerPaddingPercent,
   ...xAxisLabelControlModel,

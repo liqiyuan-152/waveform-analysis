@@ -39,7 +39,8 @@ describe('Y-axis actual minimum ticks', () => {
             nice: false,
             lowerPaddingEnabled: false,
             lowerPaddingRatio: 0.1,
-            extremaTicksVisible: false,
+            maximumTickVisible: false,
+            minimumTickVisible: false,
           },
         },
       })

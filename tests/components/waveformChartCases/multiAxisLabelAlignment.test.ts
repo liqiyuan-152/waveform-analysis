@@ -109,19 +109,14 @@ describe('WaveformChart multi-axis labels', () => {
     const maximumTickWidth = Math.max(
       7,
       ...tracks.flatMap((track) => {
-        const height = Number(track.attributes('data-track-height'))
         return track
           .findAll('.waveform-chart__axis--y')[0]!
           .findAll('.tick')
-          .filter((tick) => {
-            const y = Number(tick.attributes('transform')?.match(/translate\(0,\s*([^)]*)/)?.[1])
-            return Math.abs(y - height / 2) <= 22
-          })
-          .map((tick) => tick.text().length * 7)
+          .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length * 7)
       }),
     )
     expect(singleX).toBe(-maximumTickWidth - 7 - 10)
-    expect(singleX).toBeGreaterThan(Number(tracks[0]!.attributes('data-y-axis-label-x')))
+    expect(singleX).toBe(Number(tracks[0]!.attributes('data-y-axis-label-x')))
     wrapper.unmount()
   })
 })

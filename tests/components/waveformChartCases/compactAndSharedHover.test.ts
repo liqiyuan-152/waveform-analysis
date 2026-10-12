@@ -65,7 +65,7 @@ describe('WaveformChart', () => {
           ...size,
           displayMode: 'compact',
           grid: { rowCount: 2, columnCount: 2 },
-          axes: { y: { extremaTicksVisible: false } },
+          axes: { y: { maximumTickVisible: false, minimumTickVisible: false } },
         },
       )
 

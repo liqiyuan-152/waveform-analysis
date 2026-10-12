@@ -22,7 +22,7 @@ describe('Y-axis endpoint tick strokes', () => {
         {
           layoutPreset,
           overlayMode: 'multi-axis',
-          axes: { y: { nice: false, extremaTicksVisible: false } },
+          axes: { y: { nice: false, maximumTickVisible: false, minimumTickVisible: false } },
         },
       )
       const verify = () => {

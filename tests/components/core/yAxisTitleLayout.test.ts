@@ -37,7 +37,7 @@ function track(yAxis = axis(), column = 0) {
 }
 
 describe('channel name clearance', () => {
-  it('excludes the multiplier and omitted unit when a long compact name reaches the top tick', () => {
+  it('excludes scientific multipliers while retaining every numeric tick', () => {
     const long = track(axis('A_VERY_LONG_CHANNEL_NAME_THAT_REACHES_THE_TOP', 'V'))
     const yAxis = long.yAxes[0]
     yAxis.scale.domain([0, 30000])
@@ -55,15 +55,15 @@ describe('channel name clearance', () => {
     expect(hiddenUnit.yAxes[0].labelX).toBe(noUnit.yAxes[0].labelX)
   })
 
-  it('excludes a compact-row top unit label outside the rotated short name', () => {
+  it('reserves the widest top unit label even outside the rotated short name', () => {
     const normal = track()
     const wideUnit = track(axis('SX2_7_02', 'VERY-LONG-UNIT'))
     alignLeftYAxisTitles([normal, wideUnit])
-    expect(normal.yAxes[0].labelX).toBe(-59)
-    expect(wideUnit.yAxes[0].labelX).toBe(-59)
+    expect(normal.yAxes[0].labelX).toBeLessThan(-100)
+    expect(wideUnit.yAxes[0].labelX).toBe(normal.yAxes[0].labelX)
   })
 
-  it('includes the wide unit label when a long name actually reaches it', () => {
+  it('does not depend on the channel name length', () => {
     const normal = track()
     const long = track(axis('SX2_7_02_LONG_CHANNEL_NAME', 'VERY-LONG-UNIT'))
     alignLeftYAxisTitles([normal, long])
@@ -71,7 +71,7 @@ describe('channel name clearance', () => {
     expect(normal.yAxes[0].labelX).toBe(long.yAxes[0].labelX)
   })
 
-  it('accounts for the tick glyph height even when its center is outside the name', () => {
+  it('includes tick labels outside the name height', () => {
     const nearby = track(axis('ABCD', 'WIDE-UNIT'))
     nearby.yAxes[0].scale.domain([0, 200])
     nearby.yAxes[0].tickValues = [0, 123]
@@ -79,12 +79,38 @@ describe('channel name clearance', () => {
     expect(nearby.yAxes[0].labelX).toBeLessThan(-59)
   })
 
-  it('handles bottom-aligned tick text and fallback names', () => {
+  it('includes endpoint labels with fallback names', () => {
     const short = track(axis(''))
     short.yAxes[0].scale.domain([0, 200])
     short.yAxes[0].tickValues = [79, 200]
     alignLeftYAxisTitles([short], 'ABCD')
-    expect(short.yAxes[0].labelX).toBe(-31)
+    expect(short.yAxes[0].labelX).toBe(-66)
+  })
+
+  it('keeps the longest extrema clearance when the frame height changes', () => {
+    const tall = track(axis('SX2_7_01', ''))
+    tall.height = 1000
+    tall.yAxes[0].scale.domain([-0.2, 0.8]).range([1000, 0])
+    tall.yAxes[0].tickValues = [-0.2, 0, 0.2, 0.4, 0.6, 0.7384, 0.8]
+    const short = track(axis('SX2_7_01', ''))
+    short.yAxes[0].scale.domain([-0.2, 0.8])
+    short.yAxes[0].tickValues = [...tall.yAxes[0].tickValues]
+    alignLeftYAxisTitles([tall])
+    alignLeftYAxisTitles([short])
+    expect(tall.yAxes[0].labelX).toBe(-59)
+    expect(short.yAxes[0].labelX).toBe(tall.yAxes[0].labelX)
+  })
+
+  it.each([30000, 0.0003])('ignores the exponent for range maximum %s', (maximum) => {
+    const decimal = track(axis('SHORT', ''))
+    const scientific = track(axis('SHORT', ''))
+    decimal.yAxes[0].scale.domain([0, 3])
+    decimal.yAxes[0].tickValues = [0, 0.75, 1.5, 2.25, 3]
+    scientific.yAxes[0].scale.domain([0, maximum])
+    scientific.yAxes[0].tickValues = [0, maximum / 4, maximum / 2, maximum * 0.75, maximum]
+    alignLeftYAxisTitles([decimal])
+    alignLeftYAxisTitles([scientific])
+    expect(scientific.yAxes[0].labelX).toBe(decimal.yAxes[0].labelX)
   })
 
   it('keeps each column and left-axis slot independent and preserves right-axis positions', () => {

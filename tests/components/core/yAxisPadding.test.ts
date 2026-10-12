@@ -32,6 +32,20 @@ const group = {
 }
 
 describe('Y padding and maximum tick rules', () => {
+  it.each([
+    [{ maximumTickVisible: false }, undefined, 20],
+    [{ minimumTickVisible: false }, 80, undefined],
+    [{ maximumTickVisible: false, minimumTickVisible: false }, undefined, undefined],
+    [{ maximumTickVisible: true, minimumTickVisible: true }, 80, 20],
+  ] as const)('controls each extremum independently with %o', (options, maximum, minimum) => {
+    for (const fixed of [false, true]) {
+      expect(applyYAxisPadding({ ...group, fixed }, undefined, options)).toMatchObject({
+        domain: [20, 80],
+        maximumTick: maximum,
+        minimumTick: minimum,
+      })
+    }
+  })
   it('resolves independent defaults and explicit disable before ratios', () => {
     expect(paddingRatio()).toBe(0)
     expect(paddingRatio(true)).toBe(0.1)
@@ -116,7 +130,9 @@ describe('Y padding and maximum tick rules', () => {
       { lowerPaddingRatio: Infinity },
     ])
       expect(applyYAxisPadding(group, undefined, options).minimumTick).toBe(20)
-    expect(applyYAxisPadding(group, undefined, { extremaTicksVisible: false })).toMatchObject({
+    expect(
+      applyYAxisPadding(group, undefined, { maximumTickVisible: false, minimumTickVisible: false }),
+    ).toMatchObject({
       domain: [20, 80],
       minimumTick: undefined,
       maximumTick: undefined,

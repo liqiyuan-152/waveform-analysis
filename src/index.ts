@@ -40,7 +40,7 @@ export type {
   WaveformXAxisLabelKind,
   WaveformXAxisLabelFormatterContext,
   WaveformXAxisLabelFormatter,
-  // Includes axes.y.extremaTicksVisible for independent extrema tick visibility.
+  // Includes axes.y.maximumTickVisible and minimumTickVisible for independent extrema ticks.
   WaveformAxesOptions,
   WaveformYAxisLabelTextStyle,
   WaveformZeroLineOptions,

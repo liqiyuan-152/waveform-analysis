@@ -6,7 +6,7 @@ import { resizeObservers } from '@tests/support/setup'
 import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
-  it('expands the Y-axis label gutter for signed numeric ticks without counting long exponents', async () => {
+  it('reserves full scientific ticks while keeping numeric name spacing', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -47,8 +47,15 @@ describe('WaveformChart', () => {
     )
     expect(labelBackgroundX).toBe(renderedLabelX - 10)
     expect(labelBackgroundX).toBeGreaterThanOrEqual(labelX - 10)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(59)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(59)
+    const fullTickWidth = Math.max(
+      ...tracks[0]
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => tick.text().length * 7),
+    )
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
+      fullTickWidth + 11,
+    )
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(fullTickWidth + 11)
   })
 
   it('keeps a tick-only gutter when channel labels are empty', async () => {
@@ -74,8 +81,15 @@ describe('WaveformChart', () => {
     const secondLeft = Number(tracks[1].attributes('data-track-left'))
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(0)
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(48)
-    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(24)
+    const fullTickWidth = Math.max(
+      ...tracks[0]
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => tick.text().length * 7),
+    )
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(
+      Math.max(48, fullTickWidth + 11),
+    )
+    expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(fullTickWidth + 11)
   })
 
   it('updates the Y-axis label position while preserving the chart gutter between pages', async () => {

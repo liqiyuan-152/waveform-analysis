@@ -60,29 +60,37 @@ export function resolveYAxisLayoutMetrics(
         padding,
       ),
     )
-    .map(
-      (group) =>
-        axisTextMetrics(
-          group.domain,
-          nice,
-          undefined,
-          showUnits ? group.seriesList[0]?.unit : undefined,
-          tickCount,
-          compact,
-          measureTextWidth,
-          group.maximumTick,
-          group.minimumTick,
-        ).tickTextWidth,
+    .map((group) =>
+      axisTextMetrics(
+        group.domain,
+        nice,
+        undefined,
+        showUnits ? group.seriesList[0]?.unit : undefined,
+        tickCount,
+        compact,
+        measureTextWidth,
+        group.maximumTick,
+        group.minimumTick,
+      ),
     )
-  const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)
+  const tickTextWidth = Math.max(
+    Y_AXIS_CHARACTER_WIDTH,
+    ...axisText.map((text) => text.tickTextWidth),
+  )
+  const titleTextWidth = Math.max(
+    Y_AXIS_CHARACTER_WIDTH,
+    ...axisText.map((text) => text.titleTextWidth),
+  )
   const tickClearance = tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_OUTER_PADDING
   const labelCenterX = -(
     Y_AXIS_TICK_PADDING +
-    tickTextWidth +
+    titleTextWidth +
     Y_AXIS_LABEL_GAP +
     labelBandWidth / 2
   )
   const fullClearance =
-    tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + labelBandWidth + Y_AXIS_OUTER_PADDING
+    Math.max(tickTextWidth, titleTextWidth + Y_AXIS_LABEL_GAP + labelBandWidth) +
+    Y_AXIS_TICK_PADDING +
+    Y_AXIS_OUTER_PADDING
   return { tickClearance, fullClearance, labelCenterX }
 }

@@ -281,7 +281,9 @@ export function useWaveformLayout(context: LayoutContext) {
     }),
   )
   useExtremaTickViewport(
-    () => props.axes?.y?.extremaTicksVisible !== false,
+    () =>
+      Number(props.axes?.y?.maximumTickVisible !== false) * 2 +
+      Number(props.axes?.y?.minimumTickVisible !== false),
     innerWidth,
     trackLayouts,
     sharedTransform,

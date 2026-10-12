@@ -170,7 +170,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
           ? group.minimumTick
           : undefined
       const tickValues = withMaximumTick(majorTicks, maximumTick, minimumTick)
-      const { tickTextWidth } = axisTextMetrics(
+      const { tickTextWidth, titleTextWidth } = axisTextMetrics(
         scale.domain() as [number, number],
         false,
         tickValues,
@@ -178,10 +178,13 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         tickCount,
       )
       const clearance =
-        tickTextWidth +
+        Math.max(
+          tickTextWidth,
+          titleTextWidth +
+            Y_AXIS_LABEL_GAP +
+            resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle),
+        ) +
         Y_AXIS_TICK_PADDING +
-        Y_AXIS_LABEL_GAP +
-        resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) +
         Y_AXIS_OUTER_PADDING
       const slot = options.yAxisSlots?.find(
         (candidate) => candidate.side === group.side && candidate.sideIndex === sideIndex,
@@ -192,7 +195,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
           ? -sideOffsets.left
           : cell.width + sideOffsets.right
       const labelDistance =
-        tickTextWidth +
+        titleTextWidth +
         Y_AXIS_TICK_PADDING +
         Y_AXIS_LABEL_GAP +
         resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) / 2

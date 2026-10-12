@@ -5,7 +5,7 @@ import type { TrackLayout } from '../core/types'
 
 /** Keep X coordinates stable when toggling extrema changes the reserved Y-label width. */
 export function useExtremaTickViewport(
-  visible: () => boolean,
+  visible: () => number,
   innerWidth: ComputedRef<number>,
   tracks: ComputedRef<TrackLayout[]>,
   sharedTransform: ShallowRef<ZoomTransform>,

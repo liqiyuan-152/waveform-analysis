@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('scientific channel name placement', () => {
-  it.each([320, 800])('keeps the name beside nearby ticks at width %s', async (width) => {
+  it.each([320, 800])('ignores scientific multipliers at width %s', async (width) => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -30,7 +30,7 @@ describe('scientific channel name placement', () => {
         unitDisplayMode: 'legend-single-series',
         grid: { rowCount: 1, columnCount: 1 },
         yDomain: [0, 3],
-        axes: { y: { nice: false, extremaTicksVisible: false } },
+        axes: { y: { nice: false, maximumTickVisible: false, minimumTickVisible: false } },
       },
     )
     try {
@@ -40,10 +40,12 @@ describe('scientific channel name placement', () => {
       await wrapper.setProps({ yDomain: [0, 30000] })
       await flushPromises()
       expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04')
-      // Both ranges show 0, 0.75, 1.5, 2.25, 3 near the name. The
-      // scientific exponent only appears at the top, so it cannot move the name.
+      // Both ranges show 0, 0.75, 1.5, 2.25, 3. The top scientific
+      // multiplier is excluded from name spacing, but included in outer clearance.
       expect(labelX()).toBe(decimalX)
-      expect(wrapper.attributes('data-chart-left-margin')).toBe(decimalMargin)
+      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
+        Number(decimalMargin),
+      )
       expect(
         Number(wrapper.attributes('data-chart-left-margin')) + labelX(),
       ).toBeGreaterThanOrEqual(6)
@@ -51,7 +53,9 @@ describe('scientific channel name placement', () => {
       await flushPromises()
       expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E-04')
       expect(labelX()).toBe(decimalX)
-      expect(wrapper.attributes('data-chart-left-margin')).toBe(decimalMargin)
+      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
+        Number(decimalMargin),
+      )
     } finally {
       wrapper.unmount()
     }
@@ -59,7 +63,7 @@ describe('scientific channel name placement', () => {
 })
 
 describe('dense scientific axes', () => {
-  it('keeps six short frames and unit-bearing names at the same margin across magnitudes', async () => {
+  it('reserves scientific labels while keeping six short frame names at the same distance', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -83,7 +87,7 @@ describe('dense scientific axes', () => {
         layoutPreset: 'edge-compact',
         unitDisplayMode: 'channel-label-or-legend',
         yDomain: [0, 3.824],
-        axes: { y: { nice: false, extremaTicksVisible: false } },
+        axes: { y: { nice: false, maximumTickVisible: false, minimumTickVisible: false } },
       },
     )
     try {
@@ -101,7 +105,9 @@ describe('dense scientific axes', () => {
         await wrapper.setProps({ yDomain: [0, max] })
         await flushPromises()
         expect(positions()).toEqual(plainPositions)
-        expect(wrapper.attributes('data-chart-left-margin')).toBe(plainMargin)
+        expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThan(
+          Number(plainMargin),
+        )
         expect(
           wrapper
             .findAll('.waveform-chart__axis--y .tick text')

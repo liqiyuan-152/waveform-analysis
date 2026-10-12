@@ -78,7 +78,10 @@ describe('edge-compact Y-axis space', () => {
       expect(track.get('.waveform-chart__axis--y').text()).toContain('E+04')
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickWidth + 7 + 20 + 6)
+      const fullTickWidth = Math.max(...ticks.map((tick) => measureYAxisTextWidth(tick.text())))
+      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(
+        Math.max(fullTickWidth, tickWidth + 20) + 7 + 6,
+      )
       expect(outerTitleLeft(wrapper, track)).toBeGreaterThanOrEqual(6)
       expect(
         width - Number(wrapper.attributes('data-chart-left-margin')) - plotWidth(wrapper),
@@ -101,7 +104,7 @@ describe('edge-compact Y-axis space', () => {
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(legacyMargin)
     await wrapper.setProps({ layoutPreset: 'edge-compact' })
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain(unit)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBeGreaterThan(6)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
   })
 
   it.each([

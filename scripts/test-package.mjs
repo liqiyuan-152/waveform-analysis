@@ -107,7 +107,7 @@ function verifyControls(chart: WaveformChartHandle) {
   return { oldReset, oldSet, result, reset, image, toolbar, payload }
 }
 void verifyControls
-const axes: WaveformAxesOptions = { y: { nice: false, upperPaddingEnabled: true, lowerPaddingEnabled: true, upperPaddingRatio: 0.1, lowerPaddingRatio: 0.1 } }
+const axes: WaveformAxesOptions = { y: { nice: false, maximumTickVisible: true, minimumTickVisible: false, upperPaddingEnabled: true, lowerPaddingEnabled: true, upperPaddingRatio: 0.1, lowerPaddingRatio: 0.1 } }
 const legacyAxes: WaveformAxesOptions = { y: { upperPaddingRatio: 0.1 } }
 void axes
 void legacyAxes

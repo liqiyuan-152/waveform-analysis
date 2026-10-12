@@ -167,6 +167,44 @@ describe('multi-value Y-axis grouping', () => {
     expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5, true).tickTextWidth).toBe(70)
   })
 
+  it.each([1e9, 1e-9, 1e120])('measures full scientific labels at magnitude %s', (magnitude) => {
+    const domain: [number, number] = [1.7 * magnitude, 2.3 * magnitude]
+    const ticks = resolveYAxisTicks(domain, 5, false).values
+    const measure = (text: string) => text.length * 7
+    const metrics = axisTextMetrics(domain, false, ticks, 'Pa', 5, false, measure)
+    expect(metrics.tickTextWidth).toBe(
+      Math.max(...ticks.map((value) => measure(formatYAxisTickLabel(value, domain, ticks, 'Pa')))),
+    )
+    expect(metrics.titleTextWidth).toBeLessThan(metrics.tickTextWidth)
+  })
+
+  it('reserves metadata on long extrema and any surviving compact tick', () => {
+    const domain: [number, number] = [1e9, 3e9]
+    const maximum = 2.987654321e9
+    const minimum = 1.012345678e9
+    for (const max of [maximum, undefined]) {
+      for (const min of [minimum, undefined]) {
+        const metrics = axisTextMetrics(
+          domain,
+          false,
+          undefined,
+          undefined,
+          5,
+          true,
+          (text) => text.length * 7,
+          max,
+          min,
+        )
+        for (const value of [1e9, 1.5e9, 2e9, 2.5e9, 3e9, max, min]) {
+          if (value === undefined) continue
+          expect(metrics.tickTextWidth).toBeGreaterThanOrEqual(
+            formatYAxisTickLabel(value, domain, [value]).length * 7,
+          )
+        }
+      }
+    }
+  })
+
   it('keeps every overlaid series on one axis in single-axis mode', () => {
     const groups = buildYAxisSeriesGroups(
       track([series('a', 0, 1), series('b', 10, 20)]),
@@ -236,7 +274,7 @@ describe('multi-value Y-axis grouping', () => {
     ])
   })
 
-  it('uses nearby tick clearance on the left and reserved clearance on the right', () => {
+  it('uses the longest tick clearance on the left and reserved clearance on the right', () => {
     const layout = buildTrackLayouts({
       cells: [
         {
@@ -277,16 +315,16 @@ describe('multi-value Y-axis grouping', () => {
         labelOffset: Math.abs(labelX - x),
       })),
     ).toEqual([
-      { side: 'left', labelOffset: 24 },
+      { side: 'left', labelOffset: 38 },
       { side: 'right', labelOffset: 28 },
     ])
   })
 
-  it('reserves only numeric tick clearance for long scientific exponents', () => {
+  it('reserves the full tick clearance for long scientific exponents', () => {
     const [group] = buildYAxisSeriesGroups(track([series('long', -1e120, 1e120)]), 'multi-axis')
 
     expect(group).toBeDefined()
-    expect(measureYAxisGroupClearance(group!)).toBe(59)
+    expect(measureYAxisGroupClearance(group!)).toBe(60)
   })
 })
 

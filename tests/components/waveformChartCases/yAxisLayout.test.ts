@@ -6,7 +6,7 @@ import { resizeObservers } from '@tests/support/setup'
 import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart Y-axis layout', () => {
-  it('places channel names beside nearby ticks without reserving the top unit width', async () => {
+  it('reserves the longest tick label including the top unit across resizes', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -32,7 +32,7 @@ describe('WaveformChart Y-axis layout', () => {
         const track = wrapper.get('.waveform-chart__track')
         const title = track.get('.waveform-chart__y-axis-label')
         const titleX = Number(title.attributes('transform')?.match(/^translate\(([-\d.]+),/)?.[1])
-        expect(titleX).toBeGreaterThan(Number(track.attributes('data-y-axis-label-x')))
+        expect(titleX).toBe(Number(track.attributes('data-y-axis-label-x')))
         expect(titleX + 10).toBeLessThan(-7)
         const background = track.get('.waveform-chart__y-axis-label-bg')
         expect(Number(background.attributes('x'))).toBe(titleX - 10)
@@ -144,7 +144,7 @@ describe('WaveformChart Y-axis layout', () => {
           { x: 1, y: 97 },
         ],
       },
-      { axes: { y: { splitNumber: 5, extremaTicksVisible: false } } },
+      { axes: { y: { splitNumber: 5, maximumTickVisible: false, minimumTickVisible: false } } },
     )
 
     expect(

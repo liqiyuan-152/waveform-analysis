@@ -15,7 +15,7 @@ export function applyYAxisPadding(
   options: YAxisPaddingOptions | number,
 ): YAxisSeriesGroup {
   const config = typeof options === 'number' ? { upperPaddingRatio: options } : options
-  if (group.fixed) return withYAxisExtremaTicks(group, config?.extremaTicksVisible)
+  if (group.fixed) return withYAxisExtremaTicks(group, config)
   const upper = paddingRatio(config?.upperPaddingEnabled, config?.upperPaddingRatio)
   const lower = paddingRatio(config?.lowerPaddingEnabled, config?.lowerPaddingRatio)
   const [a, b] = group.domain
@@ -27,11 +27,14 @@ export function applyYAxisPadding(
       ...group,
       domain: viewport ?? [Number.isFinite(min) ? min : a, Number.isFinite(max) ? max : b],
     },
-    config?.extremaTicksVisible,
+    config,
   )
 }
 
-function withYAxisExtremaTicks(group: YAxisSeriesGroup, visible = true): YAxisSeriesGroup {
+function withYAxisExtremaTicks(
+  group: YAxisSeriesGroup,
+  options: YAxisPaddingOptions,
+): YAxisSeriesGroup {
   const maxima = group.seriesList.flatMap((series) =>
     Number.isFinite(series.rawYMaximum) ? [series.rawYMaximum!] : [],
   )
@@ -40,8 +43,10 @@ function withYAxisExtremaTicks(group: YAxisSeriesGroup, visible = true): YAxisSe
   )
   return {
     ...group,
-    maximumTick: visible && maxima.length ? Math.max(...maxima) : undefined,
-    minimumTick: visible && minima.length ? Math.min(...minima) : undefined,
+    maximumTick:
+      options?.maximumTickVisible !== false && maxima.length ? Math.max(...maxima) : undefined,
+    minimumTick:
+      options?.minimumTickVisible !== false && minima.length ? Math.min(...minima) : undefined,
   }
 }
 

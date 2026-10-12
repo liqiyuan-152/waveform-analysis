@@ -5,7 +5,7 @@ import { resizeObservers } from '@tests/support/setup'
 import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('compact channel name clearance', () => {
-  it('keeps screenshot-style channel names close and aligned after resizing', async () => {
+  it('reserves the longest labels and aligns screenshot-style channel names after resizing', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -42,9 +42,8 @@ describe('compact channel name clearance', () => {
           ),
         )
         expect(new Set(positions).size).toBe(1)
-        // Six-character numeric ticks need 42px; non-overlapping unit prefixes
-        // must not add another 28px to every channel name's distance.
-        expect(positions[0]).toBe(-59)
+        // Reserve the widest label including its unit prefix, even at the top.
+        expect(positions[0]).toBe(-87)
         expect(tracks[1].findAll('.waveform-chart__axis--y .tick text').at(-2)?.text()).toMatch(
           /^\(V\)/,
         )

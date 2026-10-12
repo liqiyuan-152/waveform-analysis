@@ -83,7 +83,7 @@ export function formatYAxisTickLabel(
   return label
 }
 
-/** Scientific multipliers retain their rendered position but do not reserve horizontal space. */
+/** Name spacing excludes scientific multipliers; outer clearance measures the full label. */
 export function formatYAxisTickLayoutLabel(
   value: number,
   domain: [number, number],
@@ -215,7 +215,7 @@ export function axisTextMetrics(
   measureTextWidth?: (text: string) => number,
   maximumTick?: number,
   minimumTick?: number,
-): { tickTextWidth: number } {
+): { tickTextWidth: number; titleTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
     : resolveYAxisTicks(domain, tickCount, nice)
@@ -229,17 +229,26 @@ export function axisTextMetrics(
   if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
     tickValueSets.push(resolvedTicks.values.slice(0, -1))
   }
-  const maximumTickWidth = Math.max(
-    Y_AXIS_CHARACTER_WIDTH,
-    ...tickValueSets.flatMap((values) =>
-      values.map((value) => {
-        const text = formatYAxisTickLayoutLabel(value, resolvedTicks.domain, values, unit)
-        return measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH
-      }),
-    ),
+  const width = (text: string) =>
+    measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH
+  const labels = tickValueSets.flatMap((values) =>
+    values.map((value) => ({
+      full: width(formatYAxisTickLabel(value, resolvedTicks.domain, values, unit)),
+      title: width(formatYAxisTickLayoutLabel(value, resolvedTicks.domain, values, unit)),
+    })),
   )
+  // Collision handling can move metadata to any surviving tick in compact layouts.
+  if (includeWithoutLastTick) {
+    tickValueSets[0]!.forEach((value) => {
+      labels.push({
+        full: width(formatYAxisTickLabel(value, resolvedTicks.domain, [value], unit)),
+        title: width(formatYAxisTickLayoutLabel(value, resolvedTicks.domain, [value], unit)),
+      })
+    })
+  }
   return {
-    tickTextWidth: maximumTickWidth,
+    tickTextWidth: Math.max(Y_AXIS_CHARACTER_WIDTH, ...labels.map((label) => label.full)),
+    titleTextWidth: Math.max(Y_AXIS_CHARACTER_WIDTH, ...labels.map((label) => label.title)),
   }
 }
 
@@ -248,12 +257,16 @@ export function measureYAxisGroupClearance(
   tickCount?: number,
   nice = true,
 ): number {
+  const { tickTextWidth, titleTextWidth } = axisTextMetrics(
+    group.domain,
+    nice,
+    undefined,
+    group.seriesList[0]?.unit,
+    tickCount,
+  )
   return (
-    axisTextMetrics(group.domain, nice, undefined, group.seriesList[0]?.unit, tickCount)
-      .tickTextWidth +
+    Math.max(tickTextWidth, titleTextWidth + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH) +
     Y_AXIS_TICK_PADDING +
-    Y_AXIS_LABEL_GAP +
-    Y_AXIS_LABEL_BAND_WIDTH +
     Y_AXIS_OUTER_PADDING
   )
 }
@@ -312,6 +325,7 @@ export function buildYAxisSlots(
     typeof padding === 'object' ? padding.labelTextStyle : undefined,
   )
   const widths = new Map<string, number>()
+  const titleWidths = new Map<string, number>()
   tracks.forEach((track) => {
     const sideIndexes = { left: 0, right: 0 }
     resolveRenderedYAxisSeriesGroups(
@@ -324,7 +338,7 @@ export function buildYAxisSlots(
     ).forEach((group) => {
       const sideIndex = sideIndexes[group.side]++
       const key = `${group.side}:${sideIndex}`
-      const width = axisTextMetrics(
+      const { tickTextWidth, titleTextWidth } = axisTextMetrics(
         group.domain,
         nice,
         undefined,
@@ -334,8 +348,9 @@ export function buildYAxisSlots(
         measureTextWidth,
         group.maximumTick,
         group.minimumTick,
-      ).tickTextWidth
-      widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))
+      )
+      widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, tickTextWidth))
+      titleWidths.set(key, Math.max(titleWidths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, titleTextWidth))
     })
   })
 
@@ -348,15 +363,14 @@ export function buildYAxisSlots(
       .sort((first, second) => first - second)
     sideIndexes.forEach((sideIndex) => {
       const tickTextWidth = widths.get(`${side}:${sideIndex}`) ?? Y_AXIS_CHARACTER_WIDTH
+      const titleTextWidth = titleWidths.get(`${side}:${sideIndex}`) ?? Y_AXIS_CHARACTER_WIDTH
       const axisOffset = side === 'left' && clearance.left > 0 ? -clearance.left : clearance[side]
       const labelDistance =
-        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + labelBandWidth / 2
+        titleTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + labelBandWidth / 2
       const labelOffset = axisOffset + labelDistance * (side === 'left' ? -1 : 1)
       const fullClearance =
-        tickTextWidth +
+        Math.max(tickTextWidth, titleTextWidth + Y_AXIS_LABEL_GAP + labelBandWidth) +
         Y_AXIS_TICK_PADDING +
-        Y_AXIS_LABEL_GAP +
-        labelBandWidth +
         Y_AXIS_OUTER_PADDING
       slots.push({ side, sideIndex, axisOffset, labelOffset, clearance: fullClearance })
       clearance[side] += fullClearance
