@@ -24,6 +24,10 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         :aria-label="side === 'upper' ? '上方留白比例' : '下方留白比例'"
       />
     </div>
+    <div class="y-axis-padding-control extrema-control">
+      <span>显示最值刻度</span>
+      <Switch v-model:checked="model.extremaTicksVisible" size="small" aria-label="显示最值刻度" />
+    </div>
     <small>仅作用于自动 Y 范围；刻度取整可能增加实际留白。</small>
   </section>
 </template>
@@ -42,5 +46,8 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
 }
 .y-axis-padding-control :deep(.ant-input-number) {
   width: 100%;
+}
+.extrema-control {
+  grid-template-columns: 1fr auto;
 }
 </style>

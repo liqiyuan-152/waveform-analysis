@@ -30,7 +30,7 @@ describe('scientific channel name placement', () => {
         unitDisplayMode: 'legend-single-series',
         grid: { rowCount: 1, columnCount: 1 },
         yDomain: [0, 3],
-        axes: { y: { nice: false } },
+        axes: { y: { nice: false, extremaTicksVisible: false } },
       },
     )
     try {
@@ -83,7 +83,7 @@ describe('dense scientific axes', () => {
         layoutPreset: 'edge-compact',
         unitDisplayMode: 'channel-label-or-legend',
         yDomain: [0, 3.824],
-        axes: { y: { nice: false } },
+        axes: { y: { nice: false, extremaTicksVisible: false } },
       },
     )
     try {

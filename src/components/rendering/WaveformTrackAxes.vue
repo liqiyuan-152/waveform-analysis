@@ -21,6 +21,7 @@ interface Props {
   showUnits?: boolean
   showLabelUnits?: boolean
   hideYAxisTitles?: boolean
+  hideOverlappingMaximumLabel?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), { showUnits: true })
@@ -56,6 +57,7 @@ function renderAxes() {
     const element = yAxisElements.value[index]
     if (!element) return
     const unit = props.showUnits ? axis.seriesList[0]?.unit : undefined
+    const highestTick = Math.max(...axis.tickValues)
     const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
       .tickFormat((value) =>
         formatYAxisTickLabel(
@@ -78,10 +80,25 @@ function renderAxes() {
       .attr('y', null)
       .attr('dy', '0')
       .attr('dominant-baseline', 'central')
+      .attr('data-axis-maximum-label', (value) =>
+        props.hideOverlappingMaximumLabel && sameTick(value, highestTick) ? 'true' : null,
+      )
+      .attr('data-axis-minimum-label', (value) =>
+        props.hideOverlappingMaximumLabel && sameTick(value, Math.min(...axis.tickValues))
+          ? 'true'
+          : null,
+      )
+    selection
+      .attr('data-label-domain-min', axis.scale.domain()[0])
+      .attr('data-label-domain-max', axis.scale.domain()[1])
+      .attr('data-label-unit', unit ?? null)
     selection
       .selectAll<SVGGElement, number>('.tick')
       .attr('data-maximum-tick', (value) =>
         axis.maximumTick !== undefined && sameTick(value, axis.maximumTick) ? 'true' : null,
+      )
+      .attr('data-minimum-tick', (value) =>
+        axis.minimumTick !== undefined && sameTick(value, axis.minimumTick) ? 'true' : null,
       )
       .attr('data-tick-value', (value) => value)
       .attr('data-tick-y', (value) => axis.scale(value))
@@ -147,6 +164,7 @@ watch(
     () => props.axes?.x?.labelFormatter,
     () => props.axes?.x?.lineVisible,
     () => props.axes?.y?.lineVisible,
+    () => props.hideOverlappingMaximumLabel,
   ],
   async () => {
     await nextTick()

@@ -35,6 +35,8 @@ const data: WaveformData = {
 }
 const maxima = (w: Awaited<ReturnType<typeof mountSizedChart>>) =>
   w.findAll('[data-maximum-tick]').map((t) => Number(t.attributes('data-tick-value')))
+const minima = (w: Awaited<ReturnType<typeof mountSizedChart>>) =>
+  w.findAll('[data-minimum-tick]').map((t) => Number(t.attributes('data-tick-value')))
 
 function drag(element: Element, x: number, from: number, to: number) {
   for (const [type, y] of [
@@ -49,6 +51,17 @@ function drag(element: Element, x: number, from: number, to: number) {
 }
 
 describe('Y padding lifecycle and axis grouping', () => {
+  it('merges only visible minima on a shared single axis', async () => {
+    const w = await mountSizedChart(data, {
+      overlayMode: 'single-axis',
+      axes: { y: { lowerPaddingEnabled: true } },
+    })
+    expect(minima(w)).toEqual([-200])
+    await w.setProps({ hiddenSeriesIds: ['b'] })
+    await flushPromises()
+    expect(minima(w)).toEqual([20])
+    w.unmount()
+  })
   it.each(['independent', 'separated', 'compact'] as const)(
     'uses each axis range in %s, and refreshes hidden series',
     async (displayMode) => {
@@ -59,6 +72,7 @@ describe('Y padding lifecycle and axis grouping', () => {
         grid: { rowCount: 1 },
       })
       expect(maxima(w)).toEqual([80, -100])
+      expect(minima(w)).toEqual([20, -200])
       const ranges = w
         .findAll('.waveform-track__axis--y')
         .map((axis) => axis.findAll('.tick').map((t) => Number(t.attributes('data-tick-value'))))
@@ -67,6 +81,7 @@ describe('Y padding lifecycle and axis grouping', () => {
       await w.setProps({ hiddenSeriesIds: ['a'] })
       await flushPromises()
       expect(maxima(w)).toEqual([-100])
+      expect(minima(w)).toEqual([-200])
       w.unmount()
     },
   )
@@ -83,7 +98,7 @@ describe('Y padding lifecycle and axis grouping', () => {
         interactionMode: 'pan',
         pannable: true,
         grid: { rowCount: 1 },
-        axes: { y: { nice: false, upperPaddingEnabled: true } },
+        axes: { y: { nice: false, upperPaddingEnabled: true, lowerPaddingEnabled: true } },
       },
     )
     const overlay = w.get('.waveform-chart__overlay--independent')
@@ -98,9 +113,17 @@ describe('Y padding lifecycle and axis grouping', () => {
     const range = () =>
       w.findAll('.waveform-track__axis--y .tick').map((t) => t.attributes('data-tick-value'))
     const manual = range()
-    await w.setProps({ axes: { y: { nice: false, upperPaddingRatio: 0.5 } } })
+    const minimumBefore = minima(w)
+    const axis = w.get('.waveform-track__axis--y')
+    const domainMin = Number(axis.attributes('data-label-domain-min'))
+    const domainMax = Number(axis.attributes('data-label-domain-max'))
+    expect(minimumBefore).toEqual(domainMin <= 0 && domainMax >= 0 ? [0] : [])
+    await w.setProps({
+      axes: { y: { nice: false, upperPaddingRatio: 0.5, lowerPaddingRatio: 0.5 } },
+    })
     await flushPromises()
     expect(range()).toEqual(manual)
+    expect(minima(w)).toEqual(minimumBefore)
     w.vm.fitToData()
     await flushPromises()
     const ticks = w
@@ -108,9 +131,10 @@ describe('Y padding lifecycle and axis grouping', () => {
       .map((t) => Number(t.attributes('data-tick-value')))
     expect(ticks.at(-1)).toBe(150)
     expect(maxima(w)).toEqual([100])
+    expect(minima(w)).toEqual([0])
     w.unmount()
   })
-  it('uses full error endpoints and keeps marker hidden for lower-only padding', async () => {
+  it('uses full error endpoints independently of the padding direction', async () => {
     const w = await mountSizedChart(
       {
         kind: 'series',
@@ -134,7 +158,7 @@ describe('Y padding lifecycle and axis grouping', () => {
     expect(maxima(w)).toEqual([120])
     await w.setProps({ axes: { y: { nice: false, lowerPaddingEnabled: true } } })
     await flushPromises()
-    expect(maxima(w)).toEqual([])
+    expect(maxima(w)).toEqual([120])
     w.unmount()
   })
 })

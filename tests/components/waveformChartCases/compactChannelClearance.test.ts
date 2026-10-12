@@ -45,7 +45,7 @@ describe('compact channel name clearance', () => {
         // Six-character numeric ticks need 42px; non-overlapping unit prefixes
         // must not add another 28px to every channel name's distance.
         expect(positions[0]).toBe(-59)
-        expect(tracks[1].findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toMatch(
+        expect(tracks[1].findAll('.waveform-chart__axis--y .tick text').at(-2)?.text()).toMatch(
           /^\(V\)/,
         )
         expect(

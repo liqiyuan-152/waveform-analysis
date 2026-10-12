@@ -299,12 +299,20 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '微量级电流',
       '十亿量级压力脉冲',
       '纳量级阻尼位移',
+      'SX2_7_01',
     ])
     simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
       if (item.data.kind === 'points') {
         expect(item.data.points).toHaveLength(item.name === '阶跃响应' ? 500 : 1000)
-        const startTime = item.name === '阶跃响应' ? 5 / 999 : item.name === '阻尼振荡' ? -4 : -5
+        const startTime =
+          item.name === '阶跃响应'
+            ? 5 / 999
+            : item.name === '阻尼振荡'
+              ? -4
+              : item.name === 'SX2_7_01'
+                ? 0
+                : -5
         expect(item.data.points[0]?.x).toBeCloseTo(startTime, 10)
       }
     })
@@ -324,8 +332,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
         .findAll('.waveform-chart__track')
         .filter((track) => !track.classes().includes('waveform-chart__track--empty'))
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
-    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移'])
-    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(2)
+    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移', 'SX2_7_01'])
+    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(1)
     expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
 
     wrapper.unmount()

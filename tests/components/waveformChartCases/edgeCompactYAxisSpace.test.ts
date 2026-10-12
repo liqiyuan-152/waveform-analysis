@@ -166,9 +166,14 @@ describe('edge-compact Y-axis space', () => {
           const band = bands[index]
           const bandLeft = Number(band.attributes('x'))
           const bandRight = bandLeft + Number(band.attributes('width'))
-          const ticks = axis.findAll('.tick text')
-          const nearbyTicks =
-            axis.attributes('data-y-axis-side') === 'left' ? ticks.slice(1, -1) : ticks
+          const bandTop = Number(band.attributes('y'))
+          const bandBottom = bandTop + Number(band.attributes('height'))
+          const nearbyTicks = axis.findAll('.tick text').filter((tick) => {
+            const y = Number(tick.element.parentElement!.getAttribute('data-tick-y')) + 0.5
+            return (
+              tick.attributes('display') !== 'none' && y + 5.5 >= bandTop && y - 5.5 <= bandBottom
+            )
+          })
           nearbyTicks.forEach((tick) => {
             const anchor = axisX + Number(tick.attributes('x'))
             if (axis.attributes('data-y-axis-side') === 'left') {

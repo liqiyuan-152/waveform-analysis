@@ -323,6 +323,7 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart(visibilitySeries(), {
       grid: { rowCount: 1, columnCount: 1 },
       legend: { interactive: true },
+      interactionMode: 'annotation',
     })
     const overlay = wrapper.get('.waveform-chart__overlay--independent')
     const overlayWidth = Number(overlay.attributes('width'))
@@ -331,7 +332,7 @@ describe('WaveformChart', () => {
       value: () => ({ left: 0, top: 0, width: overlayWidth, height: overlayHeight }),
     })
     overlay.element.dispatchEvent(
-      new MouseEvent('contextmenu', {
+      new MouseEvent('click', {
         clientX: overlayWidth * 0.75,
         clientY: overlayHeight / 2,
         bubbles: true,

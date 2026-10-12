@@ -53,6 +53,7 @@ export interface DemoControlPanelModel {
   yAxisLineVisible: boolean
   upperPaddingEnabled: boolean
   lowerPaddingEnabled: boolean
+  extremaTicksVisible: boolean
   upperPaddingPercent: number
   lowerPaddingPercent: number
   xAxisLabelFormatterEnabled: boolean

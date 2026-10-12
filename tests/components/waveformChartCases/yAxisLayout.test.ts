@@ -144,7 +144,7 @@ describe('WaveformChart Y-axis layout', () => {
           { x: 1, y: 97 },
         ],
       },
-      { axes: { y: { splitNumber: 5 } } },
+      { axes: { y: { splitNumber: 5, extremaTicksVisible: false } } },
     )
 
     expect(
@@ -198,7 +198,7 @@ describe('WaveformChart Y-axis layout', () => {
     )
   })
 
-  it('reserves room for compact-row units while keeping the top endpoint', async () => {
+  it('keeps compact-row units on the highest remaining label', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -225,6 +225,10 @@ describe('WaveformChart Y-axis layout', () => {
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe('101')
     expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-87')
-    expect(tracks[1]?.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe('(V) 100')
+    const labels = tracks[1]!.findAll('.waveform-chart__axis--y .tick text')
+    expect(labels.at(-1)?.text()).toBe('100')
+    expect(labels.at(-1)?.attributes('display')).toBe('none')
+    expect(labels.at(-2)?.text()).toContain('(V)')
+    expect(labels.at(-2)?.attributes('display')).toBeUndefined()
   })
 })

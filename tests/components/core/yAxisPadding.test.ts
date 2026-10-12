@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { applyYAxisPadding, paddingRatio, withMaximumTick } from '@/components/core/yAxisPadding'
-import { resolveRenderedYAxisSeriesGroups, buildYAxisSlots } from '@/components/core/layout'
+import {
+  resolveRenderedYAxisSeriesGroups,
+  buildYAxisSlots,
+  axisTextMetrics,
+} from '@/components/core/layout'
 import { prepareWaveformSeries } from '@/components/core/useWaveformData'
 import type { DisplaySeries, DisplayTrack } from '@/components/core/types'
 import { labelsOverlap, linesOverlap } from '@/components/rendering/yAxisTickVisibility'
@@ -41,6 +45,7 @@ describe('Y padding and maximum tick rules', () => {
       expect(applyYAxisPadding(group, undefined, options)).toMatchObject({
         domain: [14, 86],
         maximumTick: 80,
+        minimumTick: 20,
       })
       expect(group.domain).toEqual([20, 80])
     }
@@ -84,6 +89,38 @@ describe('Y padding and maximum tick rules', () => {
     expect(withMaximumTick([0, 0.3, 1], 0.1 + 0.2)).toHaveLength(3)
     expect(withMaximumTick([1e-20, 2e-20], 1.5e-20)).toHaveLength(3)
     expect(withMaximumTick([0, 1])).toEqual([0, 1])
+    expect(withMaximumTick([0, 0.3, 1], 1, 0.1 + 0.2)).toHaveLength(3)
+    expect(withMaximumTick([0, 1], 0.3, 0.1 + 0.2)).toHaveLength(3)
+    expect(withMaximumTick([1e-20, 2e-20], undefined, 1.5e-20)).toHaveLength(3)
+    expect(withMaximumTick([0, 1], undefined, NaN)).toEqual([0, 1])
+  })
+  it('preserves raw minima for constants independently of padding and excludes empty data', () => {
+    for (const y of [0, 5, -5]) {
+      const [s] = prepareWaveformSeries({ kind: 'points', points: [{ x: 0, y }] })
+      const result = applyYAxisPadding(
+        { ...group, domain: s!.yDomain, seriesList: [{ ...s!, color: '#000' }] },
+        undefined,
+        { lowerPaddingEnabled: true },
+      )
+      expect(result.minimumTick).toBe(y)
+      expect(result.domain[0]).toBeLessThan(y)
+    }
+    expect(
+      applyYAxisPadding({ ...group, seriesList: [] }, undefined, { lowerPaddingEnabled: true })
+        .minimumTick,
+    ).toBeUndefined()
+    for (const options of [
+      { lowerPaddingEnabled: false, lowerPaddingRatio: 0.1 },
+      { lowerPaddingRatio: 0 },
+      { lowerPaddingRatio: -1 },
+      { lowerPaddingRatio: Infinity },
+    ])
+      expect(applyYAxisPadding(group, undefined, options).minimumTick).toBe(20)
+    expect(applyYAxisPadding(group, undefined, { extremaTicksVisible: false })).toMatchObject({
+      domain: [20, 80],
+      minimumTick: undefined,
+      maximumTick: undefined,
+    })
   })
   it('reserves label slots for padded domains and the maximum', () => {
     const slots = buildYAxisSlots(
@@ -98,6 +135,21 @@ describe('Y padding and maximum tick rules', () => {
       { upperPaddingEnabled: true },
     )
     expect(slots.slots[0]!.clearance).toBeGreaterThan(0)
+  })
+  it('reserves width for fractional minimum labels between ordinary ticks', () => {
+    const ordinary = axisTextMetrics([0, 100], false).tickTextWidth
+    const withMinimum = axisTextMetrics(
+      [0, 100],
+      false,
+      undefined,
+      undefined,
+      5,
+      false,
+      undefined,
+      undefined,
+      0.1234,
+    ).tickTextWidth
+    expect(withMinimum).toBeGreaterThan(ordinary)
   })
   it('separates label and stroke collision thresholds in pixels', () => {
     const box = { left: 0, right: 20, top: 0, bottom: 11 }

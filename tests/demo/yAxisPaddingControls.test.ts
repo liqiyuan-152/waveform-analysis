@@ -16,6 +16,7 @@ describe('Y padding demo controls', () => {
     expect(chart.props('axes')?.y).toMatchObject({
       upperPaddingEnabled: true,
       lowerPaddingEnabled: true,
+      extremaTicksVisible: true,
       upperPaddingRatio: 0.1,
       lowerPaddingRatio: 0.1,
     })
@@ -33,6 +34,15 @@ describe('Y padding demo controls', () => {
     switches[0]!.vm.$emit('update:checked', true)
     await flushPromises()
     expect(ratios[0]!.props('disabled')).toBe(false)
+    switches[2]!.vm.$emit('update:checked', false)
+    await flushPromises()
+    expect(chart.props('axes')?.y).toMatchObject({
+      extremaTicksVisible: false,
+      upperPaddingEnabled: true,
+      lowerPaddingEnabled: true,
+      upperPaddingRatio: 0.1,
+      lowerPaddingRatio: 0.2,
+    })
     wrapper.unmount()
   })
 })

@@ -24,8 +24,10 @@ describe('zero-line rules shared with the display component', () => {
     })
     try {
       expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
-      const labels = wrapper.findAll('.waveform-chart__axis--y .tick text')
-      expect(labels).toHaveLength(5)
+      expect(wrapper.get('.waveform-chart__axis--y').attributes()).toMatchObject({
+        'data-label-domain-min': String(minimum),
+        'data-label-domain-max': String(maximum),
+      })
     } finally {
       wrapper.unmount()
     }

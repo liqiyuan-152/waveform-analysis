@@ -62,7 +62,6 @@ const {
   cancelViewportDrag,
   handlePointerLeave,
   handleAnnotationClick,
-  handleAnnotationContextMenu,
   resolveFrameNumber,
   frameStyle,
   axes,
@@ -230,7 +229,6 @@ function handleChartPointerLeave() {
           @pointercancel="cancelViewportDrag"
           @pointerleave="handlePointerLeave"
           @click="handleAnnotationClick"
-          @contextmenu="handleAnnotationContextMenu"
         />
 
         <!-- 轨道渲染 -->
@@ -270,7 +268,6 @@ function handleChartPointerLeave() {
           @pointer-cancel="cancelViewportDrag"
           @pointer-leave="handlePointerLeave"
           @click="handleAnnotationClick($event, track.index)"
-          @contextmenu="handleAnnotationContextMenu($event, track.index)"
         />
 
         <WaveformHoverLayer

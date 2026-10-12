@@ -295,7 +295,7 @@ describe('WaveformChart presentation mode', () => {
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
 
     overlay.element.dispatchEvent(
-      new MouseEvent('contextmenu', {
+      new MouseEvent('click', {
         clientX: width / 2,
         clientY: height / 2,
         bubbles: true,

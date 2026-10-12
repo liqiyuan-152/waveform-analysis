@@ -19,7 +19,11 @@ describe('Y-axis endpoint tick strokes', () => {
             data: { kind: 'samples' as const, values: [-10, 0, 10], sampleRate: 1 },
           })),
         },
-        { layoutPreset, overlayMode: 'multi-axis', axes: { y: { nice: false } } },
+        {
+          layoutPreset,
+          overlayMode: 'multi-axis',
+          axes: { y: { nice: false, extremaTicksVisible: false } },
+        },
       )
       const verify = () => {
         const axes = wrapper.findAll('.waveform-chart__axis--y')

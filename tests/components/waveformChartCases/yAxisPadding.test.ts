@@ -17,6 +17,25 @@ const ticks = (wrapper: Awaited<ReturnType<typeof mountSizedChart>>) =>
     .map((t) => Number(t.attributes('data-tick-value')))
 
 describe('Y padding chart integration', () => {
+  it('preserves compact minimum labels beside the next track actual maximum', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: ['first', 'second'].map((id) => ({ id, name: id, data })),
+      },
+      {
+        displayMode: 'compact',
+        grid: { rowCount: 2 },
+        axes: { y: { nice: false, upperPaddingRatio: 0.001 } },
+      },
+    )
+    wrapper.findAll('.waveform-track__axis--y').forEach((axis) => {
+      const labels = axis.findAll('.tick text')
+      expect(labels[0].attributes('display')).toBeUndefined()
+      expect(labels.at(-1)!.attributes('display')).toBe('none')
+    })
+    wrapper.unmount()
+  })
   it.each(['independent', 'separated', 'compact'] as const)(
     'supports dual padding and the original maximum in %s mode',
     async (displayMode) => {
@@ -40,7 +59,7 @@ describe('Y padding chart integration', () => {
       })
       await flushPromises()
       expect(ticks(wrapper).at(-1)).toBe(100)
-      expect(wrapper.find('[data-maximum-tick]').exists()).toBe(false)
+      expect(wrapper.get('[data-maximum-tick]').attributes('data-tick-value')).toBe('100')
       wrapper.unmount()
     },
   )

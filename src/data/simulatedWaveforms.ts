@@ -1,5 +1,6 @@
 import type { WaveformData, WaveformPoint, WaveformSeries } from '../types'
 import { recordedDampedPoints } from './recordedDampedWaveform'
+import { sx2Channel } from './sx2Channel'
 
 const POINT_COUNT = 1_000
 const START_TIME = -5
@@ -175,6 +176,15 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     lineType: 'linear',
     pointType: 'none',
     signal: (time) => 6e-9 * Math.exp(-(time + 5) * 0.2) * Math.cos(TWO_PI * 0.8 * time),
+  },
+  {
+    id: `recorded-${sx2Channel.chnl_id}`,
+    shotNo: String(sx2Channel.shot),
+    name: sx2Channel.chnl,
+    unit: sx2Channel.dat_unit,
+    lineType: 'linear',
+    pointType: 'none',
+    signal: sx2Channel.data.map((value, index) => [sx2Channel.time[index]!, value]),
   },
 ]
 

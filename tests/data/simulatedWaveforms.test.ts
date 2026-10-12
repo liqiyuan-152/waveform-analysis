@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { createSimulatedWaveformData } from '@/data/simulatedWaveforms'
 
 describe('simulated waveform data', () => {
-  it('creates deterministic, finite twelve-channel data with a three-series second frame', () => {
+  it('creates deterministic, finite eleven-track data with a three-series second frame', () => {
     const first = createSimulatedWaveformData()
     const second = createSimulatedWaveformData()
 
@@ -11,8 +11,9 @@ describe('simulated waveform data', () => {
     expect(first.kind).toBe('series')
     if (first.kind !== 'series') return
 
-    expect(first.series).toHaveLength(12)
-    expect(new Set(first.series.map((series) => series.id)).size).toBe(12)
+    expect(first.series).toHaveLength(13)
+    expect(new Set(first.series.map((series) => series.id)).size).toBe(13)
+    expect(new Set(first.series.map((series) => series.trackId ?? series.id)).size).toBe(11)
     const secondFrame = first.series.filter(
       (series) => series.trackId === 'simulated-harmonic-frame',
     )
@@ -53,11 +54,19 @@ describe('simulated waveform data', () => {
         expect(series.data.points[1]?.y).toBe(-189.8833)
         expect(series.data.points.at(-1)?.x).toBeCloseTo(5.9999, 10)
         expect(series.data.points.at(-1)?.y).toBe(1.037613)
+      } else if (series.id === 'recorded-1155') {
+        expect(series).toMatchObject({ name: 'SX2_7_01', shotNo: '13300', unit: 'V' })
+        expect(series.data.points).toHaveLength(1_000)
+        expect(series.data.points[0]).toEqual({ x: 0, y: 0.005035477225909801 })
+        expect(series.data.points[1]?.x).toBe(0.004)
+        expect(series.data.points.at(-1)?.x).toBeCloseTo(3.999999, 10)
       } else {
         expect(series.data.points).toHaveLength(1_000)
         expect(series.data.points[0]?.x).toBe(-5)
       }
-      if (series.id !== 'simulated-damped') expect(series.data.points.at(-1)?.x).toBe(5)
+      if (series.id !== 'simulated-damped' && series.id !== 'recorded-1155') {
+        expect(series.data.points.at(-1)?.x).toBe(5)
+      }
       series.data.points.forEach((point) => {
         expect(Number.isFinite(point.x)).toBe(true)
         expect(Number.isFinite(point.y)).toBe(true)

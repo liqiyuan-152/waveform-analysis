@@ -17,6 +17,7 @@ import type { ResolvedWaveformChartProps } from './waveformChartTypes'
 import { applyXDomainStrategy } from './xDomain'
 import { alignIntegerZoomDomain, normalizeIntegerZoomDomain } from '../interaction/integerZoom'
 import { resolveViewportYDomains } from './yAxisLayoutMetrics'
+import { useExtremaTickViewport } from '../interaction/useExtremaTickViewport'
 import { useWaveformYAxisLayout } from './useWaveformYAxisLayout'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
@@ -278,6 +279,13 @@ export function useWaveformLayout(context: LayoutContext) {
       yAxisSlots: yAxisSlots.value.slots,
       showEmptyTracks: hasWaveformData.value,
     }),
+  )
+  useExtremaTickViewport(
+    () => props.axes?.y?.extremaTicksVisible !== false,
+    innerWidth,
+    trackLayouts,
+    sharedTransform,
+    independentTransforms,
   )
   const annotationLayoutsForTrack = (track: TrackLayout): AnnotationTrackLayout[] =>
     track.seriesList.map((series) => ({

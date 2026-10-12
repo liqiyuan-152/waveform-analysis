@@ -102,6 +102,7 @@ export interface YAxisSeriesGroup {
   domain: [number, number]
   fixed: boolean
   maximumTick?: number
+  minimumTick?: number
 }
 
 export interface YAxisSlot {
@@ -196,9 +197,12 @@ export function resolveRenderedYAxisSeriesGroups(
     track.visibleSeries.length || !track.series.length
       ? track
       : { ...track, visibleSeries: track.series }
-  return resolveYAxisSeriesGroups(axisTrack, overlayMode, yDomain, yDomains).map((group) =>
-    applyYAxisPadding(group, viewportYDomain, padding),
-  )
+  return resolveYAxisSeriesGroups(axisTrack, overlayMode, yDomain, yDomains).map((group) => {
+    const padded = applyYAxisPadding(group, viewportYDomain, padding)
+    return track.visibleSeries.length
+      ? padded
+      : { ...padded, maximumTick: undefined, minimumTick: undefined }
+  })
 }
 
 export function axisTextMetrics(
@@ -210,11 +214,18 @@ export function axisTextMetrics(
   includeWithoutLastTick = false,
   measureTextWidth?: (text: string) => number,
   maximumTick?: number,
+  minimumTick?: number,
 ): { tickTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
     : resolveYAxisTicks(domain, tickCount, nice)
-  const tickValueSets = [withMaximumTick(resolvedTicks.values, maximumTick)]
+  const inRange = (value?: number) =>
+    value !== undefined && value >= resolvedTicks.domain[0] && value <= resolvedTicks.domain[1]
+      ? value
+      : undefined
+  const tickValueSets = [
+    withMaximumTick(resolvedTicks.values, inRange(maximumTick), inRange(minimumTick)),
+  ]
   if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
     tickValueSets.push(resolvedTicks.values.slice(0, -1))
   }
@@ -322,6 +333,7 @@ export function buildYAxisSlots(
         includeWithoutLastTick,
         measureTextWidth,
         group.maximumTick,
+        group.minimumTick,
       ).tickTextWidth
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))
     })

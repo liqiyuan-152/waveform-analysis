@@ -111,6 +111,7 @@ const frameInset = computed(() =>
       :show-units="showAxisUnits"
       :show-label-units="showLabelUnits"
       :hide-y-axis-titles="hideYAxisTitles"
+      :hide-overlapping-maximum-label="displayMode === 'compact'"
     />
 
     <component

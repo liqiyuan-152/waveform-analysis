@@ -70,7 +70,7 @@ function escape() {
       `waveform-toolbar--${config.position}`,
       { 'waveform-toolbar--collapsed': compact && !expanded },
     ]"
-    :style="{ top: `${controller.titleAreaHeight + 4}px` }"
+    :style="{ top: `${controller.titleAreaHeight + 2}px` }"
     role="toolbar"
     aria-label="波形工具栏"
     @pointerdown.stop
@@ -138,24 +138,20 @@ function escape() {
 .waveform-toolbar {
   position: absolute;
   z-index: 10;
-  top: 4px;
-  right: 6px;
+  top: 2px;
+  right: 2px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  max-width: calc(100% - 12px);
-  padding: 4px;
+  gap: 0;
+  max-width: calc(100% - 4px);
   background: rgb(255 255 255 / 96%);
-  border: 1px solid #d0d5dd;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px #0001;
 }
 .waveform-toolbar--collapsed > :not(.waveform-toolbar__toggle):not(.waveform-toolbar__feedback) {
   display: none;
 }
 .waveform-toolbar--top-left {
-  left: 6px;
+  left: 2px;
   right: auto;
 }
 .waveform-toolbar--hover {
@@ -171,18 +167,18 @@ function escape() {
 }
 .waveform-toolbar__group {
   display: flex;
-  gap: 2px;
-}
-.waveform-toolbar__group + .waveform-toolbar__group {
-  border-left: 1px solid #d0d5dd;
-  padding-left: 4px;
+  padding-left: 8px;
 }
 button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 30px;
-  min-height: 30px;
+  box-sizing: border-box;
+  min-width: 24px;
+  height: 22px;
+  padding: 3px 4px;
+  font-size: 12px;
+  line-height: normal;
   border: 0;
   border-radius: 4px;
   background: transparent;
@@ -204,8 +200,8 @@ select:focus-visible {
   outline-offset: 1px;
 }
 svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.6;
@@ -215,7 +211,10 @@ svg {
 select {
   min-width: 0;
   max-width: 120px;
-  height: 30px;
+  box-sizing: border-box;
+  height: 22px;
+  padding: 0 2px;
+  font-size: 12px;
   border: 1px solid #d0d5dd;
   border-radius: 4px;
   background: white;

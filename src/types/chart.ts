@@ -289,6 +289,8 @@ export interface WaveformAxesOptions {
     splitNumber?: number
     /** Expands Y-axis domains to equal, human-friendly intervals. Defaults to true. */
     nice?: boolean
+    /** Shows extra ticks for the full data extrema, independently of padding. Defaults to true. */
+    extremaTicksVisible?: boolean
     /** Fraction of the automatic Y span added above its maximum. Defaults to 0. */
     upperPaddingRatio?: number
     /** Fraction of the automatic Y span added below its minimum. Defaults to 0. */

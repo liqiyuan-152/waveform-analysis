@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { flushAnimationFrames } from '@tests/support/setup'
 
 import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVisibility'
 
 describe('WaveformChart', () => {
   it.each([
@@ -11,77 +12,105 @@ describe('WaveformChart', () => {
     { width: 320, layoutPreset: 'default' },
     { width: 800, layoutPreset: 'edge-compact' },
     { width: 320, layoutPreset: 'edge-compact' },
-  ] as const)('shows every compact maximum tick at $width px with $layoutPreset', async (size) => {
-    const wrapper = await mountSizedChart(
-      {
-        kind: 'series',
-        series: [
-          {
-            name: 'top-left',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: 0.11 },
-                { x: 1, y: 0.89 },
-              ],
+  ] as const)(
+    'hides only overlapping compact maximum labels at $width px with $layoutPreset',
+    async (size) => {
+      const wrapper = await mountSizedChart(
+        {
+          kind: 'series',
+          series: [
+            {
+              name: 'top-left',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 0.11 },
+                  { x: 1, y: 0.89 },
+                ],
+              },
             },
-          },
-          {
-            name: 'top-right',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: 1.11 },
-                { x: 1, y: 1.89 },
-              ],
+            {
+              name: 'top-right',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 1.11 },
+                  { x: 1, y: 1.89 },
+                ],
+              },
             },
-          },
-          {
-            name: 'bottom-left',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: 2 },
-                { x: 1, y: 3 },
-              ],
+            {
+              name: 'bottom-left',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 2 },
+                  { x: 1, y: 3 },
+                ],
+              },
             },
-          },
-          {
-            name: 'bottom-right',
-            data: {
-              kind: 'points',
-              points: [
-                { x: 0, y: 4 },
-                { x: 1, y: 5 },
-              ],
+            {
+              name: 'bottom-right',
+              data: {
+                kind: 'points',
+                points: [
+                  { x: 0, y: 4 },
+                  { x: 1, y: 5 },
+                ],
+              },
             },
-          },
-        ],
-      },
-      { ...size, displayMode: 'compact', grid: { rowCount: 2, columnCount: 2 } },
-    )
+          ],
+        },
+        {
+          ...size,
+          displayMode: 'compact',
+          grid: { rowCount: 2, columnCount: 2 },
+          axes: { y: { extremaTicksVisible: false } },
+        },
+      )
 
-    const tracks = wrapper.findAll('.waveform-chart__track')
-    const endTicks = tracks.map((track) =>
-      track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
-        const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
-        return match ? Math.abs(Number(match[1])) <= 1 : false
-      }),
-    )
+      const tracks = wrapper.findAll('.waveform-chart__track')
+      const endTicks = tracks.map((track) =>
+        track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
+          const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
+          return match ? Math.abs(Number(match[1])) <= 1 : false
+        }),
+      )
 
-    expect(endTicks[0]).toHaveLength(1)
-    expect(Number(endTicks[0][0].text())).toBe(1)
-    expect(endTicks[1]).toHaveLength(1)
-    expect(Number(endTicks[1][0].text())).toBe(2)
-    expect(endTicks[2]).toHaveLength(1)
-    expect(Number(endTicks[2][0].text())).toBe(3)
-    expect(endTicks[3]).toHaveLength(1)
-    expect(Number(endTicks[3][0].text())).toBe(5)
-    endTicks.forEach(([tick]) => {
-      expect(tick.get('text').attributes('dominant-baseline')).toBe('central')
-      expect(tick.get('text').attributes('dy')).toBe('0')
-    })
-  })
+      expect(endTicks[0]).toHaveLength(1)
+      expect(Number(endTicks[0][0].text())).toBe(1)
+      expect(endTicks[1]).toHaveLength(1)
+      expect(Number(endTicks[1][0].text())).toBe(2)
+      expect(endTicks[2]).toHaveLength(1)
+      expect(Number(endTicks[2][0].text())).toBe(3)
+      expect(endTicks[3]).toHaveLength(1)
+      expect(Number(endTicks[3][0].text())).toBe(5)
+      endTicks.forEach(([tick], index) => {
+        expect(tick.get('text').attributes('display')).toBe(index < 2 ? undefined : 'none')
+        expect(tick.get('text').attributes('dominant-baseline')).toBe('central')
+        expect(tick.get('text').attributes('dy')).toBe('0')
+      })
+      tracks.forEach((track) => {
+        expect(
+          track.get('.waveform-chart__axis--y .tick text').attributes('display'),
+        ).toBeUndefined()
+      })
+      updateMaximumTickVisibility(wrapper.get('svg').element as SVGSVGElement)
+      endTicks.forEach(([tick], index) =>
+        expect(tick.get('text').attributes('display')).toBe(index < 2 ? undefined : 'none'),
+      )
+      for (const displayMode of ['separated', 'independent', 'compact'] as const) {
+        await wrapper.setProps({ displayMode })
+        await flushPromises()
+        wrapper.findAll('.waveform-chart__axis--y').forEach((axis, index) => {
+          expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe(
+            displayMode === 'compact' && index >= 2 ? 'none' : undefined,
+          )
+        })
+      }
+      wrapper.unmount()
+    },
+  )
 
   it('keeps adjacent compact endpoint labels aligned with their ticks with floating-point tails', async () => {
     const yDomain: [number, number] = [-1, 0.2]
@@ -138,6 +167,8 @@ describe('WaveformChart', () => {
     expect(boundaryLabels).toHaveLength(2)
     expect(boundaryLabels[0].get('text').attributes('dominant-baseline')).toBe('central')
     expect(boundaryLabels[1].get('text').attributes('dominant-baseline')).toBe('central')
+    expect(boundaryLabels[0].get('text').attributes('display')).toBeUndefined()
+    expect(boundaryLabels[1].get('text').attributes('display')).toBe('none')
   })
 
   it('prefixes one shared exponent to the largest visible tick on every compact Y axis', async () => {
@@ -173,7 +204,10 @@ describe('WaveformChart', () => {
     const axes = wrapper.findAll('.waveform-chart__axis--y')
     expect(axes).toHaveLength(2)
     axes.forEach((axis, index) => {
-      const labels = axis.findAll('.tick text').map((tick) => tick.text())
+      const labels = axis
+        .findAll('.tick text')
+        .filter((tick) => tick.attributes('display') !== 'none')
+        .map((tick) => tick.text())
       const exponentLabels = labels.filter((label) => label.startsWith('E'))
       expect(exponentLabels).toHaveLength(1)
       expect(exponentLabels[0]).toMatch(index === 0 ? /^E\+03 / : /^E-04 /)

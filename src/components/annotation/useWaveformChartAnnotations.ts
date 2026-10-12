@@ -257,17 +257,21 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
     if (
       isPresentationMode.value ||
       !props.annotationsVisible ||
+      event.button !== 0 ||
       activeInteractionMode.value !== 'annotation'
     ) {
       return
     }
     const candidateContext = resolveAnnotationCandidates(event, trackIndex)
-    if (!candidateContext) return
+    if (!candidateContext || !candidateContext.candidates.length) return
     const nearby = nearbyCandidates(candidateContext.candidates)
-    if (!nearby.length) return
     event.preventDefault()
     event.stopPropagation()
-    beginCreate(nearby[0], candidateContext.editorAnchor, candidateContext.candidates)
+    beginCreate(
+      nearby[0] ?? candidateContext.candidates[0],
+      candidateContext.editorAnchor,
+      candidateContext.candidates,
+    )
   }
 
   function handleNativeContextMenu(event: MouseEvent) {
@@ -279,25 +283,6 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
       return
     }
     event.preventDefault()
-  }
-
-  function handleAnnotationContextMenu(event: MouseEvent, trackIndex?: number) {
-    if (
-      isPresentationMode.value ||
-      !props.annotationsVisible ||
-      activeInteractionMode.value === 'none'
-    )
-      return
-    event.preventDefault()
-    event.stopPropagation()
-    const candidateContext = resolveAnnotationCandidates(event, trackIndex)
-    if (!candidateContext || !candidateContext.candidates.length) return
-    const nearby = nearbyCandidates(candidateContext.candidates)
-    beginCreate(
-      nearby[0] ?? candidateContext.candidates[0],
-      candidateContext.editorAnchor,
-      candidateContext.candidates,
-    )
   }
 
   function handleExistingAnnotationContextMenu(annotationId: string, event: MouseEvent) {
@@ -392,7 +377,6 @@ export function useWaveformChartAnnotations(context: AnnotationContext) {
     resolveTrackAtPointer,
     handleAnnotationClick,
     handleNativeContextMenu,
-    handleAnnotationContextMenu,
     handleExistingAnnotationContextMenu,
     handleAnnotationMove,
     editContextAnnotation,

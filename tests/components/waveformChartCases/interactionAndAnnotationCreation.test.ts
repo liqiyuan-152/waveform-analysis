@@ -14,6 +14,49 @@ function getAnnotationEditor() {
 }
 
 describe('WaveformChart', () => {
+  it.each(['independent', 'separated'] as const)(
+    'only creates annotations with the left button in annotation mode (%s)',
+    async (displayMode) => {
+      const wrapper = await mountSizedChart(
+        { kind: 'samples', values: [0, 5], sampleRate: 1 },
+        { displayMode, toolbar: true },
+      )
+      const overlay = wrapper.get('.waveform-chart__overlay')
+      Object.defineProperty(overlay.element, 'getBoundingClientRect', {
+        value: () => ({ left: 0, top: 0, width: 712, height: 290 }),
+      })
+      const editorExists = () =>
+        Array.from(document.body.querySelectorAll('[role="dialog"]')).some((element) =>
+          element.closest('.waveform-annotation-editor'),
+        )
+
+      for (const mode of ['zoom', 'pan', 'none', 'annotation'] as const) {
+        await wrapper.setProps({ interactionMode: mode })
+        await overlay.trigger('contextmenu', { button: 2, clientX: 356, clientY: 145 })
+        expect(editorExists()).toBe(false)
+        await overlay.trigger('click', { button: 2, clientX: 356, clientY: 145 })
+        expect(editorExists()).toBe(false)
+        await overlay.trigger('click', { button: 1, clientX: 356, clientY: 145 })
+        expect(editorExists()).toBe(false)
+        if (mode !== 'annotation') {
+          await overlay.trigger('click', { button: 0, clientX: 356, clientY: 145 })
+          expect(editorExists()).toBe(false)
+        }
+      }
+      await wrapper.setProps({ annotationsVisible: false })
+      await overlay.trigger('click', { button: 0, clientX: 356, clientY: 145 })
+      expect(editorExists()).toBe(false)
+      await wrapper.setProps({ annotationsVisible: true })
+      await overlay.trigger('click', { button: 0, clientX: 356, clientY: 145 })
+      await flushPromises()
+      expect(editorExists()).toBe(true)
+      expect(wrapper.emitted('annotation-create')).toBeUndefined()
+      await getAnnotationEditor().get('.ant-modal-close').trigger('click')
+      await flushPromises()
+      wrapper.unmount()
+    },
+  )
+
   it('zooms only the active independent track and resets when the mode changes', async () => {
     const wrapper = await mountSizedChart({
       kind: 'series',
@@ -193,7 +236,7 @@ describe('WaveformChart', () => {
     expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
   })
 
-  it('supports right-click creation anywhere in the plot without drawing an anchor or guide line', async () => {
+  it('creates annotations anywhere in the plot after selecting the toolbar annotation mode', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'points',
@@ -202,7 +245,7 @@ describe('WaveformChart', () => {
           { x: 1, y: 5 },
         ],
       },
-      { grid: { rowCount: 1, columnCount: 1 } },
+      { grid: { rowCount: 1, columnCount: 1 }, toolbar: true },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const overlayWidth = Number(overlay.attributes('width'))
@@ -210,8 +253,10 @@ describe('WaveformChart', () => {
       value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
     })
 
+    await wrapper.get('[data-command="annotate"]').trigger('click')
+    expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
     overlay.element.dispatchEvent(
-      new MouseEvent('contextmenu', {
+      new MouseEvent('click', {
         clientX: overlayWidth / 2,
         clientY: 145,
         bubbles: true,
@@ -228,7 +273,7 @@ describe('WaveformChart', () => {
     })
     expect(textarea.element.dispatchEvent(textareaContextMenu)).toBe(true)
     expect(textareaContextMenu.defaultPrevented).toBe(false)
-    await textarea.setValue('右键标注')
+    await textarea.setValue('左键标注')
     await editor.get('button.ant-btn-primary').trigger('click')
     await flushPromises()
 
@@ -237,7 +282,7 @@ describe('WaveformChart', () => {
       { seriesId: 'series-0', x: 1, y: 5 },
     ])
     await wrapper.setProps({
-      annotations: [{ id: 'right-click', seriesId: 'series-0', x: 1, y: 5, text: '右键标注' }],
+      annotations: [{ id: 'left-click', seriesId: 'series-0', x: 1, y: 5, text: '左键标注' }],
     })
     expect(wrapper.find('.waveform-annotation__vertical-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation__anchor').exists()).toBe(false)
@@ -275,7 +320,7 @@ describe('WaveformChart', () => {
           },
         ],
       },
-      { displayMode: 'separated' },
+      { displayMode: 'separated', interactionMode: 'annotation' },
     )
     const overlays = wrapper.findAll('.waveform-chart__overlay--shared')
     expect(overlays.length).toBeGreaterThan(0)
@@ -284,7 +329,7 @@ describe('WaveformChart', () => {
     })
 
     overlays[0].element.dispatchEvent(
-      new MouseEvent('contextmenu', { clientX: 356, clientY: 30, bubbles: true }),
+      new MouseEvent('click', { clientX: 356, clientY: 30, bubbles: true }),
     )
     await flushPromises()
     expect(
@@ -296,7 +341,7 @@ describe('WaveformChart', () => {
 
     await getAnnotationEditor().get('.ant-modal-close').trigger('click')
     overlays[0].element.dispatchEvent(
-      new MouseEvent('contextmenu', { clientX: 356, clientY: 230, bubbles: true }),
+      new MouseEvent('click', { clientX: 356, clientY: 230, bubbles: true }),
     )
     await flushPromises()
     expect(

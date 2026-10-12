@@ -71,6 +71,7 @@ export function resolveYAxisLayoutMetrics(
           compact,
           measureTextWidth,
           group.maximumTick,
+          group.minimumTick,
         ).tickTextWidth,
     )
   const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)

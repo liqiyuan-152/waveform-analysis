@@ -163,7 +163,13 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         group.maximumTick <= resolvedTicks.domain[1]
           ? group.maximumTick
           : undefined
-      const tickValues = withMaximumTick(majorTicks, maximumTick)
+      const minimumTick =
+        group.minimumTick !== undefined &&
+        group.minimumTick >= resolvedTicks.domain[0] &&
+        group.minimumTick <= resolvedTicks.domain[1]
+          ? group.minimumTick
+          : undefined
+      const tickValues = withMaximumTick(majorTicks, maximumTick, minimumTick)
       const { tickTextWidth } = axisTextMetrics(
         scale.domain() as [number, number],
         false,
@@ -203,6 +209,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         labelX,
         scale,
         maximumTick,
+        minimumTick,
         majorTicks,
         minorTicks: buildMinorTicks(majorTicks, 2),
         tickValues,

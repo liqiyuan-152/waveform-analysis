@@ -346,7 +346,11 @@ describe('WaveformChart', () => {
           { x: 1, y: 5 },
         ],
       },
-      { title: { text: 'shot: #4712' }, grid: { rowCount: 1, columnCount: 1 } },
+      {
+        title: { text: 'shot: #4712' },
+        grid: { rowCount: 1, columnCount: 1 },
+        interactionMode: 'annotation',
+      },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const overlayWidth = Number(overlay.attributes('width'))
@@ -354,7 +358,7 @@ describe('WaveformChart', () => {
       value: () => ({ left: 0, top: 0, width: overlayWidth, height: 246 }),
     })
     overlay.element.dispatchEvent(
-      new MouseEvent('contextmenu', {
+      new MouseEvent('click', {
         clientX: overlayWidth / 2,
         clientY: 100,
         bubbles: true,
