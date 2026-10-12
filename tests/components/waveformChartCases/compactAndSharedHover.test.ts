@@ -78,12 +78,12 @@ describe('WaveformChart', () => {
     expect(endTicks[3]).toHaveLength(1)
     expect(Number(endTicks[3][0].text())).toBe(5)
     endTicks.forEach(([tick]) => {
-      expect(tick.get('text').attributes('dominant-baseline')).toBe('text-before-edge')
+      expect(tick.get('text').attributes('dominant-baseline')).toBe('central')
       expect(tick.get('text').attributes('dy')).toBe('0')
     })
   })
 
-  it('keeps adjacent compact endpoint labels inside their tracks with floating-point tails', async () => {
+  it('keeps adjacent compact endpoint labels aligned with their ticks with floating-point tails', async () => {
     const yDomain: [number, number] = [-1, 0.2]
     const calculatedAxisEnd = yDomain[0] + ((yDomain[1] - yDomain[0]) * 4) / 4
     expect(calculatedAxisEnd).not.toBe(yDomain[1])
@@ -136,8 +136,8 @@ describe('WaveformChart', () => {
 
     const boundaryLabels = [...ticksAt(topTrack, topTrackHeight), ...ticksAt(bottomTrack, 0)]
     expect(boundaryLabels).toHaveLength(2)
-    expect(boundaryLabels[0].get('text').attributes('dominant-baseline')).toBe('text-after-edge')
-    expect(boundaryLabels[1].get('text').attributes('dominant-baseline')).toBe('text-before-edge')
+    expect(boundaryLabels[0].get('text').attributes('dominant-baseline')).toBe('central')
+    expect(boundaryLabels[1].get('text').attributes('dominant-baseline')).toBe('central')
   })
 
   it('prefixes one shared exponent to the largest visible tick on every compact Y axis', async () => {

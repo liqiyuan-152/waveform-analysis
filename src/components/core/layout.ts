@@ -10,6 +10,7 @@ import {
 } from './yDomain'
 import { resolveYAxisTicksECharts } from './niceScale'
 import { applyYAxisPadding, withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
+import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 
 // 导出常量供外部使用
 export { MAX_MULTI_Y_AXIS_COUNT } from './constants'
@@ -296,6 +297,9 @@ export function buildYAxisSlots(
   showUnits = true,
   measureTextWidth?: (text: string) => number,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
+  const labelBandWidth = resolveYAxisLabelBandWidth(
+    typeof padding === 'object' ? padding.labelTextStyle : undefined,
+  )
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
     const sideIndexes = { left: 0, right: 0 }
@@ -334,13 +338,13 @@ export function buildYAxisSlots(
       const tickTextWidth = widths.get(`${side}:${sideIndex}`) ?? Y_AXIS_CHARACTER_WIDTH
       const axisOffset = side === 'left' && clearance.left > 0 ? -clearance.left : clearance[side]
       const labelDistance =
-        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
+        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + labelBandWidth / 2
       const labelOffset = axisOffset + labelDistance * (side === 'left' ? -1 : 1)
       const fullClearance =
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
         Y_AXIS_LABEL_GAP +
-        Y_AXIS_LABEL_BAND_WIDTH +
+        labelBandWidth +
         Y_AXIS_OUTER_PADDING
       slots.push({ side, sideIndex, axisOffset, labelOffset, clearance: fullClearance })
       clearance[side] += fullClearance

@@ -322,8 +322,11 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     expect(
       wrapper
         .findAll('.waveform-chart__track')
+        .filter((track) => !track.classes().includes('waveform-chart__track--empty'))
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
     ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移'])
+    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(2)
+    expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
 
     wrapper.unmount()
   })

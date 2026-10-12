@@ -197,7 +197,7 @@ function handleChartPointerLeave() {
 
       <g :transform="`translate(${resolvedChartLeftMargin}, ${chartTopMargin})`">
         <g
-          v-if="displayMode !== 'compact' && !isCleanView"
+          v-if="displayMode !== 'compact' && !hasWaveformData && !isCleanView"
           class="waveform-chart__grid-slots"
           aria-hidden="true"
         >
@@ -249,13 +249,16 @@ function handleChartPointerLeave() {
           :interactive="!isPresentationMode"
           :display-mode="displayMode"
           :interaction-mode="activeInteractionMode"
-          :frame-number="resolveFrameNumber(track.id)"
+          :frame-number="
+            resolveFrameNumber(track.id, (currentPage - 1) * getPageSize(gridOptions) + track.index)
+          "
           :frame-style="frameStyle"
           :axes="axes"
           :show-axis-units="unitDisplayMode === 'axis'"
-          :show-label-units="unitDisplayMode === 'channel-label-or-legend'"
+          :show-label-units="
+            unitDisplayMode === 'channel-label-or-legend' || unitDisplayMode === 'channel-label'
+          "
           :hide-y-axis-titles="hideYAxisTitles"
-          :contain-y-axis-endpoints="isEdgeCompact"
           :contain-frame-stroke="isEdgeCompact"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
@@ -329,6 +332,7 @@ function handleChartPointerLeave() {
       <text
         v-if="resolvedXLabel && !isCleanView"
         class="waveform-chart__label waveform-chart__x-label"
+        :style="isEdgeCompact ? { fontSize: titleTextStyle.fontSize } : undefined"
         :x="plotCenterX"
         :y="xAxisTitleY"
         text-anchor="middle"

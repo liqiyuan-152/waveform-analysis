@@ -27,7 +27,6 @@ interface Props {
   showAxisUnits?: boolean
   showLabelUnits?: boolean
   hideYAxisTitles?: boolean
-  containYAxisEndpoints?: boolean
   containFrameStroke?: boolean
   cleanView?: boolean
   zeroLine?: Required<WaveformZeroLineOptions>
@@ -100,6 +99,7 @@ const frameInset = computed(() =>
       :clean-view="cleanView"
       :frame-number="frameNumber"
       :frame-style="resolvedFrameStyle"
+      show-empty-frame
     />
     <WaveformTrackAxes
       :track="track"
@@ -111,12 +111,10 @@ const frameInset = computed(() =>
       :show-units="showAxisUnits"
       :show-label-units="showLabelUnits"
       :hide-y-axis-titles="hideYAxisTitles"
-      :contain-y-axis-endpoints="containYAxisEndpoints || displayMode === 'compact'"
     />
 
     <component
       :is="framePath ? 'path' : 'rect'"
-      v-if="!track.isEmpty"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
       :d="framePath"
       :x="containFrameStroke ? frameInset : undefined"

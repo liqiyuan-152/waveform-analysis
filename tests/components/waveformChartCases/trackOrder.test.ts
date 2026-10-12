@@ -126,10 +126,10 @@ describe('WaveformChart track order', () => {
 
     expect(
       wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id')),
-    ).toEqual(['frame-4'])
+    ).toEqual(['frame-4', 'empty-grid-slot-1'])
     expect(
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
-    ).toEqual(['4'])
+    ).toEqual(['4', '4'])
   })
 
   it('uses stable track IDs for explicit frame watermark overrides', async () => {
@@ -152,7 +152,7 @@ describe('WaveformChart track order', () => {
 
     expect(
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
-    ).toEqual(['D'])
+    ).toEqual(['D', '4'])
   })
 
   it('keeps the existing incremental watermark fallback when frame mappings are absent', async () => {

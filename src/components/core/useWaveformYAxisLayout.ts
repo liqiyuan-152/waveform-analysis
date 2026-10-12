@@ -32,6 +32,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
   const isEdgeCompact = computed(() => props.layoutPreset === 'edge-compact')
   const showUnits = computed(
     () =>
+      props.unitDisplayMode !== 'channel-label' &&
       props.unitDisplayMode !== 'channel-label-or-legend' &&
       (!isEdgeCompact.value || props.unitDisplayMode === 'axis'),
   )

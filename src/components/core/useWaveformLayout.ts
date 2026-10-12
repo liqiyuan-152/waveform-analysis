@@ -248,6 +248,7 @@ export function useWaveformLayout(context: LayoutContext) {
       useNonEmptyBottomTracks: props.layoutPreset === 'edge-compact',
       compactYAxisLayout: props.layoutPreset === 'edge-compact',
       showAxisUnits:
+        props.unitDisplayMode !== 'channel-label' &&
         props.unitDisplayMode !== 'channel-label-or-legend' &&
         (props.layoutPreset !== 'edge-compact' || props.unitDisplayMode === 'axis'),
       displayMode: props.displayMode,
@@ -275,7 +276,7 @@ export function useWaveformLayout(context: LayoutContext) {
         yAxisSlots.value.slots.find((slot) => slot.side === 'left' && slot.sideIndex === 0)
           ?.labelOffset ?? yAxisMetrics.value.labelCenterX,
       yAxisSlots: yAxisSlots.value.slots,
-      showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
+      showEmptyTracks: hasWaveformData.value,
     }),
   )
   const annotationLayoutsForTrack = (track: TrackLayout): AnnotationTrackLayout[] =>

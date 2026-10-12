@@ -70,28 +70,11 @@ describe('WaveformChart Y-axis layout', () => {
             ticks[0].attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)?.[1],
           )
           expect(bottomPosition).toBeCloseTo(height + 0.5)
-          expect(ticks[0].get('text').attributes()).toMatchObject({
-            dy: '0',
-            'dominant-baseline': 'text-after-edge',
-          })
-          expect(ticks[0].get('text').attributes('y')).toBeUndefined()
-          expect(
-            ticks.slice(1).every((tick) => tick.get('text').attributes('y') === undefined),
-          ).toBe(true)
-          expect(
-            ticks.slice(1, displayMode === 'compact' ? -1 : undefined).every((tick) => {
-              const text = tick.get('text')
-              return (
-                text.attributes('dy') === '0.32em' &&
-                text.attributes('dominant-baseline') === undefined
-              )
-            }),
-          ).toBe(true)
-          if (displayMode === 'compact') {
-            expect(ticks.at(-1)!.get('text').attributes()).toMatchObject({
-              dy: '0',
-              'dominant-baseline': 'text-before-edge',
-            })
+          for (const tick of ticks) {
+            const text = tick.get('text')
+            expect(text.attributes('y')).toBeUndefined()
+            expect(text.attributes('dy')).toBe('0')
+            expect(text.attributes('dominant-baseline')).toBe('central')
           }
           expect(ticks.every((tick) => tick.get('line').attributes('y2') === undefined)).toBe(true)
         }
@@ -106,8 +89,8 @@ describe('WaveformChart Y-axis layout', () => {
         expect(bottom.text()).toBe('-40')
         expect(bottom.attributes()).toMatchObject({
           dy: '0',
-          'dominant-baseline': 'text-after-edge',
         })
+        expect(bottom.attributes('dominant-baseline')).toBe('central')
         expect(bottom.attributes('y')).toBeUndefined()
       } finally {
         wrapper.unmount()
@@ -115,7 +98,7 @@ describe('WaveformChart Y-axis layout', () => {
     },
   )
 
-  it('bottom-aligns the lowest label with its tick on both left and right Y axes', async () => {
+  it('aligns endpoint labels like ordinary ticks on both left and right Y axes', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -140,9 +123,12 @@ describe('WaveformChart Y-axis layout', () => {
       for (const axis of axes) {
         expect(axis.get('.tick text').attributes()).toMatchObject({
           dy: '0',
-          'dominant-baseline': 'text-after-edge',
         })
-        expect(axis.get('.tick text').attributes('y')).toBeUndefined()
+        for (const text of axis.findAll('.tick text')) {
+          expect(text.attributes('dy')).toBe('0')
+          expect(text.attributes('dominant-baseline')).toBe('central')
+          expect(text.attributes('y')).toBeUndefined()
+        }
       }
     } finally {
       wrapper.unmount()

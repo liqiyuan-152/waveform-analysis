@@ -76,7 +76,7 @@ describe('fixed Y-domain layout', () => {
           rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
           hideSecondaryLabels: false,
           yAxisLabelX: -50,
-          showCompactEmptyTracks: false,
+          showEmptyTracks: false,
           yAxisNice: false,
           yAxisUpperPaddingRatio: 0.1,
         })[0]!
@@ -167,7 +167,7 @@ describe('fixed Y-domain layout', () => {
       rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
       hideSecondaryLabels: false,
       yAxisLabelX: -50,
-      showCompactEmptyTracks: false,
+      showEmptyTracks: false,
     })[0]
 
     expect(result?.yScale.domain()).toEqual([0, 100])
@@ -210,7 +210,7 @@ describe('fixed Y-domain layout', () => {
       rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
       hideSecondaryLabels: false,
       yAxisLabelX: -50,
-      showCompactEmptyTracks: false,
+      showEmptyTracks: false,
     })[0]
 
     expect(result?.yAxes[0]?.majorTicks).toEqual([0, 20, 40, 60, 80, 100])
@@ -251,7 +251,7 @@ describe('fixed Y-domain layout', () => {
         rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
         hideSecondaryLabels: false,
         yAxisLabelX: -50,
-        showCompactEmptyTracks: false,
+        showEmptyTracks: false,
       })[0]?.yAxes[0]?.majorTicks
 
     expect(build()).toHaveLength(6)

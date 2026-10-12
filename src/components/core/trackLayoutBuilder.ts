@@ -36,6 +36,7 @@ import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import { alignLeftYAxisTitles } from './yAxisTitleLayout'
 import { measureYAxisTextWidth } from './yAxisTextWidth'
+import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 import {
   alignIntegerZoomDomain,
   normalizeIntegerZoomDomain,
@@ -43,7 +44,6 @@ import {
   formatIntegerZoomLabel,
 } from '../interaction/integerZoom'
 import {
-  Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
   Y_AXIS_OUTER_PADDING,
   Y_AXIS_RIGHT_LABEL_OFFSET,
@@ -82,7 +82,7 @@ export interface BuildTrackLayoutsOptions {
   yAxisLabelX: number
   yLabel?: string
   yAxisSlots?: readonly YAxisSlot[]
-  showCompactEmptyTracks: boolean
+  showEmptyTracks: boolean
   useNonEmptyBottomTracks?: boolean
   compactYAxisLayout?: boolean
   showAxisUnits?: boolean
@@ -118,13 +118,12 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
 
   const layouts: TrackLayout[] = visibleCells.flatMap((cell, index) => {
     const isEmpty = !cell.series || cell.series.series.length === 0
-    if (!cell.series && (options.displayMode !== 'compact' || !options.showCompactEmptyTracks))
-      return []
+    if (!cell.series && !options.showEmptyTracks) return []
     const displayTrack: DisplayTrack = cell.series ?? {
       id: `empty-grid-slot-${cell.slotIndex}`,
       series: [],
       visibleSeries: [],
-      xDomain: [0, 1],
+      xDomain: options.initialXDomain ?? options.sharedZoomDomain,
       yDomain: [0, 1],
     }
     const hasVisibleSeries = !isEmpty && displayTrack.visibleSeries.length > 0
@@ -176,7 +175,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
         Y_AXIS_LABEL_GAP +
-        Y_AXIS_LABEL_BAND_WIDTH +
+        resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) +
         Y_AXIS_OUTER_PADDING
       const slot = options.yAxisSlots?.find(
         (candidate) => candidate.side === group.side && candidate.sideIndex === sideIndex,
@@ -187,7 +186,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
           ? -sideOffsets.left
           : cell.width + sideOffsets.right
       const labelDistance =
-        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
+        tickTextWidth +
+        Y_AXIS_TICK_PADDING +
+        Y_AXIS_LABEL_GAP +
+        resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) / 2
       const labelX =
         (slot
           ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
@@ -217,7 +219,11 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     )
     const xAxisLabelFormatter =
       options.xAxisLabelFormatter ?? (options.integerZoom ? formatIntegerZoomLabel : undefined)
-    const yMajorTicks = yAxes[0]?.majorTicks ?? []
+    const yMajorTicks =
+      yAxes[0]?.majorTicks ??
+      (isEmpty
+        ? fallbackYScale.ticks(resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber))
+        : [])
     const yAxisTickValues = yAxes[0]?.tickValues ?? []
     const domain = xScale.domain() as [number, number]
     const endpointLabels = {
@@ -288,7 +294,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       xAxisLabelFormatter,
       xMinorTicks: buildMinorTicks(xMajorTicks, 3, domain),
       yMajorTicks,
-      yMinorTicks: yAxes[0]?.minorTicks ?? [],
+      yMinorTicks: yAxes[0]?.minorTicks ?? (isEmpty ? buildMinorTicks(yMajorTicks, 2) : []),
       yAxisTickValues,
       xAxisTickValues,
       endpointLabels,
@@ -307,6 +313,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
   })
 
   alignLeftYAxisTitles(layouts, options.yLabel, {
+    labelTextStyle: options.yAxisPadding?.labelTextStyle,
     showUnits: options.showAxisUnits,
     compact: options.compactYAxisLayout,
     measureTextWidth: options.compactYAxisLayout ? measureYAxisTextWidth : undefined,

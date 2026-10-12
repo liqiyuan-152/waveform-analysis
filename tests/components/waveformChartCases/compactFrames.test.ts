@@ -28,7 +28,9 @@ describe('compact shared frame boundaries', () => {
     const upper = { left: 0, top: 0, width: 100, height: 50.5, isEmpty: false }
     const lower = { left: 25, top: 50.5, width: 50, height: 50.5, isEmpty: false }
     expect(compactFramePath(upper, [upper, lower])).toBe('M0,50.5V0H100V50.5M0,50.5H25M75,50.5H100')
-    expect(compactFramePath(upper, [upper, { ...lower, isEmpty: true }])).toBeUndefined()
+    expect(compactFramePath(upper, [upper, { ...lower, isEmpty: true }])).toBe(
+      'M0,50.5V0H100V50.5M0,50.5H25M75,50.5H100',
+    )
     expect(compactFramePath(upper, [upper, { ...lower, top: 60 }])).toBeUndefined()
     expect(compactFramePath(lower, [upper, lower])).toBeUndefined()
   })

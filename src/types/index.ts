@@ -35,6 +35,7 @@ export type {
   WaveformXAxisLabelFormatterContext,
   WaveformXAxisLabelFormatter,
   WaveformAxesOptions,
+  WaveformYAxisLabelTextStyle,
   WaveformZeroLineOptions,
 } from './chart'
 

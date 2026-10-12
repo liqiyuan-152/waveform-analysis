@@ -168,7 +168,7 @@ describe('WaveformChart', () => {
     }
   })
 
-  it('keeps unused compact cells visually empty while preserving bottom X axes', async () => {
+  it('fills unused compact cells with frames and grids while preserving bottom X axes', async () => {
     const data = gridSeries(4)
     if (data.kind === 'series') {
       data.series.forEach((series, index) => {
@@ -198,9 +198,9 @@ describe('WaveformChart', () => {
     expect(secondRowFirstTrackTop).toBe(firstTrackTop + firstTrackHeight)
     expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(3)
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(4)
-    expect(emptyTracks[0].findAll('.waveform-chart__grid')).toHaveLength(0)
-    expect(emptyTracks[0].find('.waveform-chart__plot-background').exists()).toBe(false)
-    expect(emptyTracks[0].find('.waveform-chart__plot-frame').exists()).toBe(false)
+    expect(emptyTracks[0].findAll('.waveform-chart__grid')).toHaveLength(2)
+    expect(emptyTracks[0].find('.waveform-chart__plot-background').exists()).toBe(true)
+    expect(emptyTracks[0].find('.waveform-chart__plot-frame').exists()).toBe(true)
     expect(emptyTracks[0].find('.waveform-chart__axis--y').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__line').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__y-axis-label').exists()).toBe(false)

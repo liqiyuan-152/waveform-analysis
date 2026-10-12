@@ -17,7 +17,7 @@ describe('WaveformChart', () => {
           { x: 1, y: 1 },
         ],
       },
-      { frameNumber: 12 },
+      { frameNumber: 12, grid: { rowCount: 1, columnCount: 1 } },
     )
 
     expect(wrapper.findAll('.waveform-chart__grid--major line').length).toBeGreaterThan(0)

@@ -48,7 +48,7 @@ describe('WaveformChart edge-compact layout', () => {
       title: { text: 'Small', textStyle: { fontSize: 12, fontWeight: 400 } },
     })
     expect(Number(wrapper.attributes('data-title-area-height'))).toBeCloseTo(12 * 1.2 + 8)
-    expect(getComputedStyle(label.element).fontSize).toBe('18px')
+    expect(wrapper.get('.waveform-chart__x-label').attributes('style')).toContain('font-size: 12px')
     expect(getComputedStyle(label.element).fontWeight).toBe('600')
   })
 

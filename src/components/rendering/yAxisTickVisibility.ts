@@ -49,6 +49,13 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
     el.removeAttribute('display')
     el.removeAttribute('data-maximum-hidden')
   })
+  svg.querySelectorAll<SVGGElement>('.waveform-track__axis--y .tick').forEach((tick) => {
+    const position = Number(tick.getAttribute('data-tick-y'))
+    const height = Number(tick.closest('.waveform-track')?.getAttribute('data-track-height'))
+    const line = tick.querySelector('line')
+    if (sameTick(position, 0) || sameTick(position, height)) line?.setAttribute('display', 'none')
+    else line?.removeAttribute('display')
+  })
   const maximumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-maximum-tick]')]
   const labels = [...svg.querySelectorAll<SVGTextElement>('.waveform-track__axis--y .tick text')]
   maximumTicks.forEach((tick) => {
@@ -83,14 +90,6 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
       const gridY = Number(gridLine.getAttribute('y1'))
       if (linesOverlap(position, gridY, strokeWidth(line), strokeWidth(gridLine))) hide(gridLine)
     })
-    const frame = track.querySelector('.waveform-track__plot-frame')
-    const height = Number(track.getAttribute('data-track-height'))
-    if (
-      frame &&
-      Number(frame.getAttribute('stroke-width')) > 0 &&
-      (sameTick(position, 0) || sameTick(position, height))
-    )
-      hide(line)
     tick.setAttribute('data-maximum-value', String(value))
   })
 }

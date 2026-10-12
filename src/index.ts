@@ -41,6 +41,7 @@ export type {
   WaveformXAxisLabelFormatterContext,
   WaveformXAxisLabelFormatter,
   WaveformAxesOptions,
+  WaveformYAxisLabelTextStyle,
   WaveformZeroLineOptions,
   // 数据类型
   SingleWaveformData,

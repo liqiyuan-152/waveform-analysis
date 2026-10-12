@@ -69,23 +69,6 @@
   border-color: #1677ff;
 }
 
-/* Match the fixed 16px compact pagination band, below the time label. */
-.waveform-chart--edge-compact .waveform-chart__pagination {
-  bottom: 0;
-  height: 16px;
-  font-size: 10px;
-}
-
-.waveform-chart--edge-compact .waveform-chart__pagination > li {
-  min-width: 16px;
-  height: 16px;
-  line-height: 14px;
-}
-
-.waveform-chart--edge-compact .waveform-chart__pagination .ant-pagination-item-link {
-  font-size: 10px;
-}
-
 .waveform-chart__grid-slot-placeholder {
   fill: #fafbfc;
   stroke: #e4e7ec;
@@ -145,7 +128,6 @@
 }
 
 .waveform-chart--edge-compact .waveform-chart__x-label {
-  font-size: 18px;
   font-weight: 600;
 }
 

@@ -92,7 +92,7 @@ const data = ref<WaveformData>({
 | `displayMode`              | `'independent' \| 'separated' \| 'compact'`                     | `'independent'`                                                                       | 图框布局                                      |
 | `overlayMode`              | `'single-axis' \| 'multi-axis'`                                 | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
 | `layoutPreset`             | `'default' \| 'edge-compact'`                                   | `'default'`                                                                           | 标题贴边、时间标签与响应式分页布局            |
-| `unitDisplayMode`          | `'axis' \| 'legend-single-series' \| 'channel-label-or-legend'` | `'axis'`                                                                              | 可选的图表级单位展示规则                      |
+| `unitDisplayMode`          | `'axis' \| 'legend-single-series' \| 'channel-label' \| 'channel-label-or-legend'` | `'axis'`                                                                              | 可选的图表级单位展示规则                      |
 | `timeUnit`                 | `'s' \| 'ms'`                                                   | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
 | `xLabel` / `yLabel`        | `string`                                                        | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
 | `lineColor`                | `string`                                                        | `'#0960bd'`                                                                           | 单波形默认颜色                                |
@@ -130,7 +130,7 @@ const data = ref<WaveformData>({
 所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、`TypedSampleData`、
 `TypedPointData`、`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、
 `WaveformPlotMargin`、
-`WaveformAxesOptions`、`WaveformXAxisLabelFormatter`、`WaveformXDomainStrategy`、`WaveformZeroLineOptions`、
+`WaveformAxesOptions`、`WaveformYAxisLabelTextStyle`、`WaveformXAxisLabelFormatter`、`WaveformXDomainStrategy`、`WaveformZeroLineOptions`、
 `WaveformGridOptions` 和 `WaveformGridTrackLines`。
 
 ### 数据结构
@@ -261,8 +261,9 @@ Y 轴会独立计算：
 <WaveformChart :data="chartData" :axes="{ y: { splitNumber: 5 } }" />
 ```
 
-最下方的刻度标签不做额外偏移，文字底部基线直接与 Y 轴最小值刻度线齐平。
-原刻度数值、刻度线、网格和波形坐标保持不变；尺寸或坐标范围变化后，每根 Y 轴仍保持该对齐方式。
+上下端点刻度标签不做额外偏移，文字垂直中心分别与图框上下边界对齐。
+落在 Y 轴上下端点的刻度只显示数值，不显示刻度短线；中间刻度、网格和波形坐标保持不变。
+尺寸或坐标范围变化后，每根 Y 轴仍保持该对齐方式，左右侧 Y 轴均适用。
 
 默认会将 Y 轴范围扩展为便于读取的等距刻度。传入 `nice: false` 可保持数据自动范围或
 `yDomain` / `yDomains` 的原始端点：
@@ -416,13 +417,16 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
   layout-preset="edge-compact"
   :title="{ text: 'shot: #1001', textStyle: { fontSize: 18, fontWeight: 700 } }"
   x-label="Time(ms)"
-  :plot-margin="{ top: 0, bottom: 44 }"
+  :plot-margin="{ top: 10, bottom: 44 }"
 />
 ```
 
 公共类型 `WaveformLayoutPreset = 'default' | 'edge-compact'`，对应
 `WaveformChartProps.layoutPreset`。默认 `'default'` 保持既有标题、时间标签、宽窄分页
 布局；可与 `unitDisplayMode='legend-single-series'` 一起使用。
+综合 demo 默认启用 `edge-compact`，绘图区边距为 `{ top: 10, bottom: 44 }`。
+综合 demo 使用 `unit-display-mode="channel-label"`：单位追加到 Y 轴名称后，
+刻度只保留数值和科学计数法倍率，多曲线页面仍显示 Y 轴名称。
 
 `'edge-compact'` 下，标题区域使用实际测量的文字显示高度加 8px，顶部约 4px 留白，
 不再强制最少 44px。设置 `plotMargin.top=0` 时，标题底部距内部绘图上边框约 4px。
@@ -430,11 +434,11 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
 标题字体仍由 `title.textStyle` 控制，保留长标题换行及旋转缩放（旋转标题区域上限
 仍为 160px）。测量完成前使用文字尺寸估计，不重复放大已经测量的多行高度。
 
-时间标签（`xLabel`，默认仍为 `时间（ms）` 或 `时间（s）`）单独使用 18px、字重 700，
+时间标签（`xLabel`，默认仍为 `时间（ms）` 或 `时间（s）`）在贴边布局中跟随标题字号，
 水平居中于绘图区，紧凑模式基线为 `drawingHeight - 9px`，比原位置下移 3px，
 增加与上方刻度区域的间隔；默认布局仍为 `drawingHeight - 12px`，不设置额外的
 `dominant-baseline`。通过 `xLabel='Time(ms)'` 传入严格的业务文字，组件不自动改写。
-紧凑模式分页按钮可见时统一预留 16px，不随容器宽度、页数或时间标签长度变化；结合已有的 44px 底部总预算，
+贴边布局分页按钮保持组件默认的 32px 高度，可见时统一预留 16px，不随容器宽度、页数或时间标签长度变化；结合已有的 44px 底部总预算，
 图框底边距卡片内容下沿共 60px，末尾 X 刻度与右下分页顶部约留 5px 安全间距。
 相较预留 40px，图框向下延伸 24px；Time 仍居中，其基线距内容
 下沿 25px，与右侧分页处于同一底部水平区域。预留条件与按钮显隐一致：
@@ -446,10 +450,12 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
 已包含最后一行的 30px X 轴刻度带，不再额外叠加；最下面的网格图框底边距绘制 SVG
 下沿为 44px（更大的有效边距仍保留）。中间行刻度带不变，尾部空行无 X 轴时不补偿。
 净图模式不应用刻度带补偿，保留现有刻度与网格布局。
-最高 Y 刻度（含科学指数和单位）在紧凑模式向图框内贴边，`top=0` 时有无标题均不会
-向 SVG 顶部越界；默认模式的刻度锚点不变。
+最高和最低 Y 刻度（含科学指数和单位）与普通刻度保持相同的垂直居中方式，文字中心
+对齐刻度位置；上下端点文字中心分别对齐图框上下边界，不额外向图框内偏移。
+建议设置 `plotMargin.top` 至少为 10px，避免顶部文字被 SVG 裁剪；
+`top=0` 仍按传入值布局，但顶部标签可能显示不完整。
 紧凑模式的图框边框路径向内缩半个实际 `frameStyle.borderWidth`，四边使用同一描边
-线宽，完整描边保持在原图框范围内；`top=0` 且没有标题时也无需额外顶部留白。
+线宽，完整描边保持在原图框范围内；刻度文字仍需独立预留顶部空间。
 外层卡片继续裁切溢出内容，默认布局的边框几何保持不变。
 刻度字号保持原值。`plotMargin` 不改变标签距底部的位置。该布局只影响展示尺寸，
 既有平移事件与范围、单位模式、tooltip 和 Y 轴上限留白 API 保持不变。
@@ -460,7 +466,7 @@ Tooltip 每个系列按 `炮号：通道  (x:值 y:值)` 格式显示。`Wavefor
 <WaveformChart :data="waveformData" unit-display-mode="legend-single-series" />
 ```
 
-公共类型 `WaveformUnitDisplayMode = 'axis' | 'legend-single-series' | 'channel-label-or-legend'`，也可通过
+公共类型 `WaveformUnitDisplayMode = 'axis' | 'legend-single-series' | 'channel-label' | 'channel-label-or-legend'`，也可通过
 `WaveformChartProps.unitDisplayMode` 配置。默认 `'axis'` 保持现有行为（单位在 Y 轴最高
 刻度中，单曲线图框不显示图例）。通常仅在图框包含至少两条曲线时显示图例；
 `channel-label-or-legend` 模式下，当前页统一隐藏左侧通道名称时，单曲线图框也显示图例。
@@ -575,8 +581,8 @@ const series = {
 `separated` 或 `compact` 控制图框布局和 X 轴共享方式；未共享 `trackId` 的单曲线
 图框不会因为切换叠加方式而改变。
 
-`compact` 多道紧密模式会显示每一道 Y 轴的最高刻度；顶部和底部刻度文字分别向本道
-内部对齐，避免相邻道在公共边界上的刻度文字重叠。
+`compact` 多道紧密模式会显示每一道 Y 轴的最高刻度；顶部和底部刻度文字与普通
+Y 轴刻度使用相同的对齐方式，不额外向本道内部偏移。
 
 ### 绘图区域尺寸
 
@@ -659,9 +665,13 @@ Demo 左侧控制面板提供标题实时预览，可配置标题名称、显隐
 对应的公开类型为 `WaveformFrameStyle`。默认边框颜色为 `#1f2937`、线宽为 `1`、线型为
 `solid`，背景透明。`borderWidth` 为 `0` 时隐藏边框；非有限值或负数会回退到默认线宽。
 
-多道紧凑模式中，相接的非空图框共用一条水平分隔线：上方图框省略与下方重合的底边，
+多道紧凑和多道分离模式中，未填满的网格槽位显示空图框边框（例如 5 行 × 2 列中只有 9 个数据图框时，
+右下角补一个空图框），沿用 `frameStyle` 的边框和背景样式，显示默认网格线，
+并在启用 `frameNumber` 时按槽位延续图框编号；空图框不添加波形或 Y 轴。
+多道分离保留图框间距及每列最后一个数据图框的 X 轴位置。
+多道紧凑中相接的图框（包括空图框）共用一条水平分隔线：上方图框省略与下方重合的底边，
 由下方图框的顶边绘制，避免交界处出现双倍线宽，也避免不透明背景覆盖共享边框。
-不同宽度图框仅省略实际重合的边段；单图框及空槽位两侧的非相接边框保持完整。
+不同宽度图框仅省略实际重合的边段；非相接边框保持完整。
 
 ### 图例与曲线显隐
 
@@ -759,7 +769,8 @@ scale 定位零线：
 `grid` 控制独立图框的行列数（范围 `1–10`）以及是否显示分页器。默认值为 `2` 行、
 `1` 列并开启分页；当图框数量超过网格容量时，分页器会显示在图表右下角。
 
-`fillIncompleteLastRow` 默认关闭。开启后，分页容量仍由 `rowCount * columnCount` 决定；
+`fillIncompleteLastRow` 默认关闭，未满页的剩余位置使用与实际图框相同样式的空图框，
+保留网格和图框编号，不绘制波形、Y 轴或交互层。开启后，分页容量仍由 `rowCount * columnCount` 决定；
 最后一页或未满页会移除没有数据的整行，并将最后一行的实际图框等宽铺满可用宽度。例如 2 列
 网格的最后一行只有一个图框时，该图框会占满整行。完整页和关闭该选项时的布局保持不变。
 
@@ -1227,6 +1238,33 @@ async function exportSvg(chart: WaveformChartHandle): Promise<Blob | undefined> 
 ```
 
 错误码还包括 `export-invalid-options`、`export-unavailable`、`export-cancelled`、`export-render-failed`、`export-timeout`。
+
+### Y 轴名称文字样式
+
+通过 `axes.y.labelTextStyle` 设置“正弦基波”等系列名称的字号、字重、字体、斜体和颜色：
+
+```vue
+<WaveformChart
+  :data="data"
+  :axes="{
+    y: {
+      labelTextStyle: {
+        fontSize: 16,
+        fontWeight: 'normal',
+        fontFamily: 'Microsoft YaHei, sans-serif',
+        fontStyle: 'normal',
+        color: '#333333',
+      },
+    },
+  }"
+/>
+```
+
+`fontSize` 单位为 px，默认为 `12`，零、负数和非有限值回退为默认值。
+`fontWeight` 默认为 `600`；使用 `'normal'` 或 `400` 取消加粗，`'bold'` 或 `700` 加粗。
+字体默认继承，斜体默认为 `'normal'`，颜色默认使用对应系列颜色。
+配置支持响应式更新，适用于单轴和多轴模式的左右 Y 轴名称，不影响刻度数字、图例或 X 轴文字。
+字号参与名称与刻度之间的间距及图表边距计算；名称背景保持透明。
 
 ### Y 轴上下留白与最大值刻度
 

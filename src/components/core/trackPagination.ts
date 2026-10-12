@@ -27,14 +27,14 @@ export const createFrameNumberResolver =
     getFrameNumbers: () => Record<string, string | number> | undefined,
     getTracks: () => DisplayTrack[],
   ) =>
-  (trackId: string): string | number | undefined => {
+  (trackId: string, slotIndex = 0): string | number | undefined => {
     const tracks = getTracks()
     const trackIndex = tracks.findIndex((track) => track.id === trackId)
     return resolveTrackFrameNumber(
       getFrameNumber(),
       getFrameNumbers(),
-      tracks.length,
-      trackIndex >= 0 ? trackIndex : 0,
+      Math.max(tracks.length, slotIndex + 1),
+      trackIndex >= 0 ? trackIndex : slotIndex,
       trackId,
     )
   }

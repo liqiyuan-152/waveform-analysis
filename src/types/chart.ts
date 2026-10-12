@@ -21,6 +21,8 @@ export type WaveformLayoutPreset = 'default' | 'edge-compact'
 export type WaveformUnitDisplayMode =
   | 'axis'
   | 'legend-single-series'
+  /** Append units to Y-axis names while retaining names on multi-series pages. */
+  | 'channel-label'
   /** Label and legend units; hide all channel titles on pages containing a multi-series track. */
   | 'channel-label-or-legend'
 
@@ -260,7 +262,19 @@ export type WaveformXAxisLabelFormatter = (
   context: WaveformXAxisLabelFormatterContext,
 ) => string
 
-/** Controls axis baseline visibility while preserving tick marks and axis text. */
+/** Styling for Y-axis series names, separate from numeric tick labels. */
+export interface WaveformYAxisLabelTextStyle {
+  /** Positive font size in pixels. Defaults to 12. */
+  fontSize?: number
+  /** CSS font weight; use 'normal' or 400 to disable bold. Defaults to 600. */
+  fontWeight?: number | string
+  fontFamily?: string
+  fontStyle?: 'normal' | 'italic'
+  /** CSS color. Defaults to the corresponding series color. */
+  color?: string
+}
+
+/** Controls axis baselines, labels, and Y-axis range calculation. */
 export interface WaveformAxesOptions {
   x?: {
     lineVisible?: boolean
@@ -269,6 +283,8 @@ export interface WaveformAxesOptions {
   }
   y?: {
     lineVisible?: boolean
+    /** Styles series names on both left and right Y axes, without changing tick labels. */
+    labelTextStyle?: WaveformYAxisLabelTextStyle
     /** Target total number of equal Y-axis ticks, including endpoints. Defaults to 5. */
     splitNumber?: number
     /** Expands Y-axis domains to equal, human-friendly intervals. Defaults to true. */
