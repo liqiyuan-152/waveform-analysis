@@ -178,12 +178,31 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
   },
 ]
 
-export function createSimulatedWaveformData(): WaveformData {
+export function createSimulatedWaveformData(trackCount?: number): WaveformData {
   const noise = createSeededNoise(0x5eed1234)
   const errorNoise = createSeededNoise(0xe220a11)
+  const definitions = [...seriesDefinitions]
+  const existingTrackCount = new Set(definitions.map((series) => series.trackId ?? series.id)).size
+  const extraTrackCount =
+    trackCount !== undefined && Number.isFinite(trackCount)
+      ? Math.max(0, Math.min(100, Math.floor(trackCount)) - existingTrackCount)
+      : 0
+  for (let index = 0; index < extraTrackCount; index += 1) {
+    const channel = existingTrackCount + index + 1
+    definitions.push({
+      id: `simulated-extra-${channel}`,
+      name: `模拟通道 ${channel}`,
+      unit: 'V',
+      lineType: 'linear',
+      pointType: 'none',
+      signal: (time) =>
+        (1 + index * 0.3) * Math.sin(TWO_PI * (0.2 + index * 0.15) * time + index) +
+        0.2 * Math.cos(TWO_PI * 1.4 * time),
+    })
+  }
   return {
     kind: 'series',
-    series: seriesDefinitions.map(({ signal, errors, minimumX, ...series }) => {
+    series: definitions.map(({ signal, errors, minimumX, ...series }) => {
       const points = createPoints(signal, noise, errors, errorNoise)
       return {
         ...series,

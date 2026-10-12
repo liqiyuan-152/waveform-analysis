@@ -26,11 +26,23 @@ import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'
 import { useDemoXAxisLabelControls } from './demo/useDemoXAxisLabelControls'
 
-const fullChartData = createSimulatedWaveformData()
-const displayMode = ref<WaveformDisplayMode>('independent')
+const demoPreset = new URLSearchParams(window.location.search).get('demo')
+const compactNineDemo = demoPreset === 'compact-nine'
+const compactFourteenDemo = demoPreset === 'compact-fourteen'
+const fullChartData = createSimulatedWaveformData(compactFourteenDemo ? 14 : undefined)
+if (compactNineDemo && fullChartData.kind === 'series') {
+  const trackIds = [...new Set(fullChartData.series.map((series) => series.trackId ?? series.id))]
+  const demoTrackIds = new Set(trackIds.slice(0, 9))
+  fullChartData.series = fullChartData.series.filter((series) =>
+    demoTrackIds.has(series.trackId ?? series.id),
+  )
+}
+const displayMode = ref<WaveformDisplayMode>(
+  compactNineDemo || compactFourteenDemo ? 'compact' : 'independent',
+)
 const overlayMode = ref<WaveformOverlayMode>('single-axis')
-const rowCount = ref(4)
-const columnCount = ref(1)
+const rowCount = ref(compactNineDemo ? 5 : 4)
+const columnCount = ref(compactNineDemo || compactFourteenDemo ? 2 : 1)
 const frameBorderColor = ref('#1f2937')
 const frameBorderWidth = ref(2)
 const frameBorderStyle = ref<NonNullable<WaveformFrameStyle['borderStyle']>>('solid')
@@ -53,8 +65,8 @@ const cleanView = ref(false)
 const presentationMode = ref(false)
 const showTooltip = ref(true)
 const integerZoom = ref(true)
-const plotMarginTop = ref(18)
-const plotMarginBottom = ref(52)
+const plotMarginTop = ref(10)
+const plotMarginBottom = ref(44)
 const zeroLineVisible = ref(true)
 const zeroLineColor = ref('#ff0000')
 const zeroLineWidth = ref(1)
@@ -70,10 +82,10 @@ const titleVisible = ref(true)
 const titleText = ref('模拟波形分析')
 const titleAlign = ref<NonNullable<WaveformTitleOptions['align']>>('center')
 const titleFontFamily = ref('"Microsoft YaHei", "微软雅黑", sans-serif')
-const titleFontSize = ref(14)
+const titleFontSize = ref(18)
 const titleRotation = ref(0)
 const titleColor = ref('#1f2937')
-const titleBold = ref(false)
+const titleBold = ref(true)
 const titleItalic = ref(false)
 const titleUnderline = ref(false)
 const controlsOpen = ref(false)

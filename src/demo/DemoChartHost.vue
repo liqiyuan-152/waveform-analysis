@@ -19,6 +19,8 @@ defineExpose({ resetViewport })
   <section class="chart-panel">
     <WaveformChart
       ref="waveformChartRef"
+      layout-preset="edge-compact"
+      unit-display-mode="channel-label"
       v-model:annotations="model.annotations"
       v-model:hidden-series-ids="model.hiddenSeriesIds"
       :data="model.data"

@@ -13,9 +13,10 @@ describe('plot margin demo controls', { timeout: 20_000 }, () => {
     const controls = wrapper.get('.plot-margin-controls').findAllComponents(InputNumber)
 
     expect(controls).toHaveLength(2)
-    expect(controls[0]?.props('value')).toBe(18)
-    expect(controls[1]?.props('value')).toBe(52)
-    expect(chart.props('plotMargin')).toEqual({ top: 18, bottom: 52 })
+    expect(controls[0]?.props('value')).toBe(10)
+    expect(controls[1]?.props('value')).toBe(44)
+    expect(chart.props('layoutPreset')).toBe('edge-compact')
+    expect(chart.props('plotMargin')).toEqual({ top: 10, bottom: 44 })
 
     controls[0]?.vm.$emit('update:value', 30)
     controls[1]?.vm.$emit('update:value', 70)

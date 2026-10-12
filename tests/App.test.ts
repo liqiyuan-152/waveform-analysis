@@ -338,17 +338,19 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const renderedTitle = () => wrapper.get('.waveform-chart__title-text')
     expect(renderedTitle().text()).toBe('模拟波形分析')
     expect(renderedTitle().attributes('style')).toContain('Microsoft YaHei')
-    expect(renderedTitle().attributes('style')).toContain('font-size: 14px')
-    expect(renderedTitle().attributes('style')).toContain('font-weight: 400')
+    expect(renderedTitle().attributes('style')).toContain('font-size: 18px')
+    expect(renderedTitle().attributes('style')).toContain('font-weight: 600')
 
     await wrapper.get('input[aria-label="标题名称"]').setValue('实验标题')
+    await wrapper.get('[aria-label="标题粗体"]').trigger('click')
+    expect(renderedTitle().attributes('style')).toContain('font-weight: 400')
     await wrapper.get('[aria-label="标题粗体"]').trigger('click')
     await wrapper.get('[aria-label="标题斜体"]').trigger('click')
     await wrapper.get('[aria-label="标题下划线"]').trigger('click')
     await flushPromises()
 
     expect(renderedTitle().text()).toBe('实验标题')
-    expect(renderedTitle().attributes('style')).toContain('font-weight: 700')
+    expect(renderedTitle().attributes('style')).toContain('font-weight: 600')
     expect(renderedTitle().attributes('style')).toContain('font-style: italic')
     expect(renderedTitle().attributes('style')).toContain('text-decoration: underline')
 
