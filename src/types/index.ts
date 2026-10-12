@@ -35,6 +35,7 @@ export type {
   WaveformXAxisLabelFormatterContext,
   WaveformXAxisLabelFormatter,
   WaveformAxesOptions,
+  WaveformYAxisLabelTextStyle,
   WaveformZeroLineOptions,
 } from './chart'
 
@@ -53,3 +54,20 @@ export type {
   WaveformData,
   NormalizedWaveformSeries,
 } from './data'
+
+export type {
+  WaveformToolbarItem,
+  WaveformToolbarOptions,
+  WaveformControlTarget,
+  WaveformControlAction,
+  WaveformCommandMetadata,
+  WaveformTargetStatus,
+  WaveformViewportSnapshot,
+  WaveformTargetResult,
+  WaveformControlResult,
+  WaveformControlState,
+  WaveformImageExportOptions,
+  WaveformImageExportErrorCode,
+  WaveformImageExportError,
+  WaveformChartHandle,
+} from './controls'

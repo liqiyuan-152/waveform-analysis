@@ -1,7 +1,6 @@
 import type { WaveformOverlayMode } from '../data/types'
 import {
   Y_AXIS_CHARACTER_WIDTH,
-  Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
   Y_AXIS_OUTER_PADDING,
   Y_AXIS_TICK_PADDING,
@@ -9,6 +8,8 @@ import {
 import { axisTextMetrics, resolveRenderedYAxisSeriesGroups } from './layout'
 import type { DisplayTrack } from './types'
 import type { WaveformYDomain } from './yDomain'
+import type { YAxisPaddingOptions } from './yAxisPadding'
+import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 
 export interface YAxisLayoutMetrics {
   tickClearance: number
@@ -40,10 +41,13 @@ export function resolveYAxisLayoutMetrics(
   nice: boolean,
   tickCount: number,
   compact: boolean,
-  upperPaddingRatio = 0,
+  padding?: YAxisPaddingOptions | number,
   showUnits = true,
   measureTextWidth?: (text: string) => number,
 ): YAxisLayoutMetrics {
+  const labelBandWidth = resolveYAxisLabelBandWidth(
+    typeof padding === 'object' ? padding.labelTextStyle : undefined,
+  )
   const axisText = chartTracks
     .filter((track) => track.series.length > 0)
     .flatMap((track) =>
@@ -53,7 +57,7 @@ export function resolveYAxisLayoutMetrics(
         yDomain,
         yDomains,
         viewportYDomains,
-        upperPaddingRatio,
+        padding,
       ),
     )
     .map(
@@ -66,6 +70,7 @@ export function resolveYAxisLayoutMetrics(
           tickCount,
           compact,
           measureTextWidth,
+          group.maximumTick,
         ).tickTextWidth,
     )
   const tickTextWidth = Math.max(Y_AXIS_CHARACTER_WIDTH, ...axisText)
@@ -74,13 +79,9 @@ export function resolveYAxisLayoutMetrics(
     Y_AXIS_TICK_PADDING +
     tickTextWidth +
     Y_AXIS_LABEL_GAP +
-    Y_AXIS_LABEL_BAND_WIDTH / 2
+    labelBandWidth / 2
   )
   const fullClearance =
-    tickTextWidth +
-    Y_AXIS_TICK_PADDING +
-    Y_AXIS_LABEL_GAP +
-    Y_AXIS_LABEL_BAND_WIDTH +
-    Y_AXIS_OUTER_PADDING
+    tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + labelBandWidth + Y_AXIS_OUTER_PADDING
   return { tickClearance, fullClearance, labelCenterX }
 }

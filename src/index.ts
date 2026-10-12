@@ -41,6 +41,7 @@ export type {
   WaveformXAxisLabelFormatterContext,
   WaveformXAxisLabelFormatter,
   WaveformAxesOptions,
+  WaveformYAxisLabelTextStyle,
   WaveformZeroLineOptions,
   // 数据类型
   SingleWaveformData,
@@ -97,3 +98,20 @@ export {
 } from './core'
 
 export { parseWaveformAnnotations, serializeWaveformAnnotations } from './components/annotation'
+
+export type {
+  WaveformToolbarItem,
+  WaveformToolbarOptions,
+  WaveformControlTarget,
+  WaveformControlAction,
+  WaveformCommandMetadata,
+  WaveformTargetStatus,
+  WaveformViewportSnapshot,
+  WaveformTargetResult,
+  WaveformControlResult,
+  WaveformControlState,
+  WaveformImageExportOptions,
+  WaveformImageExportErrorCode,
+  WaveformImageExportError,
+  WaveformChartHandle,
+} from './types/controls'

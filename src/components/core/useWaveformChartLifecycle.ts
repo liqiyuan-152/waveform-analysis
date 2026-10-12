@@ -1,3 +1,5 @@
+import { useWaveformMeasurements } from './useWaveformMeasurements'
+import { useWaveformViewportRestore } from './useWaveformViewportRestore'
 import { zoomIdentity, type ZoomTransform } from 'd3'
 import {
   nextTick,
@@ -13,12 +15,10 @@ import type { AnnotationSeriesCandidate, useWaveformAnnotationInteraction } from
 import type { NormalizedWaveformGridOptions } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
-import { transformForDomain } from '../interaction/zoomConstraints'
-import { remotePanBoundary, restoreViewportDomain } from '../interaction/remoteViewport'
 import { isEditableTarget } from '../interaction/interactionTarget'
-import { seriesIdentity } from '../interaction/zoomEventPayload'
 
-interface LifecycleContext {
+export interface LifecycleContext {
+  preserveFullViewport?: () => boolean
   props: ResolvedWaveformChartProps
   emit: WaveformChartEmit
   container: Ref<HTMLDivElement | undefined>
@@ -64,19 +64,10 @@ interface LifecycleContext {
 }
 
 export function useWaveformChartLifecycle(context: LifecycleContext) {
+  useWaveformMeasurements(context)
   const {
     props,
     emit,
-    container,
-    titleMeasureElement,
-    resizeObserver,
-    observedWidth,
-    observedHeight,
-    measuredTitleWidth,
-    measuredTitleHeight,
-    resolvedTitleText,
-    titleAreaReserved,
-    titleMeasureStyle,
     spacePressed,
     pointerInsideChart,
     currentPage,
@@ -85,18 +76,13 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     gridOptions,
     chartSeries,
     chartTracks,
-    trackLayouts,
     innerWidth,
     innerHeight,
-    sharedZoomDomain,
-    initialXDomain,
-    sharedTransform,
     activeInteractionMode,
     hiddenSeriesIdSet,
     internalHiddenSeriesIds,
     independentTransforms,
     independentYDomains,
-    resolveInitialTrackDomain,
     annotationInteraction,
     editorSeriesOptions,
     isPresentationMode,
@@ -110,6 +96,10 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   } = context
 
   function handleInteractionKeyDown(event: KeyboardEvent) {
+    if (event.key === 'Escape') {
+      cancelViewportDrag()
+      cancelAnnotation()
+    }
     if (
       isPresentationMode.value ||
       event.code !== 'Space' ||
@@ -142,68 +132,8 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     emit('page-change', nextPage, pageCount.value)
   }
 
-  let pendingSharedXDomain: [number, number] | undefined
-  let pendingIndependentXDomains: Map<string, [number, number]> | undefined
-
-  function handleBeforeDataReferenceChange() {
-    if (props.displayMode === 'independent') {
-      pendingSharedXDomain = undefined
-      pendingIndependentXDomains = new Map(
-        trackLayouts.value.flatMap((track) => {
-          const current = track.xScale.domain() as [number, number]
-          const boundary = resolveInitialTrackDomain(track)
-          return remotePanBoundary(props) ||
-            current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
-            ? [[seriesIdentity(track.seriesList.map((series) => series.id)), current]]
-            : []
-        }),
-      )
-      return
-    }
-    pendingIndependentXDomains = undefined
-    const current = sharedZoomDomain.value
-    const boundary = initialXDomain.value
-    pendingSharedXDomain =
-      remotePanBoundary(props) || current[1] - current[0] < boundary[1] - boundary[0] - 1e-12
-        ? [...current]
-        : undefined
-  }
-
-  function handleDataReferenceChange() {
-    if (props.displayMode === 'independent') {
-      const currentTransforms = independentTransforms.value
-      independentTransforms.value = chartTracks.value.map(
-        (_track, index) => currentTransforms[index] ?? zoomIdentity,
-      )
-    }
-    clearHover()
-    editorSeriesOptions.value = []
-    void nextTick(() => {
-      if (props.displayMode === 'independent' && pendingIndependentXDomains) {
-        const nextTransforms = chartTracks.value.map(() => zoomIdentity)
-        trackLayouts.value.forEach((track) => {
-          const previousDomain = pendingIndependentXDomains?.get(
-            seriesIdentity(track.seriesList.map((series) => series.id)),
-          )
-          if (!previousDomain) return
-          const boundary = resolveInitialTrackDomain(track)
-          const domain = restoreViewportDomain(previousDomain, boundary, [track.seriesList], props)
-          nextTransforms[track.index] = transformForDomain(domain, boundary, track.width)
-        })
-        independentTransforms.value = nextTransforms
-        pendingIndependentXDomains = undefined
-      } else if (props.displayMode !== 'independent' && pendingSharedXDomain) {
-        const boundary = initialXDomain.value
-        const groups = trackLayouts.value
-          .filter((track) => track.hasVisibleSeries)
-          .map((track) => track.seriesList)
-        const domain = restoreViewportDomain(pendingSharedXDomain, boundary, groups, props)
-        sharedTransform.value = transformForDomain(domain, boundary, innerWidth.value)
-        pendingSharedXDomain = undefined
-      }
-      configureZoom()
-    })
-  }
+  const { handleBeforeDataReferenceChange, handleDataReferenceChange } =
+    useWaveformViewportRestore(context)
 
   watch(
     [
@@ -347,45 +277,15 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     { deep: true },
   )
 
-  function measureTitle() {
-    if (!titleAreaReserved.value || !titleMeasureElement.value) {
-      measuredTitleWidth.value = 0
-      measuredTitleHeight.value = 0
-      return
-    }
-    const bounds = titleMeasureElement.value.getBoundingClientRect()
-    measuredTitleWidth.value = titleMeasureElement.value.scrollWidth || bounds.width
-    measuredTitleHeight.value = titleMeasureElement.value.scrollHeight || bounds.height
-  }
-
-  watch(
-    [resolvedTitleText, titleAreaReserved, titleMeasureStyle],
-    async () => {
-      measuredTitleWidth.value = 0
-      measuredTitleHeight.value = 0
-      await nextTick()
-      measureTitle()
-    },
-    { immediate: true },
-  )
-
   onMounted(() => {
     window.addEventListener('keydown', handleInteractionKeyDown)
     window.addEventListener('keyup', handleInteractionKeyUp)
-    if (!container.value) return
-    resizeObserver.value = new ResizeObserver(([entry]) => {
-      observedWidth.value = Math.max(0, entry?.contentRect.width ?? 0)
-      observedHeight.value = Math.max(0, entry?.contentRect.height ?? 0)
-      void nextTick(measureTitle)
-    })
-    resizeObserver.value.observe(container.value)
   })
 
   onBeforeUnmount(() => {
     window.removeEventListener('keydown', handleInteractionKeyDown)
     window.removeEventListener('keyup', handleInteractionKeyUp)
     cancelPendingHover()
-    resizeObserver.value?.disconnect()
     clearZoomBindings()
     editorSeriesOptions.value = []
   })

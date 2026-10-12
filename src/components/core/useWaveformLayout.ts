@@ -20,6 +20,7 @@ import { resolveViewportYDomains } from './yAxisLayoutMetrics'
 import { useWaveformYAxisLayout } from './useWaveformYAxisLayout'
 import type { useWaveformAnnotationInteraction } from '../annotation'
 interface LayoutContext {
+  boundaries?: ShallowRef<Record<string, [number, number]>>
   props: ResolvedWaveformChartProps
   preparedSeries: ShallowRef<PreparedWaveformSeries[]>
   currentPage: Ref<number>
@@ -147,7 +148,7 @@ export function useWaveformLayout(context: LayoutContext) {
   const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
   const resolvedXLabel = computed(() => props.xLabel ?? `时间（${props.timeUnit}）`)
   const activeInteractionMode = computed(() => props.interactionMode)
-  const isZoomMode = computed(() => activeInteractionMode.value !== 'annotation')
+  const isZoomMode = computed(() => activeInteractionMode.value === 'zoom')
   const sharedXDomain = computed(() => {
     const values: number[] = []
     const tracks = chartTracks.value.some((track) => track.visibleSeries.length)
@@ -158,7 +159,7 @@ export function useWaveformLayout(context: LayoutContext) {
     })
     return paddedDomain(values)
   })
-  const initialXDomain = computed<[number, number]>(() => {
+  const originalXDomain = computed<[number, number]>(() => {
     const domain = props.initialXDomain
     if (
       domain &&
@@ -180,7 +181,7 @@ export function useWaveformLayout(context: LayoutContext) {
       props,
     )
   })
-  const resolveInitialTrackDomain = (track: TrackLayout): [number, number] => {
+  const resolveOriginalTrackDomain = (track: TrackLayout): [number, number] => {
     const configuredDomain =
       props.initialXDomains?.[track.series?.trackId ?? track.series?.id ?? track.id] ??
       (track.series ? props.initialXDomains?.[track.series.id] : undefined) ??
@@ -210,6 +211,13 @@ export function useWaveformLayout(context: LayoutContext) {
       props,
     )
   }
+  const initialXDomain = computed(
+    () =>
+      (props.displayMode !== 'independent' ? context.boundaries?.value.shared : undefined) ??
+      originalXDomain.value,
+  )
+  const resolveInitialTrackDomain = (track: TrackLayout): [number, number] =>
+    context.boundaries?.value[track.id] ?? resolveOriginalTrackDomain(track)
   const sharedZoomDomain = computed(() =>
     normalizeIntegerZoomDomain(
       sharedTransform.value
@@ -240,6 +248,7 @@ export function useWaveformLayout(context: LayoutContext) {
       useNonEmptyBottomTracks: props.layoutPreset === 'edge-compact',
       compactYAxisLayout: props.layoutPreset === 'edge-compact',
       showAxisUnits:
+        props.unitDisplayMode !== 'channel-label' &&
         props.unitDisplayMode !== 'channel-label-or-legend' &&
         (props.layoutPreset !== 'edge-compact' || props.unitDisplayMode === 'axis'),
       displayMode: props.displayMode,
@@ -248,6 +257,7 @@ export function useWaveformLayout(context: LayoutContext) {
       sharedZoomDomain: sharedZoomDomain.value,
       initialXDomain: props.initialXDomain ? initialXDomain.value : undefined,
       initialXDomains: props.initialXDomains,
+      effectiveXDomains: context.boundaries?.value,
       xDomainStrategy: props.xDomainStrategy,
       integerZoom: props.integerZoom,
       fixedYDomain: props.yDomain,
@@ -257,7 +267,7 @@ export function useWaveformLayout(context: LayoutContext) {
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
       yAxisSplitNumber: props.axes?.y?.splitNumber,
       yAxisNice: props.axes?.y?.nice,
-      yAxisUpperPaddingRatio: props.axes?.y?.upperPaddingRatio,
+      yAxisPadding: props.axes?.y,
       rendering: renderingOptions.value,
       linePointOverrides: linePointOverrides?.value,
       hideSecondaryLabels: isCleanView.value || yAxisLayout.value.hideSecondaryLabels,
@@ -266,7 +276,7 @@ export function useWaveformLayout(context: LayoutContext) {
         yAxisSlots.value.slots.find((slot) => slot.side === 'left' && slot.sideIndex === 0)
           ?.labelOffset ?? yAxisMetrics.value.labelCenterX,
       yAxisSlots: yAxisSlots.value.slots,
-      showCompactEmptyTracks: props.displayMode === 'compact' && hasWaveformData.value,
+      showEmptyTracks: hasWaveformData.value,
     }),
   )
   const annotationLayoutsForTrack = (track: TrackLayout): AnnotationTrackLayout[] =>
@@ -329,6 +339,8 @@ export function useWaveformLayout(context: LayoutContext) {
     activeInteractionMode,
     isZoomMode,
     initialXDomain,
+    originalXDomain,
+    resolveOriginalTrackDomain,
     sharedZoomDomain,
     resolveInitialTrackDomain,
     gridCells,

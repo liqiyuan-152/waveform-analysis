@@ -84,7 +84,7 @@ function layoutForSeries(
     rendering,
     hideSecondaryLabels: false,
     yAxisLabelX: -50,
-    showCompactEmptyTracks: false,
+    showEmptyTracks: false,
   })[0]!.seriesPaths[0]!
 }
 
@@ -132,7 +132,7 @@ describe('multi-value Y-axis grouping', () => {
       rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
       hideSecondaryLabels: false,
       yAxisLabelX: -50,
-      showCompactEmptyTracks: false,
+      showEmptyTracks: false,
     })[0]
 
     expect(result?.yScale.domain()).toEqual([20, 80])
@@ -268,7 +268,7 @@ describe('multi-value Y-axis grouping', () => {
       rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
       hideSecondaryLabels: false,
       yAxisLabelX: -50,
-      showCompactEmptyTracks: false,
+      showEmptyTracks: false,
     })[0]
 
     expect(

@@ -77,7 +77,7 @@ describe('Y-axis slots', () => {
       hideSecondaryLabels: false,
       yAxisLabelX: yAxisSlots.slots.find((slot) => slot.side === 'left')!.labelOffset,
       yAxisSlots: yAxisSlots.slots,
-      showCompactEmptyTracks: false,
+      showEmptyTracks: false,
     })
 
     expect(layouts.map((layout) => layout.yAxes[0]?.labelX)).toEqual([

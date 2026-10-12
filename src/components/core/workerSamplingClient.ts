@@ -30,6 +30,7 @@ function workerFailureMessage(event?: ErrorEvent) {
 }
 
 export function createWorkerSamplingClient(): WorkerSamplingClient {
+  let disposed = false
   let worker: Worker | undefined
   let fallback: WorkerSamplingRepository | undefined
   let workerFailureReason: string | undefined
@@ -37,7 +38,8 @@ export function createWorkerSamplingClient(): WorkerSamplingClient {
   const datasets = new Map<string, StoredDataset>()
 
   const fallbackRepository = () => {
-    fallback ??= new WorkerSamplingRepository()
+    if (fallback) return fallback
+    fallback = new WorkerSamplingRepository()
     for (const [datasetId, dataset] of datasets) {
       fallback.handle({
         type: 'register-dataset',
@@ -83,12 +85,26 @@ export function createWorkerSamplingClient(): WorkerSamplingClient {
   const resolveFallbackRequests = () => {
     const outstanding = [...pending.values()]
     pending.clear()
-    const repository = fallbackRepository()
-    outstanding.forEach(({ request, resolve }) => resolve(repository.handle(request)))
+    let repository: WorkerSamplingRepository
+    try {
+      repository = fallbackRepository()
+    } catch (error) {
+      outstanding.forEach(({ reject }) =>
+        reject(error instanceof Error ? error : new Error(String(error))),
+      )
+      return
+    }
+    outstanding.forEach(({ request, resolve, reject }) => {
+      try {
+        resolve(repository.handle(request))
+      } catch (error) {
+        reject(error instanceof Error ? error : new Error(String(error)))
+      }
+    })
   }
 
   const fallBackToJavascript = (event?: ErrorEvent) => {
-    if (fallback) return
+    if (disposed || fallback) return
     workerFailureReason = workerFailureMessage(event)
     worker?.terminate()
     worker = undefined
@@ -101,9 +117,17 @@ export function createWorkerSamplingClient(): WorkerSamplingClient {
       worker = new Worker(new URL('../../core/workerSampling/workerRuntime.ts', import.meta.url), {
         type: 'module',
       })
-      worker.onmessage = (event: MessageEvent<WorkerSamplingResponse>) => {
+      worker.onmessage = (
+        event: MessageEvent<
+          WorkerSamplingResponse | { type: 'request-error'; requestId: number; message: string }
+        >,
+      ) => {
         const request = pending.get(event.data.requestId)
         if (!request) return
+        if (event.data.type === 'request-error') {
+          fallBackToJavascript({ message: event.data.message } as ErrorEvent)
+          return
+        }
         pending.delete(event.data.requestId)
         request.resolve(event.data)
       }
@@ -119,8 +143,9 @@ export function createWorkerSamplingClient(): WorkerSamplingClient {
       return workerFailureReason
     },
     send(request) {
+      if (disposed) return Promise.reject(new Error('Sampling client was disposed.'))
       recordDatasetRequest(request)
-      if (fallback) return Promise.resolve(fallbackRepository().handle(request))
+      if (fallback) return Promise.resolve().then(() => fallback!.handle(request))
       return new Promise<WorkerSamplingResponse>((resolve, reject) => {
         pending.set(request.requestId, { request, resolve, reject })
         try {
@@ -133,6 +158,13 @@ export function createWorkerSamplingClient(): WorkerSamplingClient {
       })
     },
     dispose() {
+      disposed = true
+      if (worker) {
+        worker.onmessage = null
+        worker.onerror = null
+        worker.onmessageerror = null
+      }
+      fallback?.handle({ type: 'dispose-all', requestId: 0 })
       worker?.terminate()
       worker = undefined
       pending.forEach(({ reject }) => reject(new Error('Sampling client was disposed.')))

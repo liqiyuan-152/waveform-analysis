@@ -23,6 +23,7 @@ interface SelectOption<T> {
 }
 
 export interface DemoControlPanelModel {
+  toolbarVisible: boolean
   controlsOpen: boolean
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
@@ -50,6 +51,10 @@ export interface DemoControlPanelModel {
   verticalGridColor: string
   xAxisLineVisible: boolean
   yAxisLineVisible: boolean
+  upperPaddingEnabled: boolean
+  lowerPaddingEnabled: boolean
+  upperPaddingPercent: number
+  lowerPaddingPercent: number
   xAxisLabelFormatterEnabled: boolean
   xAxisLabelFormat: DemoXAxisLabelFormat
   xAxisLabelFormatOptions: Array<SelectOption<DemoXAxisLabelFormat>>
@@ -87,6 +92,7 @@ export interface DemoControlPanelModel {
 }
 
 export interface DemoChartModel {
+  toolbarVisible: boolean
   data: WaveformData
   initialXDomain?: [number, number]
   displayMode: WaveformDisplayMode

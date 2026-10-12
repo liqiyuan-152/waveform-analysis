@@ -6,6 +6,7 @@ interface Props {
   clipPathId: string
   innerWidth: number
   cleanView: boolean
+  showEmptyFrame?: boolean
   frameNumber?: string | number
   frameStyle: {
     backgroundColor: string
@@ -17,7 +18,7 @@ defineProps<Props>()
 
 <template>
   <rect
-    v-if="!track.isEmpty && !cleanView"
+    v-if="(!track.isEmpty || showEmptyFrame) && !cleanView"
     class="waveform-track__plot-background waveform-chart__plot-background"
     :width="track.width ?? innerWidth"
     :height="track.height"
@@ -26,7 +27,7 @@ defineProps<Props>()
   />
 
   <g
-    v-if="!track.isEmpty && !cleanView"
+    v-if="(!track.isEmpty || showEmptyFrame) && !cleanView"
     :clip-path="`url(#${clipPathId}-${track.index})`"
     aria-hidden="true"
   >
@@ -89,7 +90,11 @@ defineProps<Props>()
   </g>
 
   <text
-    v-if="!track.isEmpty && track.hasVisibleSeries && frameNumber !== undefined && !cleanView"
+    v-if="
+      (track.hasVisibleSeries || (track.isEmpty && showEmptyFrame)) &&
+      frameNumber !== undefined &&
+      !cleanView
+    "
     class="waveform-track__watermark waveform-chart__watermark"
     :x="(track.width ?? innerWidth) / 2"
     :y="track.height / 2"

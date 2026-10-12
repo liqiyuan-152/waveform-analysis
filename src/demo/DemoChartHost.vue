@@ -19,6 +19,8 @@ defineExpose({ resetViewport })
   <section class="chart-panel">
     <WaveformChart
       ref="waveformChartRef"
+      layout-preset="edge-compact"
+      unit-display-mode="channel-label"
       v-model:annotations="model.annotations"
       v-model:hidden-series-ids="model.hiddenSeriesIds"
       :data="model.data"
@@ -50,7 +52,9 @@ defineExpose({ resetViewport })
       :zero-line="model.zeroLine"
       :frame-number="model.frameWatermarkVisible ? 1 : undefined"
       :annotations-visible="model.annotationsVisible"
-      :interaction-mode="model.interactionMode"
+      v-model:interaction-mode="model.interactionMode"
+      :toolbar="model.toolbarVisible"
+      pannable
       @zoom-end="model.handleZoomEnd"
       @zoom-reset="model.resetWaveformViewport"
     />

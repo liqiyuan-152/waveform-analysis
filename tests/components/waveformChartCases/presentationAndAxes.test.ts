@@ -222,8 +222,11 @@ describe('WaveformChart', () => {
     expect(xAxis.classes()).toContain('waveform-track__axis--line-hidden')
     expect(yAxis.classes()).toContain('waveform-track__axis--line-hidden')
     expect(yAxis.get('path.domain').attributes('display')).toBe('none')
+    const yTicks = yAxis.findAll('.tick')
+    expect(yTicks[0]!.get('line').attributes('display')).toBe('none')
+    expect(yTicks.at(-1)!.get('line').attributes('display')).toBe('none')
     expect(
-      yAxis.findAll('.tick line').every((line) => line.attributes('display') === undefined),
+      yTicks.slice(1, -1).every((tick) => tick.get('line').attributes('display') === undefined),
     ).toBe(true)
     expect(xAxis.findAll('text').length).toBeGreaterThan(0)
     expect(yAxis.findAll('text').length).toBeGreaterThan(0)

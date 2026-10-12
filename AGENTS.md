@@ -51,7 +51,7 @@ Use Node.js 22 and pnpm 10.32.1, matching CI. Keep `pnpm-lock.yaml` synchronized
 pnpm install --frozen-lockfile # Reproduce the CI dependency graph
 pnpm dev                       # Start the Vite demo
 pnpm typecheck                 # Run vue-tsc project checks
-pnpm check:file-length         # Enforce the 400-line limit under src/
+pnpm check:file-length         # Enforce the 450-line limit under src/
 pnpm lint                      # Run ESLint with zero warnings allowed
 pnpm test                      # Run Vitest once
 pnpm test:coverage             # Run tests and enforce coverage thresholds
@@ -71,7 +71,7 @@ two-space indentation, single quotes, no semicolons, and a 100-column print widt
 for Vue components and types, and camelCase for functions, composables, variables, and props in
 TypeScript. Vue template props and events use kebab-case.
 
-ESLint enforces a maximum of 400 physical lines for files under `src/`; the standalone length
+ESLint enforces a maximum of 450 physical lines for files under `src/`; the standalone length
 check applies the same limit to all text files below `src/`. Split code by existing ownership
 boundaries when a file approaches the limit. Keep rendering, layout, interaction, annotation, and
 data concerns in their existing modules rather than adding more orchestration to

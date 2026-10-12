@@ -31,10 +31,20 @@ function addWasmError(response: WorkerSamplingResponse): WorkerSamplingResponse 
 
 const workerScope = globalThis as typeof globalThis & {
   onmessage: ((event: MessageEvent<WorkerSamplingRequest>) => void) | null
-  postMessage: (message: WorkerSamplingResponse) => void
+  postMessage: (
+    message: WorkerSamplingResponse | { type: 'request-error'; requestId: number; message: string },
+  ) => void
 }
 
 workerScope.onmessage = async (event: MessageEvent<WorkerSamplingRequest>) => {
-  if (requiresWasm(event.data)) await initializeWasmBackend()
-  workerScope.postMessage(addWasmError(repository.handle(event.data)))
+  try {
+    if (requiresWasm(event.data)) await initializeWasmBackend()
+    workerScope.postMessage(addWasmError(repository.handle(event.data)))
+  } catch (error) {
+    workerScope.postMessage({
+      type: 'request-error',
+      requestId: event.data.requestId,
+      message: error instanceof Error ? error.message : String(error),
+    })
+  }
 }

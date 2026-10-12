@@ -19,7 +19,7 @@ describe('X-axis label demo controls', () => {
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
 
-    expect(chart.props('axes')).toEqual({
+    expect(chart.props('axes')).toMatchObject({
       x: { lineVisible: false },
       y: { lineVisible: false },
     })

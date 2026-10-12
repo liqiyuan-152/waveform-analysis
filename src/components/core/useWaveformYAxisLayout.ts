@@ -32,6 +32,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
   const isEdgeCompact = computed(() => props.layoutPreset === 'edge-compact')
   const showUnits = computed(
     () =>
+      props.unitDisplayMode !== 'channel-label' &&
       props.unitDisplayMode !== 'channel-label-or-legend' &&
       (!isEdgeCompact.value || props.unitDisplayMode === 'axis'),
   )
@@ -45,7 +46,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
       props.axes?.y?.nice !== false,
       yAxisTickCount.value,
       props.displayMode === 'compact',
-      props.axes?.y?.upperPaddingRatio,
+      props.axes?.y,
       showUnits.value,
       isEdgeCompact.value ? measureYAxisTextWidth : undefined,
     ),
@@ -80,7 +81,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
       props.axes?.y?.nice !== false,
       props.displayMode === 'compact',
       viewportYDomains.value,
-      props.axes?.y?.upperPaddingRatio,
+      props.axes?.y,
       showUnits.value,
       isEdgeCompact.value ? measureYAxisTextWidth : undefined,
     ),

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { axisBottom, axisLeft, axisRight, select } from 'd3'
-import { nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onBeforeUnmount, ref, watch } from 'vue'
 
 import type { WaveformAxesOptions } from '../../types'
 import { formatXAxisLabel } from '../../utils'
 import { formatYAxisTickLabel } from '../core/layout'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
-import { Y_AXIS_LABEL_BAND_WIDTH } from '../core/yAxisConstants'
+import { updateMaximumTickVisibility } from './yAxisTickVisibility'
+import { sameTick } from '../core/yAxisPadding'
+import { resolveYAxisLabelBandWidth, resolveYAxisLabelFontSize } from '../core/yAxisLabelStyle'
 import { formatChannelLabel } from './channelLabel'
 
 interface Props {
@@ -19,10 +21,19 @@ interface Props {
   showUnits?: boolean
   showLabelUnits?: boolean
   hideYAxisTitles?: boolean
-  containYAxisEndpoints?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), { showUnits: true })
+const labelBandWidth = computed(() => resolveYAxisLabelBandWidth(props.axes?.y?.labelTextStyle))
+const labelTextStyle = computed(() => {
+  const style = props.axes?.y?.labelTextStyle
+  return {
+    fontSize: `${resolveYAxisLabelFontSize(style)}px`,
+    fontWeight: style?.fontWeight ?? 600,
+    fontFamily: style?.fontFamily,
+    fontStyle: style?.fontStyle ?? 'normal',
+  }
+})
 const xAxisElement = ref<SVGGElement>()
 const yAxisElements = ref<SVGGElement[]>([])
 
@@ -62,24 +73,24 @@ function renderAxes() {
 
     const selection = select(element)
     selection.call(yAxis)
-    const lowestTick = Math.min(...axis.tickValues)
-    const highestTick = props.containYAxisEndpoints ? Math.max(...axis.tickValues) : undefined
     selection
       .selectAll<SVGTextElement, number>('.tick text')
       .attr('y', null)
-      .attr('dy', (value) => (value === lowestTick || value === highestTick ? '0' : '0.32em'))
-      .attr('dominant-baseline', (value) =>
-        value === lowestTick
-          ? 'text-after-edge'
-          : value === highestTick
-            ? 'text-before-edge'
-            : null,
+      .attr('dy', '0')
+      .attr('dominant-baseline', 'central')
+    selection
+      .selectAll<SVGGElement, number>('.tick')
+      .attr('data-maximum-tick', (value) =>
+        axis.maximumTick !== undefined && sameTick(value, axis.maximumTick) ? 'true' : null,
       )
+      .attr('data-tick-value', (value) => value)
+      .attr('data-tick-y', (value) => axis.scale(value))
     selection
       .selectAll('path.domain')
       .attr('display', props.axes?.y?.lineVisible === false ? 'none' : null)
   })
 
+  scheduleVisibility()
   if (!xAxisElement.value) return
   const selection = select(xAxisElement.value)
   selection.call(
@@ -103,7 +114,24 @@ function renderAxes() {
     .attr('display', props.axes?.x?.lineVisible === false ? 'none' : null)
 }
 
+let disposed = false
+function scheduleVisibility() {
+  if (disposed) return
+  const apply = () => {
+    const svg = yAxisElements.value[0]?.ownerSVGElement
+    if (svg) updateMaximumTickVisibility(svg)
+  }
+  apply()
+}
+onBeforeUnmount(() => {
+  disposed = true
+  document.fonts?.removeEventListener?.('loadingdone', scheduleVisibility)
+})
 onMounted(async () => {
+  document.fonts?.addEventListener?.('loadingdone', scheduleVisibility)
+  void document.fonts?.ready.then(() => {
+    if (!disposed) scheduleVisibility()
+  })
   await nextTick()
   renderAxes()
 })
@@ -116,7 +144,6 @@ watch(
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
     () => props.showUnits,
-    () => props.containYAxisEndpoints,
     () => props.axes?.x?.labelFormatter,
     () => props.axes?.x?.lineVisible,
     () => props.axes?.y?.lineVisible,
@@ -191,15 +218,16 @@ watch(
   >
     <rect
       class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
-      :x="track.yAxes[0].labelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
+      :x="track.yAxes[0].labelX - labelBandWidth / 2"
       :y="track.height / 2 - 40"
-      :width="Y_AXIS_LABEL_BAND_WIDTH"
+      :width="labelBandWidth"
       height="80"
       rx="2"
     />
     <text
       class="waveform-track__y-axis-label waveform-chart__y-axis-label"
-      :fill="track.series?.color"
+      :fill="axes?.y?.labelTextStyle?.color || track.series?.color"
+      :style="labelTextStyle"
       :transform="`translate(${track.yAxes[0].labelX}, ${track.height / 2}) rotate(-90)`"
       text-anchor="middle"
       dominant-baseline="central"
@@ -218,15 +246,16 @@ watch(
   >
     <rect
       class="waveform-track__y-axis-label-bg waveform-chart__y-axis-label-bg"
-      :x="axis.labelX - Y_AXIS_LABEL_BAND_WIDTH / 2"
+      :x="axis.labelX - labelBandWidth / 2"
       :y="track.height / 2 - 40"
-      :width="Y_AXIS_LABEL_BAND_WIDTH"
+      :width="labelBandWidth"
       height="80"
       rx="2"
     />
     <text
       class="waveform-track__y-axis-label waveform-chart__y-axis-label"
-      :fill="axis.seriesList[0].color"
+      :fill="axes?.y?.labelTextStyle?.color || axis.seriesList[0].color"
+      :style="labelTextStyle"
       :transform="`translate(${axis.labelX}, ${track.height / 2}) rotate(-90)`"
       text-anchor="middle"
       dominant-baseline="central"

@@ -26,11 +26,23 @@ import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'
 import { useDemoXAxisLabelControls } from './demo/useDemoXAxisLabelControls'
 
-const fullChartData = createSimulatedWaveformData()
-const displayMode = ref<WaveformDisplayMode>('independent')
+const demoPreset = new URLSearchParams(window.location.search).get('demo')
+const compactNineDemo = demoPreset === 'compact-nine'
+const compactFourteenDemo = demoPreset === 'compact-fourteen'
+const fullChartData = createSimulatedWaveformData(compactFourteenDemo ? 14 : undefined)
+if (compactNineDemo && fullChartData.kind === 'series') {
+  const trackIds = [...new Set(fullChartData.series.map((series) => series.trackId ?? series.id))]
+  const demoTrackIds = new Set(trackIds.slice(0, 9))
+  fullChartData.series = fullChartData.series.filter((series) =>
+    demoTrackIds.has(series.trackId ?? series.id),
+  )
+}
+const displayMode = ref<WaveformDisplayMode>(
+  compactNineDemo || compactFourteenDemo ? 'compact' : 'independent',
+)
 const overlayMode = ref<WaveformOverlayMode>('single-axis')
-const rowCount = ref(4)
-const columnCount = ref(1)
+const rowCount = ref(compactNineDemo ? 5 : 4)
+const columnCount = ref(compactNineDemo || compactFourteenDemo ? 2 : 1)
 const frameBorderColor = ref('#1f2937')
 const frameBorderWidth = ref(2)
 const frameBorderStyle = ref<NonNullable<WaveformFrameStyle['borderStyle']>>('solid')
@@ -42,6 +54,10 @@ const verticalGridVisible = ref(true)
 const verticalGridColor = ref('#dfe5ef')
 const xAxisLineVisible = ref(false)
 const yAxisLineVisible = ref(false)
+const upperPaddingEnabled = ref(true)
+const lowerPaddingEnabled = ref(true)
+const upperPaddingPercent = ref(10)
+const lowerPaddingPercent = ref(10)
 const { controlModel: xAxisLabelControlModel, xAxisLabelFormatter } = useDemoXAxisLabelControls()
 const annotations = ref<WaveformAnnotation[]>([])
 const annotationsVisible = ref(true)
@@ -49,13 +65,14 @@ const cleanView = ref(false)
 const presentationMode = ref(false)
 const showTooltip = ref(true)
 const integerZoom = ref(true)
-const plotMarginTop = ref(18)
-const plotMarginBottom = ref(52)
+const plotMarginTop = ref(10)
+const plotMarginBottom = ref(44)
 const zeroLineVisible = ref(true)
 const zeroLineColor = ref('#ff0000')
 const zeroLineWidth = ref(1)
 const zeroLineOpacity = ref(0.5)
 const zeroLineDash = ref('6 4')
+const toolbarVisible = ref(true)
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
 const legendOrientation = ref<WaveformLegendOrientation>('auto')
@@ -65,10 +82,10 @@ const titleVisible = ref(true)
 const titleText = ref('模拟波形分析')
 const titleAlign = ref<NonNullable<WaveformTitleOptions['align']>>('center')
 const titleFontFamily = ref('"Microsoft YaHei", "微软雅黑", sans-serif')
-const titleFontSize = ref(14)
+const titleFontSize = ref(18)
 const titleRotation = ref(0)
 const titleColor = ref('#1f2937')
-const titleBold = ref(false)
+const titleBold = ref(true)
 const titleItalic = ref(false)
 const titleUnderline = ref(false)
 const controlsOpen = ref(false)
@@ -123,7 +140,13 @@ const axes = computed<WaveformAxesOptions>(() => ({
     lineVisible: xAxisLineVisible.value,
     ...(xAxisLabelFormatter.value ? { labelFormatter: xAxisLabelFormatter.value } : {}),
   },
-  y: { lineVisible: yAxisLineVisible.value },
+  y: {
+    lineVisible: yAxisLineVisible.value,
+    upperPaddingEnabled: upperPaddingEnabled.value,
+    lowerPaddingEnabled: lowerPaddingEnabled.value,
+    upperPaddingRatio: upperPaddingPercent.value / 100,
+    lowerPaddingRatio: lowerPaddingPercent.value / 100,
+  },
 }))
 const zeroLine = computed<WaveformZeroLineOptions>(() => ({
   visible: zeroLineVisible.value,
@@ -243,7 +266,17 @@ function mergeIndependentWindow(
   }
 }
 
+let pendingCommandId: string | undefined
+let pendingPayloads: WaveformZoomEndPayload[] = []
 async function handleZoomEnd(payload: WaveformZoomEndPayload) {
+  if (payload.action === 'fit') return
+  if (payload.commandId && payload.commandId === pendingCommandId) {
+    pendingPayloads.push(payload)
+    return
+  }
+  pendingCommandId = payload.commandId
+  const batch = [payload]
+  pendingPayloads = batch
   // Demo-only sequence number cancellation. Production code should use AbortController
   // to cancel in-flight requests when a newer zoom gesture arrives.
   const requestSequence = ++zoomRequestSequence
@@ -252,11 +285,16 @@ async function handleZoomEnd(payload: WaveformZoomEndPayload) {
 
   // Demo-only stand-in for the backend response. Production code should replace this
   // with a request using payload.start/payload.end and the optional channel metadata.
-  const responseData = filterWaveformData(fullChartData, payload.start, payload.end)
-  chartData.value =
-    payload.trackIndex !== undefined && payload.seriesIds?.length
-      ? mergeIndependentWindow(chartData.value, responseData, payload.seriesIds)
-      : responseData
+  let nextData = chartData.value
+  batch.forEach((item) => {
+    const responseData = filterWaveformData(fullChartData, item.start, item.end)
+    nextData =
+      item.trackIndex !== undefined && item.seriesIds?.length
+        ? mergeIndependentWindow(nextData, responseData, item.seriesIds)
+        : responseData
+  })
+  chartData.value = nextData
+  pendingCommandId = undefined
 }
 
 function resetWaveformViewport() {
@@ -297,6 +335,7 @@ onMounted(() => window.addEventListener('keydown', handleWindowKeydown))
 onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown))
 
 const controlPanelModel = reactive({
+  toolbarVisible,
   controlsOpen,
   displayMode,
   overlayMode,
@@ -324,6 +363,10 @@ const controlPanelModel = reactive({
   verticalGridColor,
   xAxisLineVisible,
   yAxisLineVisible,
+  upperPaddingEnabled,
+  lowerPaddingEnabled,
+  upperPaddingPercent,
+  lowerPaddingPercent,
   ...xAxisLabelControlModel,
   frameBorderColor,
   frameBackgroundColor,
@@ -354,6 +397,7 @@ const controlPanelModel = reactive({
 }) satisfies DemoControlPanelModel
 
 const chartModel = reactive({
+  toolbarVisible,
   data: displayChartData,
   initialXDomain,
   displayMode,

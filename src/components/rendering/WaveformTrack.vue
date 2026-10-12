@@ -20,15 +20,14 @@ interface Props {
   interactionMode?: WaveformInteractionMode
   frameNumber?: string | number
   frameStyle?: WaveformFrameStyle
+  framePath?: string
   axes?: WaveformAxesOptions
   timeUnit: 's' | 'ms'
   yLabel?: string
   showAxisUnits?: boolean
   showLabelUnits?: boolean
   hideYAxisTitles?: boolean
-  containYAxisEndpoints?: boolean
   containFrameStroke?: boolean
-  omitFrameTop?: boolean
   cleanView?: boolean
   zeroLine?: Required<WaveformZeroLineOptions>
 }
@@ -77,12 +76,6 @@ const resolvedFrameStyle = computed(() => {
 const frameInset = computed(() =>
   props.containFrameStroke ? resolvedFrameStyle.value.borderWidth / 2 : 0,
 )
-const openFramePath = computed(() => {
-  const inset = frameInset.value
-  const right = Math.max(inset, (props.track.width ?? props.innerWidth) - inset)
-  const bottom = Math.max(inset, props.track.height - inset)
-  return `M ${inset} ${inset} V ${bottom} H ${right} V ${inset}`
-})
 </script>
 
 <template>
@@ -106,6 +99,7 @@ const openFramePath = computed(() => {
       :clean-view="cleanView"
       :frame-number="frameNumber"
       :frame-style="resolvedFrameStyle"
+      show-empty-frame
     />
     <WaveformTrackAxes
       :track="track"
@@ -117,14 +111,12 @@ const openFramePath = computed(() => {
       :show-units="showAxisUnits"
       :show-label-units="showLabelUnits"
       :hide-y-axis-titles="hideYAxisTitles"
-      :contain-y-axis-endpoints="containYAxisEndpoints || displayMode === 'compact'"
     />
 
     <component
-      :is="omitFrameTop ? 'path' : 'rect'"
-      v-if="!track.isEmpty"
+      :is="framePath ? 'path' : 'rect'"
       class="waveform-track__plot-frame waveform-chart__plot-frame"
-      :d="omitFrameTop ? openFramePath : undefined"
+      :d="framePath"
       :x="containFrameStroke ? frameInset : undefined"
       :y="containFrameStroke ? frameInset : undefined"
       :width="Math.max(0, (track.width ?? innerWidth) - frameInset * 2)"

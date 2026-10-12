@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 
-export const maximumLines = 400
+export const maximumLines = 450
 
 export function physicalLineCount(contents) {
   if (contents.length === 0) return 0

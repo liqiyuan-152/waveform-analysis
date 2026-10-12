@@ -1,5 +1,3 @@
-import { scaleLinear } from 'd3'
-
 import type { WaveformOverlayMode } from '../../types'
 import { formatScientificAxisLabel, formatScientificAxisExponent, paddedDomain } from '../../utils'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
@@ -10,6 +8,9 @@ import {
   resolveTrackFixedYDomain,
   type WaveformYDomain,
 } from './yDomain'
+import { resolveYAxisTicksECharts } from './niceScale'
+import { applyYAxisPadding, withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
+import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 
 // 导出常量供外部使用
 export { MAX_MULTI_Y_AXIS_COUNT } from './constants'
@@ -37,21 +38,24 @@ export function resolveYAxisTicks(
   tickCount = 5,
   nice = true,
 ): ResolvedYAxisTicks {
-  const effectiveTickCount =
-    typeof tickCount === 'number' && Number.isFinite(tickCount)
-      ? Math.max(2, Math.floor(tickCount))
-      : 5
-  const scale = scaleLinear(domain, [1, 0])
-  if (nice) scale.nice(Math.max(1, effectiveTickCount - 1))
-  const resolvedDomain = scale.domain() as [number, number]
-  const [axisStart, axisEnd] = resolvedDomain
-  return {
-    domain: resolvedDomain,
-    values: Array.from(
-      { length: effectiveTickCount },
-      (_, index) => axisStart + ((axisEnd - axisStart) * index) / (effectiveTickCount - 1),
-    ),
+  if (!nice) {
+    // 如果不需要 nice，使用简单的线性分割
+    const effectiveTickCount =
+      typeof tickCount === 'number' && Number.isFinite(tickCount)
+        ? Math.max(2, Math.floor(tickCount))
+        : 5
+    const [axisStart, axisEnd] = domain
+    return {
+      domain,
+      values: Array.from(
+        { length: effectiveTickCount },
+        (_, index) => axisStart + ((axisEnd - axisStart) * index) / (effectiveTickCount - 1),
+      ),
+    }
   }
+
+  // 使用 ECharts 兼容的 1/2/5 系列算法
+  return resolveYAxisTicksECharts(domain, tickCount)
 }
 
 export function formatYAxisTickLabel(
@@ -71,7 +75,8 @@ export function formatYAxisTickLabel(
   })
   if (suffixMetadata) {
     const unitLabel = unit?.trim()
-    return [label, formatScientificAxisExponent(...domain), unitLabel ? `(${unitLabel})` : null]
+    const exponent = formatScientificAxisExponent(...domain)
+    return [label, exponent, !exponent && unitLabel ? `(${unitLabel})` : null]
       .filter(Boolean)
       .join(' ')
   }
@@ -96,6 +101,7 @@ export interface YAxisSeriesGroup {
   seriesList: DisplaySeries[]
   domain: [number, number]
   fixed: boolean
+  maximumTick?: number
 }
 
 export interface YAxisSlot {
@@ -183,7 +189,7 @@ export function resolveRenderedYAxisSeriesGroups(
   yDomain?: WaveformYDomain,
   yDomains?: Record<string, WaveformYDomain>,
   viewportYDomains?: Record<string, [number, number]>,
-  upperPaddingRatio = 0,
+  padding?: YAxisPaddingOptions | number,
 ): YAxisSeriesGroup[] {
   const viewportYDomain = viewportYDomains?.[track.id]
   const axisTrack =
@@ -191,17 +197,7 @@ export function resolveRenderedYAxisSeriesGroups(
       ? track
       : { ...track, visibleSeries: track.series }
   return resolveYAxisSeriesGroups(axisTrack, overlayMode, yDomain, yDomains).map((group) =>
-    !group.fixed && viewportYDomain
-      ? { ...group, domain: viewportYDomain }
-      : !group.fixed && Number.isFinite(upperPaddingRatio) && upperPaddingRatio > 0
-        ? {
-            ...group,
-            domain: [
-              group.domain[0],
-              group.domain[1] + (group.domain[1] - group.domain[0]) * upperPaddingRatio,
-            ] as WaveformYDomain,
-          }
-        : group,
+    applyYAxisPadding(group, viewportYDomain, padding),
   )
 }
 
@@ -213,11 +209,12 @@ export function axisTextMetrics(
   tickCount = 5,
   includeWithoutLastTick = false,
   measureTextWidth?: (text: string) => number,
+  maximumTick?: number,
 ): { tickTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
     : resolveYAxisTicks(domain, tickCount, nice)
-  const tickValueSets = [resolvedTicks.values]
+  const tickValueSets = [withMaximumTick(resolvedTicks.values, maximumTick)]
   if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
     tickValueSets.push(resolvedTicks.values.slice(0, -1))
   }
@@ -296,10 +293,13 @@ export function buildYAxisSlots(
   nice = true,
   includeWithoutLastTick = false,
   viewportYDomains?: Record<string, [number, number]>,
-  upperPaddingRatio = 0,
+  padding?: YAxisPaddingOptions | number,
   showUnits = true,
   measureTextWidth?: (text: string) => number,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
+  const labelBandWidth = resolveYAxisLabelBandWidth(
+    typeof padding === 'object' ? padding.labelTextStyle : undefined,
+  )
   const widths = new Map<string, number>()
   tracks.forEach((track) => {
     const sideIndexes = { left: 0, right: 0 }
@@ -309,7 +309,7 @@ export function buildYAxisSlots(
       yDomain,
       yDomains,
       viewportYDomains,
-      upperPaddingRatio,
+      padding,
     ).forEach((group) => {
       const sideIndex = sideIndexes[group.side]++
       const key = `${group.side}:${sideIndex}`
@@ -321,6 +321,7 @@ export function buildYAxisSlots(
         tickCount,
         includeWithoutLastTick,
         measureTextWidth,
+        group.maximumTick,
       ).tickTextWidth
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, width))
     })
@@ -337,13 +338,13 @@ export function buildYAxisSlots(
       const tickTextWidth = widths.get(`${side}:${sideIndex}`) ?? Y_AXIS_CHARACTER_WIDTH
       const axisOffset = side === 'left' && clearance.left > 0 ? -clearance.left : clearance[side]
       const labelDistance =
-        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
+        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + labelBandWidth / 2
       const labelOffset = axisOffset + labelDistance * (side === 'left' ? -1 : 1)
       const fullClearance =
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
         Y_AXIS_LABEL_GAP +
-        Y_AXIS_LABEL_BAND_WIDTH +
+        labelBandWidth +
         Y_AXIS_OUTER_PADDING
       slots.push({ side, sideIndex, axisOffset, labelOffset, clearance: fullClearance })
       clearance[side] += fullClearance

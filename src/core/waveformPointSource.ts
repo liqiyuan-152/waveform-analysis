@@ -288,6 +288,26 @@ function compactSamples(data: Extract<SingleWaveformData, { kind: 'typed-samples
 function compactPoints(data: Extract<SingleWaveformData, { kind: 'typed-points' }>) {
   if (!typedPointsAreValid(data))
     return new CompactWaveformPointSource(new Float64Array(), new Float64Array())
+  // Validate once before the common dense/sorted path; always take private copies.
+  let denseOrdered = true
+  for (let index = 0; index < data.x.length; index += 1) {
+    if (
+      !Number.isFinite(data.x[index]) ||
+      !Number.isFinite(data.y[index]) ||
+      (index > 0 && data.x[index]! < data.x[index - 1]!)
+    ) {
+      denseOrdered = false
+      break
+    }
+  }
+  if (denseOrdered)
+    return new CompactWaveformPointSource(
+      data.x.slice(),
+      data.y.slice(),
+      data.error?.slice(),
+      data.lowerError?.slice(),
+      data.upperError?.slice(),
+    )
   const indexes: number[] = []
   let ordered = true
   let previousX = Number.NEGATIVE_INFINITY
@@ -356,11 +376,13 @@ export function lazyPointArray(source: WaveformPointSource): WaveformPoint[] {
     }
     return point
   }
-  return new Proxy(Array.from<WaveformPoint>({ length: source.length }), {
+  // Keep the compatibility facade sparse: no point-sized backing array is allocated for compact data.
+  return new Proxy<WaveformPoint[]>([], {
     get(target, property, receiver) {
       if (typeof property === 'string' && /^(0|[1-9]\d*)$/.test(property)) {
         return valueAt(Number(property))
       }
+      if (property === 'length') return source.length
       return Reflect.get(target, property, receiver)
     },
     has(target, property) {

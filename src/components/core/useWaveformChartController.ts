@@ -1,7 +1,13 @@
+import { chartExportOptions } from '../controls/chartExportOptions'
+import { useChartImageExport } from '../controls/useChartImageExport'
+import { useControlMode } from '../controls/useControlMode'
+import { useChartCommands } from '../controls/useChartCommands'
 import { zoomIdentity, type ZoomTransform } from 'd3'
 import {
   computed,
   reactive,
+  nextTick,
+  onBeforeUnmount,
   markRaw,
   ref,
   shallowReactive,
@@ -44,9 +50,15 @@ function assignElement<T extends Element>(
 }
 
 export function useWaveformChartController(
-  props: ResolvedWaveformChartProps,
+  inputProps: ResolvedWaveformChartProps,
   emit: WaveformChartEmit,
 ) {
+  const mode = useControlMode(inputProps, emit)
+  const props = reactive({
+    ...toRefs(inputProps),
+    interactionMode: mode.mode,
+  }) as ResolvedWaveformChartProps
+  const boundaries = shallowRef<Record<string, [number, number]>>({})
   const container = ref<HTMLDivElement>()
   const svgElement = ref<SVGSVGElement>()
   const titleMeasureElement = ref<HTMLSpanElement>()
@@ -137,6 +149,7 @@ export function useWaveformChartController(
     independentYDomains,
     annotationInteraction: markRaw(annotationInteraction),
     linePointOverrides,
+    boundaries,
   })
   const {
     chartSeries,
@@ -164,7 +177,7 @@ export function useWaveformChartController(
     presentation.titleAreaStyle,
   )
 
-  useWaveformRenderSampling({
+  const sampling = useWaveformRenderSampling({
     props,
     emit,
     instanceId: clipPathId,
@@ -229,6 +242,7 @@ export function useWaveformChartController(
   })
 
   const viewport = useWaveformViewport({
+    clearBoundaries: (index) => commands.clearBoundaries(index),
     props,
     emit,
     selection,
@@ -272,7 +286,50 @@ export function useWaveformChartController(
     resolveTrackAtPointer: annotations.resolveTrackAtPointer,
   })
 
+  const cancelControls = () => {
+    viewport.cancelViewportDrag()
+    zoom.cancelPendingZoom()
+    hover.clearHover()
+    annotations.cancelAnnotation()
+  }
+  const commands = useChartCommands({
+    props,
+    emit,
+    layout,
+    mode,
+    boundaries,
+    independentTransforms,
+    sharedTransform,
+    independentYDomains,
+    sharedYDomains,
+    cancel: cancelControls,
+    configure: zoom.configureZoom,
+    legacyReset: viewport.resetViewport,
+    legacySet: viewport.setViewportDomain,
+  })
+  watch(
+    [mode.mode, () => props.zoomable, () => props.pannable, () => props.annotationsVisible],
+    cancelControls,
+    { flush: 'sync' },
+  )
+  watch([currentPage, () => props.displayMode], () => {
+    boundaries.value = {}
+    cancelControls()
+  })
+  watch(
+    [
+      () => props.initialXDomain,
+      () => props.initialXDomains,
+      hiddenSeriesIdSet,
+      () => props.xDomainStrategy,
+    ],
+    commands.restoreInitialBoundaries,
+    { deep: true },
+  )
+  onBeforeUnmount(cancelControls)
+
   const lifecycle = useWaveformChartLifecycle({
+    preserveFullViewport: () => Object.keys(boundaries.value).length > 0,
     props,
     emit,
     container,
@@ -317,7 +374,39 @@ export function useWaveformChartController(
     clearZoomBindings: zoom.clearZoomBindings,
   })
   handleBeforeDataReferenceChange = lifecycle.handleBeforeDataReferenceChange
-  handleDataReferenceChange = lifecycle.handleDataReferenceChange
+  handleDataReferenceChange = () => {
+    boundaries.value = {}
+    viewport.cancelViewportDrag()
+    lifecycle.handleDataReferenceChange()
+    void nextTick(zoom.configureZoom)
+  }
+
+  const imageExport = useChartImageExport({
+    container: () => container.value,
+    svg: () => svgElement.value,
+    size: () => ({
+      width: chartWidth.value,
+      height: chartHeight.value,
+      titleHeight: titleAreaHeight.value,
+    }),
+    version: () => [
+      props.data,
+      JSON.stringify({
+        ...chartExportOptions(props),
+        hidden: [...hiddenSeriesIdSet.value],
+        width: chartWidth.value,
+        height: chartHeight.value,
+        titleHeight: titleAreaHeight.value,
+        page: currentPage.value,
+        shared: sharedTransform.value,
+        independent: independentTransforms.value,
+        sharedY: sharedYDomains.value,
+        independentY: independentYDomains.value,
+        boundaries: boundaries.value,
+      }),
+    ],
+    ready: sampling.ready,
+  })
 
   return reactive({
     ...toRefs(props),
@@ -329,6 +418,8 @@ export function useWaveformChartController(
     ...annotations,
     ...viewport,
     ...hover,
+    ...commands,
+    ...imageExport,
     margin,
     getPageSize,
     currentPage,

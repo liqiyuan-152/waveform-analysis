@@ -117,8 +117,17 @@
   font-size: 12px;
 }
 
+.waveform-chart--interaction-pan:not(.waveform-chart--presentation) .waveform-chart__overlay {
+  cursor: grab;
+}
+.waveform-chart--interaction-pan.waveform-chart--panning .waveform-chart__overlay {
+  cursor: grabbing;
+}
+.waveform-chart--interaction-none .waveform-chart__overlay {
+  cursor: default;
+}
+
 .waveform-chart--edge-compact .waveform-chart__x-label {
-  font-size: 18px;
   font-weight: 600;
 }
 

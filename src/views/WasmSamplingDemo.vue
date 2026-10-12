@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
-import { InputNumber, RadioButton, RadioGroup, Select } from 'ant-design-vue'
+import { InputNumber, RadioButton, RadioGroup, Select, Switch } from 'ant-design-vue'
 
 import { WaveformChart } from '../components'
 import type {
@@ -17,6 +17,7 @@ import {
   usesFixedPointCount,
 } from './wasmSamplingDemoSampling'
 
+const toolbarVisible = ref(true)
 const SERIES_COUNT = 10
 const POINTS_PER_SERIES = 100_000
 
@@ -120,6 +121,10 @@ function pointCount(value: number | undefined) {
     </header>
 
     <section class="sampling-demo__controls" aria-label="采样参数">
+      <label
+        ><span>内置工具栏</span
+        ><Switch v-model:checked="toolbarVisible" aria-label="显示内置工具栏" size="small"
+      /></label>
       <label>
         <span>策略</span>
         <Select v-model:value="strategy" :options="strategyOptions" size="small" />
@@ -164,6 +169,8 @@ function pointCount(value: number | undefined) {
     <section class="sampling-demo__workspace">
       <div class="sampling-demo__chart">
         <WaveformChart
+          :toolbar="toolbarVisible"
+          pannable
           :data="data"
           v-model:annotations="annotations"
           :rendering="rendering"

@@ -156,7 +156,7 @@ describe('edge-compact actual plot bounds', () => {
   )
 
   it.each([true, false])(
-    'contains the highest Y tick and exponent with title=%s at top=0',
+    'aligns endpoint Y labels like ordinary ticks with title=%s at top=0',
     async (withTitle) => {
       const wrapper = mount(WaveformChart, {
         props: {
@@ -171,9 +171,9 @@ describe('edge-compact actual plot bounds', () => {
       const texts = wrapper.findAll('.waveform-chart__axis--y .tick text')
       const highest = texts.at(-1)!
       expect(highest.text()).toBe('E+04 3')
-      expect(highest.attributes('dominant-baseline')).toBe('text-before-edge')
+      expect(highest.attributes('dominant-baseline')).toBe('central')
       expect(highest.attributes('dy')).toBe('0')
-      expect(texts[0].attributes('dominant-baseline')).toBe('text-after-edge')
+      expect(texts[0].attributes('dominant-baseline')).toBe('central')
       expect(wrapper.attributes('data-plot-margin-top')).toBe('0')
       expect(wrapper.get('.waveform-chart__track').attributes('data-track-top')).toBe('0')
       expect(getComputedStyle(wrapper.element).overflow).toBe('hidden')
@@ -184,7 +184,7 @@ describe('edge-compact actual plot bounds', () => {
           .findAll('.waveform-chart__axis--y .tick text')
           .at(-1)!
           .attributes('dominant-baseline'),
-      ).toBeUndefined()
+      ).toBe('central')
     },
   )
 })

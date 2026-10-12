@@ -1,3 +1,5 @@
+import { pointSourceFromPoints, type WaveformPointSource } from './waveformPointSource'
+import { withLineBoundaries } from './lineBoundary'
 import { bisector } from 'd3'
 
 import type { WaveformPoint } from '../types'
@@ -20,6 +22,7 @@ const acceptAllPoints = () => true
 
 interface PointSeriesSource {
   points: WaveformPoint[]
+  source?: WaveformPointSource
 }
 
 interface SeriesRenderSelectionOptions {
@@ -58,9 +61,10 @@ export function hasMinimumVisibleXValues(
   const required = Math.ceil(minimum)
   const xValues = new Set<number>()
   for (const series of seriesList) {
-    const range = resolveVisiblePointRange(series.points, domain)
+    const source = series.source ?? pointSourceFromPoints(series.points)
+    const range = source.visibleRange(domain)
     for (let index = range.start; index < range.end; index += 1) {
-      xValues.add(series.points[index].x)
+      xValues.add(source.pointAt(index)!.x)
       if (xValues.size >= required) return true
     }
   }
@@ -68,18 +72,20 @@ export function hasMinimumVisibleXValues(
 }
 
 function selectRenderablePointsInRange(
-  points: WaveformPoint[],
+  points: WaveformPointSource,
   range: VisiblePointRange,
   domain: [number, number],
   width: number,
   options: ResolvedWaveformRenderingOptions,
 ): WaveformPoint[] {
+  if (range.start === range.end && (range.start === 0 || range.end === points.length)) return []
   const start = Math.max(0, range.start - 1)
   const end = Math.min(points.length, range.end + 1)
   const visibleCount = end - start
   if (visibleCount <= 0) return []
   return resolveRenderablePointSelectionStrategy({ visibleCount, width, options })({
-    points,
+    points: [],
+    source: points,
     range,
     domain,
     width,
@@ -96,25 +102,25 @@ function shouldDeferLineSampling(
 }
 
 function selectSamplingPlaceholderPoints(
-  points: WaveformPoint[],
+  points: WaveformPointSource,
   range: VisiblePointRange,
   width: number,
   options: ResolvedWaveformRenderingOptions,
 ): WaveformPoint[] {
-  const start = Math.max(0, range.start - 1)
-  const end = Math.min(points.length, range.end + 1)
+  const { start, end } = range
   const count = end - start
-  if (count <= 0) return []
-  if (options.sampling.strategy === 'none') return points.slice(start, end)
   const target =
     options.sampling.maxPointCount ??
     Math.max(1, Math.floor(width * options.sampling.maxPointsPerPixel))
-  if (count <= target) return points.slice(start, end)
-  if (target === 1) return [points[start]!]
-  return Array.from({ length: target }, (_, index) => {
-    const offset = Math.round((index * (count - 1)) / (target - 1))
-    return points[start + offset]!
-  })
+  const interior =
+    count <= target || options.sampling.strategy === 'none'
+      ? points.pointsInRange(start, end)
+      : Array.from({ length: target }, (_, index) =>
+          points.pointAt(
+            start + (target === 1 ? 0 : Math.round((index * (count - 1)) / (target - 1))),
+          )!,
+        )
+  return withLineBoundaries(interior, range, points.length, (index) => points.pointAt(index)!)
 }
 
 /**
@@ -129,7 +135,7 @@ export function selectRenderablePoints(
 ): WaveformPoint[] {
   if (!points.length || width <= 0) return []
   return selectRenderablePointsInRange(
-    points,
+    pointSourceFromPoints(points),
     resolveVisiblePointRange(points, domain),
     domain,
     width,
@@ -138,7 +144,7 @@ export function selectRenderablePoints(
 }
 
 function selectDecorationPointsInRange(
-  points: WaveformPoint[],
+  points: WaveformPointSource,
   range: VisiblePointRange,
   domain: [number, number],
   width: number,
@@ -148,10 +154,10 @@ function selectDecorationPointsInRange(
   priorityPredicate?: (point: WaveformPoint) => boolean,
 ): WaveformPoint[] {
   if (!downsample || minSpacing === 0) {
-    if (predicate === acceptAllPoints) return points.slice(range.start, range.end)
+    if (predicate === acceptAllPoints) return points.pointsInRange(range.start, range.end)
     const visiblePoints: WaveformPoint[] = []
     for (let index = range.start; index < range.end; index += 1) {
-      if (predicate(points[index])) visiblePoints.push(points[index])
+      if (predicate(points.pointAt(index)!)) visiblePoints.push(points.pointAt(index)!)
     }
     return visiblePoints
   }
@@ -161,7 +167,7 @@ function selectDecorationPointsInRange(
   const span = domainEnd - domainStart
   if (span <= 0) {
     for (let index = range.start; index < range.end; index += 1) {
-      if (predicate(points[index])) return [points[index]]
+      if (predicate(points.pointAt(index)!)) return [points.pointAt(index)!]
     }
     return []
   }
@@ -208,7 +214,7 @@ function selectDecorationPointsInRange(
   }
 
   for (let index = range.start; index < range.end; index += 1) {
-    const point = points[index]
+    const point = points.pointAt(index)!
     if (!predicate(point)) continue
     first ??= point
     last = point
@@ -252,7 +258,7 @@ export function selectDecorationPoints(
 ): WaveformPoint[] {
   if (!points.length || width <= 0) return []
   return selectDecorationPointsInRange(
-    points,
+    pointSourceFromPoints(points),
     resolveVisiblePointRange(points, domain),
     domain,
     width,
@@ -268,8 +274,8 @@ function hasPointError(point: WaveformPoint): boolean {
   return lower !== 0 || upper !== 0
 }
 
-export function selectSeriesRenderPoints(
-  points: WaveformPoint[],
+export function selectSeriesRenderSourcePoints(
+  points: WaveformPointSource,
   domain: [number, number],
   width: number,
   rendering: ResolvedWaveformRenderingOptions,
@@ -278,7 +284,7 @@ export function selectSeriesRenderPoints(
   if (!points.length || width <= 0) {
     return { linePoints: [], pointRenderPoints: [], errorBarRenderPoints: [] }
   }
-  const range = resolveVisiblePointRange(points, domain)
+  const range = points.visibleRange(domain)
   const linePoints = selection.lineVisible
     ? (selection.linePointOverride ??
       (shouldDeferLineSampling(range.end - range.start, rendering)
@@ -328,4 +334,21 @@ export function selectSeriesRenderPoints(
         )
       : [],
   }
+}
+
+/** Public array adapter; internal layout passes its normalized source directly. */
+export function selectSeriesRenderPoints(
+  points: WaveformPoint[],
+  domain: [number, number],
+  width: number,
+  rendering: ResolvedWaveformRenderingOptions,
+  selection: SeriesRenderSelectionOptions,
+): SeriesRenderPointSelection {
+  return selectSeriesRenderSourcePoints(
+    pointSourceFromPoints(points),
+    domain,
+    width,
+    rendering,
+    selection,
+  )
 }

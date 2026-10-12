@@ -2,12 +2,14 @@
 import { InputNumber, Select, Switch } from 'ant-design-vue'
 import { ColorPicker } from 'vue3-colorpicker'
 
+import DemoYAxisPaddingControls from './DemoYAxisPaddingControls.vue'
 import type { DemoControlPanelModel } from './types'
 
 const model = defineModel<DemoControlPanelModel>('model', { required: true })
 </script>
 
 <template>
+  <DemoYAxisPaddingControls v-model:model="model" />
   <section class="control-section">
     <h2>绘图区边距</h2>
     <div class="plot-margin-controls">

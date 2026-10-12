@@ -1,3 +1,5 @@
+import type { WaveformCommandMetadata } from './controls'
+
 /**
  * 波形数据点
  */
@@ -19,6 +21,8 @@ export type WaveformLayoutPreset = 'default' | 'edge-compact'
 export type WaveformUnitDisplayMode =
   | 'axis'
   | 'legend-single-series'
+  /** Append units to Y-axis names while retaining names on multi-series pages. */
+  | 'channel-label'
   /** Label and legend units; hide all channel titles on pages containing a multi-series track. */
   | 'channel-label-or-legend'
 
@@ -34,7 +38,7 @@ export type WaveformDisplayMode = 'independent' | 'separated' | 'compact'
 export type WaveformOverlayMode = 'single-axis' | 'multi-axis'
 
 /** 标注工具模式 */
-export type WaveformInteractionMode = 'zoom' | 'annotation'
+export type WaveformInteractionMode = 'zoom' | 'annotation' | 'pan' | 'none'
 
 /** Controls how the initial X viewport is derived when no explicit domain is configured. */
 export interface WaveformXDomainStrategy {
@@ -49,7 +53,7 @@ export interface WaveformXDomainStrategy {
 }
 
 /** Describes the X-axis viewport after a zoom gesture completes. */
-export interface WaveformZoomEndPayload {
+export interface WaveformZoomEndPayload extends WaveformCommandMetadata {
   start: number
   end: number
   yStart?: number
@@ -57,7 +61,7 @@ export interface WaveformZoomEndPayload {
   yRanges?: Record<string, [number, number]>
   trackIndex?: number
   seriesIds?: string[]
-  gesture?: 'wheel' | 'box'
+  gesture?: 'wheel' | 'box' | 'command'
 }
 
 /** Final horizontal viewport after a pan; endpoints are always seconds. */
@@ -69,16 +73,16 @@ export interface WaveformPanEndPayload {
 }
 
 /** Describes the X-axis viewport targeted by a user zoom gesture before rendering settles. */
-export interface WaveformZoomIntentPayload {
+export interface WaveformZoomIntentPayload extends WaveformCommandMetadata {
   start: number
   end: number
-  gesture: 'wheel' | 'box'
+  gesture: 'wheel' | 'box' | 'command'
   trackIndex?: number
   seriesIds?: string[]
 }
 
 /** Identifies the viewport reset by a double-click gesture. */
-export interface WaveformZoomResetPayload {
+export interface WaveformZoomResetPayload extends WaveformCommandMetadata {
   trackIndex?: number
   seriesIds?: string[]
 }
@@ -258,7 +262,19 @@ export type WaveformXAxisLabelFormatter = (
   context: WaveformXAxisLabelFormatterContext,
 ) => string
 
-/** Controls axis baseline visibility while preserving tick marks and axis text. */
+/** Styling for Y-axis series names, separate from numeric tick labels. */
+export interface WaveformYAxisLabelTextStyle {
+  /** Positive font size in pixels. Defaults to 12. */
+  fontSize?: number
+  /** CSS font weight; use 'normal' or 400 to disable bold. Defaults to 600. */
+  fontWeight?: number | string
+  fontFamily?: string
+  fontStyle?: 'normal' | 'italic'
+  /** CSS color. Defaults to the corresponding series color. */
+  color?: string
+}
+
+/** Controls axis baselines, labels, and Y-axis range calculation. */
 export interface WaveformAxesOptions {
   x?: {
     lineVisible?: boolean
@@ -267,12 +283,20 @@ export interface WaveformAxesOptions {
   }
   y?: {
     lineVisible?: boolean
+    /** Styles series names on both left and right Y axes, without changing tick labels. */
+    labelTextStyle?: WaveformYAxisLabelTextStyle
     /** Target total number of equal Y-axis ticks, including endpoints. Defaults to 5. */
     splitNumber?: number
     /** Expands Y-axis domains to equal, human-friendly intervals. Defaults to true. */
     nice?: boolean
-    /** Adds this fraction of the automatic Y span above its maximum. Defaults to 0. */
+    /** Fraction of the automatic Y span added above its maximum. Defaults to 0. */
     upperPaddingRatio?: number
+    /** Fraction of the automatic Y span added below its minimum. Defaults to 0. */
+    lowerPaddingRatio?: number
+    /** False disables upper padding; true defaults an omitted ratio to 0.1. */
+    upperPaddingEnabled?: boolean
+    /** False disables lower padding; true defaults an omitted ratio to 0.1. */
+    lowerPaddingEnabled?: boolean
   }
 }
 

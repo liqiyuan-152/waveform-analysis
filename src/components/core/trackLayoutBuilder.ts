@@ -1,3 +1,6 @@
+import { withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
+import { selectSeriesRenderSourcePoints } from '../../core/rendering'
+import { pointSourceFromPoints } from '../../core/waveformPointSource'
 import {
   curveStep,
   curveStepAfter,
@@ -8,10 +11,7 @@ import {
   type ZoomTransform,
 } from 'd3'
 
-import {
-  selectSeriesRenderPoints,
-  type ResolvedWaveformRenderingOptions,
-} from '../../core/rendering'
+import { type ResolvedWaveformRenderingOptions } from '../../core/rendering'
 import type {
   WaveformDisplayMode,
   WaveformOverlayMode,
@@ -36,6 +36,7 @@ import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import { alignLeftYAxisTitles } from './yAxisTitleLayout'
 import { measureYAxisTextWidth } from './yAxisTextWidth'
+import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 import {
   alignIntegerZoomDomain,
   normalizeIntegerZoomDomain,
@@ -43,7 +44,6 @@ import {
   formatIntegerZoomLabel,
 } from '../interaction/integerZoom'
 import {
-  Y_AXIS_LABEL_BAND_WIDTH,
   Y_AXIS_LABEL_GAP,
   Y_AXIS_OUTER_PADDING,
   Y_AXIS_RIGHT_LABEL_OFFSET,
@@ -61,6 +61,7 @@ export interface BuildTrackLayoutsOptions {
   overlayMode: WaveformOverlayMode
   independentTransforms: ZoomTransform[]
   sharedZoomDomain: [number, number]
+  effectiveXDomains?: Record<string, [number, number]>
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy
@@ -72,6 +73,7 @@ export interface BuildTrackLayoutsOptions {
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
   yAxisSplitNumber?: number
   yAxisNice?: boolean
+  yAxisPadding?: YAxisPaddingOptions
   yAxisUpperPaddingRatio?: number
   rendering: ResolvedWaveformRenderingOptions
   /** Latest sampling result for SVG lines only; source series remain complete for interaction. */
@@ -80,7 +82,7 @@ export interface BuildTrackLayoutsOptions {
   yAxisLabelX: number
   yLabel?: string
   yAxisSlots?: readonly YAxisSlot[]
-  showCompactEmptyTracks: boolean
+  showEmptyTracks: boolean
   useNonEmptyBottomTracks?: boolean
   compactYAxisLayout?: boolean
   showAxisUnits?: boolean
@@ -91,6 +93,7 @@ function resolveIndependentXDomain(
   seriesId: string,
   options: BuildTrackLayoutsOptions,
 ): [number, number] {
+  if (options.effectiveXDomains?.[track.id]) return options.effectiveXDomains[track.id]
   const strategy = options.xDomainStrategy ?? { type: 'data' }
   const explicitDomain =
     options.initialXDomains?.[track.id] ??
@@ -115,13 +118,12 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
 
   const layouts: TrackLayout[] = visibleCells.flatMap((cell, index) => {
     const isEmpty = !cell.series || cell.series.series.length === 0
-    if (!cell.series && (options.displayMode !== 'compact' || !options.showCompactEmptyTracks))
-      return []
+    if (!cell.series && !options.showEmptyTracks) return []
     const displayTrack: DisplayTrack = cell.series ?? {
       id: `empty-grid-slot-${cell.slotIndex}`,
       series: [],
       visibleSeries: [],
-      xDomain: [0, 1],
+      xDomain: options.initialXDomain ?? options.sharedZoomDomain,
       yDomain: [0, 1],
     }
     const hasVisibleSeries = !isEmpty && displayTrack.visibleSeries.length > 0
@@ -145,7 +147,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       options.fixedYDomain,
       options.fixedYDomains,
       options.yDomains,
-      options.yAxisUpperPaddingRatio,
+      options.yAxisPadding ?? options.yAxisUpperPaddingRatio,
     )
     const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }
@@ -155,7 +157,13 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       const resolvedTicks = resolveYAxisTicks(group.domain, tickCount, options.yAxisNice !== false)
       const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
       const majorTicks = resolvedTicks.values
-      const tickValues = majorTicks
+      const maximumTick =
+        group.maximumTick !== undefined &&
+        group.maximumTick >= resolvedTicks.domain[0] &&
+        group.maximumTick <= resolvedTicks.domain[1]
+          ? group.maximumTick
+          : undefined
+      const tickValues = withMaximumTick(majorTicks, maximumTick)
       const { tickTextWidth } = axisTextMetrics(
         scale.domain() as [number, number],
         false,
@@ -167,7 +175,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         tickTextWidth +
         Y_AXIS_TICK_PADDING +
         Y_AXIS_LABEL_GAP +
-        Y_AXIS_LABEL_BAND_WIDTH +
+        resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) +
         Y_AXIS_OUTER_PADDING
       const slot = options.yAxisSlots?.find(
         (candidate) => candidate.side === group.side && candidate.sideIndex === sideIndex,
@@ -178,7 +186,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
           ? -sideOffsets.left
           : cell.width + sideOffsets.right
       const labelDistance =
-        tickTextWidth + Y_AXIS_TICK_PADDING + Y_AXIS_LABEL_GAP + Y_AXIS_LABEL_BAND_WIDTH / 2
+        tickTextWidth +
+        Y_AXIS_TICK_PADDING +
+        Y_AXIS_LABEL_GAP +
+        resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) / 2
       const labelX =
         (slot
           ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
@@ -191,6 +202,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         x,
         labelX,
         scale,
+        maximumTick,
         majorTicks,
         minorTicks: buildMinorTicks(majorTicks, 2),
         tickValues,
@@ -207,7 +219,11 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     )
     const xAxisLabelFormatter =
       options.xAxisLabelFormatter ?? (options.integerZoom ? formatIntegerZoomLabel : undefined)
-    const yMajorTicks = yAxes[0]?.majorTicks ?? []
+    const yMajorTicks =
+      yAxes[0]?.majorTicks ??
+      (isEmpty
+        ? fallbackYScale.ticks(resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber))
+        : [])
     const yAxisTickValues = yAxes[0]?.tickValues ?? []
     const domain = xScale.domain() as [number, number]
     const endpointLabels = {
@@ -225,8 +241,8 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         axis.seriesList.some((series) => series.id === trackSeries.id),
       )
       const seriesYScale = yAxis?.scale ?? yScale
-      const renderPoints = selectSeriesRenderPoints(
-        trackSeries.points,
+      const renderPoints = selectSeriesRenderSourcePoints(
+        trackSeries.source ?? pointSourceFromPoints(trackSeries.points),
         domain,
         cell.width,
         options.rendering,
@@ -278,7 +294,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       xAxisLabelFormatter,
       xMinorTicks: buildMinorTicks(xMajorTicks, 3, domain),
       yMajorTicks,
-      yMinorTicks: yAxes[0]?.minorTicks ?? [],
+      yMinorTicks: yAxes[0]?.minorTicks ?? (isEmpty ? buildMinorTicks(yMajorTicks, 2) : []),
       yAxisTickValues,
       xAxisTickValues,
       endpointLabels,
@@ -297,6 +313,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
   })
 
   alignLeftYAxisTitles(layouts, options.yLabel, {
+    labelTextStyle: options.yAxisPadding?.labelTextStyle,
     showUnits: options.showAxisUnits,
     compact: options.compactYAxisLayout,
     measureTextWidth: options.compactYAxisLayout ? measureYAxisTextWidth : undefined,

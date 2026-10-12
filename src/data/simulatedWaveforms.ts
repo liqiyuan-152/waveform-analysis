@@ -140,14 +140,69 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     signal: (time, noise) => 0.7 * Math.sin(TWO_PI * 0.45 * time) + noise * 0.36,
     errors: () => ({ error: 0.12 }),
   },
+  {
+    id: 'simulated-mega-voltage',
+    shotNo: '13300',
+    name: '百万量级电压',
+    unit: 'V',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => 2.4e6 * Math.sin(TWO_PI * 0.6 * time),
+  },
+  {
+    id: 'simulated-micro-current',
+    shotNo: '13300',
+    name: '微量级电流',
+    unit: 'A',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time, noise) => 3.2e-6 * Math.sin(TWO_PI * 0.45 * time) + noise * 2e-7,
+  },
+  {
+    id: 'simulated-giga-pressure',
+    shotNo: '13300',
+    name: '十亿量级压力脉冲',
+    unit: 'Pa',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => 1.8e9 + 4e8 * Math.exp(-((time - 0.75) ** 2) / 0.4),
+  },
+  {
+    id: 'simulated-nano-displacement',
+    shotNo: '13300',
+    name: '纳量级阻尼位移',
+    unit: 'm',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => 6e-9 * Math.exp(-(time + 5) * 0.2) * Math.cos(TWO_PI * 0.8 * time),
+  },
 ]
 
-export function createSimulatedWaveformData(): WaveformData {
+export function createSimulatedWaveformData(trackCount?: number): WaveformData {
   const noise = createSeededNoise(0x5eed1234)
   const errorNoise = createSeededNoise(0xe220a11)
+  const definitions = [...seriesDefinitions]
+  const existingTrackCount = new Set(definitions.map((series) => series.trackId ?? series.id)).size
+  const extraTrackCount =
+    trackCount !== undefined && Number.isFinite(trackCount)
+      ? Math.max(0, Math.min(100, Math.floor(trackCount)) - existingTrackCount)
+      : 0
+  for (let index = 0; index < extraTrackCount; index += 1) {
+    const channel = existingTrackCount + index + 1
+    definitions.push({
+      id: `simulated-extra-${channel}`,
+      name: `模拟通道 ${channel}`,
+      unit: 'V',
+      lineType: 'linear',
+      pointType: 'none',
+      signal: (time) =>
+        (1 + index * 0.3) * Math.sin(TWO_PI * (0.2 + index * 0.15) * time + index) +
+        0.2 * Math.cos(TWO_PI * 1.4 * time),
+    })
+  }
   return {
     kind: 'series',
-    series: seriesDefinitions.map(({ signal, errors, minimumX, ...series }) => {
+    series: definitions.map(({ signal, errors, minimumX, ...series }) => {
       const points = createPoints(signal, noise, errors, errorNoise)
       return {
         ...series,

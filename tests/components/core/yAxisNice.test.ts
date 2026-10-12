@@ -73,7 +73,7 @@ function layout(
     hideSecondaryLabels: false,
     yAxisLabelX: -50,
     yAxisNice: false,
-    showCompactEmptyTracks: false,
+    showEmptyTracks: false,
   })[0]!
 }
 
@@ -118,7 +118,7 @@ describe('Y-axis nice domains', () => {
       rendering: DEFAULT_WAVEFORM_RENDERING_OPTIONS,
       hideSecondaryLabels: false,
       yAxisLabelX: -50,
-      showCompactEmptyTracks: false,
+      showEmptyTracks: false,
     })[0]!
 
     expect(defaults.yScale.domain()).toEqual([0, 100])

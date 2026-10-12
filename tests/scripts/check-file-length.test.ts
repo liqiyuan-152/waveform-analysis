@@ -24,6 +24,15 @@ afterEach(() => {
 })
 
 describe('file length check', () => {
+  it('accepts 450 physical lines and rejects 451 including blank lines', () => {
+    const directory = makeTemporaryDirectory()
+    writeFileSync(join(directory, 'limit.ts'), '\n'.repeat(450))
+    expect(findFileLengthViolations(directory)).toEqual([])
+    writeFileSync(join(directory, 'limit.ts'), '\n'.repeat(451))
+    expect(findFileLengthViolations(directory)).toEqual([
+      { path: expect.stringContaining('limit.ts'), lineCount: 451, limit: 450 },
+    ])
+  })
   it('counts physical lines with and without a trailing newline', () => {
     expect(physicalLineCount('')).toBe(0)
     expect(physicalLineCount('first')).toBe(1)

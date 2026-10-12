@@ -4,8 +4,7 @@
 }
 
 .waveform-track__y-axis-label-bg {
-  fill: white;
-  opacity: 0.9;
+  fill: transparent;
   pointer-events: none;
 }
 

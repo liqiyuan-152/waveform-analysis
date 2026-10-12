@@ -60,11 +60,7 @@ describe('WaveformChart', () => {
           .map((label) => label.text())
           .filter((label) => /E[+-]\d+/.test(label)),
       ),
-    ).toEqual([
-      [],
-      [expect.stringMatching(/ E\+03 \(A\)$/)],
-      [expect.stringMatching(/ E-04 \(T\)$/)],
-    ])
+    ).toEqual([[], [expect.stringMatching(/ E\+03$/)], [expect.stringMatching(/ E-04$/)]])
   })
 
   it('reprojects annotations with the Y axis assigned to their series', async () => {

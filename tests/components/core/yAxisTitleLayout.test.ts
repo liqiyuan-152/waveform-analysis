@@ -37,14 +37,14 @@ function track(yAxis = axis(), column = 0) {
 }
 
 describe('channel name clearance', () => {
-  it('excludes the multiplier when a long compact name reaches the top tick', () => {
+  it('excludes the multiplier and omitted unit when a long compact name reaches the top tick', () => {
     const long = track(axis('A_VERY_LONG_CHANNEL_NAME_THAT_REACHES_THE_TOP', 'V'))
     const yAxis = long.yAxes[0]
     yAxis.scale.domain([0, 30000])
     yAxis.tickValues = [0, 7500, 15000, 22500, 30000]
     yAxis.labelX = -73
     alignLeftYAxisTitles([long], undefined, { compact: true })
-    expect(yAxis.labelX).toBe(-52)
+    expect(yAxis.labelX).toBe(-45)
   })
 
   it('measures only rendered units when positioning a compact name', () => {

@@ -1,15 +1,22 @@
 <script setup lang="ts">
+import WaveformToolbar from './controls/WaveformToolbar.vue'
 import { Pagination } from 'ant-design-vue'
-import { toRefs } from 'vue'
+import { computed, toRefs } from 'vue'
 
 import { WaveformAnnotationContextMenu, WaveformAnnotationLayer } from './annotation'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
 import type { WaveformChartController } from './core/useWaveformChartController'
-import type { TrackLayout } from './core/types'
 import { WaveformHoverHost } from './interaction'
 import { WaveformHoverLayer, WaveformLegend, WaveformTrack } from './rendering'
+import { compactFramePath } from './rendering/compactFrame'
 
 const props = defineProps<{ controller: WaveformChartController }>()
+const compactFrameInset = computed(() => {
+  const width = props.controller.frameStyle?.borderWidth
+  return props.controller.isEdgeCompact
+    ? (typeof width === 'number' && Number.isFinite(width) && width >= 0 ? width : 1) / 2
+    : 0
+})
 const {
   displayMode,
   activeInteractionMode,
@@ -111,21 +118,6 @@ function handleChartPointerLeave() {
   pointerInsideChart.value = false
   handlePointerLeave.value()
 }
-
-function sharesFrameTop(track: TrackLayout): boolean {
-  return (
-    displayMode.value === 'compact' &&
-    trackLayouts.value.some(
-      (above) =>
-        !above.isEmpty &&
-        above !== track &&
-        above.column === track.column &&
-        Math.abs(above.left - track.left) < 1e-6 &&
-        Math.abs(above.width - track.width) < 1e-6 &&
-        Math.abs(above.top + above.height - track.top) < 1e-6,
-    )
-  )
-}
 </script>
 
 <template>
@@ -205,7 +197,7 @@ function sharesFrameTop(track: TrackLayout): boolean {
 
       <g :transform="`translate(${resolvedChartLeftMargin}, ${chartTopMargin})`">
         <g
-          v-if="displayMode !== 'compact' && !isCleanView"
+          v-if="displayMode !== 'compact' && !hasWaveformData && !isCleanView"
           class="waveform-chart__grid-slots"
           aria-hidden="true"
         >
@@ -246,21 +238,28 @@ function sharesFrameTop(track: TrackLayout): boolean {
           v-for="track in trackLayouts"
           :key="`${track.index}-${track.id}`"
           :track="track"
+          :frame-path="
+            displayMode === 'compact'
+              ? compactFramePath(track, trackLayouts, compactFrameInset)
+              : undefined
+          "
           :clip-path-id="clipPathId"
           :inner-width="innerWidth"
           :zoomable="zoomable"
           :interactive="!isPresentationMode"
           :display-mode="displayMode"
           :interaction-mode="activeInteractionMode"
-          :frame-number="resolveFrameNumber(track.id)"
+          :frame-number="
+            resolveFrameNumber(track.id, (currentPage - 1) * getPageSize(gridOptions) + track.index)
+          "
           :frame-style="frameStyle"
           :axes="axes"
           :show-axis-units="unitDisplayMode === 'axis'"
-          :show-label-units="unitDisplayMode === 'channel-label-or-legend'"
+          :show-label-units="
+            unitDisplayMode === 'channel-label-or-legend' || unitDisplayMode === 'channel-label'
+          "
           :hide-y-axis-titles="hideYAxisTitles"
-          :contain-y-axis-endpoints="isEdgeCompact"
           :contain-frame-stroke="isEdgeCompact"
-          :omit-frame-top="sharesFrameTop(track)"
           :clean-view="isCleanView"
           :zero-line="resolvedZeroLine"
           :time-unit="timeUnit"
@@ -292,10 +291,12 @@ function sharesFrameTop(track: TrackLayout): boolean {
         />
 
         <WaveformAnnotationLayer
+          :cancel-key="activeInteractionMode"
+          :data-version="controller.data"
           v-if="!isCleanView"
           :annotations="renderedAnnotations"
           :visible="annotationsVisible"
-          :interactive="!isPresentationMode"
+          :interactive="!isPresentationMode && activeInteractionMode !== 'none'"
           @contextmenu="handleExistingAnnotationContextMenu"
           @drag-start="beginAnnotationDrag"
           @move="handleAnnotationMove"
@@ -331,6 +332,7 @@ function sharesFrameTop(track: TrackLayout): boolean {
       <text
         v-if="resolvedXLabel && !isCleanView"
         class="waveform-chart__label waveform-chart__x-label"
+        :style="isEdgeCompact ? { fontSize: titleTextStyle.fontSize } : undefined"
         :x="plotCenterX"
         :y="xAxisTitleY"
         text-anchor="middle"
@@ -348,6 +350,8 @@ function sharesFrameTop(track: TrackLayout): boolean {
         暂无有效波形数据
       </text>
     </svg>
+
+    <WaveformToolbar :controller="controller" />
 
     <Pagination
       v-if="paginationVisible"

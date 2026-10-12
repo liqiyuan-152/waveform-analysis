@@ -19,7 +19,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
           : 0
       const initialPointCount = pointCount(chart.props('data') as WaveformData)
       chart.vm.$emit('zoom-end', { start: 0, end: 0.001 })
-      await wrapper.get('[aria-label="重置波形视图"]').trigger('click')
+      await wrapper.get('[data-command="reset"]').trigger('click')
       await vi.advanceTimersByTimeAsync(100)
       await flushPromises()
       expect(pointCount(chart.props('data') as WaveformData)).toBe(initialPointCount)
@@ -177,7 +177,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
 
-    expect(chart.props('axes')).toEqual({
+    expect(chart.props('axes')).toMatchObject({
       x: { lineVisible: false },
       y: { lineVisible: false },
     })
@@ -186,7 +186,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     await wrapper.get('[aria-label="显示纵轴线"]').trigger('click')
     await flushPromises()
 
-    expect(chart.props('axes')).toEqual({
+    expect(chart.props('axes')).toMatchObject({
       x: { lineVisible: true },
       y: { lineVisible: true },
     })
@@ -295,6 +295,10 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '阶跃响应',
       '脉冲响应',
       '带噪信号',
+      '百万量级电压',
+      '微量级电流',
+      '十亿量级压力脉冲',
+      '纳量级阻尼位移',
     ])
     simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
@@ -311,7 +315,18 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       wrapper
         .findAll('.waveform-chart__track')
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
-    ).toEqual(['脉冲响应', '带噪信号'])
+    ).toEqual(['脉冲响应', '带噪信号', '百万量级电压', '微量级电流'])
+
+    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await flushPromises()
+    expect(
+      wrapper
+        .findAll('.waveform-chart__track')
+        .filter((track) => !track.classes().includes('waveform-chart__track--empty'))
+        .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
+    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移'])
+    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(2)
+    expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
 
     wrapper.unmount()
   })
@@ -323,17 +338,19 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const renderedTitle = () => wrapper.get('.waveform-chart__title-text')
     expect(renderedTitle().text()).toBe('模拟波形分析')
     expect(renderedTitle().attributes('style')).toContain('Microsoft YaHei')
-    expect(renderedTitle().attributes('style')).toContain('font-size: 14px')
-    expect(renderedTitle().attributes('style')).toContain('font-weight: 400')
+    expect(renderedTitle().attributes('style')).toContain('font-size: 18px')
+    expect(renderedTitle().attributes('style')).toContain('font-weight: 600')
 
     await wrapper.get('input[aria-label="标题名称"]').setValue('实验标题')
+    await wrapper.get('[aria-label="标题粗体"]').trigger('click')
+    expect(renderedTitle().attributes('style')).toContain('font-weight: 400')
     await wrapper.get('[aria-label="标题粗体"]').trigger('click')
     await wrapper.get('[aria-label="标题斜体"]').trigger('click')
     await wrapper.get('[aria-label="标题下划线"]').trigger('click')
     await flushPromises()
 
     expect(renderedTitle().text()).toBe('实验标题')
-    expect(renderedTitle().attributes('style')).toContain('font-weight: 700')
+    expect(renderedTitle().attributes('style')).toContain('font-weight: 600')
     expect(renderedTitle().attributes('style')).toContain('font-style: italic')
     expect(renderedTitle().attributes('style')).toContain('text-decoration: underline')
 

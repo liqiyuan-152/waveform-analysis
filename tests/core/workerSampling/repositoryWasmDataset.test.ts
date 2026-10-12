@@ -68,3 +68,58 @@ describe('WorkerSamplingRepository WASM datasets', () => {
     expect(repository.resourceMetrics).toMatchObject({ datasetCount: 0, indexBytes: 0 })
   })
 })
+
+describe('WASM viewport boundary parity', () => {
+  it.each(['peak', 'lttb', 'average', 'sum'] as const)(
+    'preserves %s global indexes and aggregates at low budgets',
+    (strategy) => {
+      const repositories = [
+        new WorkerSamplingRepository(),
+        new WorkerSamplingRepository({ wasmBackend: createInitializedWasmSamplingBackend() }),
+      ]
+      for (const maxPointCount of [1, 2, 4]) {
+        const results = repositories.map((repository) => {
+          repository.handle({ type: 'dispose-all', requestId: 0 })
+          repository.handle({
+            type: 'register-dataset',
+            requestId: 1,
+            datasetId: 'd',
+            revision: 0,
+            dataset: {
+              kind: 'typed',
+              x: Float64Array.from([0, 1, 2, 3, 4, 5, 6, 7]),
+              y: Float64Array.from([1000, 1000, 2, 4, 6, 8, 1000, 1000]),
+            },
+          })
+          const response = repository.handle({
+            type: 'sample-viewport',
+            requestId: 2,
+            series: [
+              {
+                datasetId: 'd',
+                seriesId: 's',
+                revision: 1,
+                xDomain: [1.5, 5.5],
+                plotWidth: 100,
+                mode: 'auto',
+                autoThreshold: 0,
+                strategy,
+                maxPointCount,
+              },
+            ],
+          })
+          if (response.type !== 'sample-viewport-response') throw new Error('unexpected response')
+          return response.results[0]!.output
+        })
+        expect(results[1]).toEqual(results[0])
+        if (results[1]?.kind === 'source-indexes') {
+          expect(results[1].sourceIndexes[0]).toBe(1)
+          expect(results[1].sourceIndexes.at(-1)).toBe(6)
+          expect(Array.from(results[1].sourceIndexes).every((i) => i >= 1 && i <= 6)).toBe(true)
+        } else if (results[1]?.kind === 'aggregates') {
+          expect(results[1].y.slice(1, -1).every((y) => y <= 20)).toBe(true)
+        }
+      }
+    },
+  )
+})
