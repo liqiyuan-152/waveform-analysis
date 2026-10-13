@@ -194,3 +194,55 @@ describe('chart image export', () => {
     Reflect.deleteProperty(document, 'fonts')
   })
 })
+
+describe('animation export suppression hooks', () => {
+  it.each(['success', 'stale', 'cancelled', 'timeout', 'prepare-error'] as const)(
+    'releases owner suppression after %s',
+    async (outcome) => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+      const prepare = vi.fn(() => {
+        if (outcome === 'prepare-error') throw new Error('commit failed')
+      })
+      const release = vi.fn()
+      const version = ref(0)
+      let api!: ReturnType<typeof useChartImageExport>
+      const container = document.createElement('div')
+      container.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" />'
+      const wrapper = mount(
+        defineComponent({
+          setup() {
+            api = useChartImageExport({
+              container: () => container,
+              svg: () => container.querySelector('svg')!,
+              size: () => ({ width: 300, height: 200, titleHeight: 0 }),
+              version: () => version.value,
+              ready: () => outcome === 'success',
+              prepare,
+              release,
+            })
+            return () => null
+          },
+        }),
+      )
+      await expect(api.exportImage({ scale: 0 })).rejects.toMatchObject({
+        code: 'export-invalid-options',
+      })
+      expect(prepare).not.toHaveBeenCalled()
+      const result = api.exportImage({ format: 'svg' })
+      const assertion =
+        outcome === 'success'
+          ? expect(result).resolves.toMatchObject({ type: 'image/svg+xml' })
+          : outcome === 'prepare-error'
+            ? expect(result).rejects.toMatchObject({ code: 'export-render-failed' })
+            : expect(result).rejects.toMatchObject({ code: `export-${outcome}` })
+      if (outcome === 'stale') version.value++
+      if (outcome === 'cancelled') wrapper.unmount()
+      if (outcome === 'timeout') await vi.advanceTimersByTimeAsync(5000)
+      await assertion
+      expect(prepare).toHaveBeenCalledOnce()
+      expect(release).toHaveBeenCalledOnce()
+      wrapper.unmount()
+      expect(vi.getTimerCount()).toBe(0)
+    },
+  )
+})

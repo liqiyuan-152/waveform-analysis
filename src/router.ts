@@ -3,6 +3,7 @@ import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-rou
 import App from './App.vue'
 
 export const routes: RouteRecordRaw[] = [
+  { path: '/animation', name: 'animation', component: () => import('./views/AnimationDemo.vue') },
   {
     path: '/',
     name: 'workspace',

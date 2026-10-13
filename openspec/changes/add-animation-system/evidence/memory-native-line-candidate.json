@@ -1,0 +1,3246 @@
+{
+  "started": "2026-10-13T10:55:44.524Z",
+  "methodologyVersion": 4,
+  "runnerSha256": "f0c302754e529ea9a263efbffc200fa4460f919c175c098222a36be10a63d35c",
+  "buildInputsSha256": "ddd00d33b5a63305ec5a8b0b08e269fa70d7204995a6dcd66e8a73a3a6f8b60a",
+  "buildInputFiles": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "scripts/animation-browser-server.mjs",
+    "src/App.vue",
+    "src/DemoRouterApp.vue",
+    "src/animation/WaveformAnimationController.ts",
+    "src/animation/core/Animation.ts",
+    "src/animation/core/Animator.ts",
+    "src/animation/core/easing.ts",
+    "src/animation/core/errors.ts",
+    "src/animation/core/handle.ts",
+    "src/animation/core/owner.ts",
+    "src/animation/core/propertyGroups.ts",
+    "src/animation/core/task.ts",
+    "src/animation/core/types.ts",
+    "src/animation/core/validation.ts",
+    "src/animation/core/values.ts",
+    "src/animation/presets/annotation.ts",
+    "src/animation/presets/lineDrawing.ts",
+    "src/animation/presets/shared.ts",
+    "src/animation/presets/transitions.ts",
+    "src/animation/types.ts",
+    "src/components/WaveformChart.css",
+    "src/components/WaveformChart.vue",
+    "src/components/WaveformChartView.vue",
+    "src/components/animation/annotationPresentation.ts",
+    "src/components/animation/chartExportVersion.ts",
+    "src/components/animation/config.ts",
+    "src/components/animation/geometry.ts",
+    "src/components/animation/pathBuffer.ts",
+    "src/components/animation/trackPresentation.ts",
+    "src/components/animation/useWaveformAnimations.ts",
+    "src/components/annotation/WaveformAnnotationContextMenu.vue",
+    "src/components/annotation/WaveformAnnotationEditor.css",
+    "src/components/annotation/WaveformAnnotationEditor.vue",
+    "src/components/annotation/WaveformAnnotationLayer.vue",
+    "src/components/annotation/annotationLayout.ts",
+    "src/components/annotation/index.ts",
+    "src/components/annotation/markup.ts",
+    "src/components/annotation/serialization.ts",
+    "src/components/annotation/types.ts",
+    "src/components/annotation/useWaveformAnnotationInteraction.ts",
+    "src/components/annotation/useWaveformChartAnnotations.ts",
+    "src/components/controls/WaveformToolbar.vue",
+    "src/components/controls/chartExportOptions.ts",
+    "src/components/controls/chartSnapshot.ts",
+    "src/components/controls/snapshotTitle.ts",
+    "src/components/controls/toolbarRegistry.ts",
+    "src/components/controls/useChartCommands.ts",
+    "src/components/controls/useChartImageExport.ts",
+    "src/components/controls/useControlMode.ts",
+    "src/components/core/constants.ts",
+    "src/components/core/grid.ts",
+    "src/components/core/index.ts",
+    "src/components/core/latestTaskScheduler.ts",
+    "src/components/core/layout.ts",
+    "src/components/core/niceScale.ts",
+    "src/components/core/pagination.ts",
+    "src/components/core/title.ts",
+    "src/components/core/trackLayoutBuilder.ts",
+    "src/components/core/trackPagination.ts",
+    "src/components/core/types.ts",
+    "src/components/core/usePlotLabelLayout.ts",
+    "src/components/core/useWaveformChartController.ts",
+    "src/components/core/useWaveformChartLifecycle.ts",
+    "src/components/core/useWaveformData.ts",
+    "src/components/core/useWaveformLayout.ts",
+    "src/components/core/useWaveformMeasurements.ts",
+    "src/components/core/useWaveformPresentation.ts",
+    "src/components/core/useWaveformRenderSampling.ts",
+    "src/components/core/useWaveformViewportRestore.ts",
+    "src/components/core/useWaveformYAxisLayout.ts",
+    "src/components/core/waveformChartTypes.ts",
+    "src/components/core/waveformSamplingSession.ts",
+    "src/components/core/workerSamplingClient.ts",
+    "src/components/core/xDomain.ts",
+    "src/components/core/yAxisConstants.ts",
+    "src/components/core/yAxisLabelStyle.ts",
+    "src/components/core/yAxisLayoutMetrics.ts",
+    "src/components/core/yAxisPadding.ts",
+    "src/components/core/yAxisTextWidth.ts",
+    "src/components/core/yAxisTitleLayout.ts",
+    "src/components/core/yDomain.ts",
+    "src/components/data/index.ts",
+    "src/components/data/types.ts",
+    "src/components/index.ts",
+    "src/components/interaction/WaveformHoverHost.vue",
+    "src/components/interaction/WaveformTooltip.vue",
+    "src/components/interaction/index.ts",
+    "src/components/interaction/integerZoom.ts",
+    "src/components/interaction/interactionTarget.ts",
+    "src/components/interaction/pointerCapture.ts",
+    "src/components/interaction/remoteViewport.ts",
+    "src/components/interaction/useExtremaTickViewport.ts",
+    "src/components/interaction/useWaveformHover.ts",
+    "src/components/interaction/useWaveformViewport.ts",
+    "src/components/interaction/useWaveformZoom.ts",
+    "src/components/interaction/viewportDomain.ts",
+    "src/components/interaction/viewportInteractionState.ts",
+    "src/components/interaction/viewportPan.ts",
+    "src/components/interaction/zoomConstraints.ts",
+    "src/components/interaction/zoomEventPayload.ts",
+    "src/components/rendering/WaveformHoverLayer.vue",
+    "src/components/rendering/WaveformLegend.vue",
+    "src/components/rendering/WaveformSeriesLayer.vue",
+    "src/components/rendering/WaveformTrack.css",
+    "src/components/rendering/WaveformTrack.vue",
+    "src/components/rendering/WaveformTrackAxes.vue",
+    "src/components/rendering/WaveformTrackBackdrop.vue",
+    "src/components/rendering/WaveformZeroLines.vue",
+    "src/components/rendering/channelLabel.ts",
+    "src/components/rendering/compactFrame.ts",
+    "src/components/rendering/index.ts",
+    "src/components/rendering/seriesStyle.ts",
+    "src/components/rendering/updateAxis.ts",
+    "src/components/rendering/updateGrid.ts",
+    "src/components/rendering/yAxisTickVisibility.ts",
+    "src/components/utils/assignElement.ts",
+    "src/components/utils/useAnimationFrameThrottle.ts",
+    "src/components/waveform.ts",
+    "src/core/compactSamplePointSource.ts",
+    "src/core/data.ts",
+    "src/core/index.ts",
+    "src/core/lineBoundary.ts",
+    "src/core/rendering.ts",
+    "src/core/renderingOptions.ts",
+    "src/core/renderingStrategies.ts",
+    "src/core/samplingReference.ts",
+    "src/core/samplingReferenceValues.ts",
+    "src/core/samplingReferenceVectors.ts",
+    "src/core/wasmSampling.ts",
+    "src/core/waveformPointSource.ts",
+    "src/core/workerSampling/index.ts",
+    "src/core/workerSampling/javascriptBackend.ts",
+    "src/core/workerSampling/multiresolution.ts",
+    "src/core/workerSampling/outputBoundaries.ts",
+    "src/core/workerSampling/protocol.ts",
+    "src/core/workerSampling/repository.ts",
+    "src/core/workerSampling/repositoryDataset.ts",
+    "src/core/workerSampling/repositorySupport.ts",
+    "src/core/workerSampling/samplingCache.ts",
+    "src/core/workerSampling/workerRuntime.ts",
+    "src/data/recordedDampedWaveform.ts",
+    "src/data/simulatedWaveforms.ts",
+    "src/data/sx2Channel.ts",
+    "src/demo/DemoChartHost.vue",
+    "src/demo/DemoControlPanel.vue",
+    "src/demo/DemoGridFrameControls.vue",
+    "src/demo/DemoTitleLegendControls.vue",
+    "src/demo/DemoViewControls.vue",
+    "src/demo/DemoYAxisPaddingControls.vue",
+    "src/demo/embedBridge.ts",
+    "src/demo/types.ts",
+    "src/demo/useDemoXAxisLabelControls.ts",
+    "src/demoRoutes.css",
+    "src/env.d.ts",
+    "src/index.ts",
+    "src/main.ts",
+    "src/router.ts",
+    "src/styles.css",
+    "src/types/chart.ts",
+    "src/types/controls.ts",
+    "src/types/data.ts",
+    "src/types/index.ts",
+    "src/utils/domain.ts",
+    "src/utils/formatters.ts",
+    "src/utils/geometry.ts",
+    "src/utils/index.ts",
+    "src/utils/sampling.ts",
+    "src/utils/waveformId.ts",
+    "src/views/AnimationDemo.vue",
+    "src/views/FixedYDomainDemo.vue",
+    "src/views/WasmSamplingDemo.vue",
+    "src/views/wasmSamplingDemoSampling.ts",
+    "tests/browser/animation.html",
+    "tests/browser/animation.ts",
+    "vite.config.ts",
+    "wasm/pkg/waveform_sampling_wasm_bg.wasm"
+  ],
+  "buildMode": "production",
+  "environment": {
+    "platform": "darwin",
+    "release": "25.6.0",
+    "cpu": "Apple M1"
+  },
+  "methodology": "Paired fresh-browser runs. Identical data changes with animation enabled/disabled; three static mount/unmount warmups per browser, CDP GC, then unforced physical-footprint samples from measured mount completion through at least duration+100ms and task settlement. No GC occurs inside this observation window. All browser/renderer/GPU/network process IDs from SystemInfo are included. Baseline is each browser after warmup before measurement. Process-attributed native/DOM/GPU-process memory is included; driver/system allocations not attributed to these processes remain outside this measurement. Peak is a sampled peak after mount, not a continuously observed or during-mount maximum. Settled retainedAfterGC and unmounted afterCyclesBeforeGC/afterCycles are recorded for every run separately from peak.",
+  "scenarios": [
+    {
+      "width": 360,
+      "height": 300,
+      "series": 8,
+      "points": 10000,
+      "mode": "compatible",
+      "budgetBytes": 10000000,
+      "runs": [
+        {
+          "staticRun": {
+            "browser": "141.0.7390.37",
+            "diagnostics": {
+              "navigations": [
+                {
+                  "phase": "navigate",
+                  "url": "http://localhost:5181/tests/browser/animation.html"
+                }
+              ],
+              "pageErrors": []
+            },
+            "before": {
+              "footprintStartedAt": 1791888947806,
+              "footprintFinishedAt": 1791888947927,
+              "footprintBytes": 83798080,
+              "processes": [
+                {
+                  "pid": 52769,
+                  "type": "renderer",
+                  "footprintBytes": 42323456
+                },
+                {
+                  "pid": 52767,
+                  "type": "GPU",
+                  "footprintBytes": 21284928
+                },
+                {
+                  "pid": 52766,
+                  "type": "browser",
+                  "footprintBytes": 15698560
+                },
+                {
+                  "pid": 52768,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7374720
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 4781816,
+                "totalSize": 6602752,
+                "embedderHeapUsedSize": 558032,
+                "backingStorageSize": 1489717
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "samples": [
+              {
+                "footprintStartedAt": 1791888948080,
+                "footprintFinishedAt": 1791888948197,
+                "footprintBytes": 111585408,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 70094400
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15714944
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7374720
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 17433204,
+                  "totalSize": 32292864,
+                  "embedderHeapUsedSize": 5305544,
+                  "backingStorageSize": 1513942
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 1321,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888948354,
+                "footprintFinishedAt": 1791888948482,
+                "footprintBytes": 117057856,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75288320
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15895168
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9331532,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888948635,
+                "footprintFinishedAt": 1791888948767,
+                "footprintBytes": 117057856,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75288320
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15895168
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9333036,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888948920,
+                "footprintFinishedAt": 1791888949056,
+                "footprintBytes": 117074240,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75288320
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15911552
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9334576,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888949208,
+                "footprintFinishedAt": 1791888949340,
+                "footprintBytes": 117107008,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75304704
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15927936
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9336080,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888949492,
+                "footprintFinishedAt": 1791888949626,
+                "footprintBytes": 117107008,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75304704
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15927936
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9337692,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888949780,
+                "footprintFinishedAt": 1791888949906,
+                "footprintBytes": 117107008,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75304704
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15927936
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9339664,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888950059,
+                "footprintFinishedAt": 1791888950191,
+                "footprintBytes": 117123392,
+                "processes": [
+                  {
+                    "pid": 52769,
+                    "type": "renderer",
+                    "footprintBytes": 75304704
+                  },
+                  {
+                    "pid": 52767,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52766,
+                    "type": "browser",
+                    "footprintBytes": 15944320
+                  },
+                  {
+                    "pid": 52768,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7473024
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9341240,
+                  "totalSize": 30195712,
+                  "embedderHeapUsedSize": 2327016,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              }
+            ],
+            "retainedAfterGC": {
+              "footprintStartedAt": 1791888950204,
+              "footprintFinishedAt": 1791888950332,
+              "footprintBytes": 93972800,
+              "processes": [
+                {
+                  "pid": 52769,
+                  "type": "renderer",
+                  "footprintBytes": 52154112
+                },
+                {
+                  "pid": 52767,
+                  "type": "GPU",
+                  "footprintBytes": 21284928
+                },
+                {
+                  "pid": 52766,
+                  "type": "browser",
+                  "footprintBytes": 15944320
+                },
+                {
+                  "pid": 52768,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7473024
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 7239068,
+                "totalSize": 7913472,
+                "embedderHeapUsedSize": 1461544,
+                "backingStorageSize": 1489733
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 857,
+                "jsEventListeners": 109
+              },
+              "activeTasks": 0
+            },
+            "observationStartedAt": 1791888948079,
+            "minimumObservationMs": 2100,
+            "observationMs": 2114,
+            "peakBytes": 117123392,
+            "afterCyclesBeforeGC": {
+              "footprintStartedAt": 1791888952981,
+              "footprintFinishedAt": 1791888953102,
+              "footprintBytes": 188065920,
+              "processes": [
+                {
+                  "pid": 52769,
+                  "type": "renderer",
+                  "footprintBytes": 145837632
+                },
+                {
+                  "pid": 52767,
+                  "type": "GPU",
+                  "footprintBytes": 21284928
+                },
+                {
+                  "pid": 52766,
+                  "type": "browser",
+                  "footprintBytes": 16222848
+                },
+                {
+                  "pid": 52768,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7604096
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 25807076,
+                "totalSize": 88391680,
+                "embedderHeapUsedSize": 3363792,
+                "backingStorageSize": 1513473
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 1193,
+                "jsEventListeners": 283
+              },
+              "activeTasks": 0
+            },
+            "afterCycles": {
+              "footprintStartedAt": 1791888953114,
+              "footprintFinishedAt": 1791888953228,
+              "footprintBytes": 93481088,
+              "processes": [
+                {
+                  "pid": 52769,
+                  "type": "renderer",
+                  "footprintBytes": 51252800
+                },
+                {
+                  "pid": 52767,
+                  "type": "GPU",
+                  "footprintBytes": 21284928
+                },
+                {
+                  "pid": 52766,
+                  "type": "browser",
+                  "footprintBytes": 16222848
+                },
+                {
+                  "pid": 52768,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7604096
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 5428056,
+                "totalSize": 6340608,
+                "embedderHeapUsedSize": 563512,
+                "backingStorageSize": 1489725
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "cycles": 20,
+            "cyclesAnimationEnabled": false,
+            "resources": {
+              "tasks": 0,
+              "elements": 0,
+              "maxActiveTasks": 0
+            }
+          },
+          "animatedRun": {
+            "browser": "141.0.7390.37",
+            "diagnostics": {
+              "navigations": [
+                {
+                  "phase": "navigate",
+                  "url": "http://localhost:5181/tests/browser/animation.html"
+                }
+              ],
+              "pageErrors": []
+            },
+            "before": {
+              "footprintStartedAt": 1791888954637,
+              "footprintFinishedAt": 1791888954768,
+              "footprintBytes": 84207552,
+              "processes": [
+                {
+                  "pid": 52957,
+                  "type": "renderer",
+                  "footprintBytes": 42716608
+                },
+                {
+                  "pid": 52955,
+                  "type": "GPU",
+                  "footprintBytes": 21284928
+                },
+                {
+                  "pid": 52954,
+                  "type": "browser",
+                  "footprintBytes": 15747712
+                },
+                {
+                  "pid": 52956,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7341888
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 4781920,
+                "totalSize": 6340608,
+                "embedderHeapUsedSize": 559088,
+                "backingStorageSize": 1489717
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "samples": [
+              {
+                "footprintStartedAt": 1791888954916,
+                "footprintFinishedAt": 1791888955048,
+                "footprintBytes": 107030592,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 65539648
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15747712
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7341888
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 16944412,
+                  "totalSize": 26787840,
+                  "embedderHeapUsedSize": 2769440,
+                  "backingStorageSize": 1510664
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 1009,
+                  "jsEventListeners": 255
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888955202,
+                "footprintFinishedAt": 1791888955339,
+                "footprintBytes": 125479168,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 83644160
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 25268056,
+                  "totalSize": 37273600,
+                  "embedderHeapUsedSize": 5873640,
+                  "backingStorageSize": 1586178
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888955497,
+                "footprintFinishedAt": 1791888955629,
+                "footprintBytes": 142321920,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 100486912
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 22511136,
+                  "totalSize": 44613632,
+                  "embedderHeapUsedSize": 12722464,
+                  "backingStorageSize": 1632749
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888955782,
+                "footprintFinishedAt": 1791888955943,
+                "footprintBytes": 157427968,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 115592960
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21284928
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 22563132,
+                  "totalSize": 48545792,
+                  "embedderHeapUsedSize": 20528320,
+                  "backingStorageSize": 1727879
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888956206,
+                "footprintFinishedAt": 1791888956434,
+                "footprintBytes": 169830784,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 127979392
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 14184024,
+                  "totalSize": 52215808,
+                  "embedderHeapUsedSize": 6796744,
+                  "backingStorageSize": 1587424
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888956588,
+                "footprintFinishedAt": 1791888956719,
+                "footprintBytes": 171747712,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 129896320
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 24220496,
+                  "totalSize": 52215808,
+                  "embedderHeapUsedSize": 13688112,
+                  "backingStorageSize": 1672114
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888956873,
+                "footprintFinishedAt": 1791888956996,
+                "footprintBytes": 174107008,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 132255616
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 21211376,
+                  "totalSize": 52215808,
+                  "embedderHeapUsedSize": 20781784,
+                  "backingStorageSize": 1757031
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888957149,
+                "footprintFinishedAt": 1791888957269,
+                "footprintBytes": 169404800,
+                "processes": [
+                  {
+                    "pid": 52957,
+                    "type": "renderer",
+                    "footprintBytes": 127553408
+                  },
+                  {
+                    "pid": 52955,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 52954,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 52956,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7440192
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 11580700,
+                  "totalSize": 48807936,
+                  "embedderHeapUsedSize": 2380920,
+                  "backingStorageSize": 1494064
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              }
+            ],
+            "retainedAfterGC": {
+              "footprintStartedAt": 1791888957282,
+              "footprintFinishedAt": 1791888957405,
+              "footprintBytes": 100575552,
+              "processes": [
+                {
+                  "pid": 52957,
+                  "type": "renderer",
+                  "footprintBytes": 58724160
+                },
+                {
+                  "pid": 52955,
+                  "type": "GPU",
+                  "footprintBytes": 21301312
+                },
+                {
+                  "pid": 52954,
+                  "type": "browser",
+                  "footprintBytes": 15993472
+                },
+                {
+                  "pid": 52956,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7440192
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 8428220,
+                "totalSize": 9224192,
+                "embedderHeapUsedSize": 1460568,
+                "backingStorageSize": 1489733
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 857,
+                "jsEventListeners": 109
+              },
+              "activeTasks": 0
+            },
+            "observationStartedAt": 1791888954915,
+            "minimumObservationMs": 2100,
+            "observationMs": 2356,
+            "peakBytes": 174107008,
+            "afterCyclesBeforeGC": {
+              "footprintStartedAt": 1791888960642,
+              "footprintFinishedAt": 1791888960766,
+              "footprintBytes": 207956160,
+              "processes": [
+                {
+                  "pid": 52957,
+                  "type": "renderer",
+                  "footprintBytes": 165842624
+                },
+                {
+                  "pid": 52955,
+                  "type": "GPU",
+                  "footprintBytes": 21301312
+                },
+                {
+                  "pid": 52954,
+                  "type": "browser",
+                  "footprintBytes": 16140928
+                },
+                {
+                  "pid": 52956,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7554880
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 37255812,
+                "totalSize": 99139584,
+                "embedderHeapUsedSize": 10607720,
+                "backingStorageSize": 1594929
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 3571,
+                "jsEventListeners": 803
+              },
+              "activeTasks": 0
+            },
+            "afterCycles": {
+              "footprintStartedAt": 1791888960785,
+              "footprintFinishedAt": 1791888960908,
+              "footprintBytes": 99936448,
+              "processes": [
+                {
+                  "pid": 52957,
+                  "type": "renderer",
+                  "footprintBytes": 57822912
+                },
+                {
+                  "pid": 52955,
+                  "type": "GPU",
+                  "footprintBytes": 21301312
+                },
+                {
+                  "pid": 52954,
+                  "type": "browser",
+                  "footprintBytes": 16140928
+                },
+                {
+                  "pid": 52956,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7554880
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 5682968,
+                "totalSize": 6864896,
+                "embedderHeapUsedSize": 572912,
+                "backingStorageSize": 1489708
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "cycles": 20,
+            "cyclesAnimationEnabled": true,
+            "resources": {
+              "tasks": 0,
+              "elements": 0,
+              "maxActiveTasks": 8
+            }
+          },
+          "animationIncrementBytes": 56574144
+        },
+        {
+          "staticRun": {
+            "browser": "141.0.7390.37",
+            "diagnostics": {
+              "navigations": [
+                {
+                  "phase": "navigate",
+                  "url": "http://localhost:5181/tests/browser/animation.html"
+                }
+              ],
+              "pageErrors": []
+            },
+            "before": {
+              "footprintStartedAt": 1791888961614,
+              "footprintFinishedAt": 1791888961728,
+              "footprintBytes": 83568960,
+              "processes": [
+                {
+                  "pid": 53147,
+                  "type": "renderer",
+                  "footprintBytes": 41897664
+                },
+                {
+                  "pid": 53145,
+                  "type": "GPU",
+                  "footprintBytes": 21235776
+                },
+                {
+                  "pid": 53144,
+                  "type": "browser",
+                  "footprintBytes": 15993600
+                },
+                {
+                  "pid": 53146,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7325504
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 4781716,
+                "totalSize": 6340608,
+                "embedderHeapUsedSize": 558576,
+                "backingStorageSize": 1489717
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "samples": [
+              {
+                "footprintStartedAt": 1791888961882,
+                "footprintFinishedAt": 1791888962026,
+                "footprintBytes": 112814528,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 71143232
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 15993600
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7325504
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 17248952,
+                  "totalSize": 32817152,
+                  "embedderHeapUsedSize": 5264160,
+                  "backingStorageSize": 1513942
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888962185,
+                "footprintFinishedAt": 1791888962324,
+                "footprintBytes": 118631040,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16222976
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9211888,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888962477,
+                "footprintFinishedAt": 1791888962613,
+                "footprintBytes": 118631040,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16222976
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9213392,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888962766,
+                "footprintFinishedAt": 1791888962905,
+                "footprintBytes": 118647424,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16239360
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9214932,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888963058,
+                "footprintFinishedAt": 1791888963193,
+                "footprintBytes": 118647424,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16239360
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9216436,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888963346,
+                "footprintFinishedAt": 1791888963483,
+                "footprintBytes": 118647424,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16239360
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9218048,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888963638,
+                "footprintFinishedAt": 1791888963778,
+                "footprintBytes": 118647424,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16239360
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9220020,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888963931,
+                "footprintFinishedAt": 1791888964072,
+                "footprintBytes": 118647424,
+                "processes": [
+                  {
+                    "pid": 53147,
+                    "type": "renderer",
+                    "footprintBytes": 76632064
+                  },
+                  {
+                    "pid": 53145,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53144,
+                    "type": "browser",
+                    "footprintBytes": 16239360
+                  },
+                  {
+                    "pid": 53146,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9221596,
+                  "totalSize": 30457856,
+                  "embedderHeapUsedSize": 2362400,
+                  "backingStorageSize": 1510943
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              }
+            ],
+            "retainedAfterGC": {
+              "footprintStartedAt": 1791888964082,
+              "footprintFinishedAt": 1791888964192,
+              "footprintBytes": 93874816,
+              "processes": [
+                {
+                  "pid": 53147,
+                  "type": "renderer",
+                  "footprintBytes": 51859456
+                },
+                {
+                  "pid": 53145,
+                  "type": "GPU",
+                  "footprintBytes": 21235776
+                },
+                {
+                  "pid": 53144,
+                  "type": "browser",
+                  "footprintBytes": 16239360
+                },
+                {
+                  "pid": 53146,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7423808
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 7237332,
+                "totalSize": 7913472,
+                "embedderHeapUsedSize": 1461544,
+                "backingStorageSize": 1489733
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 857,
+                "jsEventListeners": 109
+              },
+              "activeTasks": 0
+            },
+            "observationStartedAt": 1791888961882,
+            "minimumObservationMs": 2100,
+            "observationMs": 2191,
+            "peakBytes": 118647424,
+            "afterCyclesBeforeGC": {
+              "footprintStartedAt": 1791888966862,
+              "footprintFinishedAt": 1791888966981,
+              "footprintBytes": 192637312,
+              "processes": [
+                {
+                  "pid": 53147,
+                  "type": "renderer",
+                  "footprintBytes": 150245120
+                },
+                {
+                  "pid": 53145,
+                  "type": "GPU",
+                  "footprintBytes": 21235776
+                },
+                {
+                  "pid": 53144,
+                  "type": "browser",
+                  "footprintBytes": 16485120
+                },
+                {
+                  "pid": 53146,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7554880
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 41200952,
+                "totalSize": 90750976,
+                "embedderHeapUsedSize": 9819032,
+                "backingStorageSize": 1557103
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 3651,
+                "jsEventListeners": 949
+              },
+              "activeTasks": 0
+            },
+            "afterCycles": {
+              "footprintStartedAt": 1791888966995,
+              "footprintFinishedAt": 1791888967117,
+              "footprintBytes": 93874560,
+              "processes": [
+                {
+                  "pid": 53147,
+                  "type": "renderer",
+                  "footprintBytes": 51482368
+                },
+                {
+                  "pid": 53145,
+                  "type": "GPU",
+                  "footprintBytes": 21235776
+                },
+                {
+                  "pid": 53144,
+                  "type": "browser",
+                  "footprintBytes": 16485120
+                },
+                {
+                  "pid": 53146,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7554880
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 5427004,
+                "totalSize": 7389184,
+                "embedderHeapUsedSize": 554688,
+                "backingStorageSize": 1489725
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "cycles": 20,
+            "cyclesAnimationEnabled": false,
+            "resources": {
+              "tasks": 0,
+              "elements": 0,
+              "maxActiveTasks": 0
+            }
+          },
+          "animatedRun": {
+            "browser": "141.0.7390.37",
+            "diagnostics": {
+              "navigations": [
+                {
+                  "phase": "navigate",
+                  "url": "http://localhost:5181/tests/browser/animation.html"
+                }
+              ],
+              "pageErrors": []
+            },
+            "before": {
+              "footprintStartedAt": 1791888967870,
+              "footprintFinishedAt": 1791888967980,
+              "footprintBytes": 84306176,
+              "processes": [
+                {
+                  "pid": 53321,
+                  "type": "renderer",
+                  "footprintBytes": 42766016
+                },
+                {
+                  "pid": 53319,
+                  "type": "GPU",
+                  "footprintBytes": 21301376
+                },
+                {
+                  "pid": 53317,
+                  "type": "browser",
+                  "footprintBytes": 15796864
+                },
+                {
+                  "pid": 53320,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7325504
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 4781884,
+                "totalSize": 6078464,
+                "embedderHeapUsedSize": 558296,
+                "backingStorageSize": 1489717
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "samples": [
+              {
+                "footprintStartedAt": 1791888968126,
+                "footprintFinishedAt": 1791888968288,
+                "footprintBytes": 104245696,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 62689152
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21301376
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 15813248
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7325504
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 16108884,
+                  "totalSize": 25477120,
+                  "embedderHeapUsedSize": 2307048,
+                  "backingStorageSize": 1510664
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 945,
+                  "jsEventListeners": 255
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888968479,
+                "footprintFinishedAt": 1791888968888,
+                "footprintBytes": 142289536,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 100454464
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21301376
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 19882288,
+                  "totalSize": 44089344,
+                  "embedderHeapUsedSize": 11829984,
+                  "backingStorageSize": 1627111
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888969041,
+                "footprintFinishedAt": 1791888969258,
+                "footprintBytes": 158575232,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 116723776
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21317760
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 25265240,
+                  "totalSize": 49332224,
+                  "embedderHeapUsedSize": 21528432,
+                  "backingStorageSize": 1742262
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888969414,
+                "footprintFinishedAt": 1791888969584,
+                "footprintBytes": 175287040,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 133419200
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21317760
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 16009856
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 15705984,
+                  "totalSize": 51167232,
+                  "embedderHeapUsedSize": 3211336,
+                  "backingStorageSize": 1541106
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888969738,
+                "footprintFinishedAt": 1791888969871,
+                "footprintBytes": 170666752,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 128782528
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21317760
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 16026240
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 24902440,
+                  "totalSize": 51429376,
+                  "embedderHeapUsedSize": 10082240,
+                  "backingStorageSize": 1625825
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888970029,
+                "footprintFinishedAt": 1791888970167,
+                "footprintBytes": 173058816,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 131174592
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21317760
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 16026240
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 23434748,
+                  "totalSize": 51429376,
+                  "embedderHeapUsedSize": 17335024,
+                  "backingStorageSize": 1715431
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888970321,
+                "footprintFinishedAt": 1791888970448,
+                "footprintBytes": 169995008,
+                "processes": [
+                  {
+                    "pid": 53321,
+                    "type": "renderer",
+                    "footprintBytes": 128110784
+                  },
+                  {
+                    "pid": 53319,
+                    "type": "GPU",
+                    "footprintBytes": 21317760
+                  },
+                  {
+                    "pid": 53317,
+                    "type": "browser",
+                    "footprintBytes": 16026240
+                  },
+                  {
+                    "pid": 53320,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7423808
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 8570764,
+                  "totalSize": 48807936,
+                  "embedderHeapUsedSize": 1462280,
+                  "backingStorageSize": 1519167
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              }
+            ],
+            "retainedAfterGC": {
+              "footprintStartedAt": 1791888970462,
+              "footprintFinishedAt": 1791888970593,
+              "footprintBytes": 100821760,
+              "processes": [
+                {
+                  "pid": 53321,
+                  "type": "renderer",
+                  "footprintBytes": 58937536
+                },
+                {
+                  "pid": 53319,
+                  "type": "GPU",
+                  "footprintBytes": 21317760
+                },
+                {
+                  "pid": 53317,
+                  "type": "browser",
+                  "footprintBytes": 16026240
+                },
+                {
+                  "pid": 53320,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7423808
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 8426496,
+                "totalSize": 9486336,
+                "embedderHeapUsedSize": 1460320,
+                "backingStorageSize": 1489733
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 857,
+                "jsEventListeners": 109
+              },
+              "activeTasks": 0
+            },
+            "observationStartedAt": 1791888968125,
+            "minimumObservationMs": 2100,
+            "observationMs": 2324,
+            "peakBytes": 175287040,
+            "afterCyclesBeforeGC": {
+              "footprintStartedAt": 1791888973713,
+              "footprintFinishedAt": 1791888973839,
+              "footprintBytes": 207825408,
+              "processes": [
+                {
+                  "pid": 53321,
+                  "type": "renderer",
+                  "footprintBytes": 165662656
+                },
+                {
+                  "pid": 53319,
+                  "type": "GPU",
+                  "footprintBytes": 21284992
+                },
+                {
+                  "pid": 53317,
+                  "type": "browser",
+                  "footprintBytes": 16173696
+                },
+                {
+                  "pid": 53320,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7587648
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 43397696,
+                "totalSize": 99401728,
+                "embedderHeapUsedSize": 7653136,
+                "backingStorageSize": 1573627
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 2470,
+                "jsEventListeners": 616
+              },
+              "activeTasks": 0
+            },
+            "afterCycles": {
+              "footprintStartedAt": 1791888973853,
+              "footprintFinishedAt": 1791888973978,
+              "footprintBytes": 97741312,
+              "processes": [
+                {
+                  "pid": 53321,
+                  "type": "renderer",
+                  "footprintBytes": 55578560
+                },
+                {
+                  "pid": 53319,
+                  "type": "GPU",
+                  "footprintBytes": 21284992
+                },
+                {
+                  "pid": 53317,
+                  "type": "browser",
+                  "footprintBytes": 16173696
+                },
+                {
+                  "pid": 53320,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7587648
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 5680296,
+                "totalSize": 7127040,
+                "embedderHeapUsedSize": 561128,
+                "backingStorageSize": 1489708
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "cycles": 20,
+            "cyclesAnimationEnabled": true,
+            "resources": {
+              "tasks": 0,
+              "elements": 0,
+              "maxActiveTasks": 8
+            }
+          },
+          "animationIncrementBytes": 55902400
+        },
+        {
+          "staticRun": {
+            "browser": "141.0.7390.37",
+            "diagnostics": {
+              "navigations": [
+                {
+                  "phase": "navigate",
+                  "url": "http://localhost:5181/tests/browser/animation.html"
+                }
+              ],
+              "pageErrors": []
+            },
+            "before": {
+              "footprintStartedAt": 1791888974718,
+              "footprintFinishedAt": 1791888974835,
+              "footprintBytes": 82929856,
+              "processes": [
+                {
+                  "pid": 53538,
+                  "type": "renderer",
+                  "footprintBytes": 41455296
+                },
+                {
+                  "pid": 53536,
+                  "type": "GPU",
+                  "footprintBytes": 21301312
+                },
+                {
+                  "pid": 53535,
+                  "type": "browser",
+                  "footprintBytes": 15764096
+                },
+                {
+                  "pid": 53537,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7292736
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 4781800,
+                "totalSize": 6864896,
+                "embedderHeapUsedSize": 558424,
+                "backingStorageSize": 1489717
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "samples": [
+              {
+                "footprintStartedAt": 1791888974986,
+                "footprintFinishedAt": 1791888975109,
+                "footprintBytes": 110848320,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 69357376
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 15780480
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7292736
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 17440476,
+                  "totalSize": 32817152,
+                  "embedderHeapUsedSize": 5262648,
+                  "backingStorageSize": 1513942
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 1321,
+                  "jsEventListeners": 319
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888975266,
+                "footprintFinishedAt": 1791888975394,
+                "footprintBytes": 118188544,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76386304
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 15977088
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9277404,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888975546,
+                "footprintFinishedAt": 1791888975688,
+                "footprintBytes": 118204928,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76386304
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9278908,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888975841,
+                "footprintFinishedAt": 1791888975978,
+                "footprintBytes": 118204928,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76386304
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 15993472
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9280448,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888976130,
+                "footprintFinishedAt": 1791888976265,
+                "footprintBytes": 118221312,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76386304
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 16009856
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9281952,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888976418,
+                "footprintFinishedAt": 1791888976553,
+                "footprintBytes": 118237696,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76402688
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 16009856
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9283564,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888976705,
+                "footprintFinishedAt": 1791888976837,
+                "footprintBytes": 118237696,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76402688
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 16009856
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9285536,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888976990,
+                "footprintFinishedAt": 1791888977131,
+                "footprintBytes": 118237696,
+                "processes": [
+                  {
+                    "pid": 53538,
+                    "type": "renderer",
+                    "footprintBytes": 76402688
+                  },
+                  {
+                    "pid": 53536,
+                    "type": "GPU",
+                    "footprintBytes": 21301312
+                  },
+                  {
+                    "pid": 53535,
+                    "type": "browser",
+                    "footprintBytes": 16009856
+                  },
+                  {
+                    "pid": 53537,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7407424
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 9287112,
+                  "totalSize": 30720000,
+                  "embedderHeapUsedSize": 2324816,
+                  "backingStorageSize": 1509792
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 921,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              }
+            ],
+            "retainedAfterGC": {
+              "footprintStartedAt": 1791888977143,
+              "footprintFinishedAt": 1791888977268,
+              "footprintBytes": 93088256,
+              "processes": [
+                {
+                  "pid": 53538,
+                  "type": "renderer",
+                  "footprintBytes": 51253248
+                },
+                {
+                  "pid": 53536,
+                  "type": "GPU",
+                  "footprintBytes": 21301312
+                },
+                {
+                  "pid": 53535,
+                  "type": "browser",
+                  "footprintBytes": 16009856
+                },
+                {
+                  "pid": 53537,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7407424
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 7236680,
+                "totalSize": 8175616,
+                "embedderHeapUsedSize": 1461544,
+                "backingStorageSize": 1489733
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 857,
+                "jsEventListeners": 109
+              },
+              "activeTasks": 0
+            },
+            "observationStartedAt": 1791888974986,
+            "minimumObservationMs": 2100,
+            "observationMs": 2147,
+            "peakBytes": 118237696,
+            "afterCyclesBeforeGC": {
+              "footprintStartedAt": 1791888979981,
+              "footprintFinishedAt": 1791888980105,
+              "footprintBytes": 196389120,
+              "processes": [
+                {
+                  "pid": 53538,
+                  "type": "renderer",
+                  "footprintBytes": 154177280
+                },
+                {
+                  "pid": 53536,
+                  "type": "GPU",
+                  "footprintBytes": 21317696
+                },
+                {
+                  "pid": 53535,
+                  "type": "browser",
+                  "footprintBytes": 16272000
+                },
+                {
+                  "pid": 53537,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7505728
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 31544812,
+                "totalSize": 96780288,
+                "embedderHeapUsedSize": 6482464,
+                "backingStorageSize": 1534514
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 2422,
+                "jsEventListeners": 616
+              },
+              "activeTasks": 0
+            },
+            "afterCycles": {
+              "footprintStartedAt": 1791888980118,
+              "footprintFinishedAt": 1791888980243,
+              "footprintBytes": 93251840,
+              "processes": [
+                {
+                  "pid": 53538,
+                  "type": "renderer",
+                  "footprintBytes": 51040000
+                },
+                {
+                  "pid": 53536,
+                  "type": "GPU",
+                  "footprintBytes": 21317696
+                },
+                {
+                  "pid": 53535,
+                  "type": "browser",
+                  "footprintBytes": 16272000
+                },
+                {
+                  "pid": 53537,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7505728
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 5430408,
+                "totalSize": 7127040,
+                "embedderHeapUsedSize": 552680,
+                "backingStorageSize": 1489725
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "cycles": 20,
+            "cyclesAnimationEnabled": false,
+            "resources": {
+              "tasks": 0,
+              "elements": 0,
+              "maxActiveTasks": 0
+            }
+          },
+          "animatedRun": {
+            "browser": "141.0.7390.37",
+            "diagnostics": {
+              "navigations": [
+                {
+                  "phase": "navigate",
+                  "url": "http://localhost:5181/tests/browser/animation.html"
+                }
+              ],
+              "pageErrors": []
+            },
+            "before": {
+              "footprintStartedAt": 1791888980958,
+              "footprintFinishedAt": 1791888981076,
+              "footprintBytes": 84011072,
+              "processes": [
+                {
+                  "pid": 53706,
+                  "type": "renderer",
+                  "footprintBytes": 42569280
+                },
+                {
+                  "pid": 53704,
+                  "type": "GPU",
+                  "footprintBytes": 21219392
+                },
+                {
+                  "pid": 53703,
+                  "type": "browser",
+                  "footprintBytes": 15846080
+                },
+                {
+                  "pid": 53705,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7259904
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 4781780,
+                "totalSize": 6602752,
+                "embedderHeapUsedSize": 558032,
+                "backingStorageSize": 1489717
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "samples": [
+              {
+                "footprintStartedAt": 1791888981224,
+                "footprintFinishedAt": 1791888981341,
+                "footprintBytes": 104507648,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 63065856
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21219392
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 15846080
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7259904
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 16143308,
+                  "totalSize": 26001408,
+                  "embedderHeapUsedSize": 2309792,
+                  "backingStorageSize": 1510664
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 945,
+                  "jsEventListeners": 255
+                },
+                "activeTasks": 0
+              },
+              {
+                "footprintStartedAt": 1791888981494,
+                "footprintFinishedAt": 1791888981625,
+                "footprintBytes": 123464128,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 81711040
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21219392
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 21205200,
+                  "totalSize": 33603584,
+                  "embedderHeapUsedSize": 4488784,
+                  "backingStorageSize": 1571385
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888981779,
+                "footprintFinishedAt": 1791888981908,
+                "footprintBytes": 139454912,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 97701824
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21219392
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 18450332,
+                  "totalSize": 44089344,
+                  "embedderHeapUsedSize": 11756600,
+                  "backingStorageSize": 1610540
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888982062,
+                "footprintFinishedAt": 1791888982195,
+                "footprintBytes": 154151360,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 112381888
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21235776
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 28494340,
+                  "totalSize": 46972928,
+                  "embedderHeapUsedSize": 18666688,
+                  "backingStorageSize": 1688692
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888982349,
+                "footprintFinishedAt": 1791888982474,
+                "footprintBytes": 167438848,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 125652992
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21252160
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 25809176,
+                  "totalSize": 50905088,
+                  "embedderHeapUsedSize": 25635808,
+                  "backingStorageSize": 1766636
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888982629,
+                "footprintFinishedAt": 1791888982764,
+                "footprintBytes": 168520256,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 126734400
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21252160
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 26275524,
+                  "totalSize": 50380800,
+                  "embedderHeapUsedSize": 6259352,
+                  "backingStorageSize": 1542111
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888982917,
+                "footprintFinishedAt": 1791888983042,
+                "footprintBytes": 170093120,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 128307264
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21252160
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 22728360,
+                  "totalSize": 50905088,
+                  "embedderHeapUsedSize": 13089088,
+                  "backingStorageSize": 1619515
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888983195,
+                "footprintFinishedAt": 1791888983321,
+                "footprintBytes": 172763712,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 130977856
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21252160
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 33029568,
+                  "totalSize": 51429376,
+                  "embedderHeapUsedSize": 20137072,
+                  "backingStorageSize": 1697315
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 8
+              },
+              {
+                "footprintStartedAt": 1791888983480,
+                "footprintFinishedAt": 1791888983620,
+                "footprintBytes": 169355840,
+                "processes": [
+                  {
+                    "pid": 53706,
+                    "type": "renderer",
+                    "footprintBytes": 127569984
+                  },
+                  {
+                    "pid": 53704,
+                    "type": "GPU",
+                    "footprintBytes": 21252160
+                  },
+                  {
+                    "pid": 53703,
+                    "type": "browser",
+                    "footprintBytes": 16059072
+                  },
+                  {
+                    "pid": 53705,
+                    "type": "network.mojom.NetworkService",
+                    "footprintBytes": 7358208
+                  }
+                ],
+                "jsHeap": {
+                  "usedSize": 8567464,
+                  "totalSize": 49070080,
+                  "embedderHeapUsedSize": 1462280,
+                  "backingStorageSize": 1518017
+                },
+                "dom": {
+                  "documents": 1,
+                  "nodes": 857,
+                  "jsEventListeners": 109
+                },
+                "activeTasks": 0
+              }
+            ],
+            "retainedAfterGC": {
+              "footprintStartedAt": 1791888983636,
+              "footprintFinishedAt": 1791888983766,
+              "footprintBytes": 100952640,
+              "processes": [
+                {
+                  "pid": 53706,
+                  "type": "renderer",
+                  "footprintBytes": 59166784
+                },
+                {
+                  "pid": 53704,
+                  "type": "GPU",
+                  "footprintBytes": 21252160
+                },
+                {
+                  "pid": 53703,
+                  "type": "browser",
+                  "footprintBytes": 16059072
+                },
+                {
+                  "pid": 53705,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7358208
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 8426140,
+                "totalSize": 9748480,
+                "embedderHeapUsedSize": 1460320,
+                "backingStorageSize": 1489733
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 857,
+                "jsEventListeners": 109
+              },
+              "activeTasks": 0
+            },
+            "observationStartedAt": 1791888981223,
+            "minimumObservationMs": 2100,
+            "observationMs": 2399,
+            "peakBytes": 172763712,
+            "afterCyclesBeforeGC": {
+              "footprintStartedAt": 1791888986940,
+              "footprintFinishedAt": 1791888987061,
+              "footprintBytes": 205810048,
+              "processes": [
+                {
+                  "pid": 53706,
+                  "type": "renderer",
+                  "footprintBytes": 163811200
+                },
+                {
+                  "pid": 53704,
+                  "type": "GPU",
+                  "footprintBytes": 21235776
+                },
+                {
+                  "pid": 53703,
+                  "type": "browser",
+                  "footprintBytes": 16157376
+                },
+                {
+                  "pid": 53705,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7489280
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 37239968,
+                "totalSize": 97042432,
+                "embedderHeapUsedSize": 10734960,
+                "backingStorageSize": 1595109
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 3571,
+                "jsEventListeners": 803
+              },
+              "activeTasks": 0
+            },
+            "afterCycles": {
+              "footprintStartedAt": 1791888987077,
+              "footprintFinishedAt": 1791888987204,
+              "footprintBytes": 99019136,
+              "processes": [
+                {
+                  "pid": 53706,
+                  "type": "renderer",
+                  "footprintBytes": 57020288
+                },
+                {
+                  "pid": 53704,
+                  "type": "GPU",
+                  "footprintBytes": 21235776
+                },
+                {
+                  "pid": 53703,
+                  "type": "browser",
+                  "footprintBytes": 16157376
+                },
+                {
+                  "pid": 53705,
+                  "type": "network.mojom.NetworkService",
+                  "footprintBytes": 7489280
+                }
+              ],
+              "jsHeap": {
+                "usedSize": 5679340,
+                "totalSize": 7651328,
+                "embedderHeapUsedSize": 571104,
+                "backingStorageSize": 1489708
+              },
+              "dom": {
+                "documents": 1,
+                "nodes": 28,
+                "jsEventListeners": 14
+              },
+              "activeTasks": 0
+            },
+            "cycles": 20,
+            "cyclesAnimationEnabled": true,
+            "resources": {
+              "tasks": 0,
+              "elements": 0,
+              "maxActiveTasks": 8
+            }
+          },
+          "animationIncrementBytes": 53444800
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "scenario": {
+        "width": 360,
+        "height": 300,
+        "series": 8,
+        "points": 10000,
+        "mode": "compatible"
+      },
+      "enabled": false,
+      "attempt": 1,
+      "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+      "diagnostics": {
+        "phase": "warmup-3-mount",
+        "navigations": [
+          {
+            "phase": "navigate",
+            "url": "http://localhost:5181/tests/browser/animation.html"
+          }
+        ],
+        "pageErrors": []
+      },
+      "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at measure (/Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:103:18)\n    at async measuredRun (/Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:176:14)\n    at async file:///Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:204:29"
+    },
+    {
+      "scenario": {
+        "width": 360,
+        "height": 300,
+        "series": 8,
+        "points": 10000,
+        "mode": "compatible"
+      },
+      "enabled": false,
+      "attempt": 2,
+      "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+      "diagnostics": {
+        "phase": "warmup-3-mount",
+        "navigations": [
+          {
+            "phase": "navigate",
+            "url": "http://localhost:5181/tests/browser/animation.html"
+          }
+        ],
+        "pageErrors": []
+      },
+      "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at measure (/Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:103:18)\n    at async measuredRun (/Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:176:14)\n    at async file:///Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:204:29"
+    },
+    {
+      "scenario": {
+        "width": 360,
+        "height": 300,
+        "series": 8,
+        "points": 10000,
+        "mode": "compatible"
+      },
+      "enabled": true,
+      "attempt": 1,
+      "error": "Error: page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+      "diagnostics": {
+        "phase": "warmup-3-mount",
+        "navigations": [
+          {
+            "phase": "navigate",
+            "url": "http://localhost:5181/tests/browser/animation.html"
+          }
+        ],
+        "pageErrors": []
+      },
+      "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at measure (/Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:103:18)\n    at async measuredRun (/Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:176:14)\n    at async file:///Users/liqiyuan/WebstormProjects/waveform-analysis/scripts/test-animation-memory.mjs:205:31"
+    }
+  ],
+  "trials": 3,
+  "durationMs": 2000,
+  "finished": "2026-10-13T10:56:27.221Z"
+}

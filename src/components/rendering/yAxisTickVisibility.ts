@@ -1,5 +1,6 @@
 import { sameTick } from '../core/yAxisPadding'
 import { formatYAxisTickLabel } from '../core/layout'
+import { updateSvgAttribute } from './updateAxis'
 
 interface Box {
   left: number
@@ -42,12 +43,23 @@ export function linesOverlap(a: number, b: number, widthA = 1, widthB = 1): bool
 }
 
 function hide(element: Element) {
-  element.setAttribute('display', 'none')
-  element.setAttribute('data-maximum-hidden', 'true')
+  updateSvgAttribute(element, 'display', 'none')
+  updateSvgAttribute(element, 'data-maximum-hidden', 'true')
 }
 
 function strokeWidth(element: Element): number {
   return Number.parseFloat(getComputedStyle(element).strokeWidth) || 1
+}
+
+const pending = new WeakSet<SVGSVGElement>()
+/** Coalesce sibling axes after Vue's current DOM patch, without adding a late animation frame. */
+export function scheduleMaximumTickVisibility(svg: SVGSVGElement) {
+  if (pending.has(svg)) return
+  pending.add(svg)
+  queueMicrotask(() => {
+    pending.delete(svg)
+    updateMaximumTickVisibility(svg)
+  })
 }
 
 function formatCompactLabels(svg: SVGSVGElement) {
@@ -64,13 +76,14 @@ function formatCompactLabels(svg: SVGSVGElement) {
       Number(axis.getAttribute('data-label-domain-max')),
     ]
     labels.forEach((text) => {
-      text.textContent = formatYAxisTickLabel(
+      const label = formatYAxisTickLabel(
         value(text),
         domain,
         visibleValues,
         axis.getAttribute('data-label-unit') ?? undefined,
         axis.getAttribute('data-y-axis-side') === 'right' ? 'right' : 'left',
       )
+      if (text.textContent !== label) text.textContent = label
     })
   })
 }
@@ -78,24 +91,38 @@ function formatCompactLabels(svg: SVGSVGElement) {
 /** Apply after axes and grid are in the DOM; never feed the filtered set back into layout. */
 export function updateMaximumTickVisibility(svg: SVGSVGElement) {
   svg.querySelectorAll('[data-maximum-hidden]').forEach((el) => {
-    el.removeAttribute('display')
-    el.removeAttribute('data-maximum-hidden')
+    updateSvgAttribute(el, 'display', null)
+    updateSvgAttribute(el, 'data-maximum-hidden', null)
   })
   svg.querySelectorAll('.waveform-track__axis--y .tick text').forEach((text) => {
-    text.removeAttribute('display')
+    updateSvgAttribute(text, 'display', null)
   })
   formatCompactLabels(svg)
+  const boxes = new Map<SVGTextElement, Box>()
+  const widths = new Map<Element, number>()
+  const box = (text: SVGTextElement) => {
+    if (!boxes.has(text)) boxes.set(text, textBox(text))
+    return boxes.get(text)!
+  }
+  const width = (element: Element) => {
+    if (!widths.has(element)) widths.set(element, strokeWidth(element))
+    return widths.get(element)!
+  }
   const minimumLabels = [...svg.querySelectorAll<SVGTextElement>('text[data-axis-minimum-label]')]
   svg.querySelectorAll<SVGTextElement>('text[data-axis-maximum-label]').forEach((maximum) => {
-    const box = textBox(maximum)
-    if (minimumLabels.some((minimum) => labelsOverlap(box, textBox(minimum)))) hide(maximum)
+    const maximumBox = box(maximum)
+    if (minimumLabels.some((minimum) => labelsOverlap(maximumBox, box(minimum)))) hide(maximum)
   })
   svg.querySelectorAll<SVGGElement>('.waveform-track__axis--y .tick').forEach((tick) => {
     const position = Number(tick.getAttribute('data-tick-y'))
     const height = Number(tick.closest('.waveform-track')?.getAttribute('data-track-height'))
     const line = tick.querySelector('line')
-    if (sameTick(position, 0) || sameTick(position, height)) line?.setAttribute('display', 'none')
-    else line?.removeAttribute('display')
+    if (line)
+      updateSvgAttribute(
+        line,
+        'display',
+        sameTick(position, 0) || sameTick(position, height) ? 'none' : null,
+      )
   })
   const minimumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-minimum-tick]')]
   const maximumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-maximum-tick]')]
@@ -105,7 +132,7 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
     if (!text) return
     maximumTicks.forEach((maximum) => {
       const other = maximum.querySelector('text')
-      if (other && other !== text && labelsOverlap(textBox(text), textBox(other))) hide(other)
+      if (other && other !== text && labelsOverlap(box(text), box(other))) hide(other)
     })
   })
   const extremeTicks = [...new Set([...minimumTicks, ...maximumTicks])]
@@ -113,14 +140,14 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
     const text = tick.querySelector('text')
     const line = tick.querySelector('line')
     if (!text || !line) return
-    const box = textBox(text)
+    const textBounds = box(text)
     labels.forEach((other) => {
       if (text.getAttribute('display') === 'none') return
       if (other.getAttribute('display') === 'none') return
       if (other.parentElement?.matches('[data-minimum-tick], [data-maximum-tick]')) return
       if (!tick.hasAttribute('data-minimum-tick') && other.hasAttribute('data-axis-minimum-label'))
         return
-      if (labelsOverlap(box, textBox(other))) hide(other)
+      if (labelsOverlap(textBounds, box(other))) hide(other)
     })
     const axis = tick.parentElement!
     const value = Number(tick.getAttribute('data-tick-value'))
@@ -134,8 +161,8 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
           linesOverlap(
             position,
             Number(other.getAttribute('data-tick-y')),
-            strokeWidth(line),
-            strokeWidth(otherLine),
+            width(line),
+            width(otherLine),
           )
         )
           hide(otherLine)
@@ -145,12 +172,12 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
     const track = axis.closest('.waveform-track')!
     track.querySelectorAll('[data-grid-direction="horizontal"]').forEach((gridLine) => {
       const gridY = Number(gridLine.getAttribute('y1'))
-      if (linesOverlap(position, gridY, strokeWidth(line), strokeWidth(gridLine))) hide(gridLine)
+      if (linesOverlap(position, gridY, width(line), width(gridLine))) hide(gridLine)
     })
     if (tick.hasAttribute('data-maximum-tick'))
-      tick.setAttribute('data-maximum-value', String(value))
+      updateSvgAttribute(tick, 'data-maximum-value', value)
     if (tick.hasAttribute('data-minimum-tick'))
-      tick.setAttribute('data-minimum-value', String(value))
+      updateSvgAttribute(tick, 'data-minimum-value', value)
   })
   formatCompactLabels(svg)
 }

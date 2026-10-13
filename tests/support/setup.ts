@@ -1,4 +1,5 @@
-import { beforeEach, vi } from 'vitest'
+import { afterEach, beforeEach, vi } from 'vitest'
+import { globalAnimator } from '@/animation/core/Animator'
 
 interface ResizeObserverEntryMock {
   target: Element
@@ -80,3 +81,6 @@ export function flushAnimationFrames(timestamp = 0) {
 export function pendingAnimationFrameCount(): number {
   return animationFrameCallbacks.size
 }
+
+// Default-on chart animations must not leak shared work between test cases.
+afterEach(() => globalAnimator.destroy())

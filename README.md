@@ -85,50 +85,238 @@ const data = ref<WaveformData>({
 父容器需要有明确高度；未指定 `width` 或 `height` 时，组件会填充父容器，并保持最小高度
 `180px`。`WaveformChart` 的正式入口为 `src/index.ts`，样式入口为 `waveform-analysis/style.css`。
 
+## 动画
+
+动画默认开启：系列整体入场 1000ms（cubicInOut），多系列交错 100ms，数据更新和标注
+300ms。这改变首次完整显示和替换数据的时机；需要即时画面时关闭：
+
+```vue
+<WaveformChart :data="data" :animation-enabled="false" />
+```
+
+五个 props 为 `animationEnabled`、`animation`、`animationUpdate`、`animationAnnotation`、
+`animationThreshold`。三个配置对象按字段合并，`undefined` 使用默认，`0` 和 `false` 保留。
+非法组件字段回退并在开发环境告警；底层引擎非法配置则在注册前抛错。
+
+```vue
+<WaveformChart
+  :data="data"
+  :animation="{
+    enabled: true,
+    duration: 800,
+    delay: 100,
+    staggerDelay: 50,
+    direction: 'center-out',
+  }"
+  :animation-update="{ enabled: true, duration: 300, easing: 'cubicInOut' }"
+  :animation-annotation="{ enabled: true, type: 'bounce' }"
+  :animation-threshold="50000"
+/>
+```
+
+入场支持 `left-to-right`、`right-to-left`、`center-out`；标注支持 `fade-in`、`scale`（默认）、
+`slide-in`、`bounce`。标注效果的默认 easing 分别为 cubicOut、backOut、cubicOut、bounceOut，
+可显式覆盖。分类 `enabled: false` 只结束该类，恢复不重播；运行中修改时长/效果只影响
+下次任务。`duration: 0` 同步到终态并忽略该阶段的延迟/交错。
+
+总有效规范化点数 **>= threshold** 时静态，默认 threshold=50000，0 始终静态。
+计数包括隐藏及非当前页系列，通过 source.length 读取，不按采样点数计算。
+系统减少动态效果、缺少 RAF 或导出期间同样静态。页面后台暂停，返回扣除后台时间。
+
+替换 `data` 引用后，成功采样的兼容 X/线型/点型/误差结构进行数值插值；结构不兼容时
+整体交叉淡化，第三份几何需求直接落到最新目标。失败/回退采样静态展示已有后端策略结果。
+动画只改独立展示状态：原始数据、秒坐标、完整数据查询和受控 annotations 不受改写。
+交互、视口命令、布局变化及 PNG/SVG 导出先提交最新最终态；导出不等待无限动画，仍遵守
+原有 busy/stale/cancelled/timeout 错误契约和 5 秒上限。Demo `#/animation` 提供分类和效果控制。
+
+### 高级数值引擎
+
+根入口导出 `Animation`、`Animator`、`globalAnimator`、`WaveformAnimationController`、
+所有配置/轨道/帧/句柄/调度器/预设类型，以及六个纯预设工厂。无需 D3 selection 或深路径导入。
+`Animator` 和控制器的终态句柄保留 ID/状态；重复控制调用无操作，句柄不再持有任务、轨道目标或调度器。
+模块导入不启动 RAF，SSR 中没有 RAF 时直接完成；注入 `AnimationScheduler` 可控制时钟、RAF、定时器。
+
+```ts
+import { Animation, Animator, getEasingFunction } from 'waveform-analysis'
+
+const target = {
+  x: 0,
+  coordinates: [
+    [0, 1],
+    [1, 2],
+  ],
+}
+const animator = new Animator()
+const handle = animator.animate({
+  duration: 1000,
+  delay: 100,
+  direction: 'alternate',
+  loop: 2,
+  easing: 'quadInOut',
+  tracks: [{ target, property: 'x', to: 10 }],
+  during: (progress, frame) => console.log(progress, frame.iteration, frame.terminal),
+  done: () => console.log('完成'),
+  aborted: () => console.log('中止'),
+  onError: (error) => console.error(error),
+})
+handle.pause()
+handle.resume()
+handle.finish() // 方向决定最后迭代终点；abort() 保留当前值
+animator.pauseAll()
+animator.resumeAll()
+animator.clear()
+animator.destroy()
+
+// 累加只允许一次播放及兼容数值形状；to 表示期望的新合成目标。
+animator.animate({ tracks: [{ target, property: 'x', to: 12 }], additive: true })
+const manual = new Animation({ force: true, loop: true, during: () => {} })
+manual.start(0)
+manual.tick(500)
+manual.pause(500)
+manual.resume(800)
+manual.finish()
+getEasingFunction('quartIn')(0.5) // 0.0625
+```
+
+轨道接受 number、number[]、number[][]，数组每帧替换，不原地改写输入；普通轨道冲突整体
+中止旧任务并从当前合成值接续，累加贡献完成/中止后固定，不逐帧漂移。`loop: true` 无限，
+数字为正整数，方向还支持 normal/reverse/alternate-reverse。`force: true` 让无变化或空轨道计时，
+不能绕过组件禁用策略。31 个缓动是 linear 加 quad/cubic/quart/quint/sine/expo/circ/back/elastic/bounce
+的 In/Out/InOut，来自 D3，也支持自定义函数。回弹可越界，域/opacity/裁剪各自安全限幅。
+
+### 纯预设与 owner 控制器
+
+工厂只构造配置，注册事务成功后才初始化；零时长跳过隐藏初态。绑定只读写数值状态：
+
+路径预设在构造时快照 `from`、`to` 和 `compatible`。修改传入对象不会改变已构造配置的
+端点或过渡模式；下一次构造配置时才使用新值。
+
+```ts
+import {
+  Animator,
+  WaveformAnimationController,
+  createLineDrawingAnimation,
+  createStaggeredLineDrawingAnimations,
+  createPathTransitionAnimation,
+  createYAxisScaleAnimation,
+  createAnnotationAppearAnimation,
+  createAnnotationDisappearAnimation,
+} from 'waveform-analysis'
+import type { AnnotationAnimationState, ClipAnimationState } from 'waveform-analysis'
+
+let clip: ClipAnimationState = { x: 0, width: 100 }
+const clipBinding = {
+  read: () => clip,
+  write: (value: ClipAnimationState) => {
+    clip = value
+  },
+}
+let style: AnnotationAnimationState = { opacity: 1, scale: 1, offsetY: 0 }
+const styleBinding = {
+  read: () => style,
+  write: (value: AnnotationAnimationState) => {
+    style = value
+  },
+}
+let domain: [number, number] = [0, 100]
+const domainBinding = {
+  read: () => domain,
+  write: (value: [number, number]) => {
+    domain = value
+  },
+}
+const animator = new Animator()
+animator.animate(createLineDrawingAnimation(clipBinding, 100))
+createStaggeredLineDrawingAnimations([{ binding: clipBinding, width: 100 }], { staggerDelay: 50 })
+animator.animate(
+  createPathTransitionAnimation(
+    {
+      from: { points: [[0, 1]] },
+      to: { points: [[0, 2]] },
+      compatible: true,
+    },
+    (frame) => {
+      if (frame.kind === 'settled') console.log(frame.values) // 释放旧几何后再通知完成
+    },
+  ),
+)
+animator.animate(createYAxisScaleAnimation(domainBinding, [49, 51], { easing: 'backOut' }))
+animator.animate(createAnnotationAppearAnimation(styleBinding, { type: 'scale' }))
+animator.animate(createAnnotationDisappearAnimation(styleBinding, { type: 'fade-in' }))
+
+const controller = new WaveformAnimationController({
+  animator,
+  commitFinalState: () => {
+    clip = { x: 0, width: 100 }
+  },
+})
+controller.animateSeriesEnter('signal', clipBinding, 100)
+controller.animateAnnotationAppear('note', styleBinding)
+controller.pauseAll()
+controller.resumeAll()
+controller.cancel({ kind: 'annotation', id: 'note', scope: 'enter' })
+controller.finishAll() // 移除 owner 任务，提交最新业务目标，然后通知 done
+controller.destroy() // 仅清理此 owner，不销毁共享 animator
+```
+
+控制器还提供 `animateMultiSeriesEnter`、`animateDataUpdate`、`animateYAxisScale`、
+`animateAnnotationDisappear`、通用 `animate(key, config)`、`cancelAll`、`setEnabled` 和
+`getActiveAnimationCount`。key 包含对象 kind/id/scope；不同控制器同 ID 隔离。
+批量结束期间同 owner 重入创建抛 `animation-terminating`；销毁后抛 `animation-disposed`。
+完成通知可同步读取最终展示数据，DOM 查询需要 `await nextTick()`。
+
+真实浏览器基准运行 `pnpm test:animation:browser`（首次需 `pnpm exec playwright install chromium`），
+输出 OpenSpec evidence 目录。FPS/内存/gzip 是实测优化目标，不能由 jsdom 测试证明，
+跨浏览器和移动设备结论只覆盖实际可用环境。
+大点数更新和交叉淡化可能增加浏览器物理内存；原 10/20MB 优化目标尚未达到。
+对内存敏感的应用可降低 `animationThreshold` 或关闭对应动画类别；卸载清理与几何数量限制
+不等于跨设备的绝对内存上限。实际测量及验收条件见
+[动画验收记录](openspec/changes/add-animation-system/evidence/final-acceptance-verification.json)。
+
 ## API 速查
 
 ### Props
 
-| Prop                       | 类型                                                            | 默认值                                                                                | 说明                                          |
-| -------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `data`                     | `WaveformData`                                                  | 必填                                                                                  | 波形数据                                      |
-| `displayMode`              | `'independent' \| 'separated' \| 'compact'`                     | `'independent'`                                                                       | 图框布局                                      |
-| `overlayMode`              | `'single-axis' \| 'multi-axis'`                                 | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
-| `layoutPreset`             | `'default' \| 'edge-compact'`                                   | `'default'`                                                                           | 标题贴边、时间标签与响应式分页布局            |
+| Prop                       | 类型                                                                               | 默认值                                                                                | 说明                                          |
+| -------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `data`                     | `WaveformData`                                                                     | 必填                                                                                  | 波形数据                                      |
+| `displayMode`              | `'independent' \| 'separated' \| 'compact'`                                        | `'independent'`                                                                       | 图框布局                                      |
+| `overlayMode`              | `'single-axis' \| 'multi-axis'`                                                    | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
+| `layoutPreset`             | `'default' \| 'edge-compact'`                                                      | `'default'`                                                                           | 标题贴边、时间标签与响应式分页布局            |
 | `unitDisplayMode`          | `'axis' \| 'legend-single-series' \| 'channel-label' \| 'channel-label-or-legend'` | `'axis'`                                                                              | 可选的图表级单位展示规则                      |
-| `timeUnit`                 | `'s' \| 'ms'`                                                   | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
-| `xLabel` / `yLabel`        | `string`                                                        | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
-| `lineColor`                | `string`                                                        | `'#0960bd'`                                                                           | 单波形默认颜色                                |
-| `width` / `height`         | `number`                                                        | 自适应                                                                                | 组件总尺寸，单位为 CSS 像素                   |
-| `zoomable` / `showTooltip` | `boolean`                                                       | `true` / `true`                                                                       | 缩放和数值 tooltip 开关                       |
-| `pannable`                 | `boolean`                                                       | `false`                                                                               | 空格拖拽平移开关                              |
-| `panXDomain`               | `[number, number]`                                              | 未设置                                                                                | 远端横向平移边界，使用秒坐标                  |
-| `minZoomSpan`              | `number`                                                        | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
-| `integerZoom`              | `boolean`                                                       | `false`                                                                               | 缩放范围按 X 轴显示单位对齐整数               |
-| `minVisiblePoints`         | `number`                                                        | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
-| `maxZoomScale`             | `number \| null`                                                | 未设置                                                                                | 最大缩放倍数；`null` 表示不限制               |
-| `initialXDomain`           | `[number, number]`                                              | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
-| `initialXDomains`          | `Record<string, [number, number]>`                              | 未设置                                                                                | 按 track/series ID 配置初始范围（可超出数据） |
-| `xDomainStrategy`          | `WaveformXDomainStrategy`                                       | `{ type: 'integer-ms' }`                                                              | 自动 X 轴视口范围策略                         |
-| `yDomain`                  | `[number, number]`                                              | 未设置                                                                                | 所有波形的固定 Y 轴范围                       |
-| `yDomains`                 | `Record<string, [number, number]>`                              | 未设置                                                                                | 按 track/series ID 配置固定范围               |
-| `grid`                     | `WaveformGridOptions`                                           | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
-| `axes`                     | `WaveformAxesOptions`                                           | 轴线均显示                                                                            | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
-| `rendering`                | `WaveformRenderingOptions`                                      | `{}`                                                                                  | 降采样与点/误差棒间距                         |
-| `plotMargin`               | `WaveformPlotMargin`                                            | `{ top: 18, bottom: 52 }`                                                             | 绘图区上下边距，单位为 CSS 像素               |
-| `title` / `frameStyle`     | 对应公开类型                                                    | 未设置                                                                                | 标题和图框样式                                |
-| `legend`                   | `WaveformLegendOptions`                                         | `{ position: 'top-right', orientation: 'auto' }`                                      | 图例位置、排列、背景和交互                    |
-| `frameNumber`              | `string \| number`                                              | 未设置                                                                                | 图框水印内容                                  |
-| `frameNumbers`             | `Record<string, string \| number>`                              | 未设置                                                                                | 按 `trackId` 覆盖图框水印内容                 |
-| `zeroLine`                 | `WaveformZeroLineOptions`                                       | `{ visible: false }`                                                                  | 零值参考线显隐与样式                          |
-| `cleanView`                | `boolean`                                                       | `false`                                                                               | 保留波形、图框和刻度的净图模式                |
-| `presentationMode`         | `boolean`                                                       | `false`                                                                               | 禁用绘图区交互的展示模式                      |
-| `annotations`              | `WaveformAnnotation[]`                                          | `[]`                                                                                  | 受控标注数据                                  |
-| `annotationsVisible`       | `boolean`                                                       | `true`                                                                                | 标注图层显隐                                  |
-| `interactionMode`          | `'zoom' \| 'pan' \| 'annotation' \| 'none'`                     | `'zoom'`                                                                              | 左键模式；传入时由宿主控制                    |
-| `hiddenSeriesIds`          | `string[]`                                                      | 未设置                                                                                | 受控隐藏系列 ID                               |
-| `defaultHiddenSeriesIds`   | `string[]`                                                      | `[]`                                                                                  | 非受控模式的初始隐藏系列                      |
-| `toolbar`                  | `boolean \| WaveformToolbarOptions`                             | `false`                                                                               | 内置工具栏配置                                |
+| `timeUnit`                 | `'s' \| 'ms'`                                                                      | `'ms'`                                                                                | 坐标轴和 tooltip 展示单位                     |
+| `xLabel` / `yLabel`        | `string`                                                                           | `时间（timeUnit）` / `'幅值'`                                                         | 坐标轴名称                                    |
+| `lineColor`                | `string`                                                                           | `'#0960bd'`                                                                           | 单波形默认颜色                                |
+| `width` / `height`         | `number`                                                                           | 自适应                                                                                | 组件总尺寸，单位为 CSS 像素                   |
+| `zoomable` / `showTooltip` | `boolean`                                                                          | `true` / `true`                                                                       | 缩放和数值 tooltip 开关                       |
+| `pannable`                 | `boolean`                                                                          | `false`                                                                               | 空格拖拽平移开关                              |
+| `panXDomain`               | `[number, number]`                                                                 | 未设置                                                                                | 远端横向平移边界，使用秒坐标                  |
+| `minZoomSpan`              | `number`                                                                           | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
+| `integerZoom`              | `boolean`                                                                          | `false`                                                                               | 缩放范围按 X 轴显示单位对齐整数               |
+| `minVisiblePoints`         | `number`                                                                           | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
+| `maxZoomScale`             | `number \| null`                                                                   | 未设置                                                                                | 最大缩放倍数；`null` 表示不限制               |
+| `initialXDomain`           | `[number, number]`                                                                 | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
+| `initialXDomains`          | `Record<string, [number, number]>`                                                 | 未设置                                                                                | 按 track/series ID 配置初始范围（可超出数据） |
+| `xDomainStrategy`          | `WaveformXDomainStrategy`                                                          | `{ type: 'integer-ms' }`                                                              | 自动 X 轴视口范围策略                         |
+| `yDomain`                  | `[number, number]`                                                                 | 未设置                                                                                | 所有波形的固定 Y 轴范围                       |
+| `yDomains`                 | `Record<string, [number, number]>`                                                 | 未设置                                                                                | 按 track/series ID 配置固定范围               |
+| `grid`                     | `WaveformGridOptions`                                                              | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
+| `axes`                     | `WaveformAxesOptions`                                                              | 轴线均显示                                                                            | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
+| `rendering`                | `WaveformRenderingOptions`                                                         | `{}`                                                                                  | 降采样与点/误差棒间距                         |
+| `plotMargin`               | `WaveformPlotMargin`                                                               | `{ top: 18, bottom: 52 }`                                                             | 绘图区上下边距，单位为 CSS 像素               |
+| `title` / `frameStyle`     | 对应公开类型                                                                       | 未设置                                                                                | 标题和图框样式                                |
+| `legend`                   | `WaveformLegendOptions`                                                            | `{ position: 'top-right', orientation: 'auto' }`                                      | 图例位置、排列、背景和交互                    |
+| `frameNumber`              | `string \| number`                                                                 | 未设置                                                                                | 图框水印内容                                  |
+| `frameNumbers`             | `Record<string, string \| number>`                                                 | 未设置                                                                                | 按 `trackId` 覆盖图框水印内容                 |
+| `zeroLine`                 | `WaveformZeroLineOptions`                                                          | `{ visible: false }`                                                                  | 零值参考线显隐与样式                          |
+| `cleanView`                | `boolean`                                                                          | `false`                                                                               | 保留波形、图框和刻度的净图模式                |
+| `presentationMode`         | `boolean`                                                                          | `false`                                                                               | 禁用绘图区交互的展示模式                      |
+| `annotations`              | `WaveformAnnotation[]`                                                             | `[]`                                                                                  | 受控标注数据                                  |
+| `annotationsVisible`       | `boolean`                                                                          | `true`                                                                                | 标注图层显隐                                  |
+| `interactionMode`          | `'zoom' \| 'pan' \| 'annotation' \| 'none'`                                        | `'zoom'`                                                                              | 左键模式；传入时由宿主控制                    |
+| `hiddenSeriesIds`          | `string[]`                                                                         | 未设置                                                                                | 受控隐藏系列 ID                               |
+| `defaultHiddenSeriesIds`   | `string[]`                                                                         | `[]`                                                                                  | 非受控模式的初始隐藏系列                      |
+| `toolbar`                  | `boolean \| WaveformToolbarOptions`                                                | `false`                                                                               | 内置工具栏配置                                |
 
 所有公开类型均可从包入口导入，例如 `WaveformData`、`WaveformSeries`、`TypedSampleData`、
 `TypedPointData`、`WaveformAnnotation`、`WaveformLineStyle`、`WaveformRenderingOptions`、

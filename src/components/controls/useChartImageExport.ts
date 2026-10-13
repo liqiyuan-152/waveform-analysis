@@ -24,6 +24,8 @@ interface Context {
   size: () => { width: number; height: number; titleHeight: number }
   version: () => unknown
   ready: () => boolean
+  prepare?: () => void
+  release?: () => void
 }
 export function useChartImageExport(c: Context) {
   let busy = false
@@ -129,6 +131,7 @@ export function useChartImageExport(c: Context) {
       return png
     }
     try {
+      c.prepare?.()
       return await Promise.race([cancelled, generate()])
     } catch (error) {
       if (error instanceof Error && 'code' in error) throw error
@@ -149,6 +152,7 @@ export function useChartImageExport(c: Context) {
       }
       abort = undefined
       busy = false
+      c.release?.()
     }
   }
   return { exportImage }

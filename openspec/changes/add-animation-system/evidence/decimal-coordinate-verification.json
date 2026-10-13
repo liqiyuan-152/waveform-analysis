@@ -1,0 +1,164 @@
+{
+  "date": "2026-10-13",
+  "runtimeAdopted": false,
+  "publicApiChanged": false,
+  "retainedTests": 5,
+  "formalJsAllocation": "js-allocation-report.json",
+  "candidateJsAllocation": "js-allocation-decimal-report.json",
+  "independentArchiveReconciliation": "js-allocation-reconciliation.json",
+  "independentReconciliationExitCode": 0,
+  "profileScope": "one static/animated run per implementation; statistical cumulative sampled allocation including collected objects, not physical or retained peak; source-map non-map outputs byte-identical to each respective unmapped production build",
+  "candidateChecks": [
+    {
+      "command": "pnpm test pathCoordinateEncoding, geometry, presetsController",
+      "files": 3,
+      "tests": 55,
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm lint",
+      "exitCode": 0
+    },
+    {
+      "command": "pnpm check:file-length",
+      "exitCode": 0
+    }
+  ],
+  "physical": {
+    "report": "memory-decimal-coordinate-candidate.json",
+    "attribution": "memory-decimal-coordinate-candidate-attribution.json",
+    "strictAttributionExitCode": 0,
+    "errors": [],
+    "animationIncrementBytes": [43433984, 44974144, 58523840],
+    "observationMs": [2125, 2344, 2117, 2338, 2120, 2363],
+    "terminalTasks": [0, 0, 0, 0, 0, 0],
+    "twentyUnmountResources": [
+      {
+        "tasks": 0,
+        "elements": 0,
+        "maxActiveTasks": 0
+      },
+      {
+        "tasks": 0,
+        "elements": 0,
+        "maxActiveTasks": 8
+      },
+      {
+        "tasks": 0,
+        "elements": 0,
+        "maxActiveTasks": 0
+      },
+      {
+        "tasks": 0,
+        "elements": 0,
+        "maxActiveTasks": 8
+      },
+      {
+        "tasks": 0,
+        "elements": 0,
+        "maxActiveTasks": 0
+      },
+      {
+        "tasks": 0,
+        "elements": 0,
+        "maxActiveTasks": 8
+      }
+    ],
+    "budgetBytes": 10000000,
+    "limitation": "discrete after-mount samples exclude during-mount/inter-sample true maximum; GC retention is separately recorded, not budget substitute"
+  },
+  "gzip": {
+    "report": "gzip-decimal-coordinate-candidate.json",
+    "formal": [
+      {
+        "file": "index.js",
+        "beforeBytes": 156610,
+        "afterBytes": 168621,
+        "deltaBytes": 12011
+      },
+      {
+        "file": "index.cjs",
+        "beforeBytes": 157126,
+        "afterBytes": 168958,
+        "deltaBytes": 11832
+      }
+    ],
+    "candidate": [
+      {
+        "file": "index.js",
+        "beforeBytes": 156610,
+        "afterBytes": 168778,
+        "deltaBytes": 12168
+      },
+      {
+        "file": "index.cjs",
+        "beforeBytes": 157126,
+        "afterBytes": 169106,
+        "deltaBytes": 11980
+      }
+    ],
+    "sameRunOutputChange": [
+      {
+        "file": "index.js",
+        "beforeBytes": 168621,
+        "afterBytes": 168778,
+        "deltaBytes": 157
+      },
+      {
+        "file": "index.cjs",
+        "beforeBytes": 168958,
+        "afterBytes": 169106,
+        "deltaBytes": 148
+      }
+    ]
+  },
+  "rejectedReason": "All 3 physical pairs exceed 10MB, no physical improvement established; candidate complete gzip grows 157/148 bytes despite less cumulative sampled JS String allocation. Runtime restored byte-for-byte.",
+  "restoredRelated": {
+    "files": 5,
+    "tests": 65,
+    "exitCode": 0
+  },
+  "candidateChecksNotRun": [
+    "full coverage",
+    "package consumption",
+    "full FPS",
+    "native Safari/Demo",
+    "mobile",
+    "full physical matrix"
+  ],
+  "budgetTasksCompleted": false,
+  "remainingTasks": ["10.4", "10.5", "10.7"],
+  "nativeMobile": "deferred by user",
+  "restoredValidation": {
+    "coverage": {
+      "files": 135,
+      "tests": 1104,
+      "exitCode": 0,
+      "percent": {
+        "lines": 93.51,
+        "statements": 91.57,
+        "functions": 92.81,
+        "branches": 86.47
+      }
+    },
+    "typecheckExitCode": 0,
+    "lintExitCode": 0,
+    "fileLengthExitCode": 0
+  },
+  "handoff": {
+    "openspecStrictExitCode": 0,
+    "openspecStatusExitCode": 0,
+    "formatExitCode": 0,
+    "gitDiffCheckExitCode": 0,
+    "statusMeaning": "4/4 planning artifacts only",
+    "restoredByteForByte": ["src/components/animation/pathBuffer.ts"],
+    "onlyGeneratedTrackedWasmRestored": true,
+    "restoredBuildInputSha256": "8050329df79b38bc09744f1989c8baee1b1d56dfb918803f425652902a9f024c",
+    "committed": false,
+    "published": false
+  }
+}

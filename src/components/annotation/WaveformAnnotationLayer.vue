@@ -84,7 +84,7 @@ function scheduleDragFrame() {
 }
 
 function handlePointerDown(rendered: RenderedAnnotation, event: PointerEvent) {
-  if (!props.interactive || event.button !== 0 || dragState) return
+  if (rendered.leaving || !props.interactive || event.button !== 0 || dragState) return
   event.preventDefault()
   event.stopPropagation()
   const target = event.currentTarget as SVGGElement | null
@@ -226,6 +226,14 @@ function handleContextMenu(annotationId: string, event: MouseEvent) {
   emit('contextmenu', annotationId, event)
 }
 
+function labelTransform(rendered: RenderedAnnotation) {
+  const style = rendered.animationStyle
+  if (!style) return undefined
+  const box = draggedBox(rendered),
+    x = box.x + box.width / 2,
+    y = box.y + box.height / 2
+  return `translate(${x},${y + style.offsetY}) scale(${style.scale}) translate(${-x},${-y})`
+}
 function markerId(annotationId: string) {
   return `waveform-annotation-arrow-${annotationId.replace(/[^a-zA-Z0-9_-]/g, '-')}`
 }
@@ -243,6 +251,9 @@ function markerId(annotationId: string) {
       class="waveform-annotation"
       :data-annotation-id="rendered.annotation.id"
       :data-placement="rendered.placement"
+      :data-leaving="rendered.leaving || undefined"
+      :style="rendered.leaving ? { pointerEvents: 'none' } : undefined"
+      :opacity="(rendered.animationStyle?.opacity ?? 1) * (rendered.seriesOpacity ?? 1)"
       @pointerdown="handlePointerDown(rendered, $event)"
       @pointermove="handlePointerMove"
       @pointerup="finishPointerDrag"
@@ -271,37 +282,39 @@ function markerId(annotationId: string) {
         :stroke="rendered.style.borderColor"
         :marker-end="`url(#${markerId(rendered.annotation.id)})`"
       />
-      <rect
-        class="waveform-annotation__box"
-        :x="draggedBox(rendered).x"
-        :y="draggedBox(rendered).y"
-        :width="draggedBox(rendered).width"
-        :height="draggedBox(rendered).height"
-        :fill="rendered.style.backgroundColor"
-        :stroke="rendered.style.borderColor"
-      />
-      <text
-        class="waveform-annotation__text"
-        :x="draggedBox(rendered).x + draggedBox(rendered).width / 2"
-        :y="
-          draggedBox(rendered).y +
-          draggedBox(rendered).height / 2 -
-          ((rendered.lines.length - 1) * ANNOTATION_TEXT_LINE_HEIGHT) / 2
-        "
-        :fill="rendered.style.textColor"
-        :style="{ font: ANNOTATION_TEXT_FONT }"
-        text-anchor="middle"
-        dominant-baseline="central"
-      >
-        <tspan
-          v-for="(line, index) in rendered.lines"
-          :key="`${rendered.annotation.id}-${index}`"
+      <g :transform="labelTransform(rendered)">
+        <rect
+          class="waveform-annotation__box"
+          :x="draggedBox(rendered).x"
+          :y="draggedBox(rendered).y"
+          :width="draggedBox(rendered).width"
+          :height="draggedBox(rendered).height"
+          :fill="rendered.style.backgroundColor"
+          :stroke="rendered.style.borderColor"
+        />
+        <text
+          class="waveform-annotation__text"
           :x="draggedBox(rendered).x + draggedBox(rendered).width / 2"
-          :dy="index === 0 ? 0 : ANNOTATION_TEXT_LINE_HEIGHT"
+          :y="
+            draggedBox(rendered).y +
+            draggedBox(rendered).height / 2 -
+            ((rendered.lines.length - 1) * ANNOTATION_TEXT_LINE_HEIGHT) / 2
+          "
+          :fill="rendered.style.textColor"
+          :style="{ font: ANNOTATION_TEXT_FONT }"
+          text-anchor="middle"
+          dominant-baseline="central"
         >
-          {{ line }}
-        </tspan>
-      </text>
+          <tspan
+            v-for="(line, index) in rendered.lines"
+            :key="`${rendered.annotation.id}-${index}`"
+            :x="draggedBox(rendered).x + draggedBox(rendered).width / 2"
+            :dy="index === 0 ? 0 : ANNOTATION_TEXT_LINE_HEIGHT"
+          >
+            {{ line }}
+          </tspan>
+        </text>
+      </g>
     </g>
   </g>
 </template>

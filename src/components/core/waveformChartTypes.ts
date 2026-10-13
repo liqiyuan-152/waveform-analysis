@@ -1,3 +1,4 @@
+import type { WaveformAnimationProps } from '../../animation/types'
 import type { WaveformToolbarOptions, WaveformControlState } from '../../types/controls'
 import type {
   WaveformAnnotation,
@@ -26,7 +27,7 @@ import type {
 } from '../data/types'
 import type { WaveformGridOptions } from './grid'
 
-export interface WaveformChartProps {
+export interface WaveformChartProps extends WaveformAnimationProps {
   toolbar?: boolean | WaveformToolbarOptions
   data: WaveformData
   displayMode?: WaveformDisplayMode

@@ -168,7 +168,7 @@ describe('WaveformChart', () => {
           { x: 1, y: 5 },
         ],
       },
-      { grid: { rowCount: 1, columnCount: 1 } },
+      { grid: { rowCount: 1, columnCount: 1 }, animationEnabled: false },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const overlayWidth = Number(overlay.attributes('width'))
@@ -203,7 +203,7 @@ describe('WaveformChart', () => {
           { x: 1, y: 5 },
         ],
       },
-      { grid: { rowCount: 1, columnCount: 1 } },
+      { grid: { rowCount: 1, columnCount: 1 }, animationEnabled: false },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const overlayWidth = Number(overlay.attributes('width'))
@@ -275,7 +275,7 @@ describe('WaveformChart', () => {
           { x: 1, y: 5 },
         ],
       },
-      { grid: { rowCount: 1, columnCount: 1 } },
+      { grid: { rowCount: 1, columnCount: 1 }, animationEnabled: false },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const overlayWidth = Number(overlay.attributes('width'))
@@ -327,7 +327,7 @@ describe('WaveformChart', () => {
           { x: 1, y: 5 },
         ],
       },
-      { grid: { rowCount: 1, columnCount: 1 } },
+      { grid: { rowCount: 1, columnCount: 1 }, animationEnabled: false },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const overlayWidth = Number(overlay.attributes('width'))

@@ -1,4 +1,6 @@
-import { chartExportOptions } from '../controls/chartExportOptions'
+import { assignElement } from '../utils/assignElement'
+import { chartExportVersion } from '../animation/chartExportVersion'
+import { useWaveformAnimations } from '../animation/useWaveformAnimations'
 import { useChartImageExport } from '../controls/useChartImageExport'
 import { useControlMode } from '../controls/useControlMode'
 import { useChartCommands } from '../controls/useChartCommands'
@@ -16,7 +18,6 @@ import {
   watch,
   watchEffect,
   type ComponentPublicInstance,
-  type Ref,
 } from 'vue'
 
 import { useWaveformInstanceId } from '../../utils/waveformId'
@@ -41,13 +42,6 @@ import type {
   ViewportSelectionState,
   WaveformChartEmit,
 } from './waveformChartTypes'
-
-function assignElement<T extends Element>(
-  target: Ref<T | undefined>,
-  element: Element | ComponentPublicInstance | null,
-) {
-  target.value = element instanceof Element ? (element as T) : undefined
-}
 
 export function useWaveformChartController(
   inputProps: ResolvedWaveformChartProps,
@@ -187,6 +181,15 @@ export function useWaveformChartController(
     linePointOverrides,
   })
 
+  const animations = useWaveformAnimations({
+    props,
+    layoutReady: computed(() => observedWidth.value > 0 && observedHeight.value > 0),
+    tracks: trackLayouts,
+    preparedSeries,
+    innerWidth,
+    innerHeight: presentation.innerHeight,
+    sampling,
+  })
   const paginationVisible = computed(
     () => gridOptions.value.showPagination && pageCount.value > 1 && !isCleanView.value,
   )
@@ -389,10 +392,8 @@ export function useWaveformChartController(
       height: chartHeight.value,
       titleHeight: titleAreaHeight.value,
     }),
-    version: () => [
-      props.data,
-      JSON.stringify({
-        ...chartExportOptions(props),
+    version: () =>
+      chartExportVersion(props, {
         hidden: [...hiddenSeriesIdSet.value],
         width: chartWidth.value,
         height: chartHeight.value,
@@ -404,7 +405,8 @@ export function useWaveformChartController(
         independentY: independentYDomains.value,
         boundaries: boundaries.value,
       }),
-    ],
+    prepare: animations.prepareExport,
+    release: animations.releaseExport,
     ready: sampling.ready,
   })
 
@@ -418,7 +420,10 @@ export function useWaveformChartController(
     ...annotations,
     ...viewport,
     ...hover,
-    ...commands,
+    ...animations.wrap(commands),
+    presentationTracks: animations.presentationTracks,
+    presentationAnnotations: animations.presentationAnnotations,
+    stabilizeAnimations: animations.stabilizeAnimations,
     ...imageExport,
     margin,
     getPageSize,
@@ -442,5 +447,4 @@ export function useWaveformChartController(
       assignElement(sharedOverlayElement, element),
   })
 }
-
 export type WaveformChartController = ReturnType<typeof useWaveformChartController>

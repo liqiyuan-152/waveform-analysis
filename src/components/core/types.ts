@@ -47,6 +47,10 @@ export interface DisplayTrack {
 export interface TrackSeriesPath {
   series: DisplaySeries
   path: string | null
+  lineRenderPoints?: WaveformPoint[]
+  presentationKey?: string
+  opacity?: number
+  animationClip?: { id: string; x: number; width: number }
   pointRenderPoints: WaveformPoint[]
   errorBarRenderPoints: WaveformPoint[]
   yScale: ScaleLinear<number, number>
