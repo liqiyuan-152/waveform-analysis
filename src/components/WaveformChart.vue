@@ -8,6 +8,7 @@ import type {
 import WaveformChartView from './WaveformChartView.vue'
 
 const props = withDefaults(defineProps<WaveformChartProps>(), {
+  animationEnabled: true,
   displayMode: 'independent',
   overlayMode: 'single-axis',
   unitDisplayMode: 'axis',

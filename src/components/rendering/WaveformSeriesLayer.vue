@@ -51,11 +51,22 @@ const renderedSeriesPaths = computed<RenderedSeriesPath[]>(() =>
   >
     <g
       v-for="seriesPath in renderedSeriesPaths"
-      :key="seriesPath.series.id"
+      :key="seriesPath.presentationKey ?? seriesPath.series.id"
+      :opacity="seriesPath.opacity"
+      :clip-path="seriesPath.animationClip ? `url(#${seriesPath.animationClip.id})` : undefined"
       class="waveform-track__series-item waveform-chart__series"
       :data-series-id="seriesPath.series.id"
       :data-series-name="seriesPath.series.name || undefined"
     >
+      <defs v-if="seriesPath.animationClip">
+        <clipPath :id="seriesPath.animationClip.id" clipPathUnits="userSpaceOnUse">
+          <rect
+            :x="seriesPath.animationClip.x"
+            :width="seriesPath.animationClip.width"
+            :height="track.height"
+          />
+        </clipPath>
+      </defs>
       <path
         v-if="seriesPath.path"
         class="waveform-track__line waveform-chart__line"

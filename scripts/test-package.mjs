@@ -9,6 +9,7 @@ import {
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { build } from 'vite'
 
 const pnpmCli = process.env.npm_execpath
 if (!pnpmCli || !basename(pnpmCli).startsWith('pnpm')) {
@@ -84,6 +85,14 @@ writeFileSync(
   join(consumerRoot, 'index.ts'),
   `import {
   normalizeWaveformData,
+  getEasingFunction,
+  type AnimationConfig,
+  type AnimationScheduler,
+  type AnimationHandle,
+  type Animator,
+  type WaveformAnimationProps,
+  type WaveformAnimationControllerOptions,
+  type GeometryTransitionFrame,
   type WasmSamplingRequest,
   type WaveformData,
   type WaveformAxesOptions,
@@ -107,6 +116,21 @@ function verifyControls(chart: WaveformChartHandle) {
   return { oldReset, oldSet, result, reset, image, toolbar, payload }
 }
 void verifyControls
+const animation: AnimationConfig = {
+  tracks: [{ target: { x: [0, 1] }, property: 'x', to: [1, 2] }],
+  easing: 'quartInOut',
+  during: (_, frame) => { const terminal: boolean = frame.terminal; void terminal },
+}
+const animationProps: WaveformAnimationProps = { animation: { enabled: false } }
+const settled: GeometryTransitionFrame = { kind: 'settled', values: { x: [1, 2] } }
+function verifyAnimation(animator: Animator, scheduler: AnimationScheduler) {
+  const handle: AnimationHandle = animator.animate(animation)
+  const options: WaveformAnimationControllerOptions = { animator, commitFinalState: () => {} }
+  scheduler.setTimer(() => handle.finish(), 0)
+  return { options, settled, animationProps }
+}
+void verifyAnimation
+getEasingFunction('quintIn')(0.5)
 const axes: WaveformAxesOptions = { y: { nice: false, maximumTickVisible: true, minimumTickVisible: false, upperPaddingEnabled: true, lowerPaddingEnabled: true, upperPaddingRatio: 0.1, lowerPaddingRatio: 0.1 } }
 const legacyAxes: WaveformAxesOptions = { y: { upperPaddingRatio: 0.1 } }
 void axes
@@ -123,16 +147,34 @@ normalizeWaveformData(data)
 void request
 `,
 )
+writeFileSync(
+  join(consumerRoot, 'animation.ts'),
+  readFileSync(new URL('./package-animation-consumer.ts', import.meta.url)),
+)
 runPnpm(['exec', 'tsc', '--project', 'tsconfig.json'], temporaryRoot)
 
 writeFileSync(
   join(consumerRoot, 'esm.mjs'),
-  "import { normalizeWaveformData } from 'waveform-analysis'\nnormalizeWaveformData({ kind: 'samples', values: [1], sampleRate: 1 })\n",
+  "import { normalizeWaveformData, getEasingFunction } from 'waveform-analysis'\nnormalizeWaveformData({ kind: 'samples', values: [1], sampleRate: 1 })\nif (getEasingFunction('quartIn')(0.5) !== 0.0625) throw new Error('Invalid ESM easing export')\n",
 )
 writeFileSync(
   join(consumerRoot, 'cjs.cjs'),
-  "const { normalizeWaveformData } = require('waveform-analysis')\nnormalizeWaveformData({ kind: 'samples', values: [1], sampleRate: 1 })\n",
+  "const { normalizeWaveformData, getEasingFunction } = require('waveform-analysis')\nnormalizeWaveformData({ kind: 'samples', values: [1], sampleRate: 1 })\nif (getEasingFunction('quintIn')(0.5) !== 0.03125) throw new Error('Invalid CJS easing export')\n",
 )
+writeFileSync(
+  join(consumerRoot, 'verify-animation.mjs'),
+  readFileSync(new URL('./package-animation-runtime.mjs', import.meta.url)),
+)
+writeFileSync(
+  join(consumerRoot, 'animation-esm.mjs'),
+  "import * as api from 'waveform-analysis'\nimport { verifyAnimationExports } from './verify-animation.mjs'\nverifyAnimationExports(api)\n",
+)
+writeFileSync(
+  join(consumerRoot, 'animation-cjs.cjs'),
+  "import('./verify-animation.mjs').then(({ verifyAnimationExports }) => verifyAnimationExports(require('waveform-analysis')))\n",
+)
+runPnpm(['exec', 'node', 'consumer/animation-esm.mjs'], temporaryRoot)
+runPnpm(['exec', 'node', 'consumer/animation-cjs.cjs'], temporaryRoot)
 runPnpm(['exec', 'node', 'consumer/esm.mjs'], temporaryRoot)
 runPnpm(['exec', 'node', 'consumer/cjs.cjs'], temporaryRoot)
 
@@ -141,3 +183,28 @@ const manifest = JSON.parse(
 )
 if (manifest.name !== 'waveform-analysis')
   throw new Error('Consumer installed an unexpected package.')
+
+// Validate the packed ESM's pure annotations, not just the source tree's tree shaking.
+const shakeEntry = join(consumerRoot, 'shake.mjs')
+writeFileSync(
+  shakeEntry,
+  "import { getEasingFunction } from 'waveform-analysis'\nconsole.log(getEasingFunction('linear')(0.5))\n",
+)
+const shaken = await build({
+  configFile: false,
+  build: {
+    write: false,
+    minify: false,
+    lib: { entry: shakeEntry, formats: ['es'] },
+    rolldownOptions: { external: ['d3', 'vue', 'ant-design-vue', 'vue3-colorpicker'] },
+  },
+})
+const shakeCode = shaken[0].output
+  .filter((chunk) => chunk.type === 'chunk')
+  .map((chunk) => chunk.code)
+  .join('')
+if (
+  shakeCode.includes('waveform-chart__') ||
+  /from\s*['"](?:vue|ant-design-vue)['"]/.test(shakeCode)
+)
+  throw new Error('Packed easing consumer retained chart code or UI peers; pure annotations lost.')

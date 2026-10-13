@@ -103,6 +103,7 @@ function errorPayload(
 }
 
 export function useWaveformRenderSampling(context: SamplingContext) {
+  const resultState = shallowRef<'success' | 'fallback' | 'error'>('success')
   const settledSignature = shallowRef<string>()
   const dataEpoch = shallowRef(0)
   const session = createWaveformSamplingSession()
@@ -292,10 +293,14 @@ export function useWaveformRenderSampling(context: SamplingContext) {
         requestId: ++session.requestId,
         series: batch,
       })
-      if (result.type !== 'sample-viewport-response') return
+      if (result.type !== 'sample-viewport-response') {
+        if (samplingScheduler.isCurrent(token)) resultState.value = 'error'
+        return
+      }
       response = result
     } catch (error) {
       if (!samplingScheduler.isCurrent(token)) return
+      resultState.value = 'error'
       emitErrorOnce(
         errorPayload(
           error instanceof Error ? error.message : String(error),
@@ -310,8 +315,18 @@ export function useWaveformRenderSampling(context: SamplingContext) {
       return
     }
     if (!samplingScheduler.isCurrent(token)) return
+    if (response.workerError || client.workerFailureReason) resultState.value = 'fallback'
     const sourceById = new Map(sampledTargets.map((target) => [target.series.id, target.source]))
+    if (
+      sampledTargets.some(
+        (target) =>
+          !response.results.some((result) => result.seriesId === target.series.id && result.output),
+      )
+    )
+      resultState.value = 'error'
     response.results.forEach((result) => {
+      if (result.status !== 'ok' && resultState.value !== 'error')
+        resultState.value = result.output ? 'fallback' : 'error'
       const source = sourceById.get(result.seriesId)
       const selected = source ? sourcePoints(result, source) : undefined
       if (selected && (result.status === 'ok' || result.status === 'wasm-unavailable')) {
@@ -369,6 +384,7 @@ export function useWaveformRenderSampling(context: SamplingContext) {
   const scheduleSampling = (hysteresis: boolean) => {
     settledSignature.value = undefined
     const signature = targetSignature.value
+    resultState.value = 'success'
     samplingScheduler.schedule(async (token) => {
       try {
         await runSampling(token, hysteresis)
@@ -410,6 +426,12 @@ export function useWaveformRenderSampling(context: SamplingContext) {
   onScopeDispose(() => session.dispose())
 
   return {
+    requestSignature: targetSignature,
+    state: computed(() =>
+      settledSignature.value === targetSignature.value && !session.autoModeSettleTimer
+        ? resultState.value
+        : 'pending',
+    ),
     linePointOverrides: context.linePointOverrides,
     ready: () => settledSignature.value === targetSignature.value && !session.autoModeSettleTimer,
   }

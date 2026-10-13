@@ -6,10 +6,11 @@ import type { WaveformAxesOptions } from '../../types'
 import { formatXAxisLabel } from '../../utils'
 import { formatYAxisTickLabel } from '../core/layout'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../core/types'
-import { updateMaximumTickVisibility } from './yAxisTickVisibility'
+import { scheduleMaximumTickVisibility } from './yAxisTickVisibility'
 import { sameTick } from '../core/yAxisPadding'
 import { resolveYAxisLabelBandWidth, resolveYAxisLabelFontSize } from '../core/yAxisLabelStyle'
 import { formatChannelLabel } from './channelLabel'
+import { updateAxis, updateSvgAttribute } from './updateAxis'
 
 interface Props {
   track: TrackLayout
@@ -58,77 +59,89 @@ function renderAxes() {
     if (!element) return
     const unit = props.showUnits ? axis.seriesList[0]?.unit : undefined
     const highestTick = Math.max(...axis.tickValues)
-    const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
-      .tickFormat((value) =>
-        formatYAxisTickLabel(
-          Number(value),
-          axis.scale.domain() as [number, number],
-          axis.tickValues,
-          unit,
-          axis.side,
-        ),
+    const lowestTick = Math.min(...axis.tickValues)
+    const format = (value: number) =>
+      formatYAxisTickLabel(
+        value,
+        axis.scale.domain() as [number, number],
+        axis.tickValues,
+        unit,
+        axis.side,
       )
+    const yAxis = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
+      .tickFormat((value) => format(Number(value)))
       .tickSize(-4)
       .tickPadding(7)
       .tickSizeOuter(0)
       .tickValues(axis.tickValues)
 
     const selection = select(element)
-    selection.call(yAxis)
-    selection
-      .selectAll<SVGTextElement, number>('.tick text')
-      .attr('y', null)
-      .attr('dy', '0')
-      .attr('dominant-baseline', 'central')
-      .attr('data-axis-maximum-label', (value) =>
-        props.hideOverlappingMaximumLabel && sameTick(value, highestTick) ? 'true' : null,
-      )
-      .attr('data-axis-minimum-label', (value) =>
-        props.hideOverlappingMaximumLabel && sameTick(value, Math.min(...axis.tickValues))
-          ? 'true'
-          : null,
-      )
-    selection
-      .attr('data-label-domain-min', axis.scale.domain()[0])
-      .attr('data-label-domain-max', axis.scale.domain()[1])
-      .attr('data-label-unit', unit ?? null)
-    selection
-      .selectAll<SVGGElement, number>('.tick')
-      .attr('data-maximum-tick', (value) =>
+    updateAxis(element, yAxis, axis.scale, axis.tickValues, axis.side, format)
+    updateSvgAttribute(element, 'data-label-domain-min', axis.scale.domain()[0])
+    updateSvgAttribute(element, 'data-label-domain-max', axis.scale.domain()[1])
+    updateSvgAttribute(element, 'data-label-unit', unit ?? null)
+    selection.selectAll<SVGGElement, number>('.tick').each(function (value) {
+      const text = this.querySelector('text')
+      if (text) {
+        updateSvgAttribute(text, 'y', null)
+        updateSvgAttribute(text, 'dy', '0')
+        updateSvgAttribute(text, 'dominant-baseline', 'central')
+        updateSvgAttribute(
+          text,
+          'data-axis-maximum-label',
+          props.hideOverlappingMaximumLabel && sameTick(value, highestTick) ? 'true' : null,
+        )
+        updateSvgAttribute(
+          text,
+          'data-axis-minimum-label',
+          props.hideOverlappingMaximumLabel && sameTick(value, lowestTick) ? 'true' : null,
+        )
+      }
+      updateSvgAttribute(
+        this,
+        'data-maximum-tick',
         axis.maximumTick !== undefined && sameTick(value, axis.maximumTick) ? 'true' : null,
       )
-      .attr('data-minimum-tick', (value) =>
+      updateSvgAttribute(
+        this,
+        'data-minimum-tick',
         axis.minimumTick !== undefined && sameTick(value, axis.minimumTick) ? 'true' : null,
       )
-      .attr('data-tick-value', (value) => value)
-      .attr('data-tick-y', (value) => axis.scale(value))
-    selection
-      .selectAll('path.domain')
-      .attr('display', props.axes?.y?.lineVisible === false ? 'none' : null)
+      updateSvgAttribute(this, 'data-tick-value', value)
+      updateSvgAttribute(this, 'data-tick-y', axis.scale(value))
+    })
+    selection.selectAll<SVGPathElement, unknown>('path.domain').each(function () {
+      updateSvgAttribute(this, 'display', props.axes?.y?.lineVisible === false ? 'none' : null)
+    })
   })
 
   scheduleVisibility()
   if (!xAxisElement.value) return
   const selection = select(xAxisElement.value)
-  selection.call(
+  const format = (value: number) =>
+    formatXAxisLabel(
+      value,
+      props.track.xScale.domain() as [number, number],
+      props.timeUnit,
+      'tick',
+      props.axes?.x?.labelFormatter ?? props.track.xAxisLabelFormatter,
+    )
+  updateAxis(
+    xAxisElement.value,
     axisBottom(props.track.xScale)
       .tickValues(props.track.xAxisTickValues)
-      .tickFormat((value) =>
-        formatXAxisLabel(
-          Number(value),
-          props.track.xScale.domain() as [number, number],
-          props.timeUnit,
-          'tick',
-          props.axes?.x?.labelFormatter ?? props.track.xAxisLabelFormatter,
-        ),
-      )
+      .tickFormat((value) => format(Number(value)))
       .tickSize(-4)
       .tickPadding(7)
       .tickSizeOuter(0),
+    props.track.xScale,
+    props.track.xAxisTickValues,
+    'bottom',
+    format,
   )
-  selection
-    .selectAll('path.domain')
-    .attr('display', props.axes?.x?.lineVisible === false ? 'none' : null)
+  selection.selectAll<SVGPathElement, unknown>('path.domain').each(function () {
+    updateSvgAttribute(this, 'display', props.axes?.x?.lineVisible === false ? 'none' : null)
+  })
 }
 
 let disposed = false
@@ -136,7 +149,7 @@ function scheduleVisibility() {
   if (disposed) return
   const apply = () => {
     const svg = yAxisElements.value[0]?.ownerSVGElement
-    if (svg) updateMaximumTickVisibility(svg)
+    if (svg) scheduleMaximumTickVisibility(svg)
   }
   apply()
 }

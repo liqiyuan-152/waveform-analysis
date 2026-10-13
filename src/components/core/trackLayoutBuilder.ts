@@ -1,15 +1,8 @@
+import { generateWaveformPath } from '../animation/geometry'
 import { withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
 import { selectSeriesRenderSourcePoints } from '../../core/rendering'
 import { pointSourceFromPoints } from '../../core/waveformPointSource'
-import {
-  curveStep,
-  curveStepAfter,
-  curveStepBefore,
-  line,
-  scaleLinear,
-  zoomIdentity,
-  type ZoomTransform,
-} from 'd3'
+import { scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
 
 import { type ResolvedWaveformRenderingOptions } from '../../core/rendering'
 import type {
@@ -264,17 +257,15 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
           hasErrorPoints: trackSeries.hasErrorPoints,
         },
       )
-      const pathGenerator = line<WaveformPoint>()
-        .x((point) => xScale(point.x))
-        .y((point) => seriesYScale(point.y))
-      if (trackSeries.lineType === 'step-start') pathGenerator.curve(curveStepBefore)
-      if (trackSeries.lineType === 'step-middle') pathGenerator.curve(curveStep)
-      if (trackSeries.lineType === 'step-end' || trackSeries.lineType === 'step-after') {
-        pathGenerator.curve(curveStepAfter)
-      }
       return {
         series: trackSeries,
-        path: renderPoints.linePoints.length ? pathGenerator(renderPoints.linePoints) : null,
+        path: generateWaveformPath(
+          renderPoints.linePoints,
+          trackSeries.lineType,
+          xScale,
+          seriesYScale,
+        ),
+        lineRenderPoints: renderPoints.linePoints,
         pointRenderPoints: renderPoints.pointRenderPoints,
         errorBarRenderPoints: renderPoints.errorBarRenderPoints,
         yScale: seriesYScale,

@@ -1,0 +1,46 @@
+[
+  {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6.2 Safari/605.1.15",
+    "width": 1280,
+    "height": 720,
+    "series": 1,
+    "points": 1000,
+    "exports": {
+      "svgBytes": 74943,
+      "pngBytes": 78257
+    },
+    "compatible": {
+      "activeTasks": 1,
+      "finalTasks": 0
+    },
+    "crossfade": {
+      "activeTasks": 1,
+      "finalTasks": 0
+    },
+    "passed": true,
+    "timestamp": "2026-10-13T03:27:14.904Z",
+    "buildMode": "production"
+  },
+  {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6.2 Safari/605.1.15",
+    "width": 360,
+    "height": 300,
+    "series": 1,
+    "points": 1000,
+    "exports": {
+      "svgBytes": 51339,
+      "pngBytes": 21234
+    },
+    "compatible": {
+      "activeTasks": 1,
+      "finalTasks": 0
+    },
+    "crossfade": {
+      "activeTasks": 1,
+      "finalTasks": 0
+    },
+    "passed": true,
+    "timestamp": "2026-10-13T03:28:05.775Z",
+    "buildMode": "production"
+  }
+]

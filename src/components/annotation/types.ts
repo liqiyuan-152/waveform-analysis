@@ -57,6 +57,9 @@ export type AnnotationPlacement =
   'top' | 'bottom' | 'right' | 'left' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
 
 export interface RenderedAnnotation {
+  animationStyle?: { opacity: number; scale: number; offsetY: number }
+  leaving?: boolean
+  seriesOpacity?: number
   annotation: WaveformAnnotation
   trackIndex: number
   anchorX: number

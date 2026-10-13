@@ -1,0 +1,52 @@
+{
+  "baselineCommit": "cedfd5fed18fd86c6a68160ef870f97c7407bc9f",
+  "baselineDirectory": "/var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-animation-gzip-wKSdUt",
+  "configuration": "Identical final vite.lib.config.ts and current dependency graph for both builds, identical prepared WASM, node:zlib gzip defaults.",
+  "configSha256": "c4f8f0c6b051528176cb13d9b1ab3842c81b3078c026e516f147896ef03ee187",
+  "wasmSha256": "3205a5de76a6182c69cde493c8292ea565b032d18a9144d12ba900456c47950c",
+  "dependencyLockSha256": "ff5bad648d8d2eee0c65c888cf264d8bc42a29e182ce50c3d8e0615d142e90ea",
+  "nodeVersion": "v22.23.2",
+  "accounting": "Recursive file union; each format total includes CSS and all additional outputs.",
+  "results": [
+    {
+      "file": "index.cjs",
+      "beforeBytes": 93330,
+      "afterBytes": 105166,
+      "deltaBytes": 11836
+    },
+    {
+      "file": "index.js",
+      "beforeBytes": 92815,
+      "afterBytes": 104829,
+      "deltaBytes": 12014
+    },
+    {
+      "file": "style.css",
+      "beforeBytes": 9551,
+      "afterBytes": 9549,
+      "deltaBytes": -2
+    }
+  ],
+  "additionalFiles": [
+    {
+      "file": "assets/workerRuntime-Dm_h02to.js",
+      "beforeBytes": 54243,
+      "afterBytes": 54243,
+      "deltaBytes": 0
+    }
+  ],
+  "totals": [
+    {
+      "file": "index.js",
+      "beforeBytes": 156609,
+      "afterBytes": 168621,
+      "deltaBytes": 12012
+    },
+    {
+      "file": "index.cjs",
+      "beforeBytes": 157124,
+      "afterBytes": 168958,
+      "deltaBytes": 11834
+    }
+  ]
+}

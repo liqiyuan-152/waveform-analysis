@@ -48,6 +48,9 @@ const {
   hasWaveformData,
   requestViewportReset,
   trackLayouts,
+  presentationTracks,
+  presentationAnnotations,
+  stabilizeAnimations,
   clipPathId,
   chartTopMargin,
   gridCells,
@@ -73,7 +76,6 @@ const {
   hoverState,
   showTooltip,
   selectionBox,
-  renderedAnnotations,
   annotationsVisible,
   handleExistingAnnotationContextMenu,
   beginAnnotationDrag,
@@ -142,9 +144,14 @@ function handleChartPointerLeave() {
     :data-plot-margin-top="resolvedPlotMargin.top"
     :data-plot-margin-bottom="resolvedPlotMargin.bottom"
     :data-title-area-height="titleAreaHeight"
+    @pointermove.capture="stabilizeAnimations"
+    @pointerdown.capture="stabilizeAnimations"
+    @wheel.capture="stabilizeAnimations"
+    @dblclick.capture="stabilizeAnimations"
+    @contextmenu.capture="stabilizeAnimations"
     @pointerenter="pointerInsideChart = true"
     @pointerleave="handleChartPointerLeave"
-    @contextmenu.capture="handleNativeContextMenu"
+    @contextmenu="handleNativeContextMenu"
   >
     <div
       v-if="titleAreaReserved"
@@ -235,7 +242,7 @@ function handleChartPointerLeave() {
         <WaveformTrack
           v-for="track in trackLayouts"
           :key="`${track.index}-${track.id}`"
-          :track="track"
+          :track="presentationTracks.find((item) => item.id === track.id) ?? track"
           :frame-path="
             displayMode === 'compact'
               ? compactFramePath(track, trackLayouts, compactFrameInset)
@@ -291,7 +298,7 @@ function handleChartPointerLeave() {
           :cancel-key="activeInteractionMode"
           :data-version="controller.data"
           v-if="!isCleanView"
-          :annotations="renderedAnnotations"
+          :annotations="presentationAnnotations"
           :visible="annotationsVisible"
           :interactive="!isPresentationMode && activeInteractionMode !== 'none'"
           @contextmenu="handleExistingAnnotationContextMenu"

@@ -136,3 +136,49 @@ it('waits for controlled Worker sampling before exporting and rejects stale vers
   wrapper.unmount()
   await cancellation
 })
+
+it('statically lands the same delayed sampling request after pointer takeover', async () => {
+  vi.stubGlobal('Worker', ControlledWorker)
+  const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+  const wrapper = await mountSizedChart(input(0), { rendering })
+  const worker = ControlledWorker.instances[0]!
+  await wrapper.get('.waveform-chart').trigger('pointermove')
+  for (let i = 0; i < 10; i++) {
+    worker.respond()
+    await flushPromises()
+  }
+  await new Promise((resolve) => setTimeout(resolve, 150))
+  expect(wrapper.find('.waveform-track__series-item [clipPathUnits]').exists()).toBe(false)
+  expect(wrapper.get('.waveform-chart__line').attributes('d')).not.toContain('NaN')
+  wrapper.unmount()
+  hidden.mockRestore()
+})
+
+it('does not animate a settled successful-status response that contains no target geometry', async () => {
+  vi.stubGlobal('Worker', ControlledWorker)
+  const hidden = vi.spyOn(document, 'hidden', 'get').mockReturnValue(false)
+  const wrapper = await mountSizedChart(input(0), { rendering })
+  const worker = ControlledWorker.instances[0]!
+  for (let i = 0; i < 10 && worker.requests[0]?.type !== 'sample-viewport'; i++) {
+    worker.respond()
+    await flushPromises()
+  }
+  const request = worker.requests.shift()!
+  const response = worker.repository.handle(request)
+  expect(response.type).toBe('sample-viewport-response')
+  if (response.type === 'sample-viewport-response') {
+    worker.onmessage?.({
+      data: {
+        ...response,
+        results: response.results.map((result) => ({ ...result, output: undefined })),
+      },
+    })
+  }
+  await flushPromises()
+  await new Promise((resolve) => setTimeout(resolve, 150))
+  expect(wrapper.find('.waveform-track__series-item [clipPathUnits]').exists()).toBe(false)
+  const exported = await wrapper.vm.exportImage({ format: 'svg' })
+  expect(exported.type).toBe('image/svg+xml')
+  wrapper.unmount()
+  hidden.mockRestore()
+})
