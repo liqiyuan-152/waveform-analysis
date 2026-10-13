@@ -46,7 +46,6 @@ const {
   chartWidth,
   drawingHeight,
   hasWaveformData,
-  requestViewportReset,
   trackLayouts,
   presentationTracks,
   presentationAnnotations,
@@ -189,7 +188,6 @@ function handleChartPointerLeave() {
       :height="drawingHeight"
       role="img"
       :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
-      @dblclick="requestViewportReset"
     >
       <defs>
         <clipPath

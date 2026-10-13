@@ -12,7 +12,7 @@ describe('WaveformChart viewport reset', () => {
     includeExplicit: true,
   }
 
-  it('resets a shared viewport on double-click and emits a global payload', async () => {
+  it('ignores shared viewport double-clicks and resets using the toolbar button', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'points',
@@ -21,7 +21,7 @@ describe('WaveformChart viewport reset', () => {
           { x: 2, y: 1 },
         ],
       },
-      { displayMode: 'separated' },
+      { displayMode: 'separated', toolbar: true },
     )
     const overlay = wrapper.get('.waveform-chart__overlay')
     const width = Number(overlay.attributes('width'))
@@ -40,18 +40,29 @@ describe('WaveformChart viewport reset', () => {
     flushAnimationFrames()
     await flushPromises()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe('0')
+    const startBefore = wrapper.get('.waveform-chart__axis-endpoint--start').text()
+    const endBefore = wrapper.get('.waveform-chart__axis-endpoint--end').text()
 
     overlay.element.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }))
     await flushPromises()
 
-    expect(wrapper.emitted('zoom-reset')).toEqual([[{}]])
+    expect(wrapper.emitted('zoom-reset')).toBeUndefined()
+    expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe(startBefore)
+    expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe(endBefore)
+
+    await wrapper.get('[data-command="reset"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.emitted('zoom-reset')).toEqual([
+      [expect.objectContaining({ source: 'toolbar', action: 'reset' })],
+    ])
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
-  it('resets only the double-clicked independent track and identifies it', async () => {
+  it('ignores independent track double-clicks and resets the toolbar-selected track', async () => {
     const wrapper = await mountSizedChart(gridSeries(2), {
       displayMode: 'independent',
+      toolbar: true,
       grid: { rowCount: 1, columnCount: 2 },
     })
     const overlays = wrapper.findAll('.waveform-chart__overlay--independent')
@@ -76,16 +87,36 @@ describe('WaveformChart viewport reset', () => {
     expect(startsBeforeReset[0].text()).not.toBe('0')
     expect(startsBeforeReset[1].text()).not.toBe('0')
     const secondTrackStart = startsBeforeReset[1].text()
+    const firstTrackStart = startsBeforeReset[0].text()
 
     overlays[0].element.dispatchEvent(
       new MouseEvent('dblclick', { bubbles: true, cancelable: true }),
     )
     await flushPromises()
 
+    expect(wrapper.emitted('zoom-reset')).toBeUndefined()
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe(firstTrackStart)
+    expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[1].text()).toBe(
+      secondTrackStart,
+    )
+
+    await wrapper.get('select[aria-label="操作图框"]').setValue('channel-0')
+    await wrapper.get('[data-command="reset"]').trigger('click')
+    await flushPromises()
+
     const startsAfterReset = wrapper.findAll('.waveform-chart__axis-endpoint--start')
     expect(startsAfterReset[0].text()).toBe('0')
     expect(startsAfterReset[1].text()).toBe(secondTrackStart)
-    expect(wrapper.emitted('zoom-reset')).toEqual([[{ trackIndex: 0, seriesIds: ['channel-0'] }]])
+    expect(wrapper.emitted('zoom-reset')).toEqual([
+      [
+        expect.objectContaining({
+          trackIndex: 0,
+          seriesIds: ['channel-0'],
+          source: 'toolbar',
+          action: 'reset',
+        }),
+      ],
+    ])
   })
 
   it('keeps the exposed no-argument resetViewport global', async () => {

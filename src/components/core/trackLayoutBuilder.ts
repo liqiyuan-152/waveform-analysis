@@ -6,6 +6,7 @@ import { scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
 
 import { type ResolvedWaveformRenderingOptions } from '../../core/rendering'
 import type {
+  WaveformAmplitudeLimits,
   WaveformDisplayMode,
   WaveformOverlayMode,
   WaveformPoint,
@@ -34,7 +35,6 @@ import {
   alignIntegerZoomDomain,
   normalizeIntegerZoomDomain,
   integerZoomTicks,
-  formatIntegerZoomLabel,
 } from '../interaction/integerZoom'
 import {
   Y_AXIS_LABEL_GAP,
@@ -59,6 +59,7 @@ export interface BuildTrackLayoutsOptions {
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy
   integerZoom?: boolean
+  amplitudeLimits?: WaveformAmplitudeLimits
   fixedYDomain?: [number, number]
   fixedYDomains?: Record<string, [number, number]>
   yDomains?: Record<string, [number, number]>
@@ -79,6 +80,7 @@ export interface BuildTrackLayoutsOptions {
   useNonEmptyBottomTracks?: boolean
   compactYAxisLayout?: boolean
   showAxisUnits?: boolean
+  domainTimeUnit?: 's' | 'ms'
 }
 
 function resolveIndependentXDomain(
@@ -96,7 +98,7 @@ function resolveIndependentXDomain(
     explicitDomain
       ? applyXDomainStrategy(explicitDomain, strategy, true)
       : applyXDomainStrategy(track.xDomain, strategy),
-    options,
+    { integerZoom: options.integerZoom, timeUnit: options.domainTimeUnit ?? options.timeUnit },
   )
 }
 
@@ -141,13 +143,19 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       options.fixedYDomains,
       options.yDomains,
       options.yAxisPadding ?? options.yAxisUpperPaddingRatio,
+      options.amplitudeLimits,
     )
     const sideIndexes = { left: 0, right: 0 }
     const sideOffsets = { left: 0, right: 0 }
     const yAxes: WaveformYAxisLayout[] = yAxisGroups.map((group) => {
       const sideIndex = sideIndexes[group.side]++
       const tickCount = resolveYAxisTickCount(cell.plotHeight, options.yAxisSplitNumber)
-      const resolvedTicks = resolveYAxisTicks(group.domain, tickCount, options.yAxisNice !== false)
+      const resolvedTicks = resolveYAxisTicks(
+        group.domain,
+        tickCount,
+        options.yAxisNice !== false,
+        group.amplitudeLimit,
+      )
       const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
       const majorTicks = resolvedTicks.values
       const maximumTick =
@@ -220,8 +228,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       Math.max(2, Math.floor(cell.width / 100)),
       options,
     )
-    const xAxisLabelFormatter =
-      options.xAxisLabelFormatter ?? (options.integerZoom ? formatIntegerZoomLabel : undefined)
+    const xAxisLabelFormatter = options.xAxisLabelFormatter
     const yMajorTicks =
       yAxes[0]?.majorTicks ??
       (isEmpty

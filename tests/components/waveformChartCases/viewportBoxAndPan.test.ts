@@ -96,7 +96,7 @@ describe('WaveformChart', () => {
       expect(payload.start).toBeGreaterThanOrEqual(0)
       expect(payload.end).toBeLessThanOrEqual(2)
       expect(payload.start).toBeLessThan(payload.end)
-      expect(payload.end - payload.start).toBeCloseTo(2 / 40)
+      expect(payload.end - payload.start).toBeCloseTo(1)
     } finally {
       vi.useRealTimers()
     }

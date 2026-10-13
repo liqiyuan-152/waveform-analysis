@@ -1,4 +1,8 @@
-import type { WaveformOverlayMode } from '../../types'
+import type {
+  WaveformAmplitudeLimit,
+  WaveformAmplitudeLimits,
+  WaveformOverlayMode,
+} from '../../types'
 import { formatScientificAxisLabel, formatScientificAxisExponent, paddedDomain } from '../../utils'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { MAX_MULTI_Y_AXIS_COUNT } from './constants'
@@ -8,7 +12,9 @@ import {
   resolveTrackFixedYDomain,
   type WaveformYDomain,
 } from './yDomain'
-import { resolveYAxisTicksECharts } from './niceScale'
+import { resolveYAxisTicks } from './yAxisTicks'
+export { resolveYAxisTicks, type ResolvedYAxisTicks } from './yAxisTicks'
+import { applyAmplitudeLimits, mergeAmplitudeLimits } from './amplitudeLimits'
 import { applyYAxisPadding, withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
 import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 
@@ -26,36 +32,6 @@ export function resolveYAxisTickCount(_plotHeight: number, splitNumber?: number)
     return Math.max(2, Math.floor(splitNumber))
   }
   return 5
-}
-
-export interface ResolvedYAxisTicks {
-  domain: [number, number]
-  values: number[]
-}
-
-export function resolveYAxisTicks(
-  domain: [number, number],
-  tickCount = 5,
-  nice = true,
-): ResolvedYAxisTicks {
-  if (!nice) {
-    // 如果不需要 nice，使用简单的线性分割
-    const effectiveTickCount =
-      typeof tickCount === 'number' && Number.isFinite(tickCount)
-        ? Math.max(2, Math.floor(tickCount))
-        : 5
-    const [axisStart, axisEnd] = domain
-    return {
-      domain,
-      values: Array.from(
-        { length: effectiveTickCount },
-        (_, index) => axisStart + ((axisEnd - axisStart) * index) / (effectiveTickCount - 1),
-      ),
-    }
-  }
-
-  // 使用 ECharts 兼容的 1/2/5 系列算法
-  return resolveYAxisTicksECharts(domain, tickCount)
 }
 
 export function formatYAxisTickLabel(
@@ -101,6 +77,7 @@ export interface YAxisSeriesGroup {
   seriesList: DisplaySeries[]
   domain: [number, number]
   fixed: boolean
+  amplitudeLimit?: WaveformAmplitudeLimit
   maximumTick?: number
   minimumTick?: number
 }
@@ -191,6 +168,7 @@ export function resolveRenderedYAxisSeriesGroups(
   yDomains?: Record<string, WaveformYDomain>,
   viewportYDomains?: Record<string, [number, number]>,
   padding?: YAxisPaddingOptions | number,
+  amplitudeLimits?: WaveformAmplitudeLimits,
 ): YAxisSeriesGroup[] {
   const viewportYDomain = viewportYDomains?.[track.id]
   const axisTrack =
@@ -198,7 +176,13 @@ export function resolveRenderedYAxisSeriesGroups(
       ? track
       : { ...track, visibleSeries: track.series }
   return resolveYAxisSeriesGroups(axisTrack, overlayMode, yDomain, yDomains).map((group) => {
-    const padded = applyYAxisPadding(group, viewportYDomain, padding)
+    const limit = mergeAmplitudeLimits(group.seriesList, amplitudeLimits)
+    const automatic = limit ? buildYAxisSeriesGroups(axisTrack, overlayMode)[group.index]! : group
+    const padded = applyYAxisPadding(automatic, limit ? undefined : viewportYDomain, padding)
+    if (limit) {
+      padded.domain = applyAmplitudeLimits(padded.domain, limit, automatic.domain)
+      padded.amplitudeLimit = limit
+    }
     return track.visibleSeries.length
       ? padded
       : { ...padded, maximumTick: undefined, minimumTick: undefined }
@@ -215,10 +199,11 @@ export function axisTextMetrics(
   measureTextWidth?: (text: string) => number,
   maximumTick?: number,
   minimumTick?: number,
+  amplitudeLimit?: WaveformAmplitudeLimit,
 ): { tickTextWidth: number; titleTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
-    : resolveYAxisTicks(domain, tickCount, nice)
+    : resolveYAxisTicks(domain, tickCount, nice, amplitudeLimit)
   const inRange = (value?: number) =>
     value !== undefined && value >= resolvedTicks.domain[0] && value <= resolvedTicks.domain[1]
       ? value
@@ -320,6 +305,7 @@ export function buildYAxisSlots(
   padding?: YAxisPaddingOptions | number,
   showUnits = true,
   measureTextWidth?: (text: string) => number,
+  amplitudeLimits?: WaveformAmplitudeLimits,
 ): { slots: YAxisSlot[]; clearance: { left: number; right: number } } {
   const labelBandWidth = resolveYAxisLabelBandWidth(
     typeof padding === 'object' ? padding.labelTextStyle : undefined,
@@ -335,6 +321,7 @@ export function buildYAxisSlots(
       yDomains,
       viewportYDomains,
       padding,
+      amplitudeLimits,
     ).forEach((group) => {
       const sideIndex = sideIndexes[group.side]++
       const key = `${group.side}:${sideIndex}`
@@ -348,6 +335,7 @@ export function buildYAxisSlots(
         measureTextWidth,
         group.maximumTick,
         group.minimumTick,
+        group.amplitudeLimit,
       )
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, tickTextWidth))
       titleWidths.set(key, Math.max(titleWidths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, titleTextWidth))

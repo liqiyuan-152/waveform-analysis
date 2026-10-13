@@ -27,18 +27,21 @@ async function dispatchWheel(
   width: number,
   height: number,
   deltaY: number,
+  steps = 1,
 ) {
-  overlay.element.dispatchEvent(
-    new WheelEvent('wheel', {
-      deltaY,
-      clientX: width / 2,
-      clientY: height / 2,
-      bubbles: true,
-      cancelable: true,
-    }),
-  )
-  flushAnimationFrames()
-  await flushPromises()
+  for (let step = 0; step < steps; step += 1) {
+    overlay.element.dispatchEvent(
+      new WheelEvent('wheel', {
+        deltaY,
+        clientX: width / 2,
+        clientY: height / 2,
+        bubbles: true,
+        cancelable: true,
+      }),
+    )
+    flushAnimationFrames()
+    await flushPromises()
+  }
 }
 
 function dispatchBox(
@@ -75,8 +78,8 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000)
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     const twoPointDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(visibleXCount(twoPointDomain)).toBe(2)
 
@@ -89,7 +92,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
     expect(partiallyZoomedOut[1] - partiallyZoomedOut[0]).toBeGreaterThan(
       twoPointDomain[1] - twoPointDomain[0],
     )
-    await dispatchWheel(overlay, width, height, 4_000)
+    await dispatchWheel(overlay, width, height, 4_000, 64)
     const fullyZoomedOut = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(fullyZoomedOut).toEqual([0, 1_200])
   })
@@ -108,7 +111,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    for (let index = 0; index < 3; index += 1) {
+    for (let index = 0; index < 64; index += 1) {
       overlay.element.dispatchEvent(
         new WheelEvent('wheel', {
           deltaY: -4_000,
@@ -158,7 +161,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeCloseTo(1_200 / 40)
   })
@@ -173,7 +176,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeCloseTo(1_200 / 20)
   })
@@ -188,7 +191,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeLessThan(1_200 / 40)
   })
@@ -203,7 +206,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeCloseTo(1_200 / 40)
   })
@@ -218,7 +221,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeCloseTo(50)
   })
@@ -236,7 +239,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
       wrapper,
       '.waveform-chart__overlay--independent',
     )
-    for (let index = 0; index < 10; index += 1) {
+    for (let index = 0; index < 64; index += 1) {
       const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
       overlay.element.dispatchEvent(
         new WheelEvent('wheel', {
@@ -264,7 +267,10 @@ describe('WaveformChart point-aware zoom constraints', () => {
       .slice(0, 2)
       .map((endpoint) => Number(endpoint.text()) / 1_000) as [number, number]
     expect(visibleXCount(finalDomain, sourcePoints)).toBe(2)
-    expect(visibleXCount(endpointDomain, sourcePoints)).toBe(2)
+    // Labels are rounded for display; sample constraints use the actual viewport.
+    const viewport = wrapper.vm.getControlState().targets[0].viewport.xDomain
+    expect(visibleXCount(viewport, sourcePoints)).toBe(2)
+    endpointDomain.forEach((value, index) => expect(value).toBeCloseTo(viewport[index], 5))
     const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
     await dispatchWheel(overlay, width, height, -1_000)
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount)
@@ -298,10 +304,10 @@ describe('WaveformChart point-aware zoom constraints', () => {
     })
     const { overlay, width, height } = prepareOverlay(wrapper, '.waveform-chart__overlay')
 
-    await dispatchWheel(overlay, width, height, -4_000)
+    await dispatchWheel(overlay, width, height, -4_000, 64)
     await wrapper.setProps({ data: createData(100) })
     await flushPromises()
-    await dispatchWheel(overlay, width, height, 4_000)
+    await dispatchWheel(overlay, width, height, 4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain).toEqual([100, 120])
   })

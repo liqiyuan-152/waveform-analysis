@@ -1,4 +1,5 @@
 import type { WaveformXAxisLabelFormatter, WaveformXAxisLabelKind } from '../types'
+import { formatXAxisNumber } from './xAxisNumber'
 
 /**
  * 时间单位类型
@@ -147,7 +148,11 @@ export function formatXAxisLabel(
   formatter?: WaveformXAxisLabelFormatter,
 ): string {
   const value = displayTime(rawValue, timeUnit)
-  if (!formatter) return formatPlainNumber(value)
+  if (!formatter)
+    return formatXAxisNumber(value, [
+      displayTime(domain[0], timeUnit),
+      displayTime(domain[1], timeUnit),
+    ])
 
   return formatter(value, {
     kind,
@@ -173,9 +178,9 @@ export function endpointFractionDigits(domain: [number, number], timeUnit: TimeU
 }
 
 /**
- * 将 X 轴端点时间格式化为当前显示单位下的普通十进制文本
+ * 将 X 轴端点时间格式化为当前显示单位下的自适应精度文本
  * @param value 时间值（秒）
- * @param _domain 数据域（为保持现有调用签名而保留）
+ * @param _domain 用于计算显示精度的可视域
  * @param timeUnit 时间单位
  * @returns 格式化的时间字符串
  */
@@ -188,10 +193,10 @@ export function formatEndpointTime(
 }
 
 /**
- * 将 X 轴时间刻度格式化为当前显示单位下的普通十进制文本
+ * 将 X 轴时间刻度格式化为当前显示单位下的自适应精度文本
  * @param value 时间值（秒）
  * @param timeUnit 时间单位
- * @param _domain 数据域（为保持现有调用签名而保留）
+ * @param _domain 用于计算显示精度的可视域
  * @returns 格式化的时间字符串
  */
 export function formatAxisTime(

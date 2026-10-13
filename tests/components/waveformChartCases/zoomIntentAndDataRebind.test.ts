@@ -96,7 +96,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
         start: number
         end: number
       }
-      expect(firstIntent.end - firstIntent.start).toBeCloseTo(2.5)
+      expect(firstIntent.end - firstIntent.start).toBeCloseTo(50)
       expect(chart.emitted('zoom-change')).toBeUndefined()
 
       await flushPromises()

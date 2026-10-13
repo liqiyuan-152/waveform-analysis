@@ -5,6 +5,8 @@
 
 // 重新导出所有类型
 export type {
+  WaveformAmplitudeLimit,
+  WaveformAmplitudeLimits,
   WaveformPoint,
   WaveformDisplayMode,
   WaveformUnitDisplayMode,

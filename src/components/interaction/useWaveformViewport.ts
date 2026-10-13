@@ -12,6 +12,7 @@ import { constrainViewportZoom } from './remoteViewport'
 import { createViewportPan } from './viewportPan'
 import { transformForDomain } from './zoomConstraints'
 import { emitBoxZoomIntent } from './zoomEventPayload'
+import { sameZoomDomain } from './stepZoom'
 export interface ViewportContext {
   clearBoundaries?: (trackIndex?: number) => void
   props: ResolvedWaveformChartProps
@@ -32,8 +33,6 @@ export interface ViewportContext {
   isPresentationMode: ComputedRef<boolean>
   editorSeriesOptions: Ref<AnnotationSeriesCandidate[]>
   resolveInitialTrackDomain: (track: TrackLayout) => [number, number]
-  canZoomTrack: (track: TrackLayout) => boolean
-  canZoomSharedTracks: () => boolean
   configureZoom: () => void
   cancelPendingZoom: () => void
   clearHover: () => void
@@ -59,8 +58,6 @@ export function useWaveformViewport(context: ViewportContext) {
     isPresentationMode,
     editorSeriesOptions,
     resolveInitialTrackDomain,
-    canZoomTrack,
-    canZoomSharedTracks,
     configureZoom,
     cancelPendingZoom,
     clearHover,
@@ -184,7 +181,7 @@ export function useWaveformViewport(context: ViewportContext) {
   }
   const applyBoxZoom = (active: ViewportSelectionState) => {
     const track = trackLayouts.value.find((item) => item.index === active.trackIndex)
-    if (!track || (active.independent ? !canZoomTrack(track) : !canZoomSharedTracks())) return
+    if (!track) return
     const offsetX = active.independent ? 0 : track.left
     const left = Math.max(
       0,
@@ -205,6 +202,7 @@ export function useWaveformViewport(context: ViewportContext) {
       groups,
       props,
     )
+    if (sameZoomDomain(track.xScale.domain() as [number, number], xDomain)) return
     if (active.independent) {
       const next = [...independentTransforms.value]
       next[track.index] = transformForDomain(xDomain, baseXDomain, track.width)
@@ -333,26 +331,6 @@ export function useWaveformViewport(context: ViewportContext) {
     editorSeriesOptions,
     configureZoom,
   })
-  const requestViewportReset = (event: MouseEvent) => {
-    if (isPresentationMode.value || !props.zoomable || !isZoomMode.value) return
-    if (props.displayMode === 'independent') {
-      const target = event.target instanceof Element ? event.target : null
-      const overlay = target?.closest('[data-independent-overlay-index]')
-      const trackIndex = Number(overlay?.getAttribute('data-independent-overlay-index'))
-      const track = trackLayouts.value.find((item) => item.index === trackIndex)
-      if (!track) return
-      event.preventDefault()
-      resetViewport(trackIndex)
-      emit('zoom-reset', {
-        trackIndex,
-        seriesIds: track.legendSeries.map((series) => series.id),
-      })
-      return
-    }
-    event.preventDefault()
-    resetViewport()
-    emit('zoom-reset', {})
-  }
   return {
     selectionBox,
     beginViewportDrag,
@@ -362,6 +340,5 @@ export function useWaveformViewport(context: ViewportContext) {
     cancelViewportDrag,
     resetViewport,
     setViewportDomain,
-    requestViewportReset,
   }
 }

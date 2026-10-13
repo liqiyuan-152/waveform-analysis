@@ -32,6 +32,7 @@ import { resolveCompactPaginationBand } from './pagination'
 import type { WaveformHoverState } from './types'
 import { useWaveformChartLifecycle } from './useWaveformChartLifecycle'
 import { usePreparedWaveformSeries } from './useWaveformData'
+import { remotePanBoundary } from '../interaction/remoteViewport'
 import { useWaveformLayout } from './useWaveformLayout'
 import { useWaveformPresentation } from './useWaveformPresentation'
 import { usePlotLabelLayout } from './usePlotLabelLayout'
@@ -82,7 +83,7 @@ export function useWaveformChartController(
   const hoverThrottle = useAnimationFrameThrottle()
 
   watch(
-    [() => props.yDomain, () => props.yDomains],
+    [() => props.yDomain, () => props.yDomains, () => props.amplitudeLimits],
     () => {
       sharedYDomains.value = {}
       independentYDomains.value = {}
@@ -102,6 +103,7 @@ export function useWaveformChartController(
       handleBeforeDataReferenceChange()
     },
     () => handleDataReferenceChange(),
+    () => Boolean(remotePanBoundary(props)),
   )
 
   const presentation = useWaveformPresentation({
@@ -263,8 +265,6 @@ export function useWaveformChartController(
     isPresentationMode,
     editorSeriesOptions,
     resolveInitialTrackDomain,
-    canZoomTrack: zoom.canZoomTrack,
-    canZoomSharedTracks: zoom.canZoomSharedTracks,
     configureZoom: zoom.configureZoom,
     cancelPendingZoom: zoom.cancelPendingZoom,
     clearHover: () => hover.clearHover(),

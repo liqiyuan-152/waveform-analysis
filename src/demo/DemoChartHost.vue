@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import { WaveformChart } from '../components'
 import type { DemoChartModel } from './types'
+import { applyXDomainStrategy } from '../components/core/xDomain'
 
 const model = defineModel<DemoChartModel>('model', { required: true })
+const xDomainStrategy = { type: 'integer-ms' as const, includeExplicit: true }
+const panXDomain = computed(() =>
+  applyXDomainStrategy(model.value.recordDomain, xDomainStrategy, true),
+)
 
 const waveformChartRef = ref<{ resetViewport: (trackIndex?: number) => void }>()
 
-function resetViewport() {
-  waveformChartRef.value?.resetViewport()
+function resetViewport(trackIndex?: number) {
+  waveformChartRef.value?.resetViewport(trackIndex)
 }
 
 defineExpose({ resetViewport })
@@ -17,6 +22,17 @@ defineExpose({ resetViewport })
 
 <template>
   <section class="chart-panel">
+    <div
+      v-if="model.loading || model.errors.length"
+      class="remote-window-status"
+      aria-live="polite"
+    >
+      <span v-if="model.loading" role="status">正在加载当前时间范围…</span>
+      <template v-if="model.errors.length">
+        <span role="alert">{{ model.errors.join('；') }}</span>
+        <button type="button" :disabled="model.loading" @click="model.retry()">重试</button>
+      </template>
+    </div>
     <WaveformChart
       ref="waveformChartRef"
       layout-preset="edge-compact"
@@ -25,9 +41,12 @@ defineExpose({ resetViewport })
       v-model:hidden-series-ids="model.hiddenSeriesIds"
       :data="model.data"
       :min-visible-points="2"
+      :min-zoom-span="model.minZoomSpan"
+      :max-zoom-scale="null"
+      :pan-x-domain="panXDomain"
       :integer-zoom="model.integerZoom"
       :initial-x-domain="model.initialXDomain"
-      :x-domain-strategy="{ type: 'integer-ms', includeExplicit: true }"
+      :x-domain-strategy="xDomainStrategy"
       :display-mode="model.displayMode"
       :overlay-mode="model.overlayMode"
       :grid="{
@@ -55,8 +74,33 @@ defineExpose({ resetViewport })
       v-model:interaction-mode="model.interactionMode"
       :toolbar="model.toolbarVisible"
       pannable
+      @zoom-intent="model.handleZoomIntent"
+      @zoom-change="model.handleZoomChange"
       @zoom-end="model.handleZoomEnd"
+      @pan-end="model.handlePanEnd"
       @zoom-reset="model.resetWaveformViewport"
     />
   </section>
 </template>
+
+<style scoped>
+.chart-panel {
+  position: relative;
+}
+
+.remote-window-status {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  padding: 6px 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  background: #fff;
+  color: #344054;
+}
+</style>

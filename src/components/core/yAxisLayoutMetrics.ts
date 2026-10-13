@@ -1,3 +1,4 @@
+import type { WaveformAmplitudeLimits } from '../../types'
 import type { WaveformOverlayMode } from '../data/types'
 import {
   Y_AXIS_CHARACTER_WIDTH,
@@ -44,6 +45,7 @@ export function resolveYAxisLayoutMetrics(
   padding?: YAxisPaddingOptions | number,
   showUnits = true,
   measureTextWidth?: (text: string) => number,
+  amplitudeLimits?: WaveformAmplitudeLimits,
 ): YAxisLayoutMetrics {
   const labelBandWidth = resolveYAxisLabelBandWidth(
     typeof padding === 'object' ? padding.labelTextStyle : undefined,
@@ -58,6 +60,7 @@ export function resolveYAxisLayoutMetrics(
         yDomains,
         viewportYDomains,
         padding,
+        amplitudeLimits,
       ),
     )
     .map((group) =>
@@ -71,6 +74,7 @@ export function resolveYAxisLayoutMetrics(
         measureTextWidth,
         group.maximumTick,
         group.minimumTick,
+        group.amplitudeLimit,
       ),
     )
   const tickTextWidth = Math.max(

@@ -1,23 +1,13 @@
-import {
-  scaleLinear,
-  select,
-  zoom,
-  zoomIdentity,
-  zoomTransform,
-  type D3ZoomEvent,
-  type ZoomBehavior,
-  type ZoomTransform,
-} from 'd3'
+import { pointer, scaleLinear, select, zoomIdentity, zoomTransform, type ZoomTransform } from 'd3'
 import type { ComputedRef, ShallowRef } from 'vue'
 
-import { hasMinimumVisibleXValues } from '../../core/rendering'
-import { WHEEL_ZOOM_DEBOUNCE_MS, ZOOM_CONSTRAINTS } from '../core/constants'
+import { WHEEL_ZOOM_DEBOUNCE_MS } from '../core/constants'
 import type { TrackLayout } from '../core/types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from '../core/waveformChartTypes'
 import { useAnimationFrameThrottle } from '../utils/useAnimationFrameThrottle'
-import { constrainViewportZoom, remotePanBoundary } from './remoteViewport'
+import { resolveStepZoomDomain, sameZoomDomain } from './stepZoom'
 import { normalizeIntegerZoomDomain } from './integerZoom'
-import { resolveMinimumZoomSpan, transformForDomain, type ZoomSeriesGroup } from './zoomConstraints'
+import { transformForDomain, type ZoomSeriesGroup } from './zoomConstraints'
 import {
   emitIndependentWheelZoomEnds,
   emitSharedWheelZoomEnd,
@@ -57,16 +47,13 @@ export function useWaveformZoom(context: ZoomContext) {
     initialXDomain,
     sharedZoomDomain,
     innerWidth,
-    innerHeight,
     hasChartArea,
     isZoomMode,
     isPresentationMode,
     resolveInitialTrackDomain,
     cancelPendingHover,
   } = context
-  const zoomBehaviors = new Map<number | 'shared', ZoomBehavior<SVGRectElement, unknown>>()
   const zoomThrottle = useAnimationFrameThrottle()
-  let synchronizingZoomTransform = false
   let pendingSharedZoomTransform: ZoomTransform | null = null
   let pendingSharedZoomGesture: ZoomGestureKind | null = null
   let lastSharedZoomGesture: ZoomGestureKind | null = null
@@ -75,11 +62,10 @@ export function useWaveformZoom(context: ZoomContext) {
   const lastIndependentWheelSeriesIds = new Map<string, string[]>()
   let wheelZoomEndTimer: ReturnType<typeof setTimeout> | undefined
   let preservePendingWheelDuringDataRebind = false
-  let zoomBindingEpoch = 0
 
   const scheduleZoomCommit = () => zoomThrottle.schedule(commitPendingZoom)
-  const handleSharedZoom = (event: D3ZoomEvent<SVGRectElement, unknown>) => {
-    if (synchronizingZoomTransform || isPresentationMode.value) return
+  const handleSharedZoom = (event: { transform: ZoomTransform }) => {
+    if (isPresentationMode.value) return
     cancelPendingHover()
     pendingSharedZoomTransform = event.transform
     pendingSharedZoomGesture = 'wheel'
@@ -91,11 +77,8 @@ export function useWaveformZoom(context: ZoomContext) {
     emit('zoom-intent', { start, end, gesture: 'wheel' })
     scheduleZoomCommit()
   }
-  const handleIndependentZoom = (
-    event: D3ZoomEvent<SVGRectElement, unknown>,
-    trackIndex: number,
-  ) => {
-    if (synchronizingZoomTransform || isPresentationMode.value) return
+  const handleIndependentZoom = (event: { transform: ZoomTransform }, trackIndex: number) => {
+    if (isPresentationMode.value) return
     cancelPendingHover()
     pendingIndependentZoomTransforms.set(trackIndex, event.transform)
     pendingIndependentZoomGestures.set(trackIndex, 'wheel')
@@ -166,16 +149,6 @@ export function useWaveformZoom(context: ZoomContext) {
     emitSharedWheelZoomEnd(emit, sharedZoomDomain.value, trackLayouts.value)
     lastSharedZoomGesture = null
   }
-  const flushPendingZoom = () => {
-    zoomThrottle.flush()
-    commitPendingZoom()
-    if (lastSharedZoomGesture === 'wheel' || lastIndependentWheelSeriesIds.size) return
-    emitZoomEnd()
-  }
-  const handleD3ZoomEnd = (bindingEpoch: number) => {
-    if (bindingEpoch !== zoomBindingEpoch) return
-    flushPendingZoom()
-  }
   function scheduleWheelZoomEnd() {
     if (wheelZoomEndTimer !== undefined) clearTimeout(wheelZoomEndTimer)
     wheelZoomEndTimer = setTimeout(() => {
@@ -207,81 +180,50 @@ export function useWaveformZoom(context: ZoomContext) {
     }
   }
   const clearZoomBindings = (preservePendingWheel = false) => {
-    zoomBindingEpoch += 1
     if (!preservePendingWheel) cancelPendingZoom()
     svgElement.value
       ?.querySelectorAll<SVGRectElement>('.waveform-chart__overlay')
       .forEach((overlay) => select(overlay).on('.zoom', null))
-    zoomBehaviors.clear()
   }
-  const resolveMaximumZoomScale = (
-    domain: [number, number],
-    groups: readonly ZoomSeriesGroup[],
-  ): number => {
-    const domainSpan = Math.abs(domain[1] - domain[0])
-    if (!Number.isFinite(domainSpan) || domainSpan <= 0) return ZOOM_CONSTRAINTS.MIN_SCALE
-    const minimumSpan = resolveMinimumZoomSpan(domain, groups, props)
-    return Math.max(
-      ZOOM_CONSTRAINTS.MIN_SCALE,
-      minimumSpan > 0 ? domainSpan / minimumSpan : Number.POSITIVE_INFINITY,
-    )
-  }
-  const constrainTransform = (
-    transform: ZoomTransform,
-    domain: [number, number],
+  const bindWheelZoom = (
+    overlay: SVGRectElement,
+    baseDomain: [number, number],
     width: number,
     groups: readonly ZoomSeriesGroup[],
-  ): ZoomTransform => {
-    const requested = transform.rescaleX(scaleLinear(domain, [0, width])).domain() as [
-      number,
-      number,
-    ]
-    return transformForDomain(
-      constrainViewportZoom(requested, domain, groups, props),
-      domain,
-      width,
-    )
-  }
-  const canZoomTrack = (track: TrackLayout): boolean => {
-    const minimum = Number(props.minVisiblePoints)
-    return hasMinimumVisibleXValues(
-      track.seriesList,
-      track.xScale.domain() as [number, number],
-      Number.isFinite(minimum) && minimum > 0 ? Math.ceil(minimum) + 1 : minimum,
-    )
-  }
-  const canZoomSharedTracks = (): boolean => {
-    const tracks = trackLayouts.value.filter((track) => track.hasVisibleSeries)
-    return tracks.length > 0 && tracks.every(canZoomTrack)
-  }
-  const resolveMinimumZoomScale = (domain: [number, number]): number => {
-    const boundary = remotePanBoundary(props)
-    return boundary
-      ? Math.min(1, (domain[1] - domain[0]) / (boundary[1] - boundary[0]))
-      : ZOOM_CONSTRAINTS.MIN_SCALE
-  }
-  const canHandleWheelZoom = (event: Event, canZoomIn: boolean, minimumScale: number): boolean => {
-    if (event.type !== 'wheel') return false
-    const deltaY = (event as WheelEvent).deltaY
-    const currentScale = zoomTransform(event.currentTarget as Element).k
-
-    // 放大操作：需要检查是否还有足够的数据点支持继续放大
-    if (deltaY < 0) return canZoomIn
-
-    // 缩小操作：只要当前缩放级别大于最小比例就允许
-    // 即使已达到最小可见点数限制，用户也应该能够缩小视图
-    if (deltaY > 0) {
-      // 使用小的容差避免浮点精度问题导致无法缩小到边界
-      const scaleTolerance = 1e-6
-      return currentScale > minimumScale * (1 + scaleTolerance)
-    }
-
-    return false
+    transform: ZoomTransform,
+    trackIndex?: number,
+  ) => {
+    select(overlay)
+      .property('__zoom', transform)
+      .on(
+        'wheel.zoom',
+        (event: WheelEvent) => {
+          if (!Number.isFinite(event.deltaY) || event.deltaY === 0) return
+          const current = zoomTransform(overlay)
+            .rescaleX(scaleLinear(baseDomain, [0, width]))
+            .domain() as [number, number]
+          const next = resolveStepZoomDomain(
+            current,
+            event.deltaY < 0 ? 'zoom-in' : 'zoom-out',
+            baseDomain,
+            groups,
+            props,
+            pointer(event, overlay)[0] / width,
+          )
+          if (sameZoomDomain(current, next)) return
+          event.preventDefault()
+          event.stopImmediatePropagation()
+          const transform = transformForDomain(next, baseDomain, width)
+          select(overlay).property('__zoom', transform)
+          if (trackIndex === undefined) handleSharedZoom({ transform })
+          else handleIndependentZoom({ transform }, trackIndex)
+        },
+        { passive: false },
+      )
   }
   const configureZoom = () => {
     const preservePendingWheel = preservePendingWheelDuringDataRebind
     clearZoomBindings(preservePendingWheel)
-    const bindingEpoch = zoomBindingEpoch
     if (
       isPresentationMode.value ||
       !props.zoomable ||
@@ -299,35 +241,14 @@ export function useWaveformZoom(context: ZoomContext) {
         if (!overlay) return
         const dataDomain = resolveInitialTrackDomain(track)
         const groups = [track.seriesList]
-        const minimumScale = resolveMinimumZoomScale(dataDomain)
-        const behavior = zoom<SVGRectElement, unknown>()
-          .filter((event) => {
-            const currentTrack =
-              trackLayouts.value.find((item) => item.index === track.index) ?? track
-            return canHandleWheelZoom(event, canZoomTrack(currentTrack), minimumScale)
-          })
-          .scaleExtent([minimumScale, resolveMaximumZoomScale(dataDomain, groups)])
-          .constrain((transform) => constrainTransform(transform, dataDomain, track.width, groups))
-          .extent([
-            [0, 0],
-            [track.width, track.height],
-          ])
-          .translateExtent([
-            [0, 0],
-            [track.width, track.height],
-          ])
-          .on('zoom', (event) => handleIndependentZoom(event, track.index))
-          .on('end', () => handleD3ZoomEnd(bindingEpoch))
-        zoomBehaviors.set(track.index, behavior)
-        synchronizingZoomTransform = true
-        try {
-          select(overlay)
-            .call(behavior)
-            .on('dblclick.zoom', null)
-            .call(behavior.transform, independentTransforms.value[track.index] ?? zoomIdentity)
-        } finally {
-          synchronizingZoomTransform = false
-        }
+        bindWheelZoom(
+          overlay,
+          dataDomain,
+          track.width,
+          groups,
+          independentTransforms.value[track.index] ?? zoomIdentity,
+          track.index,
+        )
       })
       return
     }
@@ -336,40 +257,12 @@ export function useWaveformZoom(context: ZoomContext) {
     const groups = trackLayouts.value
       .filter((track) => track.hasVisibleSeries)
       .map((track) => track.seriesList)
-    const minimumScale = resolveMinimumZoomScale(initialXDomain.value)
-    const behavior = zoom<SVGRectElement, unknown>()
-      .filter((event) => canHandleWheelZoom(event, canZoomSharedTracks(), minimumScale))
-      .scaleExtent([minimumScale, resolveMaximumZoomScale(initialXDomain.value, groups)])
-      .constrain((transform) =>
-        constrainTransform(transform, initialXDomain.value, innerWidth.value, groups),
-      )
-      .extent([
-        [0, 0],
-        [innerWidth.value, innerHeight.value],
-      ])
-      .translateExtent([
-        [0, 0],
-        [innerWidth.value, innerHeight.value],
-      ])
-      .on('zoom', handleSharedZoom)
-      .on('end', () => handleD3ZoomEnd(bindingEpoch))
-    zoomBehaviors.set('shared', behavior)
-    synchronizingZoomTransform = true
-    try {
-      select(overlay)
-        .call(behavior)
-        .on('dblclick.zoom', null)
-        .call(behavior.transform, sharedTransform.value)
-    } finally {
-      synchronizingZoomTransform = false
-    }
+    bindWheelZoom(overlay, initialXDomain.value, innerWidth.value, groups, sharedTransform.value)
   }
 
   return {
     cancelPendingZoom,
     clearZoomBindings,
-    canZoomTrack,
-    canZoomSharedTracks,
     configureZoom,
     prepareForDataChange,
   }

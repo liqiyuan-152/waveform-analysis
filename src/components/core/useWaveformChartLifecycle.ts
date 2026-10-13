@@ -16,6 +16,7 @@ import type { NormalizedWaveformGridOptions } from './grid'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
 import { isEditableTarget } from '../interaction/interactionTarget'
+import { remotePanBoundary } from '../interaction/remoteViewport'
 
 export interface LifecycleContext {
   preserveFullViewport?: () => boolean
@@ -64,7 +65,6 @@ export interface LifecycleContext {
 }
 
 export function useWaveformChartLifecycle(context: LifecycleContext) {
-  useWaveformMeasurements(context)
   const {
     props,
     emit,
@@ -135,6 +135,15 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   const { handleBeforeDataReferenceChange, handleDataReferenceChange } =
     useWaveformViewportRestore(context)
 
+  useWaveformMeasurements(context, {
+    beforeResize: () => {
+      if (remotePanBoundary(props)) handleBeforeDataReferenceChange()
+    },
+    afterResize: () => {
+      if (remotePanBoundary(props)) handleDataReferenceChange()
+    },
+  })
+
   watch(
     [
       innerWidth,
@@ -163,7 +172,7 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
   )
 
   watch(
-    () => [props.displayMode, props.integerZoom, props.integerZoom ? props.timeUnit : undefined],
+    () => [props.displayMode, props.integerZoom],
     () => {
       const previousPage = currentPage.value
       currentPage.value = 1

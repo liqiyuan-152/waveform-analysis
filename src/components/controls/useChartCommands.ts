@@ -16,6 +16,7 @@ import { paddedDomain } from '../../utils'
 import { transformForDomain } from '../interaction/zoomConstraints'
 import { constrainViewportZoom } from '../interaction/remoteViewport'
 import { normalizeIntegerZoomDomain } from '../interaction/integerZoom'
+import { resolveStepZoomDomain, sameZoomDomain } from '../interaction/stepZoom'
 import type { useControlMode } from './useControlMode'
 
 type Domain = [number, number]
@@ -34,7 +35,7 @@ interface Context {
   legacyReset: (index?: number) => void
   legacySet: (domain: Domain, index?: number) => void
 }
-const same = (a: Domain, b: Domain) => a.every((v, i) => Math.abs(v - b[i]!) < 1e-12)
+const same = sameZoomDomain
 export function useChartCommands(c: Context) {
   let sequence = 0
   const independent = computed(() => c.props.displayMode === 'independent')
@@ -104,18 +105,16 @@ export function useChartCommands(c: Context) {
           paddedDomain(tracks.flatMap((t) => t.seriesList.flatMap((s) => s.xDomain))),
           c.props.xDomainStrategy,
         )
-      let requested: Domain = domain ?? bounds
-      if (before && (action === 'zoom-in' || action === 'zoom-out')) {
-        const [a, b] = before.xDomain
-        const half = (b - a) * (action === 'zoom-in' ? 0.25 : 1)
-        requested = [(a + b) / 2 - half, (a + b) / 2 + half]
-      }
-      const xDomain = constrainViewportZoom(
-        normalizeIntegerZoomDomain(requested, c.props),
-        bounds,
-        tracks.filter((t) => t.hasVisibleSeries).map((t) => t.seriesList),
-        c.props,
-      )
+      const seriesGroups = tracks.filter((t) => t.hasVisibleSeries).map((t) => t.seriesList)
+      const xDomain =
+        before && (action === 'zoom-in' || action === 'zoom-out')
+          ? resolveStepZoomDomain(before.xDomain, action, bounds, seriesGroups, c.props)
+          : constrainViewportZoom(
+              normalizeIntegerZoomDomain(domain ?? bounds, c.props),
+              bounds,
+              seriesGroups,
+              c.props,
+            )
       const resetsY = action === 'reset' || action === 'fit'
       const hasY =
         resetsY &&

@@ -311,13 +311,14 @@ controller.destroy() // 仅清理此 owner，不销毁共享 animator
 | `pannable`                 | `boolean`                                                                          | `false`                                                                               | 空格拖拽平移开关                              |
 | `panXDomain`               | `[number, number]`                                                                 | 未设置                                                                                | 远端横向平移边界，使用秒坐标                  |
 | `minZoomSpan`              | `number`                                                                           | 未设置                                                                                | 最小缩放跨度，使用原始 X 数据单位             |
-| `integerZoom`              | `boolean`                                                                          | `false`                                                                               | 缩放范围按 X 轴显示单位对齐整数               |
+| `integerZoom`              | `boolean`                                                                          | `false`                                                                               | 优先对齐整数，小于一个显示单位时保留小数      |
 | `minVisiblePoints`         | `number`                                                                           | `0`                                                                                   | 缩放后至少保留的不同 X 坐标数                 |
 | `maxZoomScale`             | `number \| null`                                                                   | 未设置                                                                                | 最大缩放倍数；`null` 表示不限制               |
 | `initialXDomain`           | `[number, number]`                                                                 | 未设置                                                                                | 所有图框的初始 X 范围（可超出数据，空白显示） |
 | `initialXDomains`          | `Record<string, [number, number]>`                                                 | 未设置                                                                                | 按 track/series ID 配置初始范围（可超出数据） |
 | `xDomainStrategy`          | `WaveformXDomainStrategy`                                                          | `{ type: 'integer-ms' }`                                                              | 自动 X 轴视口范围策略                         |
 | `yDomain`                  | `[number, number]`                                                                 | 未设置                                                                                | 所有波形的固定 Y 轴范围                       |
+| `amplitudeLimits`          | `WaveformAmplitudeLimits`                                                          | 未设置                                                                                | 按 normalized series ID 配置严格幅值边界      |
 | `yDomains`                 | `Record<string, [number, number]>`                                                 | 未设置                                                                                | 按 track/series ID 配置固定范围               |
 | `grid`                     | `WaveformGridOptions`                                                              | `{ rowCount: 2, columnCount: 1, showPagination: true, fillIncompleteLastRow: false }` | 网格和分页                                    |
 | `axes`                     | `WaveformAxesOptions`                                                              | 轴线均显示                                                                            | X/Y 轴基线、Y 轴分割数与 X 轴 label 格式化    |
@@ -461,6 +462,45 @@ import 'waveform-analysis/style.css'
 固定范围存在时，对应图框的 Y 轴不会被平移或视口重置覆盖；X 轴缩放、平移和重置保持原有
 行为。运行时更新或移除 `yDomain` / `yDomains` 会立即重新布局，移除后恢复自动范围。
 
+### 严格幅值显示上下限
+
+`amplitudeLimits?: WaveformAmplitudeLimits` 按稳定的**规范化 series ID** 设置幅值显示边界，
+不是按 `trackId` 配置，也不绘制阈值线。组件导出以下类型：
+
+```ts
+import type { WaveformAmplitudeLimit, WaveformAmplitudeLimits } from 'waveform-analysis'
+
+// WaveformAmplitudeLimit = { lower?: number; upper?: number }
+const amplitudeLimits: WaveformAmplitudeLimits = {
+  voltage: { lower: -73, upper: 86 },
+  current: { upper: 0 },
+}
+```
+
+```vue
+<WaveformChart :data="chartData" :amplitude-limits="amplitudeLimits" />
+```
+
+每边可选，`0` 有效；非有限值视为该边未配置。两个有效边界相等或倒置时，整个系列配置
+停用，恢复原来的 `yDomain` / `yDomains` 或自动范围逻辑。
+
+有效限幅优先于旧固定范围和手动 Y 视口：配置侧覆盖自动边界并关闭该侧留白，未配置侧
+继续根据完整数据（含启用的误差棒）计算自动范围、留白和 nice 刻度。默认启用 nice，
+但仅允许未配置侧向外扩展；双边 `[-73, 86]` 始终保持原端点，主刻度在其内部按漂亮步长
+生成，边界不必是主刻度。`axes.y.nice: false` 时仍在最终范围上使用线性等分刻度。
+
+单边限幅导致自动侧与配置侧相等或倒置时，只调整自动侧。回退跨度取原自动范围跨度、
+配置值绝对值的 10%、`1` 三者的最大值。缩放、平移、复位、分页和替换 `data` 均不会覆盖
+配置边界；有限幅时未配置侧始终自动计算。替换或移除配置立即生效。
+
+共享 Y 轴按可见系列的有效配置合并：下限取最小值，上限取最大值，仅启用存在的边。
+多值轴按各自系列配置；复用同一根轴的系列也按此规则合并。合并后的双边相等或倒置时
+该轴限幅停用。全部系列隐藏时沿用组件按完整系列保留轴范围的规则；空数据沿用原来的
+默认处理，不创建额外坐标轴。
+
+越界曲线仅在绘图区裁剪，原始输入、完整规范化数据及数据导出不受影响。标签测量、轴槽
+空间和实际渲染使用同一套范围及刻度规则。未使用有效限幅时，旧 API 的行为保持兼容。
+
 ### Y 轴自动等分
 
 Y 轴默认显示 5 个主刻度（包含上下端点），并使用类似 ECharts 的 `1 / 2 / 5 × 10ⁿ` 漂亮
@@ -494,9 +534,103 @@ Y 轴会独立计算：
 
 ### 缩放后按可视区间加载数据
 
+主 demo 已接入可替换的异步加载器：首次加载、缩放结束、平移结束和重置均通过同一接口
+回填数据。默认模拟延迟为 80ms；加载期间显示状态，失败时显示错误并可重试当前范围。
+请求使用 `AbortController` 取消，并校验请求版本，取消未生效的旧响应也不会覆盖新视口。
+独立图框按稳定 `seriesIds` 分别合并，同次多图框命令可加载所有目标。
+
+记录全域通过 `panXDomain` 固定；`initialXDomain` 是首次及重置窗口，可以是全域的一部分。
+它们都不随响应的采样密度、覆盖范围或空结果变化。配置有效 `panXDomain` 时，空系列保留
+身份、图框及交互能力，未加载区域可以继续缩放和平移；本地模式仍使用既有空数据行为。
+公开 `normalizeWaveformSeries` 的空系列过滤行为不变。
+
+远程 demo 默认开启整数缩放，使用
+`xDomainStrategy: { type: 'integer-ms', includeExplicit: true }` 在首次显示及重置时向外扩展
+整数毫秒范围；跨度达到一个显示单位时缩放优先对齐整数，小于一个显示单位时保留小数。
+回填和单位切换不会重新对齐当前视口，平移保持窗口跨度。
+Demo 的 `panXDomain` 同样使用扩展后的记录范围，避免尺寸变化或视口恢复将整数端点裁回
+原始采样端点；加载器元数据和采样坐标仍保留原值。
+它还设置 `minVisiblePoints: 2`、`maxZoomScale: null`，在已加载窗口内缩到两个真实采样点后停止放大。
+最小跨度从完整模拟记录的相邻采样间隔固定计算，不会根据回填的点数重新计算；未加载或不足两点的
+远程窗口仍沿用最小跨度限制。真实后端应通过元数据提供最小跨度；等间隔采样若至少需要 N 点，
+可使用 `(N - 1) * sampleIntervalSeconds`。后端抽稀时不宜用返回点数限制原始采样尺度的进一步放大。
+
+仓库内的 demo 接入方式如下。以下 composable 和加载器属于 demo 辅助模块，不是包的公开导出：
+
+```vue
+<script setup lang="ts">
+import { computed, onMounted, ref, shallowRef } from 'vue'
+import { WaveformChart } from '@/index'
+import { createSimulatedWaveformData } from '@/data/simulatedWaveforms'
+import { createMockWindowLoader } from '@/demo/remoteWaveformLoader'
+import { useRemoteWaveformWindow } from '@/demo/useRemoteWaveformWindow'
+import { applyXDomainStrategy } from '@/components/core/xDomain'
+
+const chart = ref<{ resetViewport: (trackIndex?: number) => void }>()
+const record = shallowRef(createSimulatedWaveformData())
+const xDomainStrategy = { type: 'integer-ms' as const, includeExplicit: true }
+const {
+  chartData,
+  recordDomain,
+  initialXDomain,
+  minZoomSpan,
+  loading,
+  errors,
+  handleZoomIntent,
+  handleZoomChange,
+  handleZoomEnd,
+  handlePanEnd,
+  resetWaveformViewport,
+  retry,
+} = useRemoteWaveformWindow(record, {
+  loadWindow: createMockWindowLoader(() => record.value, { delayMs: 80 }),
+  resetViewport: (index) => chart.value?.resetViewport(index),
+})
+const panXDomain = computed(() => applyXDomainStrategy(recordDomain.value, xDomainStrategy, true))
+onMounted(() => void resetWaveformViewport())
+</script>
+
+<template>
+  <p v-if="loading" role="status">正在加载当前时间范围…</p>
+  <p v-if="errors.length" role="alert">
+    {{ errors.join('；') }}
+    <button :disabled="loading" @click="retry()">重试</button>
+  </p>
+  <WaveformChart
+    ref="chart"
+    :data="chartData"
+    :pan-x-domain="panXDomain"
+    :initial-x-domain="initialXDomain"
+    :min-zoom-span="minZoomSpan"
+    :min-visible-points="2"
+    :max-zoom-scale="null"
+    :integer-zoom="false"
+    :x-domain-strategy="xDomainStrategy"
+    pannable
+    @zoom-intent="handleZoomIntent"
+    @zoom-change="handleZoomChange"
+    @zoom-end="handleZoomEnd"
+    @pan-end="handlePanEnd"
+    @zoom-reset="resetWaveformViewport"
+  />
+</template>
+```
+
+加载器签名为 `loadWindow({ start, end, seriesIds? }, signal): Promise<WaveformData>`，
+坐标和事件端点始终是秒。模拟加载器还支持 `empty`、`fail` 和 `delayMs`，既可以传固定值，
+也可以传按请求计算的函数，以验证空响应、失败和乱序。
+主 demo 可通过 Vue `provide(remoteWindowLoaderKey, loadWindow)` 注入替代加载器。
+连接真实接口时，在消费页面构造请求并将 `signal` 传给 `fetch`；不要在图表库内写死地址。
+真实后端的记录元数据与原始数据请求应分开，模拟器持有完整记录仅用于生成响应。
+
+业务若返回聚合或抽稀点，这些点只代表当前加载精度；需要精确原始点的悬浮查询、标注和
+误差范围应另行加载。前端渲染抽稀仍以完整已加载数据进行查询，不能恢复后端未返回的点。
+
 组件支持 Plotly 风格的矩形框选缩放：在 zoom 模式下按住鼠标左键拖拽，松开后同时缩放
 X/Y 轴；设置 `pannable` 后，指针位于图表内时按住空格键拖拽可平移当前视口。
-鼠标滚轮可放大和缩小，双击恢复完整视口。
+鼠标滚轮可放大和缩小，统一通过重置按钮恢复完整视口，双击不再重置。每次有效滚轮事件以鼠标所在的 X 位置为基准，
+向上滚动将 X 范围缩小一半，向下滚动将 X 范围扩大一倍；滚动幅度不影响单次倍率。
+滚轮与放大/缩小按钮共用边界、整数对齐及最小点数约束，按钮以视口中心为基准。
 组件会在真实滚轮或框选确定目标范围时同步触发 `zoom-intent`，可立即取消过时请求并启动
 新请求；缩放结束后仍会触发 `zoom-end`。独立分图模式还会包含 `trackIndex` 和稳定的
 `seriesIds`。
@@ -542,7 +676,8 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 加载期间超出已加载数据的区域显示空白，加载状态和错误提示由业务页面提供。
 
 配置远端边界时，滚轮、框选和 `setViewportDomain` 在记录范围内约束，最小缩放跨度及倍率
-仍基于初始数据域；未加载区间没有真实点数，因此不会用 `minVisiblePoints` 将目标窗口拉回
+仍基于初始数据域；与已加载数据范围重叠的缩放窗口还会按 `minVisiblePoints` 保留真实采样点，
+避免仅满足时间跨度却缩到一个点后停止。未加载区间没有真实点数，因此不会用点数约束将目标窗口拉回
 已加载数据。回填时保留 X 范围，不重新应用点数约束。取消拖动或范围没有变化不会触发 `pan-end`。
 平移过程中用 `zoom-change` 使旧请求失效，完成后用 `pan-end` 发起请求；对缩放仍使用
 `zoom-intent`。业务页面应使用请求序号或取消机制，避免旧响应覆盖更新的目标窗口。
@@ -554,16 +689,20 @@ X 轴且包含多个轨道时使用按稳定 track ID 索引的 `yRanges`。平�
 `initialXDomains` 按 track ID 或 series ID 分别配置。`minZoomSpan` 使用原始 X 数据单位，
 可防止每次区间数据回填后重新累计放大。未配置任何缩放约束时保留既有的 40 倍兜底；设置
 `minVisiblePoints: 2` 可缩放到两个真实采样点，`maxZoomScale: null` 可显式关闭倍率上限。
+最少点数约束检查缩放后的范围；当前已有两个可见点时，滚轮、按钮和框选仍可继续收窄，
+直到达到真实最小范围。视口外用于延续折线的邻点不计入可见点数。
 
 设置 `:integer-zoom="true"` 可开启整数缩放，默认关闭。开启后滚轮、框选和
-`setViewportDomain` 的开始时间向下取整、结束时间向上取整；`timeUnit='ms'` 时对齐整毫秒，
-`timeUnit='s'` 时对齐整秒，最小跨度为一个显示单位。初始范围和重置范围也向外对齐，
-不会裁掉边缘数据，最小跨度、最大倍率和最少可见点数限制仍然生效。
-默认 X 轴标签和主刻度也使用整数显示单位，平移时保持整数端点及当前跨度。
-动态切换此开关或在开启时切换时间单位会重置视口。
+`setViewportDomain` 优先将开始时间向下取整、结束时间向上取整；`timeUnit='ms'` 时对齐整毫秒，
+`timeUnit='s'` 时对齐整秒。若跨度小于一个显示单位，
+则保留小数范围及小数标签、刻度，例如秒模式下 `1.2～1.8` 和 `1～1.4` 保留小数，
+跨整数的 `1.8～2.2` 也保留原范围；负数采用相同规则。初始范围和重置范围也遵循此规则。
+整数模式不额外限制最小跨度，配置的最小跨度、最大倍率和最少可见点数限制仍然生效。
+平移时保持当前跨度；小数视窗跨越整数边界时仍保留小数。记录边界和最小跨度约束优先。
+动态切换此开关会重置视口；切换时间单位只更新显示，不改变当前原始范围。demo 默认开启此开关。
 原始采样坐标不会被修改，缩放事件仍以秒返回实际对齐后的范围；自定义 formatter 不影响对齐粒度。
 关闭时 `timeUnit` 仍只影响展示，不改变缩放范围。
-显式设置多种限制时采用最严格的一项。双击图框会
+显式设置多种限制时采用最严格的一项。点击工具栏重置按钮会
 重置组件内部缩放并触发 `zoom-reset`；调用方应在事件中取消区间请求并恢复首次完整数据。
 外部重置按钮也可以通过模板引用调用组件公开的 `resetViewport()` 方法，然后执行相同的数据恢复逻辑。
 
@@ -609,9 +748,9 @@ chartRef.value?.setViewportDomain(trackDomain, trackIndex)
 显式初始范围仍须通过 `includeExplicit` 开启，原始数据坐标不变。
 
 独立坐标模式下，回填响应应只替换 `seriesIds` 对应的系列，并调用
-`resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。独立模式下双击图框触发的
-`zoom-reset` payload 会包含该图框的 `trackIndex` 和 `seriesIds`；共享 X 范围模式的 payload
-不包含这两个字段，表示全局复位。忽略事件参数的既有监听器可以继续使用。
+`resetViewport(trackIndex)`；其他图框的数据和缩放状态应保持不变。独立模式下通过工具栏选择目标图框并点击重置，
+`zoom-reset` payload 会包含该图框的 `trackIndex` 和 `seriesIds`；选择当前页全部时按图框分别触发事件。
+共享 X 范围模式表示全局复位。忽略事件参数的既有监听器可以继续使用。
 
 多通道数据应为每个 `WaveformSeries` 提供稳定的 `id`。内部时间坐标始终使用秒，
 `timeUnit` 只控制坐标轴和 tooltip 的显示单位。
@@ -1033,8 +1172,21 @@ scale 定位零线：
 />
 ```
 
-X 轴刻度和左右端点默认先按 `timeUnit` 转换为秒或毫秒，再显示为无千分位、无科学计数法的
-完整普通十进制值，不会四舍五入为整数。可通过 `axes.x.labelFormatter` 对显示值做运算和格式化：
+X 轴主刻度参考 ECharts 数值轴算法，以当前可视域跨度除以目标分段数，选择
+`1 / 2 / 3 / 5 / 10 × 10ⁿ` 的漂亮步长。目标分段数按绘图区宽度自动计算
+（`max(2, floor(width / 100))`），实际数量可能不同。该算法只生成域内刻度，不扩展可视域；
+自动域、显式域、`xDomainStrategy` 及缩放和平移约束继续决定范围。
+左右端点标签仍独立显示，附近主刻度会避让；次网格线按完整主刻度间隔三等分生成。
+整数缩放在整数视口下使用至少一个显示单位的步长，小数视口仍允许小数刻度。
+极端数值或超出刻度安全上限时回退到 D3 刻度算法。回退结果同样会过滤非有限值、
+去重并规范化负零；若实际数量超过 3000，会降低目标数量重新生成等距刻度。
+无法生成有效刻度时只保留独立端点标签，不修改可视域。
+
+X 轴刻度和左右端点默认先按 `timeUnit` 转换为秒或毫秒，再显示为无千分位的自适应精度
+数值。默认标签去除尾零、负零和浮点长尾，小窗口精度按
+`max(0, ceil(-log10(显示跨度)) + 1)` 计算，普通小数最多六位，更高精度使用科学计数法；
+两端标签仍相同时增加有效数字直到可区分。边界小数保留必要精度。
+可通过 `axes.x.labelFormatter` 对显示值做运算和格式化：
 
 ```vue
 <WaveformChart
@@ -1062,7 +1214,7 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 `zoomable`、`pannable` 和 `showTooltip` 分别控制缩放、平移和 tooltip；平移默认关闭，
 启用后在 `pan` 模式直接拖拽，`zoom` 模式按 Space 临时平移。传入模式 prop 时请接入更新回传，详见工具栏章节。
 
-展示场景可启用 `presentationMode`，统一禁用绘图区的 tooltip、缩放、平移、双击复位和
+展示场景可启用 `presentationMode`，统一禁用绘图区的 tooltip、缩放、平移和
 标注交互。该模式不会隐藏任何图形内容，也不会禁用图例切换或分页；关闭后恢复原交互配置。
 
 ```vue
@@ -1206,7 +1358,7 @@ async function importAnnotationFile(file: File) {
 字段无效时会抛出 `TypeError`，不会返回部分结果。导入包含未知 `seriesId` 的标注是允许的，
 对应曲线加载后会恢复显示。文件选择、错误提示和下载由业务层实现。
 
-X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为不带分组符和科学计数法的完整普通十进制值，并可通过 `axes.x.labelFormatter` 自定义。Y 轴根据完整显示域的最大绝对值选择格式：大于等于 `10³`，或大于 `0` 且小于等于 `10⁻³` 时，自动使用科学计数法，并在顶部刻度显示共享倍率 `E±NN`，倍率不参与左侧留白与通道名称定位；其他范围使用普通数字，零值不触发科学计数法。Y 轴标签先保留五位有效数字，再本地化为最多四位小数。科学计数法刻度不追加单位；普通刻度在 series 配置了 `unit` 时显示 `(单位)`，多 Y 轴分别使用对应轴首个 series 的单位。tooltip 使用最多 4 位小数的本地化普通数字并省略无意义尾零；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
+X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为不带分组符的自适应精度数值，并可通过 `axes.x.labelFormatter` 自定义。Y 轴根据完整显示域的最大绝对值选择格式：大于等于 `10³`，或大于 `0` 且小于等于 `10⁻³` 时，自动使用科学计数法，并在顶部刻度显示共享倍率 `E±NN`，倍率不参与左侧留白与通道名称定位；其他范围使用普通数字，零值不触发科学计数法。Y 轴标签先保留五位有效数字，再本地化为最多四位小数。科学计数法刻度不追加单位；普通刻度在 series 配置了 `unit` 时显示 `(单位)`，多 Y 轴分别使用对应轴首个 series 的单位。tooltip 使用最多 4 位小数的本地化普通数字并省略无意义尾零；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
 标注框默认布局在采样点正上方，只做绘图区边界裁剪；文本框通过连接箭头指向标注位置，多个标注重叠时可通过拖动手动避让。
 
 ## 事件
@@ -1220,7 +1372,7 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                     |
 | `pan-end`                                                       | 平移结束且范围变化时返回时间端点，独立模式附带轨道信息    |
 | `zoom-end`                                                      | 滚轮、框选或新命令提交后触发；加载器需忽略 action=fit     |
-| `zoom-reset`                                                    | 双击或新对象 reset 恢复意图；独立模式标识目标图框         |
+| `zoom-reset`                                                    | 重置按钮或新对象 reset 恢复意图；独立模式标识目标图框     |
 | `page-change`                                                   | 分页变化，参数为当前页和总页数                            |
 | `series-visibility-change`                                      | 图例切换曲线显隐时触发                                    |
 | `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                      |

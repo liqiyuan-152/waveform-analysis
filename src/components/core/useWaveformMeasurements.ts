@@ -15,6 +15,7 @@ export function useWaveformMeasurements(
     | 'titleAreaReserved'
     | 'titleMeasureStyle'
   >,
+  resizeHooks: { beforeResize?: () => void; afterResize?: () => void } = {},
 ) {
   const {
     container,
@@ -53,8 +54,10 @@ export function useWaveformMeasurements(
   onMounted(() => {
     if (!container.value) return
     resizeObserver.value = new ResizeObserver(([entry]) => {
+      resizeHooks.beforeResize?.()
       observedWidth.value = Math.max(0, entry?.contentRect.width ?? 0)
       observedHeight.value = Math.max(0, entry?.contentRect.height ?? 0)
+      resizeHooks.afterResize?.()
       void nextTick(measureTitle)
     })
     resizeObserver.value.observe(container.value)

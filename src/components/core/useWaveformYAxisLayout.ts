@@ -49,6 +49,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
       props.axes?.y,
       showUnits.value,
       isEdgeCompact.value ? measureYAxisTextWidth : undefined,
+      props.amplitudeLimits,
     ),
   )
   const hasYAxisLabels = computed(() =>
@@ -84,6 +85,7 @@ export function useWaveformYAxisLayout(context: YAxisLayoutContext) {
       props.axes?.y,
       showUnits.value,
       isEdgeCompact.value ? measureYAxisTextWidth : undefined,
+      props.amplitudeLimits,
     ),
   )
   const resolvedChartLeftMargin = computed(() =>

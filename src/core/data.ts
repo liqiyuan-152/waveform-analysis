@@ -215,10 +215,11 @@ function normalizedSeriesOptions(
 /** Internal normalized series which preserves compact TypedArray storage for chart rendering. */
 export function normalizeWaveformSeriesSources(
   data: WaveformData,
+  retainEmpty = false,
 ): NormalizedWaveformSourceSeries[] {
   if (data.kind !== 'series') {
     const source = createWaveformPointSource(data, normalizeWaveformData)
-    return source.length
+    return source.length || retainEmpty
       ? [
           {
             ...normalizedSeriesOptions('series-0', { name: '' }),
@@ -239,7 +240,9 @@ export function normalizeWaveformSeriesSources(
     }
     usedIds.add(uniqueId)
     const source = createWaveformPointSource(series.data, normalizeWaveformData)
-    return source.length ? [{ ...normalizedSeriesOptions(uniqueId, series), source }] : []
+    return source.length || retainEmpty
+      ? [{ ...normalizedSeriesOptions(uniqueId, series), source }]
+      : []
   })
 }
 

@@ -16,11 +16,13 @@ const data = {
 }
 
 describe('integer zoom', () => {
-  it('aligns outwards in display units, including negative and sub-unit ranges', () => {
+  it('aligns outwards except inside adjacent integers in display units', () => {
     expect(alignIntegerZoomDomain([-0.0012, 0.0023], { integerZoom: true })).toEqual([
       -0.002, 0.003,
     ])
-    expect(alignIntegerZoomDomain([1.2, 1.3], { integerZoom: true, timeUnit: 's' })).toEqual([1, 2])
+    expect(alignIntegerZoomDomain([1.2, 1.3], { integerZoom: true, timeUnit: 's' })).toEqual([
+      1.2, 1.3,
+    ])
     expect(alignIntegerZoomDomain([0.001, 0.009000000000000001], { integerZoom: true })).toEqual([
       0.001, 0.009,
     ])

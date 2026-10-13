@@ -5,7 +5,7 @@ import App from '@/App.vue'
 import { WaveformChart } from '@/components'
 
 describe('integer zoom demo control', { timeout: 20_000 }, () => {
-  it('defaults on and updates the chart through the sidebar switch', async () => {
+  it('defaults on for remote windows and updates the chart through the sidebar switch', async () => {
     const wrapper = mount(App)
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)

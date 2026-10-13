@@ -14,7 +14,9 @@ import type {
   WaveformTitleOptions,
   WaveformZeroLineOptions,
   WaveformZoomEndPayload,
+  WaveformZoomIntentPayload,
 } from '../components'
+import type { WaveformZoomResetPayload, WaveformPanEndPayload } from '../types'
 import type { DemoXAxisLabelFormat, DemoXAxisLabelTimeZone } from './useDemoXAxisLabelControls'
 
 interface SelectOption<T> {
@@ -97,6 +99,11 @@ export interface DemoChartModel {
   toolbarVisible: boolean
   data: WaveformData
   initialXDomain?: [number, number]
+  recordDomain: [number, number]
+  minZoomSpan?: number
+  loading: boolean
+  errors: string[]
+  retry: () => Promise<void[]>
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
   rowCount: number
@@ -120,5 +127,8 @@ export interface DemoChartModel {
   interactionMode: WaveformInteractionMode
   hiddenSeriesIds: string[]
   handleZoomEnd: (payload: WaveformZoomEndPayload) => void | Promise<void>
-  resetWaveformViewport: () => void
+  handleZoomIntent: (payload: WaveformZoomIntentPayload) => void
+  handleZoomChange: (domain: [number, number]) => void
+  handlePanEnd: (payload: WaveformPanEndPayload) => void | Promise<void>
+  resetWaveformViewport: (payload?: WaveformZoomResetPayload) => void | Promise<void>
 }

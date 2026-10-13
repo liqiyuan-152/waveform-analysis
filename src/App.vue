@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue'
 import 'vue3-colorpicker/style.css'
 
 import {
@@ -16,7 +16,6 @@ import {
   type WaveformOverlayMode,
   type WaveformPlotMargin,
   type WaveformTitleOptions,
-  type WaveformZoomEndPayload,
   type WaveformZeroLineOptions,
 } from './components'
 import { normalizeWaveformSeries } from './core'
@@ -25,6 +24,8 @@ import DemoChartHost from './demo/DemoChartHost.vue'
 import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'
 import { useDemoXAxisLabelControls } from './demo/useDemoXAxisLabelControls'
+import { remoteWindowLoaderKey } from './demo/remoteWaveformLoader'
+import { useRemoteWaveformWindow } from './demo/useRemoteWaveformWindow'
 
 const demoPreset = new URLSearchParams(window.location.search).get('demo')
 const compactNineDemo = demoPreset === 'compact-nine'
@@ -164,20 +165,27 @@ const plotMargin = computed<WaveformPlotMargin>(() => ({
   bottom: plotMarginBottom.value,
 }))
 
-const initialXValues = normalizeWaveformSeries(fullChartData).flatMap((series) =>
-  series.points.map((point) => point.x),
-)
-const [initialXMinimum, initialXMaximum] = initialXValues.reduce<[number, number]>(
-  ([minimum, maximum], value) => [Math.min(minimum, value), Math.max(maximum, value)],
-  [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY],
-)
-const initialXDomainValue: [number, number] | undefined =
-  Number.isFinite(initialXMinimum) && Number.isFinite(initialXMaximum)
-    ? [initialXMinimum, initialXMaximum]
-    : undefined
-// Keep the full source domain stable while viewport data windows are replaced.
-const initialXDomain = ref<[number, number] | undefined>(initialXDomainValue)
-const chartData = ref<WaveformData>(fullChartData)
+const demoChartHostRef = ref<{ resetViewport: (trackIndex?: number) => void }>()
+const sourceData = shallowRef<WaveformData>(fullChartData)
+const remoteWindow = useRemoteWaveformWindow(sourceData, {
+  loadWindow: inject(remoteWindowLoaderKey, undefined),
+  resetViewport: (trackIndex) => demoChartHostRef.value?.resetViewport(trackIndex),
+})
+const {
+  chartData,
+  initialXDomain,
+  recordDomain,
+  minZoomSpan,
+  loading,
+  errors,
+  handleZoomIntent,
+  handleZoomChange,
+  handleZoomEnd,
+  handlePanEnd,
+  resetWaveformViewport,
+  retry,
+} = remoteWindow
+onMounted(() => void resetWaveformViewport())
 const lineStyleOverrides = ref<Record<string, WaveformLineStyle>>({})
 const selectedSeriesId = ref(
   fullChartData.kind === 'series' ? (fullChartData.series[0]?.id ?? '') : '',
@@ -188,7 +196,7 @@ const lineStyleOptions: Array<{ label: string; value: WaveformLineStyle }> = [
   { label: '点划线', value: 'dash-dot' },
 ]
 const seriesStyleOptions = computed(() =>
-  normalizeWaveformSeries(chartData.value).map((series) => ({
+  normalizeWaveformSeries(sourceData.value).map((series) => ({
     label: series.name || series.id,
     value: series.id,
   })),
@@ -214,7 +222,7 @@ const displayChartData = computed<WaveformData>(() => {
 })
 const gridTrackLines = computed<WaveformGridTrackLines>(() =>
   Object.fromEntries(
-    normalizeWaveformSeries(displayChartData.value).map((series) => [
+    normalizeWaveformSeries(sourceData.value).map((series) => [
       series.trackId ?? series.id,
       {
         horizontal: horizontalGridVisible.value,
@@ -225,88 +233,6 @@ const gridTrackLines = computed<WaveformGridTrackLines>(() =>
     ]),
   ),
 )
-const demoChartHostRef = ref<{ resetViewport: (trackIndex?: number) => void }>()
-
-let zoomRequestSequence = 0
-
-function filterWaveformData(data: WaveformData, start: number, end: number): WaveformData {
-  const lower = Math.min(start, end)
-  const upper = Math.max(start, end)
-  if (data.kind !== 'series') {
-    if (data.kind !== 'points') return data
-    return {
-      kind: 'points',
-      points: data.points.filter((point) => point.x >= lower && point.x <= upper),
-    }
-  }
-  return {
-    kind: 'series',
-    series: data.series.map((series) => ({
-      ...series,
-      data:
-        series.data.kind === 'points'
-          ? {
-              kind: 'points',
-              points: series.data.points.filter((point) => point.x >= lower && point.x <= upper),
-            }
-          : series.data,
-    })),
-  }
-}
-
-function mergeIndependentWindow(
-  currentData: WaveformData,
-  responseData: WaveformData,
-  seriesIds: string[],
-): WaveformData {
-  if (currentData.kind !== 'series' || responseData.kind !== 'series') return responseData
-  const responseById = new Map(responseData.series.map((series) => [series.id, series]))
-  const changedIds = new Set(seriesIds)
-  return {
-    kind: 'series',
-    series: currentData.series.map((series) =>
-      series.id && changedIds.has(series.id) ? (responseById.get(series.id) ?? series) : series,
-    ),
-  }
-}
-
-let pendingCommandId: string | undefined
-let pendingPayloads: WaveformZoomEndPayload[] = []
-async function handleZoomEnd(payload: WaveformZoomEndPayload) {
-  if (payload.action === 'fit') return
-  if (payload.commandId && payload.commandId === pendingCommandId) {
-    pendingPayloads.push(payload)
-    return
-  }
-  pendingCommandId = payload.commandId
-  const batch = [payload]
-  pendingPayloads = batch
-  // Demo-only sequence number cancellation. Production code should use AbortController
-  // to cancel in-flight requests when a newer zoom gesture arrives.
-  const requestSequence = ++zoomRequestSequence
-  await new Promise((resolve) => window.setTimeout(resolve, 80))
-  if (requestSequence !== zoomRequestSequence) return
-
-  // Demo-only stand-in for the backend response. Production code should replace this
-  // with a request using payload.start/payload.end and the optional channel metadata.
-  let nextData = chartData.value
-  batch.forEach((item) => {
-    const responseData = filterWaveformData(fullChartData, item.start, item.end)
-    nextData =
-      item.trackIndex !== undefined && item.seriesIds?.length
-        ? mergeIndependentWindow(nextData, responseData, item.seriesIds)
-        : responseData
-  })
-  chartData.value = nextData
-  pendingCommandId = undefined
-}
-
-function resetWaveformViewport() {
-  zoomRequestSequence += 1
-  chartData.value = fullChartData
-  initialXDomain.value = initialXDomainValue
-  demoChartHostRef.value?.resetViewport()
-}
 const titleOptions = computed<WaveformTitleOptions>(() => ({
   visible: titleVisible.value,
   text: titleText.value,
@@ -406,6 +332,11 @@ const chartModel = reactive({
   toolbarVisible,
   data: displayChartData,
   initialXDomain,
+  recordDomain,
+  minZoomSpan,
+  loading,
+  errors,
+  retry,
   displayMode,
   overlayMode,
   rowCount,
@@ -428,7 +359,10 @@ const chartModel = reactive({
   annotationsVisible,
   interactionMode,
   hiddenSeriesIds,
+  handleZoomIntent,
+  handleZoomChange,
   handleZoomEnd,
+  handlePanEnd,
   resetWaveformViewport,
 }) satisfies DemoChartModel
 </script>

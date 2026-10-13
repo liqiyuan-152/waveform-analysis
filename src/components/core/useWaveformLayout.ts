@@ -52,6 +52,9 @@ export function useWaveformLayout(context: LayoutContext) {
     annotationInteraction,
     linePointOverrides,
   } = context
+  // Display-unit switches must not change the base used by existing D3 transforms.
+  const domainTimeUnit = props.timeUnit
+  const domainOptions = () => ({ integerZoom: props.integerZoom, timeUnit: domainTimeUnit })
   const chartSeries = computed<DisplaySeries[]>(() =>
     preparedSeries.value.map((series, index): DisplaySeries => ({
       ...series,
@@ -174,12 +177,12 @@ export function useWaveformLayout(context: LayoutContext) {
           props.xDomainStrategy,
           true,
         ),
-        props,
+        domainOptions(),
       )
     }
     return alignIntegerZoomDomain(
       applyXDomainStrategy(sharedXDomain.value, props.xDomainStrategy),
-      props,
+      domainOptions(),
     )
   })
   const resolveOriginalTrackDomain = (track: TrackLayout): [number, number] => {
@@ -201,7 +204,7 @@ export function useWaveformLayout(context: LayoutContext) {
           props.xDomainStrategy,
           true,
         ),
-        props,
+        domainOptions(),
       )
     }
     return alignIntegerZoomDomain(
@@ -209,7 +212,7 @@ export function useWaveformLayout(context: LayoutContext) {
         paddedDomain(track.seriesList.flatMap((series) => series.xDomain)),
         props.xDomainStrategy,
       ),
-      props,
+      domainOptions(),
     )
   }
   const initialXDomain = computed(
@@ -261,10 +264,12 @@ export function useWaveformLayout(context: LayoutContext) {
       effectiveXDomains: context.boundaries?.value,
       xDomainStrategy: props.xDomainStrategy,
       integerZoom: props.integerZoom,
+      amplitudeLimits: props.amplitudeLimits,
       fixedYDomain: props.yDomain,
       fixedYDomains: props.yDomains,
       yDomains: viewportYDomains.value,
       timeUnit: props.timeUnit,
+      domainTimeUnit,
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
       yAxisSplitNumber: props.axes?.y?.splitNumber,
       yAxisNice: props.axes?.y?.nice,

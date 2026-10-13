@@ -81,7 +81,7 @@ export interface WaveformZoomIntentPayload extends WaveformCommandMetadata {
   seriesIds?: string[]
 }
 
-/** Identifies the viewport reset by a double-click gesture. */
+/** Identifies the viewport reset by a toolbar or API command. */
 export interface WaveformZoomResetPayload extends WaveformCommandMetadata {
   trackIndex?: number
   seriesIds?: string[]
@@ -319,3 +319,12 @@ export interface WaveformZeroLineOptions {
   /** Hide within this fraction of a Y-axis tick interval from either boundary. Defaults to 0.02. */
   boundaryThreshold?: number
 }
+
+/** Strict amplitude display bounds, in the series' original Y units. */
+export interface WaveformAmplitudeLimit {
+  lower?: number
+  upper?: number
+}
+
+/** Keyed by stable normalized series IDs (not track IDs). */
+export type WaveformAmplitudeLimits = Record<string, WaveformAmplitudeLimit>

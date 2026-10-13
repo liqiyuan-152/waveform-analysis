@@ -1,6 +1,7 @@
 import type { WaveformAnimationProps } from '../../animation/types'
 import type { WaveformToolbarOptions, WaveformControlState } from '../../types/controls'
 import type {
+  WaveformAmplitudeLimits,
   WaveformAnnotation,
   WaveformAxesOptions,
   WaveformData,
@@ -43,7 +44,7 @@ export interface WaveformChartProps extends WaveformAnimationProps {
   lineColor?: string
   showTooltip?: boolean
   zoomable?: boolean
-  /** Snap viewport endpoints outwards to integer X-axis display units. */
+  /** Prefer integer display-unit endpoints; preserve any window narrower than one unit. */
   integerZoom?: boolean
   pannable?: boolean
   /** Global record bounds in seconds; enables horizontal panning beyond loaded data. */
@@ -54,6 +55,8 @@ export interface WaveformChartProps extends WaveformAnimationProps {
   initialXDomain?: [number, number]
   initialXDomains?: Record<string, [number, number]>
   xDomainStrategy?: WaveformXDomainStrategy
+  /** Strict bounds per normalized series ID; active bounds override Y viewports. */
+  amplitudeLimits?: WaveformAmplitudeLimits
   yDomain?: [number, number]
   yDomains?: Record<string, [number, number]>
   timeUnit?: 's' | 'ms'

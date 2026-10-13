@@ -187,7 +187,7 @@ describe('WaveformChart', () => {
       await flushPromises()
     }
 
-    await zoomAtCenter()
+    for (let step = 0; step < 4; step += 1) await zoomAtCenter()
     const firstDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(firstDomain[1] - firstDomain[0]).toBeCloseTo(10)
 
@@ -239,7 +239,7 @@ describe('WaveformChart', () => {
 
     await dispatchWheel(-4000)
     const zoomedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
-    expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(2.5)
+    expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(50)
 
     await wrapper.setProps({
       data: {
@@ -252,7 +252,7 @@ describe('WaveformChart', () => {
     })
     await flushPromises()
     const preservedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
-    expect(preservedDomain[1] - preservedDomain[0]).toBeCloseTo(2.5)
+    expect(preservedDomain[1] - preservedDomain[0]).toBeCloseTo(50)
 
     const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
     await dispatchWheel(4000)
@@ -295,7 +295,7 @@ describe('WaveformChart', () => {
 
     await dispatchWheel(-4000)
     const zoomedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
-    expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(0.05)
+    expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(1)
 
     await wrapper.setProps({ minVisiblePoints: 10 })
     await flushPromises()

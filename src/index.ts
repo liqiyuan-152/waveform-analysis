@@ -62,6 +62,8 @@ export type {
 // 类型定义
 export type {
   // 图表类型
+  WaveformAmplitudeLimit,
+  WaveformAmplitudeLimits,
   WaveformPoint,
   WaveformDisplayMode,
   WaveformUnitDisplayMode,

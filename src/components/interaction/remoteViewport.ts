@@ -1,4 +1,6 @@
 import type { ResolvedWaveformChartProps } from '../core/waveformChartTypes'
+import { hasMinimumVisibleXValues } from '../../core/rendering'
+import { normalizeIntegerZoomDomain } from './integerZoom'
 import {
   constrainZoomDomain,
   resolveMinimumZoomSpan,
@@ -32,7 +34,13 @@ export function restoreViewportDomain(
   const boundary = remotePanBoundary(props)
   return boundary
     ? clampViewportDomain(domain, boundary)
-    : constrainZoomDomain(domain, baseDomain, groups, props)
+    : normalizeIntegerZoomDomain(
+        constrainZoomDomain(domain, baseDomain, groups, {
+          ...props,
+          integerZoom: false,
+        }),
+        props,
+      )
 }
 
 /** Wheel/box zoom keeps the remote position and uses loaded data for scale limits. */
@@ -44,10 +52,24 @@ export function constrainViewportZoom(
 ) {
   const boundary = remotePanBoundary(props)
   if (!boundary) return constrainZoomDomain(domain, baseDomain, groups, props)
-  return constrainZoomDomain(domain, boundary, [], {
+  const availableGroups = groups.filter((group) =>
+    hasMinimumVisibleXValues(group, boundary, props.minVisiblePoints),
+  )
+  // Only constrain against loaded groups that overlap the requested window. An
+  // unloaded remote window must remain free to move beyond the cached samples.
+  const loadedGroups = availableGroups.filter((group) =>
+    group.some((series) => {
+      const source = series.source
+      const length = source?.length ?? series.points.length
+      if (!length) return false
+      const first = source ? source.pointAt(0)! : series.points[0]
+      const last = source ? source.pointAt(length - 1)! : series.points[length - 1]
+      return first.x <= Math.max(...domain) && last.x >= Math.min(...domain)
+    }),
+  )
+  return constrainZoomDomain(domain, boundary, loadedGroups, {
     ...props,
-    minVisiblePoints: 0,
     maxZoomScale: null,
-    minZoomSpan: resolveMinimumZoomSpan(baseDomain, groups, props),
+    minZoomSpan: resolveMinimumZoomSpan(baseDomain, availableGroups, props),
   })
 }

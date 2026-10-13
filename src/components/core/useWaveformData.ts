@@ -31,8 +31,11 @@ export interface PreparedWaveformSeries {
   hasErrorPoints: boolean
 }
 
-export function prepareWaveformSeries(data: WaveformData): PreparedWaveformSeries[] {
-  return normalizeWaveformSeriesSources(data).map(({ source, ...series }) => {
+export function prepareWaveformSeries(
+  data: WaveformData,
+  retainEmpty = false,
+): PreparedWaveformSeries[] {
+  return normalizeWaveformSeriesSources(data, retainEmpty).map(({ source, ...series }) => {
     const sourceMetrics = source.metrics(series.errorBar.visible)
     return {
       ...series,
@@ -61,11 +64,14 @@ export function usePreparedWaveformSeries(
   data: () => WaveformData,
   onBeforeDataChange: () => void,
   onDataChange: () => void,
+  retainEmpty: () => boolean = () => false,
 ) {
-  const preparedSeries = shallowRef<PreparedWaveformSeries[]>(prepareWaveformSeries(data()))
-  watch(data, (nextData) => {
+  const preparedSeries = shallowRef<PreparedWaveformSeries[]>(
+    prepareWaveformSeries(data(), retainEmpty()),
+  )
+  watch([data, retainEmpty], ([nextData, preserveEmpty]) => {
     onBeforeDataChange()
-    preparedSeries.value = prepareWaveformSeries(nextData)
+    preparedSeries.value = prepareWaveformSeries(nextData, preserveEmpty)
     onDataChange()
   })
   return preparedSeries
