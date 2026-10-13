@@ -89,20 +89,32 @@ describe('fractional integer zoom', () => {
         ]
         expect(endpoints()[0]).toBeCloseTo(1.7, 12)
         expect(endpoints()[1]).toBeCloseTo(1.9, 12)
+        await wrapper.trigger('pointerenter')
         const overlay = wrapper.get('.waveform-chart__overlay')
         const width = Number(overlay.attributes('width'))
         Object.defineProperty(overlay.element, 'getBoundingClientRect', {
           value: () => ({ left: 0, top: 0, width, height: 290 }),
         })
-        await wrapper.trigger('pointerenter')
-        window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
+        // Vue capture/bubble handlers must receive events newer than their attachment timestamp.
+        await vi.advanceTimersByTimeAsync(1)
+        const spaceDown = new KeyboardEvent('keydown', { code: 'Space', cancelable: true })
+        window.dispatchEvent(spaceDown)
+        expect(spaceDown.defaultPrevented).toBe(true)
         for (const [type, x] of [
           ['pointerdown', width],
+          ['pointermove', 0],
           ['pointerup', 0],
         ] as const) {
-          const event = new MouseEvent(type, { button: 0, clientX: x, clientY: 100, bubbles: true })
+          const event = new MouseEvent(type, {
+            button: 0,
+            clientX: x,
+            clientY: 100,
+            bubbles: true,
+            cancelable: true,
+          })
           Object.defineProperty(event, 'pointerId', { value: 72 })
           overlay.element.dispatchEvent(event)
+          expect(event.defaultPrevented, type).toBe(true)
         }
         window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
         await flushPromises()

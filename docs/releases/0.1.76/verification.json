@@ -1,0 +1,148 @@
+{
+  "version": "0.1.76",
+  "date": "2026-10-13",
+  "changes": [
+    "Remove recorded channel from default demo and delete its source file",
+    "Default demo now has 10 tracks/12 series; last page does not render empty slots",
+    "README removes recorded-frame description; general channel examples use DEMO_VOLTAGE"
+  ],
+  "checks": [
+    {
+      "check": "install",
+      "exitCode": 0
+    },
+    {
+      "check": "typecheck",
+      "exitCode": 0
+    },
+    {
+      "check": "length",
+      "exitCode": 0
+    },
+    {
+      "check": "oxlint",
+      "exitCode": 0
+    },
+    {
+      "check": "lint",
+      "exitCode": 0
+    },
+    {
+      "check": "coverage",
+      "exitCode": 1
+    },
+    {
+      "check": "related-final",
+      "exitCode": 0
+    },
+    {
+      "check": "typecheck-final",
+      "exitCode": 0
+    },
+    {
+      "check": "length-final",
+      "exitCode": 0
+    },
+    {
+      "check": "oxlint-final",
+      "exitCode": 0
+    },
+    {
+      "check": "lint-final",
+      "exitCode": 0
+    },
+    {
+      "check": "coverage-final",
+      "exitCode": 0
+    },
+    {
+      "check": "build",
+      "exitCode": 0
+    },
+    {
+      "check": "package",
+      "exitCode": 0
+    },
+    {
+      "check": "pack",
+      "exitCode": 0
+    },
+    {
+      "check": "typecheck-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "length-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "oxlint-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "lint-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "coverage-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "build-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "package-ready",
+      "exitCode": 0
+    },
+    {
+      "check": "pack-ready",
+      "exitCode": 0
+    }
+  ],
+  "finalTests": {
+    "files": 155,
+    "tests": 1275
+  },
+  "coveragePercent": {
+    "lines": 94.2,
+    "statements": 92.33,
+    "functions": 93.59,
+    "branches": 87.67
+  },
+  "browser": {
+    "buildMode": "production",
+    "results": [
+      {
+        "width": 1280,
+        "names": [
+          "十亿量级压力脉冲",
+          "纳量级阻尼位移"
+        ],
+        "emptySlots": 0,
+        "errors": []
+      },
+      {
+        "width": 360,
+        "names": [
+          "十亿量级压力脉冲",
+          "纳量级阻尼位移"
+        ],
+        "emptySlots": 0,
+        "errors": []
+      }
+    ]
+  },
+  "packageAudit": {
+    "removedSourceAbsent": true,
+    "removedSeriesIdAbsentInSourcesAndBundles": true,
+    "version": "0.1.76"
+  },
+  "testMaintenance": [
+    "App geometry tests use real dimensions and wait for sampling, with static fallback",
+    "Axis label control test commits final state before asserting",
+    "Fractional pan test advances fake time beyond Vue handler attachment timestamps, uses a complete cancelable gesture and verifies handled events"
+  ],
+  "initialFailuresRetained": "Local /tmp/release-076-* logs; final checks rerun after corrections",
+  "publication": "Prepared; tag triggers release/npm/demo pipeline"
+}

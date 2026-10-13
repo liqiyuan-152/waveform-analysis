@@ -1,12 +1,16 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { InputNumber, Select } from 'ant-design-vue'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
 
 import App from '@/App.vue'
 import { WaveformChart, type WaveformData } from '@/components'
+import { resizeObservers } from '@tests/support/setup'
+
+const frameDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'requestAnimationFrame')!
 
 describe('App workspace layout', { timeout: 20_000 }, () => {
+  afterEach(() => Object.defineProperty(globalThis, 'requestAnimationFrame', frameDescriptor))
   it('restores full data and invalidates a pending zoom request', async () => {
     vi.useFakeTimers()
     const wrapper = mount(App)
@@ -240,8 +244,22 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('keeps the primary simulated signal in the first frame', async () => {
+    Object.defineProperty(globalThis, 'requestAnimationFrame', {
+      ...frameDescriptor,
+      value: undefined,
+    })
     const wrapper = mount(App)
     await flushPromises()
+    resizeObservers.at(-1)?.resize(800, 800)
+    await flushPromises()
+    wrapper.getComponent(WaveformChart).vm.resetViewport()
+    await flushPromises()
+
+    await vi.waitFor(() =>
+      expect(wrapper.find('[data-series-id="simulated-sine"] .waveform-chart__line').exists()).toBe(
+        true,
+      ),
+    )
 
     const firstFrame = wrapper.get('.waveform-chart__track[data-track-index="0"]')
     const firstFrameSeries = firstFrame.findAll('.waveform-chart__series')
@@ -262,8 +280,22 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('keeps the simulated channels across the paginated frames', async () => {
+    Object.defineProperty(globalThis, 'requestAnimationFrame', {
+      ...frameDescriptor,
+      value: undefined,
+    })
     const wrapper = mount(App)
     await flushPromises()
+    resizeObservers.at(-1)?.resize(800, 800)
+    await flushPromises()
+    wrapper.getComponent(WaveformChart).vm.resetViewport()
+    await flushPromises()
+
+    await vi.waitFor(() =>
+      expect(
+        wrapper.find('[data-series-id="simulated-harmonic"] .waveform-chart__line').exists(),
+      ).toBe(true),
+    )
 
     const tracks = wrapper.findAll('.waveform-chart__track')
     expect(tracks).toHaveLength(4)
@@ -299,20 +331,12 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '微量级电流',
       '十亿量级压力脉冲',
       '纳量级阻尼位移',
-      'SX2_7_01',
     ])
     simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
       if (item.data.kind === 'points') {
         expect(item.data.points).toHaveLength(item.name === '阶跃响应' ? 500 : 1000)
-        const startTime =
-          item.name === '阶跃响应'
-            ? 5 / 999
-            : item.name === '阻尼振荡'
-              ? -4
-              : item.name === 'SX2_7_01'
-                ? 0
-                : -5
+        const startTime = item.name === '阶跃响应' ? 5 / 999 : item.name === '阻尼振荡' ? -4 : -5
         expect(item.data.points[0]?.x).toBeCloseTo(startTime, 10)
       }
     })
@@ -332,8 +356,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
         .findAll('.waveform-chart__track')
         .filter((track) => !track.classes().includes('waveform-chart__track--empty'))
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
-    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移', 'SX2_7_01'])
-    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(1)
+    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移'])
+    expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(0)
     expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
 
     wrapper.unmount()

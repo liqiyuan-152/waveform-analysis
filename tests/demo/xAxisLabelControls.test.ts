@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
 import { formatDemoTimestamp } from '@/demo/useDemoXAxisLabelControls'
+import { resizeObservers } from '@tests/support/setup'
 
 describe('X-axis label demo controls', () => {
   it('formats timestamps in fixed UTC and China-standard-time formats', () => {
@@ -18,6 +19,10 @@ describe('X-axis label demo controls', () => {
     const wrapper = mount(App)
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
+    resizeObservers.at(-1)?.resize(800, 800)
+    await flushPromises()
+    chart.vm.resetViewport()
+    await flushPromises()
 
     expect(chart.props('axes')).toMatchObject({
       x: { lineVisible: false },
@@ -45,6 +50,8 @@ describe('X-axis label demo controls', () => {
 
     multiplierInput?.vm.$emit('update:value', 2)
     fractionDigitsInput?.vm.$emit('update:value', 2)
+    await flushPromises()
+    chart.vm.resetViewport()
     await flushPromises()
     const formatter = chart.props('axes')?.x?.labelFormatter
     expect(formatter).toBeTypeOf('function')

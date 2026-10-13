@@ -53,6 +53,7 @@ defineExpose({ resetViewport })
         rowCount: model.rowCount,
         columnCount: model.columnCount,
         showPagination: true,
+        fillIncompleteLastRow: true,
         trackLines: model.gridTrackLines,
       }"
       :title="model.title"
