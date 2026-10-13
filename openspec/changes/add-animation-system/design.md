@@ -95,7 +95,7 @@ duration/delay 必须有限且 >=0；loop=false 等价 1，true 为无限，数�
 
 鼠标/触摸指针查询、标注拖拽、滚轮、框选、平移以及外部 viewport/control 命令执行前同步稳定到最新业务目标。事件计算直接使用完整目标布局，不等下一次 DOM patch；随后 Vue 更新画面。动画帧不发送 viewport、annotation、hidden-series 变更事件。timeUnit 不改变任何数值坐标。
 
-resize、分页、显示模式、可见性及 clean/presentation 布局切换结束当前动画，按新布局静态展示，不整批重播。设置恢复 enabled 只影响后续变化。暂停采用原因集合：单任务 manual、管理器 manual-all、控制器 manual-all、document-hidden 独立持有；任一原因存在即暂停。pause/resume 只增删自己的原因，resumeAll 不撤销单任务手动暂停。页面进入后台增加 document-hidden，返回只移除此原因；新建任务继承所属管理器/控制器及页面原因。有效暂停累计时间按原因集合非空的时间区间并集计算，不重复扣除。后台新任务不启动 RAF/延迟唤醒。finish、abort、禁用和导出不受暂停阻止；已有终止任务不会在恢复时复活。
+resize、显示模式、可见性、自动页码重置及 clean/presentation 布局切换结束当前动画，按新布局静态展示，不整批重播。用户显式切页使用独立请求代次和 owner 的 custom/update 透明度任务，复用 animationUpdate 默认300ms/cubicInOut，不保留旧页几何。等待最新页成功采样和有效布局时隐藏新页内容；fallback/error 直接完整显示。轴与网格立即更新，波形/点/误差棒及标注只乘共享透明度，基础几何投影与标注布局计算不依赖逐帧淡入透明度。快速翻页中止前一请求，旧页采样仍沿用现有版本守卫；数据、环境或自动页码变化取消请求。分页控件指针移动不稳定当前分页淡入，绘图区交互及命令/导出仍同步提交终态。设置恢复 enabled 只影响后续变化。暂停采用原因集合：单任务 manual、管理器 manual-all、控制器 manual-all、document-hidden 独立持有；任一原因存在即暂停。pause/resume 只增删自己的原因，resumeAll 不撤销单任务手动暂停。页面进入后台增加 document-hidden，返回只移除此原因；新建任务继承所属管理器/控制器及页面原因。有效暂停累计时间按原因集合非空的时间区间并集计算，不重复扣除。后台新任务不启动 RAF/延迟唤醒。finish、abort、禁用和导出不受暂停阻止；已有终止任务不会在恢复时复活。
 
 exportImage 先验证参数、busy 和尺寸，再在既有 5 秒超时/版本守卫下开启当前图表的动画抑制区间，finishAll，等待采样、字体和 Vue 提交后创建最终态快照。在导出等待中到达的同版本采样结果静态提交，不新建动画；数据或布局版本改变仍为 export-stale；卸载仍为 export-cancelled。finally 释放抑制，恢复后只为后续变化启动动画。共享调度器其他图表不受影响。
 

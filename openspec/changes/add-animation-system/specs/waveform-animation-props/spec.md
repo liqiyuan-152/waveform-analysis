@@ -75,6 +75,11 @@ duration/delay/easing/direction/type/staggerDelay SHALL 在创建任务时快照
 - **WHEN** 系列入场中关闭 annotation，或保持 annotation 开启但关闭 enter
 - **THEN** 前者合法标注立即到终态但系列入场继续；后者系列完整显示且等待的标注开始出现，不永久隐藏
 
+#### Scenario: 分页复用更新配置
+
+- **WHEN** 用户切换分页或动态关闭 animationUpdate
+- **THEN** 分页淡入复用更新类别（默认300ms、cubicInOut），enabled=false 或 duration=0 完整静态展示；播放时配置快照不变，关闭立即结束，恢复开关不重播；不新增分页 prop
+
 ### Requirement: API-05 公共预设与控制器接口
 
 本节中的接口以及引用的引擎规格类型 SHALL 从包根入口导出。它们是公共契约，不依赖 change 目录的设计说明；代码块为声明签名，不表示已实现。

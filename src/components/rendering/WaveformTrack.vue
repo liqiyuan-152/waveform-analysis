@@ -12,6 +12,7 @@ import WaveformTrackBackdrop from './WaveformTrackBackdrop.vue'
 
 interface Props {
   track: TrackLayout
+  paginationOpacity?: number
   clipPathId: string
   innerWidth: number
   zoomable: boolean
@@ -136,7 +137,11 @@ const frameInset = computed(() =>
       aria-hidden="true"
     />
 
-    <WaveformSeriesLayer :track="track" :clip-path-id="clipPathId" />
+    <WaveformSeriesLayer
+      :track="track"
+      :clip-path-id="clipPathId"
+      :pagination-opacity="paginationOpacity"
+    />
     <WaveformZeroLines
       :track="track"
       :clip-path-id="clipPathId"

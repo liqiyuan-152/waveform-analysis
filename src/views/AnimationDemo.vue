@@ -18,19 +18,17 @@ let generation = 0
 function generate(count = 500): WaveformData {
   return {
     kind: 'series',
-    series: [
-      {
-        id: 'signal',
-        name: '信号',
-        data: {
-          kind: 'points',
-          points: Array.from({ length: count }, (_, i) => ({
-            x: i / (count - 1),
-            y: Math.sin((i / (count - 1)) * Math.PI * 6) * (10 + generation * 2),
-          })),
-        },
+    series: Array.from({ length: 3 }, (_, channel) => ({
+      id: channel === 0 ? 'signal' : `signal-${channel}`,
+      name: `信号 ${channel + 1}`,
+      data: {
+        kind: 'points' as const,
+        points: Array.from({ length: count }, (_, i) => ({
+          x: i / (count - 1),
+          y: Math.sin((i / (count - 1)) * Math.PI * 6 + channel) * (10 + generation * 2),
+        })),
       },
-    ],
+    })),
   }
 }
 const data = ref(generate())
@@ -43,18 +41,27 @@ function replace(compatible: boolean) {
 function toggleAnnotation() {
   annotations.value = annotations.value.length
     ? []
-    : [{ id: 'note', seriesId: 'signal', x: 0.4, y: 10, text: '受控标注' }]
+    : Array.from({ length: 3 }, (_, channel) => ({
+        id: channel === 0 ? 'note' : `note-${channel}`,
+        seriesId: channel === 0 ? 'signal' : `signal-${channel}`,
+        x: 0.4,
+        y: 10,
+        text: '受控标注',
+      }))
 }
 </script>
 
 <template>
   <main class="animation-demo">
     <h1>波形动画</h1>
-    <p>分别控制入场、数据更新和标注效果。拖动、缩放与导出会提交当前数据的最终画面。</p>
+    <p>
+      分别控制入场、更新 /
+      切页和标注效果。切换分页时波形与标注同步淡入，坐标轴立即更新。拖动、缩放与导出会提交最终画面。
+    </p>
     <div class="animation-demo__controls">
       <label><input v-model="enabled" type="checkbox" /> 动画</label>
       <label><input v-model="enter" type="checkbox" /> 入场</label>
-      <label><input v-model="update" type="checkbox" /> 更新</label>
+      <label><input v-model="update" type="checkbox" /> 更新 / 切页</label>
       <label><input v-model="annotationEnabled" type="checkbox" /> 标注</label>
       <label
         >入场方向

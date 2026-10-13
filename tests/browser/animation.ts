@@ -1,6 +1,7 @@
 import { createApp, defineComponent, h, nextTick, shallowRef } from 'vue'
 import { WaveformChart, globalAnimator, type WaveformData, type WaveformChartHandle } from '@/index'
 import '@/components/WaveformChart.css'
+import 'ant-design-vue/dist/antd.css'
 
 interface Scenario {
   width: number
@@ -10,6 +11,8 @@ interface Scenario {
   mode: 'static' | 'enter' | 'compatible' | 'crossfade'
   enabled?: boolean
   duration?: number
+  pageSize?: number
+  annotated?: boolean
 }
 function data(s: Scenario, phase = 0, incompatible = false): WaveformData {
   return {
@@ -49,10 +52,27 @@ async function mount(s: Scenario) {
           data: input.value,
           width: s.width,
           height: s.height,
-          grid: { rowCount: s.series, columnCount: 1, showPagination: false },
+          grid: {
+            rowCount: s.pageSize ?? s.series,
+            columnCount: 1,
+            showPagination: s.pageSize !== undefined,
+          },
           animationEnabled: s.enabled ?? s.mode !== 'static',
           animation: { duration: s.mode === 'enter' ? (s.duration ?? 2000) : 0, staggerDelay: 0 },
-          animationUpdate: { duration: s.duration ?? 2000 },
+          animationUpdate: {
+            duration: s.duration ?? 2000,
+            easing: s.pageSize ? 'linear' : 'cubicInOut',
+          },
+          animationAnnotation: { duration: 0 },
+          annotations: s.annotated
+            ? Array.from({ length: s.series }, (_, i) => ({
+                id: `note-${i}`,
+                seriesId: `s${i}`,
+                x: 0.5,
+                y: 0,
+                text: `Channel ${i}`,
+              }))
+            : [],
           rendering: { sampling: { mode: 'auto', maxPointCount: 1200 } },
         }),
     }),

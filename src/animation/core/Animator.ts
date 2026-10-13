@@ -145,6 +145,7 @@ export class Animator {
     if (this.#barrier) return
     this.#barrier = true
     try {
+      // oxlint-disable-next-line unicorn/no-useless-spread -- Callbacks mutate tasks; snapshot membership.
       for (const task of [...this.#tasks.values()]) {
         if (method === 'finish') task.finish(this.#clock().now())
         else task.abort()

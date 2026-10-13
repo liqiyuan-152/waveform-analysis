@@ -29,6 +29,7 @@ export function interpolateGeometry(from: NumericGeometry, to: NumericGeometry, 
     result = Object.fromEntries(
       Object.entries(to).map(([key, rows]) => [
         key,
+        // oxlint-disable-next-line unicorn/no-new-array -- Allocate fixed-length interpolation output.
         (rows as number[][]).map((row) => new Array<number>(row.length)),
       ]),
     )

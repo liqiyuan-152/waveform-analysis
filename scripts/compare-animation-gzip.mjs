@@ -13,7 +13,11 @@ import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 import { collectGzipSizes, compareGzipSizes } from './animation-gzip-report.mjs'
 
-const baselineCommit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim()
+const baselineCommit = execFileSync(
+  'git',
+  ['rev-parse', process.env.ANIMATION_GZIP_BASELINE ?? 'HEAD'],
+  { encoding: 'utf8' },
+).trim()
 const baseline = mkdtempSync(join(tmpdir(), 'waveform-animation-gzip-'))
 const archive = join(baseline, 'source.tar')
 execFileSync('git', ['archive', '--format=tar', '--output', archive, baselineCommit])
@@ -50,7 +54,8 @@ const evidence = {
   totals,
 }
 writeFileSync(
-  'openspec/changes/add-animation-system/evidence/gzip-results.json',
+  process.env.ANIMATION_GZIP_OUTPUT ??
+    'openspec/changes/add-animation-system/evidence/gzip-results.json',
   JSON.stringify(evidence, null, 2),
 )
 console.log(results)

@@ -50,6 +50,7 @@ const {
   trackLayouts,
   presentationTracks,
   presentationAnnotations,
+  paginationOpacity,
   stabilizeAnimations,
   clipPathId,
   chartTopMargin,
@@ -243,6 +244,7 @@ function handleChartPointerLeave() {
           v-for="track in trackLayouts"
           :key="`${track.index}-${track.id}`"
           :track="presentationTracks.find((item) => item.id === track.id) ?? track"
+          :pagination-opacity="paginationOpacity"
           :frame-path="
             displayMode === 'compact'
               ? compactFramePath(track, trackLayouts, compactFrameInset)

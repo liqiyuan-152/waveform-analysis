@@ -19,7 +19,6 @@ import {
   watchEffect,
   type ComponentPublicInstance,
 } from 'vue'
-
 import { useWaveformInstanceId } from '../../utils/waveformId'
 import { useWaveformAnnotationInteraction, type AnnotationSeriesCandidate } from '../annotation'
 import { useWaveformChartAnnotations } from '../annotation/useWaveformChartAnnotations'
@@ -42,7 +41,6 @@ import type {
   ViewportSelectionState,
   WaveformChartEmit,
 } from './waveformChartTypes'
-
 export function useWaveformChartController(
   inputProps: ResolvedWaveformChartProps,
   emit: WaveformChartEmit,
@@ -180,9 +178,10 @@ export function useWaveformChartController(
     renderingOptions,
     linePointOverrides,
   })
-
   const animations = useWaveformAnimations({
     props,
+    currentPage,
+    containerSize: computed(() => [observedWidth.value, observedHeight.value]),
     layoutReady: computed(() => observedWidth.value > 0 && observedHeight.value > 0),
     tracks: trackLayouts,
     preparedSeries,
@@ -423,6 +422,7 @@ export function useWaveformChartController(
     ...animations.wrap(commands),
     presentationTracks: animations.presentationTracks,
     presentationAnnotations: animations.presentationAnnotations,
+    paginationOpacity: animations.paginationOpacity,
     stabilizeAnimations: animations.stabilizeAnimations,
     ...imageExport,
     margin,
@@ -436,7 +436,7 @@ export function useWaveformChartController(
     contextMenu: annotationInteraction.contextMenu,
     editorSeriesOptions,
     clipPathId,
-    goToPage: lifecycle.goToPage,
+    goToPage: animations.wrapPagination(lifecycle.goToPage, pageCount),
     setContainer: (element: Element | ComponentPublicInstance | null) =>
       assignElement(container, element),
     setSvgElement: (element: Element | ComponentPublicInstance | null) =>

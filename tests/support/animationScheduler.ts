@@ -74,6 +74,7 @@ export function createAnimationTestScheduler(withRaf = true) {
       currentTime = end
     },
     flushFrame() {
+      // oxlint-disable-next-line unicorn/no-useless-spread -- Newly requested frames wait for the next flush.
       for (const [id, callback] of [...frames]) {
         if (frames.get(id) !== callback) continue
         frames.delete(id)

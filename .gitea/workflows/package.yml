@@ -229,12 +229,13 @@ jobs:
           target_commitish="$TAG_NAME"
 
           node - "$TAG_NAME" "$PACKAGE_VERSION" "$target_commitish" "$IS_PRERELEASE" > release.json <<'NODE'
+          const { readFileSync } = require('node:fs')
           const [tagName, packageVersion, targetCommitish, prerelease] = process.argv.slice(2)
           process.stdout.write(JSON.stringify({
             tag_name: tagName,
             target_commitish: targetCommitish,
             name: `waveform-analysis ${tagName}`,
-            body: `Release ${tagName}\n\n- npm: waveform-analysis@${packageVersion}`,
+            body: readFileSync('RELEASE_NOTES.md', 'utf8'),
             draft: false,
             prerelease: prerelease === 'true',
           }))

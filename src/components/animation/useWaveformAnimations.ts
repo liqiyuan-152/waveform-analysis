@@ -1,7 +1,4 @@
-import { computed, shallowRef, watch, onScopeDispose, type ComputedRef, type ShallowRef } from 'vue'
-import type { TrackLayout } from '../core/types'
-import type { PreparedWaveformSeries } from '../core/useWaveformData'
-import type { ResolvedWaveformChartProps } from '../core/waveformChartTypes'
+import { computed, shallowRef, watch, onScopeDispose } from 'vue'
 import { WaveformAnimationController } from '@/animation/WaveformAnimationController'
 import { resolveAnimationProps } from './config'
 import { createAnnotationPresentation } from './annotationPresentation'
@@ -16,19 +13,10 @@ import { chartExportOptions } from '../controls/chartExportOptions'
 import { layoutAnnotations } from '../annotation/annotationLayout'
 import { useWaveformInstanceId } from '@/utils/waveformId'
 
-interface Context {
-  props: ResolvedWaveformChartProps
-  tracks: ComputedRef<TrackLayout[]>
-  preparedSeries: ShallowRef<PreparedWaveformSeries[]>
-  layoutReady: ComputedRef<boolean>
-  innerWidth: ComputedRef<number>
-  innerHeight: ComputedRef<number>
-  sampling: {
-    state: ComputedRef<'pending' | 'success' | 'fallback' | 'error'>
-    requestSignature: ComputedRef<string>
-  }
-}
-export function useWaveformAnimations(context: Context) {
+import { animationLayoutSignature, wrapAnimationCommands, type AnimationContext } from './context'
+import { createPaginationPresentation } from './paginationPresentation'
+
+export function useWaveformAnimations(context: AnimationContext) {
   const { props, tracks, preparedSeries, sampling } = context
   const config = computed(() => resolveAnimationProps(props))
   const revision = shallowRef(0)
@@ -75,6 +63,9 @@ export function useWaveformAnimations(context: Context) {
       states.has(track.id) ? projectTrack(states.get(track.id)!) : track,
     )
   })
+  const pagination = createPaginationPresentation(context, controller, config, effective, () =>
+    commit(true),
+  )
   const projectedAnnotations = computed(() => {
     const anchors = new Map([...states.values()].flatMap((state) => [...state.anchors]))
     const values = visibleAnnotations().flatMap((annotation) => {
@@ -109,9 +100,13 @@ export function useWaveformAnimations(context: Context) {
         [...state.series].map(([id, series]) => [id, series.opacity] as const),
       ),
     )
-    return annotations.project(projectedAnnotations.value, opacities)
+    return annotations.project(projectedAnnotations.value, opacities).map((annotation) => ({
+      ...annotation,
+      seriesOpacity: (annotation.seriesOpacity ?? 1) * pagination.opacity.value,
+    }))
   })
-  function commit() {
+  function commit(preservePagination = false) {
+    if (!preservePagination) pagination.reset()
     const previous = new Map(states)
     states.clear()
     for (const track of tracks.value)
@@ -130,27 +125,7 @@ export function useWaveformAnimations(context: Context) {
     invalidate()
     annotations.finish(projectedAnnotations.value)
   }
-  const layoutSignature = computed(() =>
-    JSON.stringify({
-      tracks: tracks.value.map((track) => [
-        track.id,
-        track.left,
-        track.top,
-        track.width,
-        track.height,
-        track.seriesList.map((series) => series.id),
-        track.yAxes.map((axis) => axis.seriesList.map((series) => series.id)),
-      ]),
-      width: context.innerWidth.value,
-      height: context.innerHeight.value,
-      mode: props.displayMode,
-      overlay: props.overlayMode,
-      hidden: props.hiddenSeriesIds,
-      clean: props.cleanView,
-      presentation: props.presentationMode,
-      page: tracks.value.map((track) => track.id),
-    }),
-  )
+  const layoutSignature = computed(() => animationLayoutSignature(context))
   function reconcile() {
     if (disposed) return
     const nextConfig = config.value
@@ -187,6 +162,7 @@ export function useWaveformAnimations(context: Context) {
     previousTracks = tracks.value
     previousSamplingState = sampling.state.value
     controller.setEnabled(effective.value)
+    if (pagination.reconcile(dataChanged)) return
     if (!effective.value || layoutChanged) {
       controller.finishAll()
       commit()
@@ -329,6 +305,7 @@ export function useWaveformAnimations(context: Context) {
       layoutSignature,
       sampling.state,
       context.layoutReady,
+      context.currentPage,
       effective,
     ],
     reconcile,
@@ -366,6 +343,7 @@ export function useWaveformAnimations(context: Context) {
         controller.finishWhere(
           (key) => key.scope === 'update' || key.scope === 'domain',
           () => {
+            pagination.reset()
             for (const track of tracks.value) {
               const old = states.get(track.id),
                 next = staticTrack(track, visibleAnnotations(), old, true)
@@ -399,6 +377,7 @@ export function useWaveformAnimations(context: Context) {
   }
   onScopeDispose(() => {
     disposed = true
+    pagination.reset()
     states.clear()
     entering.clear()
     annotations.clear()
@@ -407,29 +386,29 @@ export function useWaveformAnimations(context: Context) {
       document.removeEventListener('visibilitychange', visibilityChanged)
     controller.destroy()
   })
-  function stabilizeAnimations() {
+  function stabilizeAnimations(event?: Event) {
+    if (
+      pagination.active() &&
+      event?.target instanceof Element &&
+      event.target.closest('.waveform-chart__pagination')
+    )
+      return
     if (sampling.state.value === 'pending') skipSignature = sampling.requestSignature.value
-    if (controller.getActiveAnimationCount() || pendingFrom || sampling.state.value === 'pending')
+    if (
+      controller.getActiveAnimationCount() ||
+      pendingFrom ||
+      pagination.active() ||
+      sampling.state.value === 'pending'
+    )
       controller.finishAll()
-  }
-  function wrap<T extends object>(commands: T): T {
-    return Object.fromEntries(
-      Object.entries(commands).map(([key, value]) => [
-        key,
-        typeof value === 'function' && key !== 'getControlState'
-          ? (...args: unknown[]) => {
-              stabilizeAnimations()
-              return value(...args)
-            }
-          : value,
-      ]),
-    ) as T
   }
   return {
     presentationTracks,
     presentationAnnotations,
+    paginationOpacity: pagination.opacity,
     stabilizeAnimations,
-    wrap,
+    wrap: <T extends object>(commands: T) => wrapAnimationCommands(commands, stabilizeAnimations),
+    wrapPagination: pagination.wrapPagination,
     prepareExport: () => {
       exportSuppressed.value = true
       stabilizeAnimations()
