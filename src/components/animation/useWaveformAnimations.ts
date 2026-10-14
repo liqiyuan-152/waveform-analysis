@@ -13,7 +13,12 @@ import { chartExportOptions } from '../controls/chartExportOptions'
 import { layoutAnnotations } from '../annotation/annotationLayout'
 import { useWaveformInstanceId } from '@/utils/waveformId'
 
-import { animationLayoutSignature, wrapAnimationCommands, type AnimationContext } from './context'
+import {
+  animationGridShape,
+  animationLayoutSignature,
+  wrapAnimationCommands,
+  type AnimationContext,
+} from './context'
 import { createPaginationPresentation } from './paginationPresentation'
 
 export function useWaveformAnimations(context: AnimationContext) {
@@ -26,6 +31,8 @@ export function useWaveformAnimations(context: AnimationContext) {
   const seen = new Set<string>()
   const prefix = useWaveformInstanceId('waveform-animation')
   let clipSequence = 0
+  let presentationGeneration = 0
+  let previousGrid = animationGridShape(context)
   let previousAnnotations = props.annotations
   let previousData = props.data
   let previousLayout = ''
@@ -63,9 +70,12 @@ export function useWaveformAnimations(context: AnimationContext) {
       states.has(track.id) ? projectTrack(states.get(track.id)!) : track,
     )
   })
-  const pagination = createPaginationPresentation(context, controller, config, effective, () =>
-    commit(true),
-  )
+  const pagination = createPaginationPresentation(context, controller, config, effective, () => {
+    commit(true)
+    for (const track of tracks.value) for (const series of track.seriesList) seen.delete(series.id)
+    skipSignature = undefined
+    annotations.clear()
+  })
   const projectedAnnotations = computed(() => {
     const anchors = new Map([...states.values()].flatMap((state) => [...state.anchors]))
     const values = visibleAnnotations().flatMap((annotation) => {
@@ -100,12 +110,10 @@ export function useWaveformAnimations(context: AnimationContext) {
         [...state.series].map(([id, series]) => [id, series.opacity] as const),
       ),
     )
-    return annotations.project(projectedAnnotations.value, opacities).map((annotation) => ({
-      ...annotation,
-      seriesOpacity: (annotation.seriesOpacity ?? 1) * pagination.opacity.value,
-    }))
+    return annotations.project(projectedAnnotations.value, opacities)
   })
   function commit(preservePagination = false) {
+    presentationGeneration++
     if (!preservePagination) pagination.reset()
     const previous = new Map(states)
     states.clear()
@@ -130,6 +138,8 @@ export function useWaveformAnimations(context: AnimationContext) {
     if (disposed) return
     const nextConfig = config.value
     const dataChanged = props.data !== previousData
+    // The post-flush grid watcher waits for lifecycle page resets before requesting replay.
+    if (!dataChanged && seen.size && animationGridShape(context) !== previousGrid) return
     if (dataChanged) {
       pendingFrom = new Map(states)
       previousData = props.data
@@ -162,8 +172,9 @@ export function useWaveformAnimations(context: AnimationContext) {
     previousTracks = tracks.value
     previousSamplingState = sampling.state.value
     controller.setEnabled(effective.value)
-    if (pagination.reconcile(dataChanged)) return
-    if (!effective.value || layoutChanged) {
+    const replay = pagination.reconcile(dataChanged)
+    if (replay === 'static') return
+    if (!effective.value || (layoutChanged && !replay)) {
       controller.finishAll()
       commit()
       return
@@ -224,6 +235,7 @@ export function useWaveformAnimations(context: AnimationContext) {
           if (
             !seen.has(id) &&
             nextConfig.animation.enabled &&
+            nextConfig.animation.duration > 0 &&
             skipSignature !== sampling.requestSignature.value
           ) {
             const state = states.get(track.id)!
@@ -255,8 +267,10 @@ export function useWaveformAnimations(context: AnimationContext) {
             invalidate()
           },
         }
+        const generation = presentationGeneration
         controller.animateSeriesEnter(id, binding, track.width, {
           ...nextConfig.animation,
+          duration: pagination.enterDuration(),
           delay:
             nextConfig.animation.delay + visibleIds.indexOf(id) * nextConfig.animation.staggerDelay,
           onComplete: () => {
@@ -264,7 +278,7 @@ export function useWaveformAnimations(context: AnimationContext) {
             entering.delete(id)
             invalidate()
             queueMicrotask(() => {
-              if (!disposed) annotations.release(id)
+              if (!disposed && presentationGeneration === generation) annotations.release(id)
             })
             nextConfig.animation.onComplete?.()
           },
@@ -312,6 +326,17 @@ export function useWaveformAnimations(context: AnimationContext) {
     { immediate: true },
   )
   watch(
+    [() => animationGridShape(context), () => props.data],
+    ([shape, data], [previousShape, previousData]) => {
+      previousGrid = shape
+      if (disposed || shape === previousShape || data !== previousData || !seen.size) return
+      // Lifecycle page resets have now selected the final grid and page.
+      pagination.requestLayout()
+      reconcile()
+    },
+    { flush: 'post' },
+  )
+  watch(
     () => props.annotationsVisible,
     (visible) => {
       if (!visible)
@@ -343,7 +368,6 @@ export function useWaveformAnimations(context: AnimationContext) {
         controller.finishWhere(
           (key) => key.scope === 'update' || key.scope === 'domain',
           () => {
-            pagination.reset()
             for (const track of tracks.value) {
               const old = states.get(track.id),
                 next = staticTrack(track, visibleAnnotations(), old, true)
@@ -405,7 +429,6 @@ export function useWaveformAnimations(context: AnimationContext) {
   return {
     presentationTracks,
     presentationAnnotations,
-    paginationOpacity: pagination.opacity,
     stabilizeAnimations,
     wrap: <T extends object>(commands: T) => wrapAnimationCommands(commands, stabilizeAnimations),
     wrapPagination: pagination.wrapPagination,

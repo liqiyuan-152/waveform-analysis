@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { TrackLayout } from '../core/types'
+import { normalizeGridOptions } from '../core/grid'
 import type { PreparedWaveformSeries } from '../core/useWaveformData'
 import type { ResolvedWaveformChartProps } from '../core/waveformChartTypes'
 
@@ -18,6 +19,11 @@ export interface AnimationContext {
   }
 }
 
+export function animationGridShape(context: AnimationContext) {
+  const grid = normalizeGridOptions(context.props.grid)
+  return `${grid.rowCount}:${grid.columnCount}`
+}
+
 export function animationLayoutSignature(context: AnimationContext) {
   const { props, tracks } = context
   return JSON.stringify({
@@ -27,8 +33,10 @@ export function animationLayoutSignature(context: AnimationContext) {
       track.top,
       track.width,
       track.height,
+      track.xScale.domain(),
+      track.yScale.domain(),
       track.seriesList.map((series) => series.id),
-      track.yAxes.map((axis) => axis.seriesList.map((series) => series.id)),
+      track.yAxes.map((axis) => [axis.seriesList.map((series) => series.id), axis.scale.domain()]),
     ]),
     width: context.innerWidth.value,
     height: context.innerHeight.value,

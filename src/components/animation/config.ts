@@ -62,7 +62,7 @@ export function resolveAnimationProps(
     animationEnabled: field(props.animationEnabled, true, boolean, 'animationEnabled'),
     animationThreshold: field(
       props.animationThreshold,
-      50000,
+      200000,
       (v) => nonnegative(v) && Number.isInteger(v),
       'animationThreshold',
     ),

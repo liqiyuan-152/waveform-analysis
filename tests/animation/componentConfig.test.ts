@@ -3,6 +3,11 @@ import { resolveAnimationProps } from '@/components/animation/config'
 import type { WaveformAnimationProps } from '@/index'
 
 describe('chart animation option resolution', () => {
+  it('defaults to 200,000 points while preserving explicit consumer thresholds', () => {
+    expect(resolveAnimationProps({}).animationThreshold).toBe(200000)
+    expect(resolveAnimationProps({ animationThreshold: undefined }).animationThreshold).toBe(200000)
+    expect(resolveAnimationProps({ animationThreshold: 50000 }).animationThreshold).toBe(50000)
+  })
   it('rejects object-valued effects without coercing them to a valid name', () => {
     const effect = { toString: vi.fn(() => 'fade-in') }
     const warn = vi.fn()
@@ -80,7 +85,7 @@ describe('chart animation option resolution', () => {
       easing: 'cubicInOut',
     })
     expect(resolved.animationAnnotation.type).toBe('scale')
-    expect(resolved.animationThreshold).toBe(50000)
+    expect(resolved.animationThreshold).toBe(200000)
     expect(warn).toHaveBeenCalledTimes(10)
   })
   it('accepts custom easing and snapshots the callbacks supplied', () => {

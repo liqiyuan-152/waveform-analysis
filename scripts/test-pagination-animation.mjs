@@ -5,7 +5,7 @@ import { animationBrowserServer } from './animation-browser-server.mjs'
 import { animationBuildInputs } from './animation-build-inputs.mjs'
 
 const output = new URL(
-  '../openspec/changes/add-animation-system/evidence/pagination/',
+  '../openspec/changes/add-animation-system/evidence/pagination-500ms/',
   import.meta.url,
 )
 await mkdir(output, { recursive: true })
@@ -21,7 +21,14 @@ const save = () =>
 async function snapshot(page) {
   return page.evaluate(() => {
     const series = [...globalThis.document.querySelectorAll('.waveform-track__series-item')]
+    const rect = series[0]?.querySelector('[clipPathUnits] rect')
+    const viewportId = series[0]?.parentElement?.getAttribute('clip-path')?.slice(5, -1)
+    const width = globalThis.document
+      .getElementById(viewportId)
+      ?.querySelector('rect')
+      ?.getAttribute('width')
     return {
+      progress: rect ? Number(rect.getAttribute('width')) / Number(width) : 1,
       opacity: Number(series[0]?.getAttribute('opacity') ?? 1),
       series: [...globalThis.document.querySelectorAll('.waveform-chart__line')].map((line) =>
         line.getAttribute('data-series-id'),
@@ -40,10 +47,12 @@ async function snapshot(page) {
   })
 }
 async function settle(page) {
-  await page.waitForFunction(() =>
-    [...globalThis.document.querySelectorAll('.waveform-track__series-item')].every(
-      (item) => Number(item.getAttribute('opacity') ?? 1) === 1,
-    ),
+  await page.waitForFunction(
+    () =>
+      !globalThis.document.querySelector('.waveform-track__series-item [clipPathUnits]') &&
+      [...globalThis.document.querySelectorAll('.waveform-annotation')].every(
+        (item) => Number(item.getAttribute('opacity') ?? 1) === 1,
+      ),
   )
 }
 try {
@@ -70,7 +79,7 @@ try {
               height: 360,
               series: 3,
               points: 300,
-              mode: 'static',
+              mode: 'enter',
               enabled: true,
               duration: 600,
               pageSize: 1,
@@ -78,26 +87,32 @@ try {
             }),
           width,
         )
+        await settle(page)
         await page.locator('.ant-pagination-next button').click()
         const initial = await snapshot(page)
         assert.deepEqual(initial.series, ['s1'])
-        assert(initial.opacity < 0.5)
-        assert.equal(initial.enterClips, 0)
+        assert(initial.progress < 0.5)
+        assert.equal(initial.opacity, 1)
+        assert.equal(initial.enterClips, 1)
         await page.waitForFunction(() => {
-          const value = Number(
-            globalThis.document
-              .querySelector('.waveform-track__series-item')
-              ?.getAttribute('opacity'),
-          )
+          const series = globalThis.document.querySelector('.waveform-track__series-item')
+          const rect = series?.querySelector('[clipPathUnits] rect')
+          const id = series?.parentElement?.getAttribute('clip-path')?.slice(5, -1)
+          const width = globalThis.document
+            .getElementById(id)
+            ?.querySelector('rect')
+            ?.getAttribute('width')
+          const value = rect ? Number(rect.getAttribute('width')) / Number(width) : 1
           return value > 0.15 && value < 0.9
         })
         const middle = await snapshot(page)
-        assert(middle.opacity > 0 && middle.opacity < 1)
-        assert.equal(middle.opacity, middle.annotationOpacity)
+        assert(middle.progress > 0 && middle.progress < 1)
+        assert.equal(middle.opacity, 1)
+        assert.equal(middle.annotationOpacity, 0)
         assert.equal(initial.path, middle.path)
         assert(middle.axesOpacity.every((value) => value === null))
         await page.screenshot({
-          path: new URL(`${name.toLowerCase()}-component-${width}-fade.png`, output).pathname,
+          path: new URL(`${name.toLowerCase()}-component-${width}-drawing.png`, output).pathname,
         })
         await settle(page)
         await page.locator('.ant-pagination-next button').dispatchEvent('click')
@@ -107,7 +122,7 @@ try {
         await page.locator('.ant-pagination-next button').dispatchEvent('click')
         await page.locator('.ant-pagination-next button').dispatchEvent('pointermove')
         const pointer = await snapshot(page)
-        assert(pointer.opacity < 1)
+        assert(pointer.progress < 1)
         await page.locator('svg.waveform-chart__svg').dispatchEvent('pointermove')
         await settle(page)
         const png = await page.evaluate(() => globalThis.animationBenchmark.exportImage('png'))
@@ -118,27 +133,50 @@ try {
         await page.screenshot({
           path: new URL(`${name.toLowerCase()}-component-${width}-settled.png`, output).pathname,
         })
+        await page.locator('.ant-pagination-prev button').click()
+        await settle(page)
+        await page.evaluate(() => globalThis.animationBenchmark.setGrid(1, 2))
+        const gridInitial = await snapshot(page)
+        assert.deepEqual(gridInitial.series, ['s0', 's1'])
+        assert.equal(gridInitial.enterClips, 2)
+        await settle(page)
+        await page.evaluate(() => globalThis.animationBenchmark.setGrid(2, 2))
+        assert.equal((await snapshot(page)).enterClips, 3)
+        await settle(page)
         const resources = await page.evaluate(() => globalThis.animationBenchmark.unmount())
         assert.equal(resources.tasks, 0)
         assert.equal(resources.elements, 0)
         await page.goto('http://localhost:5179/#/animation')
         await page.getByRole('heading', { name: '波形动画', exact: true }).waitFor()
+        await settle(page)
         await page.getByRole('button', { name: '增删标注', exact: true }).click()
         await page.locator('.waveform-annotation').waitFor()
         await page.locator('.ant-pagination-next button').click()
         const demoInitial = await snapshot(page)
         assert.deepEqual(demoInitial.series, ['signal-1'])
-        assert(demoInitial.opacity < 1)
+        assert(demoInitial.progress < 1)
+        assert.equal(demoInitial.opacity, 1)
         await settle(page)
         assert.equal((await snapshot(page)).annotationOpacity, 1)
         await page.screenshot({
           path: new URL(`${name.toLowerCase()}-demo-${width}.png`, output).pathname,
           fullPage: true,
         })
-        await page.getByLabel('更新 / 切页', { exact: true }).uncheck()
+        await page.getByLabel('入场 / 切页 / 网格', { exact: true }).uncheck()
         await page.locator('.ant-pagination-next button').click()
         assert.equal((await snapshot(page)).opacity, 1)
         assert.deepEqual((await snapshot(page)).series, ['signal-2'])
+        await page.getByLabel('入场 / 切页 / 网格', { exact: true }).check()
+        await page.locator('.ant-pagination-prev button').click()
+        await settle(page)
+        await page.getByLabel('网格', { exact: true }).selectOption('1x2')
+        assert.deepEqual((await snapshot(page)).series, ['signal', 'signal-1'])
+        assert.equal((await snapshot(page)).enterClips, 2)
+        await page.screenshot({
+          path: new URL(`${name.toLowerCase()}-demo-${width}-grid.png`, output).pathname,
+          fullPage: true,
+        })
+        await settle(page)
         assert.deepEqual(errors, [])
         report.results.push({
           browser: name,
@@ -146,6 +184,8 @@ try {
           width,
           initial,
           middle,
+          gridInitial,
+          gridReplayPassed: true,
           rapidPaginationPassed: true,
           pointerGuardPassed: true,
           svgBytes: svg.size,

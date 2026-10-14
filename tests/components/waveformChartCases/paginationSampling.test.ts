@@ -45,10 +45,10 @@ async function chart() {
   const wrapper = await mountSizedChart(data, {
     grid: { rowCount: 1, columnCount: 1 },
     animation: { duration: 0 },
-    animationUpdate: { duration: 1000, easing: 'linear' },
     rendering: { sampling: { mode: 'auto', autoThreshold: 2, maxPointCount: 10 } },
   })
   wrappers.push(wrapper)
+  await wrapper.setProps({ animation: { duration: 1000, easing: 'linear' } })
   return { wrapper, worker: ControlledWorker.instances.at(-1)! }
 }
 async function drain(worker: ControlledWorker) {
@@ -58,8 +58,12 @@ async function drain(worker: ControlledWorker) {
     await nextTick()
   }
 }
-const opacity = (wrapper: Awaited<ReturnType<typeof mountSizedChart>>) =>
-  Number(wrapper.get('.waveform-track__series-item').attributes('opacity'))
+const drawingProgress = (wrapper: Awaited<ReturnType<typeof mountSizedChart>>) => {
+  const rect = wrapper.find('.waveform-track__series-item [clipPathUnits] rect')
+  if (!rect.exists()) return 1
+  const track = wrapper.findComponent({ name: 'WaveformSeriesLayer' }).props('track')
+  return Number(rect.attributes('width')) / track.width
+}
 async function nextPage(wrapper: Awaited<ReturnType<typeof mountSizedChart>>) {
   await wrapper.get('.ant-pagination-next button').trigger('click')
   await flushPromises()
@@ -90,8 +94,9 @@ afterEach(() => {
 it('keeps only the latest pending page and ignores a late Worker response', async () => {
   const { wrapper, worker } = await chart()
   await drain(worker)
+  await wrapper.get('svg').trigger('pointermove')
   await nextPage(wrapper)
-  expect(opacity(wrapper)).toBe(0)
+  expect(drawingProgress(wrapper)).toBe(0)
   expect(globalAnimator.getAnimationCount()).toBe(0)
   for (let i = 0; i < 10 && worker.requests[0]?.type !== 'sample-viewport'; i++) {
     worker.respond()
@@ -103,36 +108,38 @@ it('keeps only the latest pending page and ignores a late Worker response', asyn
   await nextPage(wrapper)
   worker.onmessage?.({ data: stale })
   await flushPromises()
-  expect(opacity(wrapper)).toBe(0)
+  expect(drawingProgress(wrapper)).toBe(0)
   expect(wrapper.get('.waveform-chart__line').attributes('data-series-id')).toBe('channel-2')
   await drain(worker)
-  await frame(500)
-  expect(opacity(wrapper)).toBeCloseTo(0.5)
+  await frame(250)
+  expect(drawingProgress(wrapper)).toBeCloseTo(0.5)
   worker.onmessage?.({ data: stale })
   await flushPromises()
-  expect(opacity(wrapper)).toBeCloseTo(0.5)
-  await frame(500)
-  expect(opacity(wrapper)).toBe(1)
+  expect(drawingProgress(wrapper)).toBeCloseTo(0.5)
+  await frame(250)
+  expect(drawingProgress(wrapper)).toBe(1)
   expect(wrapper.emitted('page-change')).toEqual([
     [2, 3],
     [3, 3],
   ])
 })
-it('does not resume pagination fade after pending pointer takeover', async () => {
+it('does not resume pagination replay after pending pointer takeover', async () => {
   const { wrapper, worker } = await chart()
   await drain(worker)
-  await nextPage(wrapper)
-  expect(opacity(wrapper)).toBe(0)
   await wrapper.get('svg').trigger('pointermove')
-  expect(opacity(wrapper)).toBe(1)
+  await nextPage(wrapper)
+  expect(drawingProgress(wrapper)).toBe(0)
+  await wrapper.get('svg').trigger('pointermove')
+  expect(drawingProgress(wrapper)).toBe(1)
   await drain(worker)
-  await frame(500)
-  expect(opacity(wrapper)).toBe(1)
+  await frame(250)
+  expect(drawingProgress(wrapper)).toBe(1)
   expect(globalAnimator.getAnimationCount()).toBe(0)
 })
-it('exports only after current page sampling and finishes its pending fade', async () => {
+it('exports only after current page sampling and finishes its pending replay', async () => {
   const { wrapper, worker } = await chart()
   await drain(worker)
+  await wrapper.get('svg').trigger('pointermove')
   await nextPage(wrapper)
   let done = false
   const exported = wrapper.vm.exportImage({ format: 'svg' }).then((blob) => {
@@ -141,22 +148,23 @@ it('exports only after current page sampling and finishes its pending fade', asy
   })
   await flushPromises()
   expect(done).toBe(false)
-  expect(opacity(wrapper)).toBe(1)
+  expect(drawingProgress(wrapper)).toBe(1)
   await drain(worker)
   await frame(50)
   const blob = await exported
   expect(blob.type).toBe('image/svg+xml')
-  expect(opacity(wrapper)).toBe(1)
+  expect(drawingProgress(wrapper)).toBe(1)
   expect(globalAnimator.getAnimationCount()).toBe(0)
 })
 it('shows pending content immediately when zero duration is configured', async () => {
   const { wrapper, worker } = await chart()
   await drain(worker)
+  await wrapper.get('svg').trigger('pointermove')
   await nextPage(wrapper)
-  expect(opacity(wrapper)).toBe(0)
-  await wrapper.setProps({ animationUpdate: { duration: 0 } })
-  expect(opacity(wrapper)).toBe(1)
+  expect(drawingProgress(wrapper)).toBe(0)
+  await wrapper.setProps({ animation: { duration: 0 } })
+  expect(drawingProgress(wrapper)).toBe(1)
   await drain(worker)
-  expect(opacity(wrapper)).toBe(1)
+  expect(drawingProgress(wrapper)).toBe(1)
   expect(globalAnimator.getAnimationCount()).toBe(0)
 })

@@ -20,7 +20,7 @@
 | [ECharts lineAnimationDiff.ts](https://github.com/apache/echarts/blob/34f4d927eafe251f26f63afd3aeefa30f2feba30/src/chart/line/lineAnimationDiff.ts)                     | 数据差分后构造 current/next 坐标数组                                                 | 在可靠对应条件下插值坐标，不插值 SVG 字符串             |
 | [ECharts LineView.ts](https://github.com/apache/echarts/blob/34f4d927eafe251f26f63afd3aeefa30f2feba30/src/chart/line/LineView.ts)                                       | 停止旧更新；同步符号坐标；大几何差异时跳过过渡                                       | 同步系列几何及明确回退；不照搬其 3000 像素判断          |
 | [ECharts createClipPathFromCoordSys.ts](https://github.com/apache/echarts/blob/34f4d927eafe251f26f63afd3aeefa30f2feba30/src/chart/helper/createClipPathFromCoordSys.ts) | 从坐标区域创建裁剪，按方向展开，处理描边边界                                         | 在轨道局部坐标裁剪整个系列，保留已有外层裁剪            |
-| [ECharts Series.ts](https://github.com/apache/echarts/blob/34f4d927eafe251f26f63afd3aeefa30f2feba30/src/model/Series.ts)                                                | 动画受环境和系列点数阈值限制，源码比较为 `>`                                         | 本项目另行规定全图有效总点数 `>= 50000`，不是上游默认值 |
+| [ECharts Series.ts](https://github.com/apache/echarts/blob/34f4d927eafe251f26f63afd3aeefa30f2feba30/src/model/Series.ts)                                                | 动画受环境和系列点数阈值限制，源码比较为 `>`                                         | 本项目另行规定全图有效总点数 `>= 200000`，不是上游默认值 |
 | [ZRender Animation.ts](https://github.com/ecomfe/zrender/blob/349111033fba0fa08cee745b72dd2ea66dc6fcaa/src/animation/Animation.ts)                                      | 调度 Clip，支持调度器暂停，遍历前保存 next 防回调修改                                | 共享 RAF、帧快照及任务身份检查                          |
 | [ZRender Animator.ts](https://github.com/ecomfe/zrender/blob/349111033fba0fa08cee745b72dd2ea66dc6fcaa/src/animation/Animator.ts)                                        | 管理属性轨道；兼容类型才能累加；拒绝循环累加；stop 可前进至末帧                      | 数值轨道合成、组合校验和显式终止方式                    |
 | [ZRender Clip.ts](https://github.com/ecomfe/zrender/blob/349111033fba0fa08cee745b72dd2ea66dc6fcaa/src/animation/Clip.ts)                                                | 计时、暂停累计、缓动和循环余数                                                       | 单调时钟、跳帧计算，不丢失周期余数                      |
@@ -95,7 +95,7 @@ duration/delay 必须有限且 >=0；loop=false 等价 1，true 为无限，数�
 
 鼠标/触摸指针查询、标注拖拽、滚轮、框选、平移以及外部 viewport/control 命令执行前同步稳定到最新业务目标。事件计算直接使用完整目标布局，不等下一次 DOM patch；随后 Vue 更新画面。动画帧不发送 viewport、annotation、hidden-series 变更事件。timeUnit 不改变任何数值坐标。
 
-resize、显示模式、可见性、自动页码重置及 clean/presentation 布局切换结束当前动画，按新布局静态展示，不整批重播。用户显式切页使用独立请求代次和 owner 的 custom/update 透明度任务，复用 animationUpdate 默认300ms/cubicInOut，不保留旧页几何。等待最新页成功采样和有效布局时隐藏新页内容；fallback/error 直接完整显示。轴与网格立即更新，波形/点/误差棒及标注只乘共享透明度，基础几何投影与标注布局计算不依赖逐帧淡入透明度。快速翻页中止前一请求，旧页采样仍沿用现有版本守卫；数据、环境或自动页码变化取消请求。分页控件指针移动不稳定当前分页淡入，绘图区交互及命令/导出仍同步提交终态。设置恢复 enabled 只影响后续变化。暂停采用原因集合：单任务 manual、管理器 manual-all、控制器 manual-all、document-hidden 独立持有；任一原因存在即暂停。pause/resume 只增删自己的原因，resumeAll 不撤销单任务手动暂停。页面进入后台增加 document-hidden，返回只移除此原因；新建任务继承所属管理器/控制器及页面原因。有效暂停累计时间按原因集合非空的时间区间并集计算，不重复扣除。后台新任务不启动 RAF/延迟唤醒。finish、abort、禁用和导出不受暂停阻止；已有终止任务不会在恢复时复活。
+resize、显示模式、可见性、非网格引起的自动页码重置及 clean/presentation 布局切换结束当前动画，按新布局静态展示。显式切页及规范化网格行列变更通过独立请求协调器重播已有系列入场裁剪，复用 animation 的cubicInOut、方向、延迟及交错；分页单系列绘制固定500ms，网格和首次加载使用animation.duration（默认1000ms），duration=0仍静态，不再建立分页共享透明度任务。网格请求在生命周期页码重置后的 post-flush 阶段创建；只保留最终页面。协调器等待目标采样成功和布局就绪，清理目标 seen/skipSignature 和标注展示状态，通过原入场流程给曲线、点、误差棒添加裁剪并让标注等待系列完成；pending期间裁剪宽度为0且无标注展示，fallback/error直接完整静态显示。快速操作中止旧任务，旧回调不得释放新页标注；数据或环境变化取消请求。分页控件指针移动不稳定当前重播，绘图区交互及命令/导出仍同步提交终态。无需新增公共prop、不重新请求原始数据、不重挂载组件。设置恢复 enabled 只影响后续变化。暂停采用原因集合：单任务 manual、管理器 manual-all、控制器 manual-all、document-hidden 独立持有；任一原因存在即暂停。pause/resume 只增删自己的原因，resumeAll 不撤销单任务手动暂停。页面进入后台增加 document-hidden，返回只移除此原因；新建任务继承所属管理器/控制器及页面原因。有效暂停累计时间按原因集合非空的时间区间并集计算，不重复扣除。后台新任务不启动 RAF/延迟唤醒。finish、abort、禁用和导出不受暂停阻止；已有终止任务不会在恢复时复活。
 
 exportImage 先验证参数、busy 和尺寸，再在既有 5 秒超时/版本守卫下开启当前图表的动画抑制区间，finishAll，等待采样、字体和 Vue 提交后创建最终态快照。在导出等待中到达的同版本采样结果静态提交，不新建动画；数据或布局版本改变仍为 export-stale；卸载仍为 export-cancelled。finally 释放抑制，恢复后只为后续变化启动动画。共享调度器其他图表不受影响。
 
@@ -107,7 +107,7 @@ exportImage 先验证参数、busy 和尺寸，再在既有 5 秒超时/版本�
 | animation           | enabled=true, duration=1000, delay=0, easing=cubicInOut, staggerDelay=100, direction=left-to-right | 入场配置；duration=0 跳过该阶段延迟与交错 |
 | animationUpdate     | enabled=true, duration=300, easing=cubicInOut                                                      | 数据和展示域共享更新时间                  |
 | animationAnnotation | enabled=true, duration=300, type=scale                                                             | easing 按效果默认，可覆盖                 |
-| animationThreshold  | 50000                                                                                              | >= 阈值即静态；0 表示始终静态             |
+| animationThreshold  | 200000                                                                                              | >= 阈值即静态；0 表示始终静态             |
 
 嵌套配置仅 undefined 使用默认，按字段合并；0 和 false 不得被 `||` 覆盖。组件配置中的非法数值或枚举回退该字段默认并在开发环境告警；通用引擎配置非法则抛错。threshold 接受有限非负整数，不用 Infinity 表达关闭阈值。统计全部有效规范化系列点数，含隐藏和非当前页，不统计采样后的点数；压缩/数据源表示通过规范化 source.length 获取，不为计数展开所有点。
 
@@ -131,7 +131,7 @@ exportImage 先验证参数、busy 和尺寸，再在既有 5 秒超时/版本�
 
 单元和组件行为使用可注入时钟、fake RAF 与 Vitest/jsdom，不在 jsdom 宣称绘制 FPS。引擎新增模块覆盖率目标 >=90%（lines/statements/functions，branches >=80%），仓库总体保持已有门槛。测试包括循环边界、长时间跳帧、回调重入、所有终止方式、两图相同 ID、降级和导出。
 
-真实浏览器基准固定种子数据、1280×720 与 360×300 图表容器、1/8 系列、总点数 1000/10000/49999/50000/50001/100000。固定 sampling 配置并记录最终显示点数；分别测静态、入场、兼容更新及不兼容交叉淡化。预热 3 次、采集 10 次，每次动画观测至少 2 秒；报告实际刷新率、FPS、帧间隔 p50/p95/p99、>50ms 长帧及重复装卸 20 次后可回收内存。内存测量不支持时标记未测，不用浏览器堆总量直接等同动画泄漏。
+真实浏览器基准固定种子数据、1280×720 与 360×300 图表容器、1/8 系列、总点数 1000/10000/100000/199999/200000/200001。固定 sampling 配置并记录最终显示点数；分别测静态、入场、兼容更新及不兼容交叉淡化。预热 3 次、采集 10 次，每次动画观测至少 2 秒；报告实际刷新率、FPS、帧间隔 p50/p95/p99、>50ms 长帧及重复装卸 20 次后可回收内存。内存测量不支持时标记未测，不用浏览器堆总量直接等同动画泄漏。
 
 性能脚本使用独立 headless Chromium 页面及浏览器运行器，不复用 jsdom mount；提供 pnpm test:animation:browser 命令（后续实现任务添加）。固定浏览器版本和硬件条件，不把跨设备 FPS 做普通 CI 硬门槛。Chrome/Firefox/Safari/Edge 执行视觉/交互矩阵，缺少环境明确未验证。用户已将原生 iOS/Android 验证移出本次范围。复用组件与 Demo 同时验证桌面和小容器。
 

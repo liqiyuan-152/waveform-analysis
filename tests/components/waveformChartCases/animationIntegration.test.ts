@@ -376,7 +376,7 @@ describe('chart animation composition', () => {
     await nextTick()
     expect(globalAnimator.getAnimationCount()).toBe(0)
   })
-  it.each([49999, 50000, 50001])(
+  it.each([50000, 199999, 200000, 200001])(
     'counts full compact data at threshold %s before first display',
     async (count) => {
       const input: WaveformData = {
@@ -387,7 +387,7 @@ describe('chart animation composition', () => {
       const wrapper = await chart(input, {
         rendering: { sampling: { mode: 'raw' } },
       })
-      expect(clip(wrapper).exists()).toBe(count < 50000)
+      expect(clip(wrapper).exists()).toBe(count < 200000)
     },
   )
   it('handles threshold zero, reduced motion and missing RAF statically', async () => {
@@ -462,7 +462,7 @@ it('counts hidden and non-current-page series against the global threshold', asy
       {
         id: 'b',
         name: 'B',
-        data: { kind: 'typed-samples', values: new Float64Array(49990), sampleRate: 1000 },
+        data: { kind: 'typed-samples', values: new Float64Array(199990), sampleRate: 1000 },
       },
     ],
   }

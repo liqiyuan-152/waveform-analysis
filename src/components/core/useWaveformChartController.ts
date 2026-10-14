@@ -422,7 +422,6 @@ export function useWaveformChartController(
     ...animations.wrap(commands),
     presentationTracks: animations.presentationTracks,
     presentationAnnotations: animations.presentationAnnotations,
-    paginationOpacity: animations.paginationOpacity,
     stabilizeAnimations: animations.stabilizeAnimations,
     ...imageExport,
     margin,

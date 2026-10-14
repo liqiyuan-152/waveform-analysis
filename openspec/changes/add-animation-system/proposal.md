@@ -10,7 +10,7 @@
 - 复用已有 D3 easing，提供 31 个命名缓动及自定义函数，不重新维护缓动公式。
 - 入场通过系列整体 ClipPath 展开；更新在几何兼容时插值坐标，不兼容时交叉淡化；标注提供 fade-in、scale、slide-in、bounce 及退场效果。
 - 保留五个顶层 props：`animationEnabled`、`animation`、`animationUpdate`、`animationAnnotation`、`animationThreshold`；三类配置均可独立关闭。
-- 默认开启动画：入场 1000ms，更新/标注 300ms，多系列交错 100ms。有效规范化总点数达到 50000、减少动态效果或缺少 RAF 时静态渲染。
+- 默认开启动画：入场 1000ms，更新/标注 300ms，多系列交错 100ms。有效规范化总点数达到 200000、减少动态效果或缺少 RAF 时静态渲染。
 - Vue 渲染独立展示状态；动画不修改输入数据、真实域、查询缓存或受控 annotations。交互接管、降级及导出提交最新最终状态，卸载只清理所属实例。
 - 明确公开根入口导出和包验证，不引入 ECharts/ZRender 运行时依赖。
 

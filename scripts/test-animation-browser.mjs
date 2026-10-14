@@ -48,7 +48,7 @@ for (const [width, height] of [
   [360, 300],
 ])
   for (const series of [1, 8])
-    for (const points of [1000, 10000, 49999, 50000, 50001, 100000])
+    for (const points of [1000, 10000, 100000, 199999, 200000, 200001])
       for (const mode of ['static', 'enter', 'compatible', 'crossfade'])
         if (
           !process.env.ANIMATION_BENCHMARK_SERIES ||

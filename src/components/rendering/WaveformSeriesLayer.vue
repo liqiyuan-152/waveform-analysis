@@ -7,7 +7,6 @@ import { waveformLineDasharray, waveformPointSeriesPath } from './seriesStyle'
 
 const props = defineProps<{
   track: TrackLayout
-  paginationOpacity?: number
   clipPathId: string
 }>()
 
@@ -53,7 +52,7 @@ const renderedSeriesPaths = computed<RenderedSeriesPath[]>(() =>
     <g
       v-for="seriesPath in renderedSeriesPaths"
       :key="seriesPath.presentationKey ?? seriesPath.series.id"
-      :opacity="(seriesPath.opacity ?? 1) * (paginationOpacity ?? 1)"
+      :opacity="seriesPath.opacity ?? 1"
       :clip-path="seriesPath.animationClip ? `url(#${seriesPath.animationClip.id})` : undefined"
       class="waveform-track__series-item waveform-chart__series"
       :data-series-id="seriesPath.series.id"

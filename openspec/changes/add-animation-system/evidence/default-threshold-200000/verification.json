@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-14",
+  "defaultAnimationThreshold": 200000,
+  "comparison": "total valid normalized points >= threshold renders statically",
+  "relatedTests": {
+    "files": 3,
+    "tests": 59,
+    "exitCode": 0
+  },
+  "fullTests": {
+    "files": 155,
+    "tests": 1291,
+    "exitCode": 0
+  },
+  "checks": {
+    "typecheck": 0,
+    "lint": 0,
+    "fileLength": 0,
+    "changedFilePrettier": 0,
+    "openspecStrict": 0,
+    "gitDiffCheck": 0
+  },
+  "notRerun": [
+    "coverage",
+    "browser visual matrix",
+    "new threshold FPS/memory benchmarks"
+  ],
+  "committed": false,
+  "published": false
+}

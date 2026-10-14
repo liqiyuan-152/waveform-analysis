@@ -1,22 +1,27 @@
-import { shallowRef, type ComputedRef } from 'vue'
-import type { AnimationContext } from './context'
+import type { ComputedRef } from 'vue'
+import { animationLayoutSignature, type AnimationContext } from './context'
 import type { ResolvedAnimationProps } from './config'
 import type { WaveformAnimationController } from '@/animation/WaveformAnimationController'
-import { clampProgress } from '@/animation/presets/shared'
 import { chartExportOptions } from '../controls/chartExportOptions'
 
-/** A single owner-scoped fade; it holds no old page geometry. */
+/** Coordinates entrance replay; drawing remains owned by the normal series pipeline. */
 export function createPaginationPresentation(
   context: AnimationContext,
   controller: WaveformAnimationController,
   config: ComputedRef<ResolvedAnimationProps>,
   effective: ComputedRef<boolean>,
-  commit: () => void,
+  prepare: () => void,
 ) {
-  const opacity = shallowRef(1)
-  const key = { kind: 'custom', id: 'pagination', scope: 'update' } as const
-  let sequence = 0
-  let request: { page: number; version: number; environment: string; started: boolean } | undefined
+  let request:
+    | {
+        page: number
+        trigger: 'page' | 'grid'
+        environment: string
+        started: boolean
+        geometry?: string
+        signature?: string
+      }
+    | undefined
   const environment = () =>
     JSON.stringify({
       options: Object.fromEntries(
@@ -25,82 +30,58 @@ export function createPaginationPresentation(
         ),
       ),
       size: context.containerSize.value,
+      amplitudeLimits: context.props.amplitudeLimits,
       hidden: context.props.hiddenSeriesIds,
       presentation: context.props.presentationMode,
     })
   function reset() {
     request = undefined
-    opacity.value = 1
   }
-  function cancel() {
-    controller.cancel(key)
+  function requestPage(page: number, trigger: 'page' | 'grid' = 'page') {
     reset()
-  }
-  function requestPage(page: number) {
-    cancel()
+    controller.cancelAll()
+    // Discard old-page presentation before recording the new request.
     controller.finishAll()
-    if (!effective.value || !config.value.animationUpdate.enabled) return
-    request = { page, version: ++sequence, environment: environment(), started: false }
-    if (config.value.animationUpdate.duration > 0) opacity.value = 0
+    if (!effective.value || !config.value.animation.enabled) return
+    request = { page, trigger, environment: environment(), started: false }
   }
-  function reconcile(dataChanged: boolean) {
+  function reconcile(dataChanged: boolean): 'replay' | 'static' | undefined {
     const current = request
-    if (!current) return false
+    if (!current) return
+    if (!config.value.animation.enabled) {
+      // Category closure is handled by finishWhere; it must release, not finish annotations.
+      reset()
+      return
+    }
     if (
       dataChanged ||
       current.page !== context.currentPage.value ||
       current.environment !== environment() ||
       !effective.value ||
-      !config.value.animationUpdate.enabled
+      (!current.started && config.value.animation.duration === 0) ||
+      ['fallback', 'error'].includes(context.sampling.state.value) ||
+      (current.started &&
+        (current.geometry !== animationLayoutSignature(context) ||
+          current.signature !== context.sampling.requestSignature.value ||
+          context.sampling.state.value !== 'success'))
     ) {
       controller.finishAll()
       reset()
-      return true
+      return 'static'
     }
-    if (!current.started && config.value.animationUpdate.duration === 0) opacity.value = 1
-    commit()
-    if (context.sampling.state.value === 'pending' || !context.layoutReady.value) return true
-    if (context.sampling.state.value !== 'success') {
-      controller.finishAll()
+    if (current.started && !controller.getActiveAnimationCount()) {
       reset()
-      return true
+      return
     }
-    if (current.started) return true
-    const ids = context.tracks.value.flatMap((track) =>
-      track.width > 0 && track.height > 0
-        ? track.seriesList
-            .filter((series) => (series.source?.length ?? series.points.length) > 0)
-            .map((series) => series.id)
-        : [],
-    )
-    if (!ids.length) {
-      reset()
-      return true
+    if (!current.started) {
+      prepare()
+      current.started = context.sampling.state.value === 'success' && context.layoutReady.value
+      if (current.started) {
+        current.geometry = animationLayoutSignature(context)
+        current.signature = context.sampling.requestSignature.value
+      }
     }
-    current.started = true
-    const options = config.value.animationUpdate
-    const notify = (callback?: () => void) => ids.forEach(() => callback?.())
-    controller.animate(key, {
-      duration: options.duration,
-      easing: options.easing,
-      force: true,
-      initialize: () => {
-        opacity.value = options.duration > 0 ? 0 : 1
-      },
-      during: (progress, frame) => {
-        if (request?.version === current.version)
-          opacity.value = frame.terminal ? 1 : clampProgress(progress)
-      },
-      done: () => {
-        if (request?.version === current.version) reset()
-        notify(options.onComplete)
-      },
-      aborted: () => {
-        if (request?.version === current.version) reset()
-        notify(options.onAbort)
-      },
-    })
-    return true
+    return 'replay'
   }
   function wrapPagination(goToPage: (page: number) => void, count: ComputedRef<number>) {
     return (page: number) => {
@@ -110,5 +91,15 @@ export function createPaginationPresentation(
       goToPage(page)
     }
   }
-  return { opacity, reset, cancel, reconcile, wrapPagination, active: () => !!request }
+  return {
+    reset,
+    reconcile,
+    wrapPagination,
+    requestLayout: () => requestPage(context.currentPage.value, 'grid'),
+    enterDuration: () =>
+      request?.trigger === 'page' && config.value.animation.duration > 0
+        ? 500
+        : config.value.animation.duration,
+    active: () => !!request && (!request.started || controller.getActiveAnimationCount() > 0),
+  }
 }

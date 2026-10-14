@@ -6,7 +6,7 @@
 
 ### Requirement: API-01 配置默认值与合并
 
-WaveformChart SHALL 保留 animationEnabled/animation/animationUpdate/animationAnnotation/animationThreshold 五个顶层 props；三类配置均支持 enabled。默认全局及分类开启，入场 1000ms/cubicInOut/delay=0/staggerDelay=100/left-to-right，更新 300ms/cubicInOut，标注 300ms/scale/backOut，阈值 50000。嵌套字段 SHALL 按字段合并，undefined 才使用默认；duration=0 直接提交终态并跳过该阶段延迟。
+WaveformChart SHALL 保留 animationEnabled/animation/animationUpdate/animationAnnotation/animationThreshold 五个顶层 props；三类配置均支持 enabled。默认全局及分类开启，入场 1000ms/cubicInOut/delay=0/staggerDelay=100/left-to-right，更新 300ms/cubicInOut，标注 300ms/scale/backOut，阈值 200000。嵌套字段 SHALL 按字段合并，undefined 才使用默认；duration=0 直接提交终态并跳过该阶段延迟。
 
 #### Scenario: 局部覆盖
 
@@ -24,7 +24,7 @@ WaveformChart SHALL 保留 animationEnabled/animation/animationUpdate/animationA
 
 #### Scenario: 阈值边界
 
-- **WHEN** 默认阈值下总有效点数分别为 49999、50000、50001
+- **WHEN** 默认阈值下总有效点数分别为 199999、200000、200001
 - **THEN** 第一种可动画，后两种静态；隐藏系列或采样到少量点不绕过阈值
 
 #### Scenario: 首次大数据及运行中降级
@@ -75,10 +75,10 @@ duration/delay/easing/direction/type/staggerDelay SHALL 在创建任务时快照
 - **WHEN** 系列入场中关闭 annotation，或保持 annotation 开启但关闭 enter
 - **THEN** 前者合法标注立即到终态但系列入场继续；后者系列完整显示且等待的标注开始出现，不永久隐藏
 
-#### Scenario: 分页复用更新配置
+#### Scenario: 分页和网格复用入场配置
 
-- **WHEN** 用户切换分页或动态关闭 animationUpdate
-- **THEN** 分页淡入复用更新类别（默认300ms、cubicInOut），enabled=false 或 duration=0 完整静态展示；播放时配置快照不变，关闭立即结束，恢复开关不重播；不新增分页 prop
+- **WHEN** 用户切换分页、改变网格行列数或动态关闭 animation
+- **THEN** 分页与网格行列调整重播复用入场类别（默认cubicInOut、left-to-right、交错100ms）；分页单系列绘制时长固定500ms，网格与首次入场使用animation.duration（默认1000ms）。animationUpdate仅控制数据更新，animation.enabled=false或animation.duration=0完整静态展示；播放时配置快照不变，关闭立即结束，恢复开关不重播；不新增分页prop
 
 ### Requirement: API-05 公共预设与控制器接口
 

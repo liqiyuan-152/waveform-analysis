@@ -36,12 +36,21 @@ function data(s: Scenario, phase = 0, incompatible = false): WaveformData {
 const host = document.getElementById('benchmark')!
 let app: ReturnType<typeof createApp> | undefined
 let chart: WaveformChartHandle | undefined
+let changeGrid: ((rows: number, columns: number) => void) | undefined
 const raf = () => new Promise<number>((resolve) => requestAnimationFrame(resolve))
 async function mount(s: Scenario) {
   app?.unmount()
   host.style.width = `${s.width}px`
   host.style.height = `${s.height}px`
   const input = shallowRef(data(s))
+  const grid = shallowRef({
+    rowCount: s.pageSize ?? s.series,
+    columnCount: 1,
+    showPagination: s.pageSize !== undefined,
+  })
+  changeGrid = (rowCount, columnCount) => {
+    grid.value = { ...grid.value, rowCount, columnCount }
+  }
   app = createApp(
     defineComponent({
       setup: () => () =>
@@ -52,11 +61,7 @@ async function mount(s: Scenario) {
           data: input.value,
           width: s.width,
           height: s.height,
-          grid: {
-            rowCount: s.pageSize ?? s.series,
-            columnCount: 1,
-            showPagination: s.pageSize !== undefined,
-          },
+          grid: grid.value,
           animationEnabled: s.enabled ?? s.mode !== 'static',
           animation: { duration: s.mode === 'enter' ? (s.duration ?? 2000) : 0, staggerDelay: 0 },
           animationUpdate: {
@@ -104,7 +109,7 @@ async function observe(s: Scenario) {
     0,
   )
   const active = globalAnimator.getAnimationCount()
-  if (s.enabled !== false && s.points < 50000 && s.mode !== 'static' && !maxActiveTasks)
+  if (s.enabled !== false && s.points < 200000 && s.mode !== 'static' && !maxActiveTasks)
     throw new Error(`No animation observed for ${s.mode} at ${s.points} points`)
   app?.unmount()
   app = undefined
@@ -136,7 +141,7 @@ async function cycles(s: Scenario) {
   for (let i = 0; i < 20; i++) {
     await mount(s)
     // Update sampling settles asynchronously; unmount only after a task was actually registered.
-    if (s.enabled !== false && s.points < 50000 && s.mode !== 'static') {
+    if (s.enabled !== false && s.points < 200000 && s.mode !== 'static') {
       for (let frame = 0; frame < 60 && !globalAnimator.getAnimationCount(); frame++) await raf()
       if (!globalAnimator.getAnimationCount())
         throw new Error(`No animation observed during mount/unmount cycle ${i}`)
@@ -150,6 +155,10 @@ async function cycles(s: Scenario) {
     elements: host.childElementCount,
     maxActiveTasks,
   }
+}
+async function setGrid(rows: number, columns: number) {
+  changeGrid?.(rows, columns)
+  await nextTick()
 }
 function unmount() {
   app?.unmount()
@@ -165,6 +174,7 @@ declare global {
       refresh: typeof refresh
       cycles: typeof cycles
       activeTasks: () => number
+      setGrid: typeof setGrid
       unmount: typeof unmount
     }
   }
@@ -176,6 +186,7 @@ export const animationBenchmark = {
   refresh,
   cycles,
   activeTasks: () => globalAnimator.getAnimationCount(),
+  setGrid,
   unmount,
 }
 window.animationBenchmark = animationBenchmark
