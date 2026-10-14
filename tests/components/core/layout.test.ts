@@ -163,7 +163,7 @@ describe('multi-value Y-axis grouping', () => {
     expect(formatYAxisTickLabel(compactTicks.at(-1)!, ticks.domain, compactTicks, 'V')).toBe(
       '(V) 75.031',
     )
-    expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5).tickTextWidth).toBe(49)
+    expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5).tickTextWidth).toBe(70)
     expect(axisTextMetrics(ticks.domain, false, undefined, 'V', 5, true).tickTextWidth).toBe(70)
   })
 
@@ -173,7 +173,11 @@ describe('multi-value Y-axis grouping', () => {
     const measure = (text: string) => text.length * 7
     const metrics = axisTextMetrics(domain, false, ticks, 'Pa', 5, false, measure)
     expect(metrics.tickTextWidth).toBe(
-      Math.max(...ticks.map((value) => measure(formatYAxisTickLabel(value, domain, ticks, 'Pa')))),
+      Math.max(
+        ...[ticks, ticks.slice(0, -1)].flatMap((values) =>
+          values.map((value) => measure(formatYAxisTickLabel(value, domain, values, 'Pa'))),
+        ),
+      ),
     )
     expect(metrics.titleTextWidth).toBeLessThan(metrics.tickTextWidth)
   })
@@ -324,7 +328,7 @@ describe('multi-value Y-axis grouping', () => {
     const [group] = buildYAxisSeriesGroups(track([series('long', -1e120, 1e120)]), 'multi-axis')
 
     expect(group).toBeDefined()
-    expect(measureYAxisGroupClearance(group!)).toBe(60)
+    expect(measureYAxisGroupClearance(group!)).toBe(74)
   })
 })
 

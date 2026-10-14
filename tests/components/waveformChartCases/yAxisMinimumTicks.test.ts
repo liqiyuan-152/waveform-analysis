@@ -49,7 +49,11 @@ describe('Y-axis actual minimum ticks', () => {
       expect(
         w
           .findAll('.waveform-track__axis--y .tick text')
-          .every((text) => text.attributes('display') !== 'none'),
+          .every(
+            (text) =>
+              (text.attributes('display') === 'none') ===
+              (Number(text.element.parentElement!.getAttribute('data-tick-y')) === 0),
+          ),
       ).toBe(true)
       w.unmount()
     },

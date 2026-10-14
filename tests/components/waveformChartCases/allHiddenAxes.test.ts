@@ -20,7 +20,9 @@ describe('all hidden series axes and grids', () => {
           resizeObservers.at(-1)?.resize(width, 360)
           await flushPromises()
           const ticks = () =>
-            wrapper.findAll('.waveform-chart__axis .tick text').map((tick) => tick.text())
+            wrapper
+              .findAll('.waveform-chart__axis .tick')
+              .map((tick) => tick.attributes('data-tick-value') ?? tick.text())
           const endpoints = () =>
             wrapper.findAll('.waveform-chart__axis-endpoint').map((label) => label.text())
           const originalTicks = ticks()

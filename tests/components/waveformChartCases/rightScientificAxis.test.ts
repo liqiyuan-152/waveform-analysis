@@ -37,8 +37,10 @@ describe('multi-axis right tick formatting', () => {
         const rightTicks = wrapper.get('[data-y-axis-side="right"]').findAll('.tick text')
         expect(leftTicks.at(-1)?.text()).toBe(left)
         expect(rightTicks.at(-1)?.text()).toBe(right)
-        expect(rightTicks.slice(0, -1).map((tick) => tick.text())).toEqual(
-          leftTicks.slice(0, -1).map((tick) => tick.text()),
+        expect(rightTicks.at(-1)?.attributes('display')).toBeUndefined()
+        expect(leftTicks.at(-1)?.attributes('display')).toBeUndefined()
+        expect(rightTicks.slice(0, -2).map((tick) => tick.text())).toEqual(
+          leftTicks.slice(0, -2).map((tick) => tick.text()),
         )
       }
       await wrapper.setProps({ unitDisplayMode: 'channel-label-or-legend' })

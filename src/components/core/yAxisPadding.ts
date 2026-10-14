@@ -18,14 +18,29 @@ export function applyYAxisPadding(
   if (group.fixed) return withYAxisExtremaTicks(group, config)
   const upper = paddingRatio(config?.upperPaddingEnabled, config?.upperPaddingRatio)
   const lower = paddingRatio(config?.lowerPaddingEnabled, config?.lowerPaddingRatio)
+  const preserveLower =
+    config?.lowerPaddingEnabled !== undefined || config?.lowerPaddingRatio !== undefined
+  const preserveUpper =
+    config?.upperPaddingEnabled !== undefined || config?.upperPaddingRatio !== undefined
   const [a, b] = group.domain
   const span = b - a
   const min = lower > 0 ? a - span * lower : a
   const max = upper > 0 ? b + span * upper : b
+  const domain: [number, number] = viewport ?? [
+    Number.isFinite(min) ? min : a,
+    Number.isFinite(max) ? max : b,
+  ]
   return withYAxisExtremaTicks(
     {
       ...group,
-      domain: viewport ?? [Number.isFinite(min) ? min : a, Number.isFinite(max) ? max : b],
+      domain,
+      tickBounds:
+        preserveLower || preserveUpper
+          ? {
+              lower: preserveLower || viewport ? domain[0] : undefined,
+              upper: preserveUpper || viewport ? domain[1] : undefined,
+            }
+          : undefined,
     },
     config,
   )

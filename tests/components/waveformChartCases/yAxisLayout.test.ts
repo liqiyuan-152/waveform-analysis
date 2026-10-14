@@ -226,7 +226,7 @@ describe('WaveformChart Y-axis layout', () => {
     expect(wrapper.attributes('data-chart-left-margin')).toBe('101')
     expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-87')
     const labels = tracks[1]!.findAll('.waveform-chart__axis--y .tick text')
-    expect(labels.at(-1)?.text()).toBe('100')
+    expect(labels.at(-1)?.text()).toBe('(V) 100')
     expect(labels.at(-1)?.attributes('display')).toBe('none')
     expect(labels.at(-2)?.text()).toContain('(V)')
     expect(labels.at(-2)?.attributes('display')).toBeUndefined()

@@ -130,7 +130,9 @@ describe('edge-compact Y-axis space', () => {
         .findAll('.waveform-chart__axis--y .tick text')
         .slice(1, -1)
         .forEach((tick) => {
-          const textLeft = Number(tick.attributes('x')) - measureYAxisTextWidth(tick.text())
+          const textLeft =
+            Number(tick.attributes('x')) -
+            measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+ /, ''))
           expect(textLeft).toBeGreaterThanOrEqual(bandRight)
         })
       expect(outerTitleLeft(wrapper, track)).toBeGreaterThanOrEqual(6)

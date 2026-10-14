@@ -182,7 +182,7 @@ const tooltipStyle = computed(() => {
 }
 
 .waveform-tooltip__value {
-  color: #555;
+  color: #505050;
 }
 
 .waveform-tooltip__series small {

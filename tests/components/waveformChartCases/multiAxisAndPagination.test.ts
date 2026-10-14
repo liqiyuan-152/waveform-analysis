@@ -57,6 +57,7 @@ describe('WaveformChart', () => {
       wrapper.findAll('.waveform-chart__axis--y').map((axis) =>
         axis
           .findAll('.tick text')
+          .filter((label) => label.attributes('display') !== 'none')
           .map((label) => label.text())
           .filter((label) => /E[+-]\d+/.test(label)),
       ),

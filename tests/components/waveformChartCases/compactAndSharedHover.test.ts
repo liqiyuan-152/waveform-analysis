@@ -13,7 +13,7 @@ describe('WaveformChart', () => {
     { width: 800, layoutPreset: 'edge-compact' },
     { width: 320, layoutPreset: 'edge-compact' },
   ] as const)(
-    'hides only overlapping compact maximum labels at $width px with $layoutPreset',
+    'hides compact upper boundary labels at $width px with $layoutPreset',
     async (size) => {
       const wrapper = await mountSizedChart(
         {
@@ -85,8 +85,8 @@ describe('WaveformChart', () => {
       expect(Number(endTicks[2][0].text())).toBe(3)
       expect(endTicks[3]).toHaveLength(1)
       expect(Number(endTicks[3][0].text())).toBe(5)
-      endTicks.forEach(([tick], index) => {
-        expect(tick.get('text').attributes('display')).toBe(index < 2 ? undefined : 'none')
+      endTicks.forEach(([tick]) => {
+        expect(tick.get('text').attributes('display')).toBe('none')
         expect(tick.get('text').attributes('dominant-baseline')).toBe('central')
         expect(tick.get('text').attributes('dy')).toBe('0')
       })
@@ -96,16 +96,12 @@ describe('WaveformChart', () => {
         ).toBeUndefined()
       })
       updateMaximumTickVisibility(wrapper.get('svg').element as SVGSVGElement)
-      endTicks.forEach(([tick], index) =>
-        expect(tick.get('text').attributes('display')).toBe(index < 2 ? undefined : 'none'),
-      )
+      endTicks.forEach(([tick]) => expect(tick.get('text').attributes('display')).toBe('none'))
       for (const displayMode of ['separated', 'independent', 'compact'] as const) {
         await wrapper.setProps({ displayMode })
         await flushPromises()
-        wrapper.findAll('.waveform-chart__axis--y').forEach((axis, index) => {
-          expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe(
-            displayMode === 'compact' && index >= 2 ? 'none' : undefined,
-          )
+        wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
+          expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe('none')
         })
       }
       wrapper.unmount()

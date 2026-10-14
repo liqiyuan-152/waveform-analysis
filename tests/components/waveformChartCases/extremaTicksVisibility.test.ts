@@ -56,6 +56,8 @@ describe('extrema tick visibility API', () => {
       })
       expect(extrema(chart, 'minimum')).toEqual([12.345])
       expect(extrema(chart, 'maximum')).toEqual([78.901])
+      expect(chart.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
+      expect(chart.get('[data-maximum-tick] line').attributes('display')).toBeUndefined()
       const originalDomain = domain(chart)
       chart.vm.setViewportDomain([0.2, 0.8])
       await flushPromises()
@@ -145,7 +147,7 @@ describe('extrema tick visibility API', () => {
       },
     })
     await flushPromises()
-    expect(upper().get('text').attributes('display')).toBeUndefined()
+    expect(upper().get('text').attributes('display')).toBe('none')
     await chart.setProps({
       axes: { y: { nice: false, maximumTickVisible: false, minimumTickVisible: false } },
     })

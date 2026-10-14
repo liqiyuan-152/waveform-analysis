@@ -154,7 +154,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         group.domain,
         tickCount,
         options.yAxisNice !== false,
-        group.amplitudeLimit,
+        group.tickBounds,
       )
       const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
       const majorTicks = resolvedTicks.values
@@ -177,6 +177,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         tickValues,
         options.showAxisUnits !== false ? group.seriesList[0]?.unit : undefined,
         tickCount,
+        false,
+        undefined,
+        maximumTick,
+        minimumTick,
       )
       const clearance =
         Math.max(

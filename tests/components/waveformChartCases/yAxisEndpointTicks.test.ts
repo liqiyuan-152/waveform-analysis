@@ -32,7 +32,9 @@ describe('Y-axis endpoint tick strokes', () => {
           const ticks = axis.findAll('.tick')
           for (const tick of [ticks[0]!, ticks.at(-1)!]) {
             expect(tick.get('line').attributes('display')).toBe('none')
-            expect(tick.get('text').attributes('display')).toBeUndefined()
+            expect(tick.get('text').attributes('display')).toBe(
+              tick === ticks.at(-1) ? 'none' : undefined,
+            )
             expect(tick.get('text').text()).not.toBe('')
           }
           for (const tick of ticks.slice(1, -1)) {

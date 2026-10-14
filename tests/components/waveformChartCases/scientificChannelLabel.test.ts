@@ -111,6 +111,7 @@ describe('dense scientific axes', () => {
         expect(
           wrapper
             .findAll('.waveform-chart__axis--y .tick text')
+            .filter((label) => label.attributes('display') !== 'none')
             .filter((label) => label.text().startsWith('E'))
             .map((label) => label.text().split(' ')[0]),
         ).toEqual(Array(6).fill(exponent))
