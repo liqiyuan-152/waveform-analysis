@@ -53,20 +53,22 @@ function minimumPointSpan(
   required: number,
 ): number {
   if (required <= 1) return 0
-  let minimumSpan = 0
+  let minimumSpan = Number.POSITIVE_INFINITY
+  let hasData = false
   for (const group of groups) {
     const values = uniqueXValues(group, boundary)
     if (!group.some((series) => (series.source?.length ?? series.points.length) > 0)) continue
-    if (values.length < required) return boundary[1] - boundary[0]
+    hasData = true
+    if (values.length < required) continue
     let groupSpan = Number.POSITIVE_INFINITY
     for (let index = 0; index + required <= values.length; index += 1) {
       groupSpan = Math.min(groupSpan, values[index + required - 1] - values[index])
     }
     const endpointTolerance =
       Number.EPSILON * Math.max(1, Math.abs(boundary[0]), Math.abs(boundary[1])) * 16
-    minimumSpan = Math.max(minimumSpan, groupSpan + endpointTolerance)
+    minimumSpan = Math.min(minimumSpan, groupSpan + endpointTolerance)
   }
-  return minimumSpan
+  return Number.isFinite(minimumSpan) ? minimumSpan : hasData ? boundary[1] - boundary[0] : 0
 }
 
 export function resolveMinimumZoomSpan(
@@ -102,25 +104,25 @@ function expandToMinimumPoints(
   if (required <= 0) return domain
   const endpointTolerance =
     Number.EPSILON * Math.max(1, Math.abs(boundary[0]), Math.abs(boundary[1])) * 16
-  let expanded = domain
+  let best: [number, number] | undefined
+  let bestSpan = Number.POSITIVE_INFINITY
+  let bestCenterDistance = Number.POSITIVE_INFINITY
+  let hasData = false
+  const requestedCenter = (domain[0] + domain[1]) / 2
   for (const group of groups) {
     const values = uniqueXValues(group, boundary)
     if (!group.some((series) => (series.source?.length ?? series.points.length) > 0)) continue
-    if (values.length < required) return [...boundary]
-    const visibleCount = values.filter(
-      (value) => value >= expanded[0] && value <= expanded[1],
-    ).length
-    if (visibleCount >= required) continue
-    let best: [number, number] | undefined
-    let bestSpan = Number.POSITIVE_INFINITY
-    let bestCenterDistance = Number.POSITIVE_INFINITY
-    const requestedCenter = (expanded[0] + expanded[1]) / 2
+    hasData = true
+    if (values.length < required) continue
+    const visibleCount = values.filter((value) => value >= domain[0] && value <= domain[1]).length
+    // Shared tracks need one supporting frame, rather than every frame.
+    if (visibleCount >= required) return domain
     for (let index = 0; index + required <= values.length; index += 1) {
       const candidate: [number, number] = [
-        Math.max(boundary[0], Math.min(expanded[0], values[index] - endpointTolerance)),
+        Math.max(boundary[0], Math.min(domain[0], values[index] - endpointTolerance)),
         Math.min(
           boundary[1],
-          Math.max(expanded[1], values[index + required - 1] + endpointTolerance),
+          Math.max(domain[1], values[index + required - 1] + endpointTolerance),
         ),
       ]
       const span = candidate[1] - candidate[0]
@@ -131,9 +133,8 @@ function expandToMinimumPoints(
         bestCenterDistance = centerDistance
       }
     }
-    expanded = best ?? [...boundary]
   }
-  return expanded
+  return best ?? (hasData ? [...boundary] : domain)
 }
 
 export function constrainZoomDomain(
