@@ -122,7 +122,7 @@ describe('WaveformChart track order', () => {
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
     ).toEqual(['1', '3'])
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
 
     expect(
       wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id')),
@@ -148,7 +148,7 @@ describe('WaveformChart track order', () => {
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
     ).toEqual(['A', 'C'])
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
 
     expect(
       wrapper.findAll('.waveform-chart__watermark').map((watermark) => watermark.text()),
@@ -271,7 +271,7 @@ describe('WaveformChart track order', () => {
       wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id'))
 
     expect(trackIds()).toEqual(['frame-1', 'frame-3', 'frame-4'])
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(trackIds()).toEqual(['frame-5', 'frame-6', 'frame-7', 'frame-8'])
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 2])
   })
@@ -314,10 +314,10 @@ describe('WaveformChart track order', () => {
       },
     )
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
 
     expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(4)
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 2])
-    expect(wrapper.get('.ant-pagination-item-active').text()).toBe('2')
+    expect(wrapper.get('[aria-current="page"]').text()).toBe('2')
   })
 })

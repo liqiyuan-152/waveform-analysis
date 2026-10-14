@@ -64,12 +64,6 @@
   border: 1px solid #eaecf0;
   border-radius: 7px;
 }
-.waveform-annotation-editor__coordinate-input :deep(.ant-input-number) {
-  width: auto;
-  min-width: 96px;
-  color: #344054;
-  font-family: 'SFMono-Regular', Consolas, monospace;
-}
 .waveform-annotation-editor__coordinate-value {
   display: none;
 }
@@ -191,6 +185,8 @@
 }
 .waveform-annotation-editor__colors legend {
   grid-column: 1 / -1;
+  width: 100%;
+  margin: 0 0 6px;
   padding: 0;
 }
 .waveform-annotation-editor__color-field {

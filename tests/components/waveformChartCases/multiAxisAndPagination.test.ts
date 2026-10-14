@@ -115,11 +115,11 @@ describe('WaveformChart', () => {
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['channel-0', 'channel-1'])
-    const previousButton = () => wrapper.get('.ant-pagination-prev button')
-    const nextButton = () => wrapper.get('.ant-pagination-next button')
+    const previousButton = () => wrapper.get('[aria-label="上一页"]')
+    const nextButton = () => wrapper.get('[aria-label="下一页"]')
 
-    expect(wrapper.get('.ant-pagination-item-1').classes()).toContain('ant-pagination-item-active')
-    expect(wrapper.get('.ant-pagination-prev').classes()).toContain('ant-pagination-disabled')
+    expect(wrapper.get('[aria-label="第 1 页"]').attributes('aria-current')).toBe('page')
+    expect(wrapper.get('[aria-label="上一页"]').attributes('disabled')).toBeDefined()
 
     await nextButton().trigger('click')
     expect(
@@ -128,7 +128,7 @@ describe('WaveformChart', () => {
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 3])
 
     await previousButton().trigger('click')
-    expect(wrapper.get('.ant-pagination-item-1').classes()).toContain('ant-pagination-item-active')
+    expect(wrapper.get('[aria-label="第 1 页"]').attributes('aria-current')).toBe('page')
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([1, 3])
 
     await nextButton().trigger('click')
@@ -136,8 +136,8 @@ describe('WaveformChart', () => {
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['channel-4'])
-    expect(wrapper.get('.ant-pagination-item-3').classes()).toContain('ant-pagination-item-active')
-    expect(wrapper.get('.ant-pagination-next').classes()).toContain('ant-pagination-disabled')
+    expect(wrapper.get('[aria-label="第 3 页"]').attributes('aria-current')).toBe('page')
+    expect(wrapper.get('[aria-label="下一页"]').attributes('disabled')).toBeDefined()
   })
 
   it('keeps ordered empty tracks in their page slots after channels are merged', async () => {
@@ -171,7 +171,7 @@ describe('WaveformChart', () => {
       wrapper.findAll('.waveform-chart__track').map((track) => track.attributes('data-track-id'))
     const lineIds = () =>
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id'))
-    const nextButton = () => wrapper.get('.ant-pagination-next button')
+    const nextButton = () => wrapper.get('[aria-label="下一页"]')
 
     expect(trackIds()).toEqual(['frame-1', 'frame-2'])
     expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(1)
@@ -278,7 +278,7 @@ describe('WaveformChart', () => {
       '1',
       '2',
     ])
-    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+    expect(wrapper.find('.waveform-pagination').exists()).toBe(false)
 
     const firstTrackOverlay = tracks[0].get('.waveform-chart__overlay')
     const overlayWidth = Number(firstTrackOverlay.attributes('width'))

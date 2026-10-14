@@ -1,0 +1,12 @@
+[
+  {
+    "name": "editor-edit",
+    "meanChannelDifference": 0.0043614334837739095,
+    "pixelsDifferingByOver16Percent": 0.00483558994197292
+  },
+  {
+    "name": "editor-small",
+    "meanChannelDifference": 0.1024399335082799,
+    "pixelsDifferingByOver16Percent": 0.11452687774481249
+  }
+]

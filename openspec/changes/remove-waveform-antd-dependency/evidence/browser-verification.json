@@ -1,0 +1,52 @@
+[
+  {
+    "antd": true,
+    "desktop": {
+      "x": 330,
+      "y": 100,
+      "width": 440,
+      "height": 587.90625
+    },
+    "small": {
+      "x": 8,
+      "y": 108,
+      "width": 374,
+      "height": 617.1875
+    },
+    "popup": {
+      "inDialog": true,
+      "hittable": true
+    },
+    "errors": [],
+    "checks": "pagination, focus containment/restore, time stepping/validation, popup Escape, shortcut save, small viewport, host resets"
+  },
+  {
+    "antd": false,
+    "desktop": {
+      "x": 330,
+      "y": 100,
+      "width": 440,
+      "height": 587.90625
+    },
+    "small": {
+      "x": 8,
+      "y": 108,
+      "width": 374,
+      "height": 617.1875
+    },
+    "popup": {
+      "inDialog": true,
+      "hittable": true
+    },
+    "errors": [],
+    "checks": "pagination, focus containment/restore, time stepping/validation, popup Escape, shortcut save, small viewport, host resets"
+  },
+  {
+    "engine": "firefox",
+    "checks": "native focus containment, popup Escape, nested dialogs, out-of-order cleanup and focus/scroll restore"
+  },
+  {
+    "engine": "webkit",
+    "checks": "native focus containment, popup Escape, nested dialogs, out-of-order cleanup and focus/scroll restore"
+  }
+]

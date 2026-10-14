@@ -28,11 +28,12 @@
 
 ## 安装
 
-组件库将 Vue 和 Ant Design Vue 作为 peer dependency；D3 和 vue3-colorpicker 由组件包直接依赖。
+组件库仅将 Vue 作为 peer dependency；D3 和 vue3-colorpicker 由组件包直接依赖。
+分页、标注弹窗与时间输入使用组件自有控件，无需安装 Ant Design Vue 或加载 antd.css。
 安装组件时请确保业务项目同时提供兼容版本的 peer dependency：
 
 ```bash
-pnpm add waveform-analysis vue ant-design-vue
+pnpm add waveform-analysis vue
 ```
 
 ### 运行时版本要求
@@ -42,12 +43,15 @@ pnpm add waveform-analysis vue ant-design-vue
 | 依赖             | 支持版本      |
 | ---------------- | ------------- |
 | Vue              | `>=3.2.33 <4` |
-| Ant Design Vue   | `>=3.2.20 <4` |
 | D3               | `>=7.9.0 <8`  |
 | vue3-colorpicker | `>=2.3.0 <3`  |
 
-其中 Vue 和 Ant Design Vue 的版本范围是公开的 peer dependency 约束；D3 和 vue3-colorpicker
+其中 Vue 的版本范围是公开的 peer dependency 约束；D3 和 vue3-colorpicker
 随组件包安装。
+
+仓库 demo 仍使用 Ant Design Vue，它仅作为开发依赖。当前图表和颜色选择器仍依赖 Vue；
+新增控件的计算和弹窗生命周期使用普通 TypeScript，为后续原生图表核心与可选 Vue 包装预留边界。
+标注弹窗使用浏览器原生 `<dialog>`，需要支持 `showModal()` 的现代浏览器。
 
 ## 最小示例
 

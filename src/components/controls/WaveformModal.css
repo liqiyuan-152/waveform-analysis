@@ -1,0 +1,155 @@
+.waveform-annotation-editor-root,
+.waveform-annotation-editor-root * {
+  box-sizing: border-box;
+}
+.waveform-annotation-editor-root {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  color: #344054;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.5715;
+  text-align: left;
+  text-transform: none;
+  background: transparent;
+  border: 0;
+  outline: none;
+}
+.waveform-annotation-editor-root::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+.waveform-modal {
+  position: relative;
+  top: 100px;
+  width: 440px;
+  max-width: calc(100vw - 32px);
+  margin: 0 auto;
+  padding: 0 0 24px;
+}
+.waveform-modal__panel {
+  position: relative;
+  background: #fff;
+  border-radius: 2px;
+  box-shadow:
+    0 3px 6px -4px rgb(0 0 0 / 12%),
+    0 6px 16px rgb(0 0 0 / 8%),
+    0 9px 28px 8px rgb(0 0 0 / 5%);
+}
+.waveform-modal__header {
+  margin: 0;
+  padding: 16px 24px;
+  color: rgb(0 0 0 / 85%);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 22px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  border-radius: 2px 2px 0 0;
+}
+.waveform-modal__body {
+  padding: 24px;
+}
+.waveform-modal__footer {
+  padding: 10px 16px;
+  text-align: right;
+  border-top: 1px solid #f0f0f0;
+  border-radius: 0 0 2px 2px;
+}
+.waveform-modal__button {
+  height: 32px;
+  margin: 0;
+  padding: 4px 15px;
+  color: rgb(0 0 0 / 85%);
+  font: inherit;
+  line-height: 1.5715;
+  letter-spacing: normal;
+  text-align: center;
+  text-transform: none;
+  vertical-align: middle;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 2%);
+  cursor: pointer;
+  appearance: none;
+}
+.waveform-modal__button + .waveform-modal__button {
+  margin-left: 8px;
+}
+.waveform-modal__button:hover,
+.waveform-modal__button:focus-visible {
+  color: #40a9ff;
+  border-color: #40a9ff;
+}
+.waveform-modal__button--primary {
+  color: #fff;
+  background: #1890ff;
+  border-color: #1890ff;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 4.5%);
+  text-shadow: 0 -1px 0 rgb(0 0 0 / 12%);
+}
+.waveform-modal__button--primary:hover,
+.waveform-modal__button--primary:focus-visible {
+  color: #fff;
+  background: #40a9ff;
+}
+.waveform-modal__button:disabled {
+  color: rgb(0 0 0 / 25%);
+  background: #f5f5f5;
+  border-color: #d9d9d9;
+  box-shadow: none;
+  text-shadow: none;
+  cursor: not-allowed;
+}
+.waveform-modal__close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  color: rgb(0 0 0 / 45%);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+  appearance: none;
+}
+.waveform-modal__close:hover {
+  color: rgb(0 0 0 / 75%);
+}
+.waveform-modal__close svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+.waveform-modal__popups {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.waveform-modal__popups > * {
+  pointer-events: auto;
+}
+@media (max-width: 767px) {
+  .waveform-modal {
+    max-width: calc(100vw - 16px);
+    margin: 8px auto;
+  }
+}

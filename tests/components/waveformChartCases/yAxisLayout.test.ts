@@ -190,7 +190,7 @@ describe('WaveformChart Y-axis layout', () => {
     expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
     expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
     expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
     expect(wrapper.get('.waveform-chart__axis--y').findAll('.tick text').at(-1)?.text()).toBe(

@@ -51,7 +51,7 @@ describe('separated empty frames', () => {
       frameNumber: 1,
     })
     try {
-      await wrapper.get('.ant-pagination-next button').trigger('click')
+      await wrapper.get('[aria-label="下一页"]').trigger('click')
       expect(wrapper.get('.waveform-chart__track--empty .waveform-chart__watermark').text()).toBe(
         '4',
       )

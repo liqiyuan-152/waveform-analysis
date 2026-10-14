@@ -41,7 +41,7 @@ describe('WaveformChart', () => {
     await flushPromises()
     const editor = getAnnotationEditor()
     await editor.get('textarea[aria-label="标注文本"]').setValue('新文字')
-    await editor.get('button.ant-btn-primary').trigger('click')
+    await editor.get('.waveform-modal__button--primary').trigger('click')
     await flushPromises()
 
     const updated = wrapper.emitted('update:annotations')?.at(-1)?.[0] as

@@ -1,6 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import 'ant-design-vue/dist/antd.css'
 
 import WaveformChart from '@/components/WaveformChart.vue'
 import { gridSeries } from '@tests/support/waveformChart'
@@ -135,7 +134,7 @@ describe('edge-compact frame and pagination bounds', () => {
       const svgHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const paginationStyle = getComputedStyle(wrapper.get('.waveform-chart__pagination').element)
       const itemHeight = Number.parseFloat(
-        getComputedStyle(wrapper.get('.ant-pagination-item').element).height,
+        getComputedStyle(wrapper.get('[aria-current="page"]').element).height,
       )
       expect(itemHeight).toBe(32)
       const paginationTop = 360 - Number.parseFloat(paginationStyle.bottom) - itemHeight

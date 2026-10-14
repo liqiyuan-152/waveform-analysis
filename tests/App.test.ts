@@ -341,7 +341,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       }
     })
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     expect(
       wrapper
@@ -349,7 +349,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
     ).toEqual(['脉冲响应', '带噪信号', '百万量级电压', '微量级电流'])
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     expect(
       wrapper

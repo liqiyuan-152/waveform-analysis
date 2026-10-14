@@ -139,7 +139,7 @@ describe('WaveformChart unit placement', () => {
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     expect(wrapper.get('.waveform-chart__axis--y').text()).not.toContain('(V)')
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
     expect(wrapper.findAll('.waveform-legend__label').map((label) => label.text())).toEqual([
@@ -150,7 +150,7 @@ describe('WaveformChart unit placement', () => {
     expect(
       wrapper.findAll('.waveform-legend__label').every((label) => !label.text().includes('(V)')),
     ).toBe(true)
-    await wrapper.get('.ant-pagination-prev button').trigger('click')
+    await wrapper.get('[aria-label="上一页"]').trigger('click')
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     await wrapper.setProps({ data: data(series('CH1', 'one', 'V')) })

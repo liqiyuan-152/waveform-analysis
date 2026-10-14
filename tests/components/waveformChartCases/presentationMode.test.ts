@@ -212,7 +212,7 @@ describe('WaveformChart presentation mode', () => {
     await flushPromises()
     expect(wrapper.emitted('update:hidden-series-ids')?.at(-1)).toEqual([['high']])
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 2])
   })

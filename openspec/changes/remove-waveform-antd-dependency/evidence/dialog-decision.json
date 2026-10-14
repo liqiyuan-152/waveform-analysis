@@ -1,0 +1,5 @@
+{
+  "insideHittable": true,
+  "outsideHittable": false,
+  "decision": "使用原生 dialog，将颜色浮层挂到内部容器，无需 a11y-dialog 依赖。"
+}

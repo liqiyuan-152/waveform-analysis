@@ -115,7 +115,7 @@ describe('WaveformChart', () => {
     })
     expect(legendForTrack('frame-0').attributes('data-orientation')).toBe('vertical')
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(legendForTrack('frame-2').attributes('data-position')).toBe('bottom')
     expect(legendForTrack('frame-2').attributes('data-orientation')).toBe('vertical')
     expect(legendForTrack('frame-3').attributes('data-position')).toBe('left')

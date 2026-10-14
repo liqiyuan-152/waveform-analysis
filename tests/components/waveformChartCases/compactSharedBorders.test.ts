@@ -11,7 +11,7 @@ describe('compact shared frame borders', () => {
       frameNumber: 1,
     })
     try {
-      await wrapper.get('.ant-pagination-next button').trigger('click')
+      await wrapper.get('[aria-label="下一页"]').trigger('click')
       const empty = wrapper.get('.waveform-chart__track--empty')
       expect(empty.get('.waveform-chart__watermark').text()).toBe('4')
       await wrapper.setProps({ frameNumber: 'Frame' })
@@ -108,7 +108,7 @@ describe('compact shared frame borders', () => {
       grid: { rowCount: 2, columnCount: 1 },
     })
     try {
-      await wrapper.get('.ant-pagination-next button').trigger('click')
+      await wrapper.get('[aria-label="下一页"]').trigger('click')
       expect(
         wrapper
           .findAll('.waveform-chart__plot-frame')

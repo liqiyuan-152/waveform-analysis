@@ -51,7 +51,7 @@ describe('WaveformChart', () => {
       await flushPromises()
       expect(editorExists()).toBe(true)
       expect(wrapper.emitted('annotation-create')).toBeUndefined()
-      await getAnnotationEditor().get('.ant-modal-close').trigger('click')
+      await getAnnotationEditor().get('.waveform-modal__close').trigger('click')
       await flushPromises()
       wrapper.unmount()
     },
@@ -225,7 +225,7 @@ describe('WaveformChart', () => {
 
     const editor = getAnnotationEditor()
     await editor.get('textarea[aria-label="标注文本"]').setValue('峰值点')
-    await editor.get('button.ant-btn-primary').trigger('click')
+    await editor.get('.waveform-modal__button--primary').trigger('click')
     await flushPromises()
 
     const annotations = wrapper.emitted('update:annotations')?.at(-1)?.[0] as
@@ -274,7 +274,7 @@ describe('WaveformChart', () => {
     expect(textarea.element.dispatchEvent(textareaContextMenu)).toBe(true)
     expect(textareaContextMenu.defaultPrevented).toBe(false)
     await textarea.setValue('左键标注')
-    await editor.get('button.ant-btn-primary').trigger('click')
+    await editor.get('.waveform-modal__button--primary').trigger('click')
     await flushPromises()
 
     // Annotation snaps to nearest sample point (x=1, y=5)
@@ -339,7 +339,7 @@ describe('WaveformChart', () => {
         .map((item) => item.text()),
     ).toEqual(['通道 A'])
 
-    await getAnnotationEditor().get('.ant-modal-close').trigger('click')
+    await getAnnotationEditor().get('.waveform-modal__close').trigger('click')
     overlays[0].element.dispatchEvent(
       new MouseEvent('click', { clientX: 356, clientY: 230, bubbles: true }),
     )

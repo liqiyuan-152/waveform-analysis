@@ -119,7 +119,7 @@ describe('WaveformChart edge-compact layout', () => {
       expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(true)
       expect(drawingHeight()).toBeCloseTo(360 - titleHeight() - paginationBand)
       expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 9)
-      await wrapper.get('.ant-pagination-next button').trigger('click')
+      await wrapper.get('[aria-label="下一页"]').trigger('click')
       expect(titleHeight() + labelY()).toBeCloseTo(360 - paginationBand - 9)
 
       await wrapper.setProps({ grid: { rowCount: 1, columnCount: 1, showPagination: false } })

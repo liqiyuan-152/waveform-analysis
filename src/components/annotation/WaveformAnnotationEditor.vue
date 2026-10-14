@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, ref, watch, type Component } from 'vue'
-import { InputNumber, Modal } from 'ant-design-vue'
+import WaveformModal from '../controls/WaveformModal.vue'
+import WaveformNumberInput from '../controls/WaveformNumberInput.vue'
 
 import type { WaveformAnnotation } from '../../types'
 import { formatAnnotationTime, formatPlainNumber, type TimeUnit } from '../../utils'
@@ -37,6 +38,18 @@ const emit = defineEmits<{
 
 const textarea = ref<HTMLTextAreaElement>()
 const dialogTitleId = useWaveformInstanceId('waveform-annotation-editor-title')
+const popupId = `${dialogTitleId}-popups`
+interface ColorPickerHandle {
+  showPicker: boolean
+}
+const colorPickers: (ColorPickerHandle | null)[] = []
+function dismissPopup() {
+  const open = colorPickers.filter((picker) => picker?.showPicker)
+  open.forEach((picker) => {
+    if (picker) picker.showPicker = false
+  })
+  return open.length > 0
+}
 const text = ref('')
 const timeInput = ref('')
 const timeValidationRequested = ref(false)
@@ -109,7 +122,6 @@ async function confirm() {
 }
 
 function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') emit('cancel')
   if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
     event.preventDefault()
     confirm()
@@ -123,146 +135,162 @@ function handleSeriesChange(event: Event) {
 </script>
 
 <template>
-  <Modal
-    :visible="true"
-    :width="440"
-    :mask-closable="true"
-    :keyboard="true"
-    cancel-text="取消"
-    ok-text="保存标注"
-    :ok-button-props="{ disabled: !canConfirm }"
-    root-class-name="waveform-annotation-editor-root"
-    wrap-class-name="waveform-annotation-editor"
+  <WaveformModal
+    :title-id="dialogTitleId"
+    :popup-id="popupId"
+    :can-confirm="canConfirm"
+    :initial-focus="() => textarea"
+    :dismiss-popup="dismissPopup"
     @cancel="emit('cancel')"
-    @ok="confirm"
+    @confirm="confirm"
   >
     <template #title>
       <span :id="dialogTitleId">{{ props.mode === 'add' ? '添加标注' : '编辑标注' }}</span>
     </template>
 
-    <div class="waveform-annotation-editor__content">
-      <div class="waveform-annotation-editor__coordinates" aria-label="标注坐标">
-        <label
-          class="waveform-annotation-editor__coordinate-input"
-          :aria-invalid="Boolean(timeErrorMessage)"
-        >
-          <b>X</b>
-          <InputNumber
-            :value="timeInput === '' ? undefined : Number(timeInput)"
-            :controls="true"
-            :step="0.001"
-            :keyboard="true"
-            :status="timeErrorMessage ? 'error' : undefined"
-            aria-label="标注横轴时间"
+    <template #default="{ ready }">
+      <div class="waveform-annotation-editor__content" @keydown="handleKeydown">
+        <div class="waveform-annotation-editor__coordinates" aria-label="标注坐标">
+          <label
+            class="waveform-annotation-editor__coordinate-input"
             :aria-invalid="Boolean(timeErrorMessage)"
-            :aria-describedby="timeErrorMessage ? `${dialogTitleId}-time-error` : undefined"
-            @blur="commitTimeInput"
-            @update:value="handleTimeInput"
-          />
-          <code class="waveform-annotation-editor__coordinate-value" aria-hidden="true">{{
-            timeInput
-          }}</code>
-        </label>
-        <p
-          v-if="timeErrorMessage"
-          :id="`${dialogTitleId}-time-error`"
-          class="waveform-annotation-editor__coordinate-error"
-          role="alert"
-        >
-          {{ timeErrorMessage }}
-        </p>
-        <span
-          ><b>Y</b><code>{{ formatPlainNumber(props.annotation.y) }}</code></span
-        >
-      </div>
-      <p class="waveform-annotation-editor__coordinate-hint" role="note">
-        修改 X 轴后失焦时会自动吸附最近的采样点
-      </p>
-
-      <label
-        v-if="selectedSeries"
-        class="waveform-annotation-editor__series"
-        aria-label="标注所属波形"
-      >
-        <i :style="{ backgroundColor: selectedSeries.color }" aria-hidden="true" />
-        <span class="waveform-annotation-editor__series-label">
-          <small>标注波形</small>
-          <b>{{ selectedSeries.name }}</b>
-        </span>
-        <select
-          v-if="props.seriesOptions?.length"
-          :value="props.annotation.seriesId"
-          aria-label="选择标注波形"
-          @change="handleSeriesChange"
-        >
-          <option
-            v-for="candidate in props.seriesOptions"
-            :key="candidate.seriesId"
-            :value="candidate.seriesId"
           >
-            {{ candidate.name }}{{ candidate.unit ? ` (${candidate.unit})` : '' }}
-          </option>
-        </select>
-        <code v-else-if="selectedSeries.unit">{{ selectedSeries.unit }}</code>
-      </label>
+            <b>X</b>
+            <WaveformNumberInput
+              :value="timeInput"
+              :invalid="Boolean(timeErrorMessage)"
+              aria-label="标注横轴时间"
+              :aria-invalid="Boolean(timeErrorMessage)"
+              :aria-describedby="timeErrorMessage ? `${dialogTitleId}-time-error` : undefined"
+              @blur="commitTimeInput"
+              @update:value="handleTimeInput"
+            />
+            <code class="waveform-annotation-editor__coordinate-value" aria-hidden="true">{{
+              timeInput
+            }}</code>
+          </label>
+          <p
+            v-if="timeErrorMessage"
+            :id="`${dialogTitleId}-time-error`"
+            class="waveform-annotation-editor__coordinate-error"
+            role="alert"
+          >
+            {{ timeErrorMessage }}
+          </p>
+          <span
+            ><b>Y</b><code>{{ formatPlainNumber(props.annotation.y) }}</code></span
+          >
+        </div>
+        <p class="waveform-annotation-editor__coordinate-hint" role="note">
+          修改 X 轴后失焦时会自动吸附最近的采样点
+        </p>
 
-      <label class="waveform-annotation-editor__field">
-        <span class="waveform-annotation-editor__label-row">
-          <b>标注文本</b>
-          <small>{{ characterCount }}/{{ ANNOTATION_MAX_TEXT_LENGTH }}</small>
-        </span>
-        <textarea
-          ref="textarea"
-          v-model="text"
-          rows="4"
-          :maxlength="ANNOTATION_MAX_TEXT_LENGTH"
-          aria-label="标注文本"
-          placeholder="输入这处波形的说明"
-          @keydown="handleKeydown"
-        />
-      </label>
+        <label
+          v-if="selectedSeries"
+          class="waveform-annotation-editor__series"
+          aria-label="标注所属波形"
+        >
+          <i :style="{ backgroundColor: selectedSeries.color }" aria-hidden="true" />
+          <span class="waveform-annotation-editor__series-label">
+            <small>标注波形</small>
+            <b>{{ selectedSeries.name }}</b>
+          </span>
+          <select
+            v-if="props.seriesOptions?.length"
+            :value="props.annotation.seriesId"
+            aria-label="选择标注波形"
+            @change="handleSeriesChange"
+          >
+            <option
+              v-for="candidate in props.seriesOptions"
+              :key="candidate.seriesId"
+              :value="candidate.seriesId"
+            >
+              {{ candidate.name }}{{ candidate.unit ? ` (${candidate.unit})` : '' }}
+            </option>
+          </select>
+          <code v-else-if="selectedSeries.unit">{{ selectedSeries.unit }}</code>
+        </label>
 
-      <fieldset class="waveform-annotation-editor__colors">
-        <legend>颜色与透明度</legend>
-        <label class="waveform-annotation-editor__color-field" title="调整标注边框色和透明度">
-          <span>边框色</span>
-          <ColorPicker
-            v-model:pure-color="borderColor"
-            aria-label="标注边框色"
-            use-type="pure"
-            picker-type="chrome"
-            format="rgb"
-            :disable-alpha="false"
-            :blur-close="true"
+        <label class="waveform-annotation-editor__field">
+          <span class="waveform-annotation-editor__label-row">
+            <b>标注文本</b>
+            <small>{{ characterCount }}/{{ ANNOTATION_MAX_TEXT_LENGTH }}</small>
+          </span>
+          <textarea
+            ref="textarea"
+            v-model="text"
+            rows="4"
+            :maxlength="ANNOTATION_MAX_TEXT_LENGTH"
+            aria-label="标注文本"
+            placeholder="输入这处波形的说明"
+            @keydown="handleKeydown"
           />
         </label>
-        <label class="waveform-annotation-editor__color-field" title="调整标注文字色和透明度">
-          <span>文字色</span>
-          <ColorPicker
-            v-model:pure-color="textColor"
-            aria-label="标注文字色"
-            use-type="pure"
-            picker-type="chrome"
-            format="rgb"
-            :disable-alpha="false"
-            :blur-close="true"
-          />
-        </label>
-        <label class="waveform-annotation-editor__color-field" title="调整标注背景色和透明度">
-          <span>背景色</span>
-          <ColorPicker
-            v-model:pure-color="backgroundColor"
-            aria-label="标注背景色"
-            use-type="pure"
-            picker-type="chrome"
-            format="rgb"
-            :disable-alpha="false"
-            :blur-close="true"
-          />
-        </label>
-      </fieldset>
-    </div>
-  </Modal>
+
+        <fieldset class="waveform-annotation-editor__colors">
+          <legend>颜色与透明度</legend>
+          <label class="waveform-annotation-editor__color-field" title="调整标注边框色和透明度">
+            <span>边框色</span>
+            <ColorPicker
+              v-if="ready"
+              :ref="
+                (instance: unknown) => {
+                  colorPickers[0] = instance as unknown as ColorPickerHandle
+                }
+              "
+              :picker-container="`#${popupId}`"
+              v-model:pure-color="borderColor"
+              aria-label="标注边框色"
+              use-type="pure"
+              picker-type="chrome"
+              format="rgb"
+              :disable-alpha="false"
+              :blur-close="true"
+            />
+          </label>
+          <label class="waveform-annotation-editor__color-field" title="调整标注文字色和透明度">
+            <span>文字色</span>
+            <ColorPicker
+              v-if="ready"
+              :ref="
+                (instance: unknown) => {
+                  colorPickers[1] = instance as unknown as ColorPickerHandle
+                }
+              "
+              :picker-container="`#${popupId}`"
+              v-model:pure-color="textColor"
+              aria-label="标注文字色"
+              use-type="pure"
+              picker-type="chrome"
+              format="rgb"
+              :disable-alpha="false"
+              :blur-close="true"
+            />
+          </label>
+          <label class="waveform-annotation-editor__color-field" title="调整标注背景色和透明度">
+            <span>背景色</span>
+            <ColorPicker
+              v-if="ready"
+              :ref="
+                (instance: unknown) => {
+                  colorPickers[2] = instance as unknown as ColorPickerHandle
+                }
+              "
+              :picker-container="`#${popupId}`"
+              v-model:pure-color="backgroundColor"
+              aria-label="标注背景色"
+              use-type="pure"
+              picker-type="chrome"
+              format="rgb"
+              :disable-alpha="false"
+              :blur-close="true"
+            />
+          </label>
+        </fieldset>
+      </div>
+    </template>
+  </WaveformModal>
 </template>
 
 <style scoped src="./WaveformAnnotationEditor.css"></style>

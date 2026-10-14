@@ -234,12 +234,12 @@ async function presentation(width: number, displayMode: 'separated' | 'independe
     ),
     annotation: !!container.querySelector('[data-annotation-id="note"]'),
   }
-  ;(container.querySelector('.ant-pagination-next button') as HTMLElement).click()
+  ;(container.querySelector('[aria-label="下一页"]') as HTMLElement).click()
   await wait()
   const next = [...container.querySelectorAll('.waveform-chart__line')].map((n) =>
     n.getAttribute('data-series-id'),
   )
-  ;(container.querySelector('.ant-pagination-prev button') as HTMLElement).click()
+  ;(container.querySelector('[aria-label="上一页"]') as HTMLElement).click()
   await wait()
   ;(container.querySelector('.waveform-chart__legend-item') as HTMLElement).click()
   await wait()

@@ -84,3 +84,11 @@ export function pendingAnimationFrameCount(): number {
 
 // Default-on chart animations must not leak shared work between test cases.
 afterEach(() => globalAnimator.destroy())
+
+// jsdom does not implement native dialog's top layer. Browser tests exercise real modality.
+HTMLDialogElement.prototype.showModal = function () {
+  this.setAttribute('open', '')
+}
+HTMLDialogElement.prototype.close = function () {
+  this.removeAttribute('open')
+}

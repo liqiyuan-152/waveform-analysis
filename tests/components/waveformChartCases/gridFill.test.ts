@@ -85,7 +85,7 @@ describe('WaveformChart incomplete grid rows', () => {
     const standardFirstPage = standard.findAll('.waveform-chart__track').map(geometry)
     expect(filled.findAll('.waveform-chart__track').map(geometry)).toEqual(standardFirstPage)
 
-    await filled.get('.ant-pagination-next button').trigger('click')
+    await filled.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     const secondPage = filled.findAll('.waveform-chart__track').map(geometry)
     expect(secondPage).toHaveLength(1)

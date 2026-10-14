@@ -3,13 +3,15 @@ import {
   mkdirSync,
   mkdtempSync,
   readdirSync,
+  realpathSync,
   readFileSync,
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { basename, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { build } from 'vite'
+import { build, preview } from 'vite'
+import { verifyPackageNativeControls } from './verify-package-native-controls.mjs'
 
 const pnpmCli = process.env.npm_execpath
 if (!pnpmCli || !basename(pnpmCli).startsWith('pnpm')) {
@@ -25,7 +27,7 @@ function runPnpm(args, cwd = process.cwd()) {
   if (result.status !== 0) throw new Error(`pnpm ${args.join(' ')} failed.`)
 }
 
-const temporaryRoot = mkdtempSync(join(tmpdir(), 'waveform-analysis-package-'))
+const temporaryRoot = realpathSync(mkdtempSync(join(tmpdir(), 'waveform-analysis-package-')))
 const consumerRoot = join(temporaryRoot, 'consumer')
 mkdirSync(consumerRoot)
 runPnpm(['pack', '--pack-destination', temporaryRoot])
@@ -42,7 +44,7 @@ writeFileSync(
     {
       private: true,
       packageManager: 'pnpm@10.32.1',
-      dependencies: { 'waveform-analysis': `file:${packageFile}` },
+      dependencies: { 'waveform-analysis': `file:${packageFile}`, vue: '3.5.40' },
       devDependencies: { typescript: '~6.0.0' },
     },
     null,
@@ -181,6 +183,18 @@ runPnpm(['exec', 'node', 'consumer/cjs.cjs'], temporaryRoot)
 const manifest = JSON.parse(
   readFileSync(join(temporaryRoot, 'node_modules/waveform-analysis/package.json')),
 )
+if (manifest.dependencies?.['ant-design-vue'] || manifest.peerDependencies?.['ant-design-vue'])
+  throw new Error('Packed component still requires ant-design-vue.')
+const installed = readdirSync(join(temporaryRoot, 'node_modules/.pnpm'))
+if (installed.some((name) => name.startsWith('ant-design-vue@') || name.startsWith('@ant-design+')))
+  throw new Error('Independent consumer transitively installed Ant Design.')
+for (const file of ['dist/index.js', 'dist/index.cjs', 'dist/style.css']) {
+  const content = readFileSync(join(temporaryRoot, 'node_modules/waveform-analysis', file), 'utf8')
+  if (/ant-design-vue|\.ant-(modal|pagination|input-number)/.test(content))
+    throw new Error(`Packed ${file} retains antd runtime or style dependencies.`)
+}
+console.log(`Independent consumer without antd: ${temporaryRoot}`)
+
 if (manifest.name !== 'waveform-analysis')
   throw new Error('Consumer installed an unexpected package.')
 
@@ -196,15 +210,36 @@ const shaken = await build({
     write: false,
     minify: false,
     lib: { entry: shakeEntry, formats: ['es'] },
-    rolldownOptions: { external: ['d3', 'vue', 'ant-design-vue', 'vue3-colorpicker'] },
+    rolldownOptions: { external: ['d3', 'vue', 'vue3-colorpicker'] },
   },
 })
 const shakeCode = shaken[0].output
   .filter((chunk) => chunk.type === 'chunk')
   .map((chunk) => chunk.code)
   .join('')
-if (
-  shakeCode.includes('waveform-chart__') ||
-  /from\s*['"](?:vue|ant-design-vue)['"]/.test(shakeCode)
-)
+if (shakeCode.includes('waveform-chart__') || /from\s*['"]vue['"]/.test(shakeCode))
   throw new Error('Packed easing consumer retained chart code or UI peers; pure annotations lost.')
+
+// Build the packed public entry in the consumer's dependency graph, with no demo or source alias.
+writeFileSync(
+  join(temporaryRoot, 'controls.ts'),
+  readFileSync(new URL('./package-native-controls-consumer.ts', import.meta.url)),
+)
+writeFileSync(
+  join(temporaryRoot, 'index.html'),
+  '<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:24px"><div id="chart"></div><script type="module" src="/controls.ts"></script></body></html>',
+)
+await build({ root: temporaryRoot, configFile: false, build: { outDir: 'browser-dist' } })
+const server = await preview({
+  root: temporaryRoot,
+  configFile: false,
+  build: { outDir: 'browser-dist' },
+  preview: { host: '127.0.0.1', port: 0 },
+})
+try {
+  await verifyPackageNativeControls(server.resolvedUrls.local[0])
+} finally {
+  await new Promise((resolve, reject) =>
+    server.httpServer.close((error) => (error ? reject(error) : resolve())),
+  )
+}

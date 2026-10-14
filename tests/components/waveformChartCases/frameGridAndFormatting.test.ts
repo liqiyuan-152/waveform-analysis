@@ -86,9 +86,9 @@ describe('WaveformChart', () => {
     })
 
     expect(wrapper.findAll('[data-grid-direction]')).not.toHaveLength(0)
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.findAll('[data-grid-direction]')).toHaveLength(0)
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.findAll('[data-grid-direction]')).not.toHaveLength(0)
   })
 

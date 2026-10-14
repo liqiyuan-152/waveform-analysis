@@ -1,0 +1,98 @@
+.waveform-pagination {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  color: rgb(0 0 0 / 85%);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5715;
+}
+.waveform-pagination button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  flex-shrink: 0;
+  height: 32px;
+  margin: 0;
+  padding: 0 6px;
+  color: inherit;
+  font: inherit;
+  line-height: 30px;
+  letter-spacing: normal;
+  text-transform: none;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  box-shadow: none;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+.waveform-pagination button:hover:not(:disabled),
+.waveform-pagination button:focus-visible {
+  color: #1890ff;
+  border-color: #1890ff;
+}
+.waveform-pagination button:focus-visible {
+  outline: 2px solid rgb(24 144 255 / 20%);
+  outline-offset: 1px;
+}
+.waveform-pagination button[aria-current='page'] {
+  color: #1890ff;
+  font-weight: 500;
+  border-color: #1677ff;
+}
+.waveform-pagination button:disabled {
+  color: rgb(0 0 0 / 25%);
+  cursor: not-allowed;
+}
+.waveform-pagination svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+}
+.waveform-pagination .waveform-pagination__jump {
+  width: 32px;
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+}
+.waveform-pagination__jump svg {
+  display: none;
+}
+.waveform-pagination__jump:hover svg,
+.waveform-pagination__jump:focus-visible svg {
+  display: block;
+}
+.waveform-pagination__jump:hover .waveform-pagination__dots,
+.waveform-pagination__jump:focus-visible .waveform-pagination__dots {
+  display: none;
+}
+.waveform-pagination__dots {
+  color: rgb(0 0 0 / 25%);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.waveform-pagination .is-prev {
+  transform: rotate(180deg);
+}
+.waveform-pagination::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 992px) {
+  .waveform-pagination .waveform-pagination__window-edge {
+    display: none;
+  }
+}

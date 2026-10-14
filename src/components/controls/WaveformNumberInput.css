@@ -1,0 +1,87 @@
+.waveform-number-input {
+  position: relative;
+  flex: 1;
+  min-width: 96px;
+  height: 32px;
+  overflow: hidden;
+  color: #344054;
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.5715;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 2px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.waveform-number-input:hover,
+.waveform-number-input:focus-within {
+  border-color: #40a9ff;
+}
+.waveform-number-input:focus-within {
+  box-shadow: 0 0 0 2px rgb(24 144 255 / 20%);
+}
+.waveform-number-input.is-invalid {
+  border-color: #ff4d4f;
+}
+.waveform-number-input.is-invalid:focus-within {
+  box-shadow: 0 0 0 2px rgb(255 77 79 / 20%);
+}
+.waveform-number-input input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 30px;
+  margin: 0;
+  padding: 0 11px;
+  color: inherit;
+  font: inherit;
+  letter-spacing: normal;
+  background: transparent;
+  border: 0;
+  border-radius: 2px;
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+}
+.waveform-number-input__steps {
+  position: absolute;
+  inset: 0 0 0 auto;
+  display: grid;
+  width: 22px;
+  opacity: 0;
+  background: #fff;
+  border-left: 1px solid #d9d9d9;
+  transition: opacity 0.2s;
+}
+.waveform-number-input:hover .waveform-number-input__steps,
+.waveform-number-input:focus-within .waveform-number-input__steps {
+  opacity: 1;
+}
+.waveform-number-input__steps button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  color: rgb(0 0 0 / 45%);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  cursor: pointer;
+  appearance: none;
+}
+.waveform-number-input__steps button + button {
+  border-top: 1px solid #d9d9d9;
+}
+.waveform-number-input__steps button:hover {
+  color: #40a9ff;
+}
+.waveform-number-input__steps svg {
+  width: 8px;
+  height: 8px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}

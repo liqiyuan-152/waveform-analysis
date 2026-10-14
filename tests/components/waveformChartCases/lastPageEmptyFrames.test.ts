@@ -16,7 +16,7 @@ describe('last page empty frames', () => {
         frameStyle: { borderColor: '#123456', borderWidth: 2, backgroundColor: '#fff' },
       })
       try {
-        await wrapper.get('.ant-pagination-next button').trigger('click')
+        await wrapper.get('[aria-label="下一页"]').trigger('click')
         expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(4)
         expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
         expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(1)
@@ -43,7 +43,7 @@ describe('last page empty frames', () => {
           cleanView: false,
           grid: { rowCount: 2, columnCount: 2, fillIncompleteLastRow: true },
         })
-        await wrapper.get('.ant-pagination-next button').trigger('click')
+        await wrapper.get('[aria-label="下一页"]').trigger('click')
         expect(wrapper.findAll('.waveform-chart__plot-frame')).toHaveLength(1)
         expect(wrapper.find('.waveform-chart__track--empty').exists()).toBe(false)
       } finally {

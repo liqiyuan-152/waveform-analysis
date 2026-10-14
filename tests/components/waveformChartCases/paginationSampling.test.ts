@@ -65,7 +65,7 @@ const drawingProgress = (wrapper: Awaited<ReturnType<typeof mountSizedChart>>) =
   return Number(rect.attributes('width')) / track.width
 }
 async function nextPage(wrapper: Awaited<ReturnType<typeof mountSizedChart>>) {
-  await wrapper.get('.ant-pagination-next button').trigger('click')
+  await wrapper.get('[aria-label="下一页"]').trigger('click')
   await flushPromises()
   await nextTick()
 }

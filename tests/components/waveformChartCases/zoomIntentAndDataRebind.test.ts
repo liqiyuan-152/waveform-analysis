@@ -202,7 +202,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
       const pageOverlay = paged.get('.waveform-chart__overlay--independent')
       const pageBounds = configureOverlay(pageOverlay.element)
       dispatchWheel(pageOverlay.element, -4_000, pageBounds.width, pageBounds.height)
-      await paged.get('.ant-pagination-next button').trigger('click')
+      await paged.get('[aria-label="下一页"]').trigger('click')
       await flushPromises()
       await vi.advanceTimersByTimeAsync(200)
       expect(paged.emitted('zoom-end')).toBeUndefined()

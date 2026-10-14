@@ -38,7 +38,7 @@ async function frame(ms: number) {
   await flushPromises()
 }
 async function page(wrapper: Awaited<ReturnType<typeof chart>>, direction = 'next') {
-  await wrapper.get(`.ant-pagination-${direction} button`).trigger('click')
+  await wrapper.get(`[aria-label="${direction === 'next' ? '下一页' : '上一页'}"]`).trigger('click')
   await flushPromises()
   await nextTick()
 }
@@ -129,7 +129,7 @@ describe('pagination entrance replay', () => {
     expect(drawingProgress(wrapper)).toBe(0)
     await frame(100)
     const before = drawingProgress(wrapper)
-    await wrapper.get('.ant-pagination-item-active').trigger('click')
+    await wrapper.get('[aria-current="page"]').trigger('click')
     expect(drawingProgress(wrapper)).toBe(before)
     expect(wrapper.emitted('page-change')).toHaveLength(3)
   })
@@ -180,7 +180,7 @@ describe('pagination entrance replay', () => {
     const wrapper = await chart()
     await page(wrapper)
     await frame(100)
-    await wrapper.get('.ant-pagination-next button').trigger('pointermove')
+    await wrapper.get('[aria-label="下一页"]').trigger('pointermove')
     expect(drawingProgress(wrapper)).toBeCloseTo(0.2)
     wrapper
       .get('svg')

@@ -134,7 +134,7 @@ describe('WaveformChart', () => {
       String(-(7 + initialLongestTickLabel * 7 + 10)),
     )
 
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
     const pagedTrack = wrapper.get('.waveform-chart__track')
@@ -245,12 +245,12 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart(gridSeries(5), {
       grid: { rowCount: 1, columnCount: 1 },
     })
-    await wrapper.get('.ant-pagination-next button').trigger('click')
-    expect(wrapper.get('.ant-pagination-item-2').classes()).toContain('ant-pagination-item-active')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
+    expect(wrapper.get('[aria-label="第 2 页"]').attributes('aria-current')).toBe('page')
 
     await wrapper.setProps({ grid: { rowCount: 2, columnCount: 1 } })
     await flushPromises()
-    expect(wrapper.get('.ant-pagination-item-1').classes()).toContain('ant-pagination-item-active')
+    expect(wrapper.get('[aria-label="第 1 页"]').attributes('aria-current')).toBe('page')
   })
 
   it('keeps the shared x domain stable while paging separated and compact grids', async () => {
@@ -260,7 +260,7 @@ describe('WaveformChart', () => {
         grid: { rowCount: 1, columnCount: 1 },
       })
       const initialEnd = wrapper.get('.waveform-chart__axis-endpoint--end').text()
-      await wrapper.get('.ant-pagination-next button').trigger('click')
+      await wrapper.get('[aria-label="下一页"]').trigger('click')
       expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe(initialEnd)
     }
   })
@@ -369,7 +369,7 @@ describe('WaveformChart', () => {
       ],
     })
     expect(wrapper.find('[data-annotation-id="channel-2-note"]').exists()).toBe(false)
-    await wrapper.get('.ant-pagination-next button').trigger('click')
+    await wrapper.get('[aria-label="下一页"]').trigger('click')
     expect(wrapper.find('[data-annotation-id="channel-2-note"]').exists()).toBe(true)
   })
 

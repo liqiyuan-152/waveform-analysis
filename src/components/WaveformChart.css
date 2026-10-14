@@ -21,6 +21,7 @@
   right: 10px;
   bottom: 6px;
   z-index: 2;
+  max-width: calc(100% - 20px);
 }
 
 .waveform-chart__title-area {
@@ -56,17 +57,6 @@
   overflow: visible;
   line-height: 1.2;
   transform-origin: center;
-}
-
-.waveform-chart__pagination .ant-pagination-item,
-.waveform-chart__pagination .ant-pagination-prev .ant-pagination-item-link,
-.waveform-chart__pagination .ant-pagination-next .ant-pagination-item-link {
-  background: #fff;
-  border-color: #d9d9d9;
-}
-
-.waveform-chart__pagination .ant-pagination-item-active {
-  border-color: #1677ff;
 }
 
 .waveform-chart__grid-slot-placeholder {

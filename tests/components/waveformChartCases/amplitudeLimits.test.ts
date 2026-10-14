@@ -218,7 +218,7 @@ describe('WaveformChart amplitude limits', () => {
       },
     })
     expect(domains(w)).toEqual([[-73, 86]])
-    await w.get('.ant-pagination-next button').trigger('click')
+    await w.get('[aria-label="下一页"]').trigger('click')
     expect(domains(w)).toEqual([[0, 10]])
     await w.setProps({ amplitudeLimits: { 'channel-1': { lower: -10, upper: 20 } } })
     await flushPromises()
@@ -227,7 +227,7 @@ describe('WaveformChart amplitude limits', () => {
     if (reordered.kind === 'series') reordered.series.reverse()
     await w.setProps({ data: reordered })
     await flushPromises()
-    await w.get('.ant-pagination-prev button').trigger('click')
+    await w.get('[aria-label="上一页"]').trigger('click')
     expect(domains(w)).toEqual([[-10, 20]])
     w.unmount()
   })

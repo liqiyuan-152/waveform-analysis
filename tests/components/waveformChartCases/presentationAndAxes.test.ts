@@ -355,7 +355,7 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation-layer').exists()).toBe(false)
-    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
+    expect(wrapper.find('.waveform-pagination').exists()).toBe(false)
   })
 
   it('preserves every track geometry in a multi-column clean view', async () => {

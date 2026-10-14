@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import WaveformToolbar from './controls/WaveformToolbar.vue'
-import { Pagination } from 'ant-design-vue'
+import WaveformPagination from './controls/WaveformPagination.vue'
 import { computed, toRefs } from 'vue'
 
 import { WaveformAnnotationContextMenu, WaveformAnnotationLayer } from './annotation'
@@ -355,15 +355,13 @@ function handleChartPointerLeave() {
 
     <WaveformToolbar :controller="controller" />
 
-    <Pagination
+    <WaveformPagination
       v-if="paginationVisible"
       class="waveform-chart__pagination"
       aria-label="波形分页"
       :current="currentPage"
       :page-size="getPageSize(gridOptions)"
       :total="pageableTracks.length"
-      :show-size-changer="false"
-      :show-quick-jumper="false"
       @change="goToPage"
     />
 

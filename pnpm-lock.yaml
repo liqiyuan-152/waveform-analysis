@@ -11,9 +11,6 @@ importers:
       '@types/d3':
         specifier: 7.4.3
         version: 7.4.3
-      ant-design-vue:
-        specifier: 3.2.20
-        version: 3.2.20(vue@3.5.40(typescript@6.0.3))
       d3:
         specifier: ^7.9.0
         version: 7.9.0
@@ -39,6 +36,9 @@ importers:
       '@vue/test-utils':
         specifier: 2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.40)(@vue/server-renderer@3.5.40)(vue@3.5.40(typescript@6.0.3))
+      ant-design-vue:
+        specifier: 3.2.20
+        version: 3.2.20(vue@3.5.40(typescript@6.0.3))
       eslint:
         specifier: 10.7.0
         version: 10.7.0

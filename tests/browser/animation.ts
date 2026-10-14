@@ -1,7 +1,6 @@
 import { createApp, defineComponent, h, nextTick, shallowRef } from 'vue'
 import { WaveformChart, globalAnimator, type WaveformData, type WaveformChartHandle } from '@/index'
 import '@/components/WaveformChart.css'
-import 'ant-design-vue/dist/antd.css'
 
 interface Scenario {
   width: number
