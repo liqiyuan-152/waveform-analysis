@@ -56,8 +56,8 @@ describe('remote point-aware viewport constraints', () => {
       })),
     )
     const domain = constrainViewportZoom([2.046756, 2.0467563], boundary, groups, props)
-    const counts = groups.map((group) =>
-      group[0].points.filter((p) => p.x >= domain[0] && p.x <= domain[1]).length,
+    const counts = groups.map(
+      (group) => group[0].points.filter((p) => p.x >= domain[0] && p.x <= domain[1]).length,
     )
     expect(counts).toEqual([0, 2])
     expect(domain[1] - domain[0]).toBeCloseTo(1.1e-6, 12)
