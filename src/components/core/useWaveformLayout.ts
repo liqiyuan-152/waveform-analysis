@@ -149,6 +149,9 @@ export function useWaveformLayout(context: LayoutContext) {
     yAxisTickCount,
   })
   const hasWaveformData = computed(() => chartSeries.value.length > 0)
+  const hasWaveformSamples = computed(() =>
+    chartSeries.value.some((series) => (series.source?.length ?? series.points.length) > 0),
+  )
   const hasChartArea = computed(() => innerWidth.value > 0 && innerHeight.value > 0)
   const resolvedXLabel = computed(() => props.xLabel ?? `时间（${props.timeUnit}）`)
   const activeInteractionMode = computed(() => props.interactionMode)
@@ -349,6 +352,7 @@ export function useWaveformLayout(context: LayoutContext) {
     innerWidth,
     hasVisibleWaveformData,
     hasWaveformData,
+    hasWaveformSamples,
     hasChartArea,
     resolvedXLabel,
     activeInteractionMode,

@@ -122,13 +122,15 @@ export function useChartCommands(c: Context) {
           ? tracks.some((t) => c.independentYDomains.value[t.index])
           : Object.keys(c.sharedYDomains.value).length > 0)
       const boundaryChanged = tracks.length && !same(bounds, boundary(tracks))
-      const status: WaveformTargetResult['status'] = !nonempty
-        ? 'empty-data'
-        : c.props.presentationMode || !c.props.zoomable
-          ? 'disabled'
-          : before && same(before.xDomain, xDomain) && !hasY && !boundaryChanged
-            ? 'unchanged'
-            : 'applied'
+      const hasSeries = tracks.some((t) => t.seriesList.length > 0)
+      const status: WaveformTargetResult['status'] =
+        !hasSeries || (action === 'fit' && !nonempty)
+          ? 'empty-data'
+          : c.props.presentationMode || !c.props.zoomable
+            ? 'disabled'
+            : before && same(before.xDomain, xDomain) && !hasY && !boundaryChanged
+              ? 'unchanged'
+              : 'applied'
       return { id, tracks, before, bounds, xDomain, status, resetsY }
     })
     return { entries }

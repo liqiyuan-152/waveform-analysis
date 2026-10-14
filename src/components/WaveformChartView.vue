@@ -46,6 +46,7 @@ const {
   chartWidth,
   drawingHeight,
   hasWaveformData,
+  hasWaveformSamples,
   trackLayouts,
   presentationTracks,
   presentationAnnotations,
@@ -186,7 +187,7 @@ function handleChartPointerLeave() {
       :width="chartWidth"
       :height="drawingHeight"
       role="img"
-      :aria-label="hasWaveformData ? '波形折线图' : '暂无波形数据'"
+      :aria-label="hasWaveformSamples ? '波形折线图' : '暂无波形数据'"
     >
       <defs>
         <clipPath
@@ -343,7 +344,7 @@ function handleChartPointerLeave() {
       </text>
 
       <text
-        v-if="hasChartArea && !hasWaveformData"
+        v-if="hasChartArea && !hasWaveformSamples"
         class="waveform-chart__empty"
         :x="chartWidth / 2"
         :y="drawingHeight / 2"

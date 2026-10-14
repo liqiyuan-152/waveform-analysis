@@ -529,8 +529,14 @@ Y 轴会独立计算：
 独立图框按稳定 `seriesIds` 分别合并，同次多图框命令可加载所有目标。
 
 记录全域通过 `panXDomain` 固定；`initialXDomain` 是首次及重置窗口，可以是全域的一部分。
-它们都不随响应的采样密度、覆盖范围或空结果变化。配置有效 `panXDomain` 时，空系列保留
-身份、图框及交互能力，未加载区域可以继续缩放和平移；本地模式仍使用既有空数据行为。
+它们都不随响应的采样密度、覆盖范围或空结果变化。组件始终保留传入的空系列的身份、图框
+及交互能力，不依赖 `panXDomain`；空窗口只隐藏曲线、采样点及误差棒。相同系列 ID 和轨道 ID
+的空窗口沿用之前的坐标域，首次为空时使用显式坐标域或默认域；无采样点的系列不参与最少
+可见点约束。配置有效 `panXDomain` 后，未加载区域可以继续缩放和平移。
+Demo 窗口加载器将响应中缺失的已知系列补为空数据，保留顺序及元信息；独立图框请求只更新
+指定系列，新增系列按响应顺序追加。直接从组件 `data` 删除系列仍会删除对应图框，传入
+`{ kind: 'series', series: [] }` 可清空全部系列；空系列与 `grid.trackOrder` 的空槽位不同，
+不会被 `hideEmptyTracks` 或末行填充过滤。
 公开 `normalizeWaveformSeries` 的空系列过滤行为不变。
 
 远程 demo 默认开启整数缩放，使用
@@ -1554,7 +1560,8 @@ reset 或旧数字 setter 退出对应 fit 状态；数据引用、可见系列�
 
 新命令的 intent/end/reset 附带 `commandId`、`source: 'toolbar' | 'api'`、`action`。
 同次多图框命令共享 commandId，按页顺序通知。放大/缩小/对象 setter 为 `zoom-intent → zoom-change → zoom-end`；
-fit 只有 change/end；对象 reset 只有 reset。其他无变化/禁用/非法/空数据不发操作事件。
+fit 只有 change/end；对象 reset 只有 reset。其他无变化/禁用/非法/`empty-data` 不发操作事件。
+空窗口保留系列时仍可放大、缩小、设置视口和重置；fit 无有效采样点时返回 `empty-data`。
 `zoom-change` 仍为 `[start,end]`。`gesture` 新增 `'command'`，穷举旧 wheel/box 或旧 interactionMode 联合的 TypeScript 消费者需适配新增分支。
 
 宿主应在以下加载方式中选择一种，不同时监听 intent 和 end 发请求：

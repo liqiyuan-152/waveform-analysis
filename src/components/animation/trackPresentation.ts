@@ -92,7 +92,7 @@ export function transitionTrack(
   const series = new Map<string, SeriesGeometry>()
   for (const [id, next] of to.series) {
     const previous = from.series.get(id)
-    if (!previous) {
+    if (!previous || (next.path.series.source?.length ?? next.path.series.points.length) === 0) {
       series.set(id, next)
       continue
     }

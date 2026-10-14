@@ -123,14 +123,14 @@ describe('Y-axis actual minimum ticks', () => {
     w.unmount()
   })
 
-  it('marks in-range extrema in fixed domains but not empty data', async () => {
+  it('retains cached extrema when a previously populated series becomes empty', async () => {
     const w = await mountSizedChart(data, {
       yDomain: [0, 100],
       axes: { y: { nice: false, lowerPaddingEnabled: true } },
     })
     expect(minima(w)).toEqual([20])
     await w.setProps({ yDomain: undefined, data: { kind: 'points', points: [] } })
-    expect(minima(w)).toEqual([])
+    expect(minima(w)).toEqual([20])
     w.unmount()
   })
 

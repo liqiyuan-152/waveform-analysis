@@ -16,6 +16,8 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     const wrapper = mount(App)
     try {
       await flushPromises()
+      await vi.advanceTimersByTimeAsync(100)
+      await flushPromises()
       const chart = wrapper.getComponent(WaveformChart)
       const pointCount = (data: WaveformData) =>
         data.kind === 'series' && data.series[0]?.data.kind === 'points'

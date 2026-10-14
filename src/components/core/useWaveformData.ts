@@ -71,7 +71,19 @@ export function usePreparedWaveformSeries(
   )
   watch([data, retainEmpty], ([nextData, preserveEmpty]) => {
     onBeforeDataChange()
-    preparedSeries.value = prepareWaveformSeries(nextData, preserveEmpty)
+    const previousById = new Map(preparedSeries.value.map((series) => [series.id, series]))
+    preparedSeries.value = prepareWaveformSeries(nextData, preserveEmpty).map((series) => {
+      const previous = previousById.get(series.id)
+      // Preserve axes, never geometry, across empty windows of the same channel/track.
+      if (series.source.length || !previous || series.trackId !== previous.trackId) return series
+      return {
+        ...series,
+        xDomain: previous.xDomain,
+        yDomain: previous.yDomain,
+        rawYMaximum: previous.rawYMaximum,
+        rawYMinimum: previous.rawYMinimum,
+      }
+    })
     onDataChange()
   })
   return preparedSeries

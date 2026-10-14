@@ -52,14 +52,19 @@ export function mergeWaveformWindow(
   response: WaveformData,
   seriesIds?: string[],
 ): WaveformData {
-  if (!seriesIds || current.kind !== 'series' || response.kind !== 'series') return response
-  const selected = new Set(seriesIds)
+  if (current.kind !== 'series' || response.kind !== 'series') return response
+  const selected = seriesIds ? new Set(seriesIds) : undefined
   const byId = new Map(response.series.map((series) => [series.id, series]))
+  const knownIds = new Set(current.series.map((series) => series.id))
   return {
     kind: 'series',
-    series: current.series.map((series) =>
-      series.id && selected.has(series.id) ? (byId.get(series.id) ?? series) : series,
-    ),
+    series: [
+      ...current.series.map((series) => {
+        if (selected && (!series.id || !selected.has(series.id))) return series
+        return byId.get(series.id) ?? { ...series, data: { kind: 'points' as const, points: [] } }
+      }),
+      ...response.series.filter((series) => !knownIds.has(series.id)),
+    ],
   }
 }
 

@@ -56,6 +56,7 @@ function minimumPointSpan(
   let minimumSpan = 0
   for (const group of groups) {
     const values = uniqueXValues(group, boundary)
+    if (!group.some((series) => (series.source?.length ?? series.points.length) > 0)) continue
     if (values.length < required) return boundary[1] - boundary[0]
     let groupSpan = Number.POSITIVE_INFINITY
     for (let index = 0; index + required <= values.length; index += 1) {
@@ -104,6 +105,7 @@ function expandToMinimumPoints(
   let expanded = domain
   for (const group of groups) {
     const values = uniqueXValues(group, boundary)
+    if (!group.some((series) => (series.source?.length ?? series.points.length) > 0)) continue
     if (values.length < required) return [...boundary]
     const visibleCount = values.filter(
       (value) => value >= expanded[0] && value <= expanded[1],

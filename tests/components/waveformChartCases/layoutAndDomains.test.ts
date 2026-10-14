@@ -229,15 +229,18 @@ describe('WaveformChart', () => {
     )
   })
 
-  it('shows the global empty state when compact data has no valid channels', async () => {
+  it('shows the global empty state while retaining the supplied compact channel frame', async () => {
     const wrapper = await mountSizedChart(
       { kind: 'samples', values: [1], sampleRate: -1 },
       { displayMode: 'compact', grid: { rowCount: 2, columnCount: 3 } },
     )
 
     expect(wrapper.get('.waveform-chart__empty').text()).toContain('暂无有效波形数据')
-    expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(6)
+    expect(wrapper.find('[data-track-id="series-0"] .waveform-chart__plot-frame').exists()).toBe(
+      true,
+    )
+    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(3)
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
   })
 

@@ -260,7 +260,7 @@ describe('WaveformChart amplitude limits', () => {
     w.unmount()
   })
 
-  it('preserves empty-data defaults without creating axes for absent series', async () => {
+  it('retains configured axes for an empty series and removes them when the series is deleted', async () => {
     const w = await mountSizedChart(
       {
         kind: 'series',
@@ -277,10 +277,11 @@ describe('WaveformChart amplitude limits', () => {
       },
       { amplitudeLimits: { a: { lower: -73, upper: 86 } } },
     )
-    expect(domains(w)).toEqual([])
+    expect(domains(w)).toEqual([[-73, 86]])
     await w.setProps({ data: { kind: 'series', series: [] } })
     await flushPromises()
     expect(w.find('.waveform-chart').exists()).toBe(true)
+    expect(domains(w)).toEqual([])
     expect(domains(w).every((d) => d.every(Number.isFinite))).toBe(true)
     w.unmount()
   })
