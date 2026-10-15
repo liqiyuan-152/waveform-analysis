@@ -45,11 +45,16 @@ describe('Y-axis name text style', () => {
       expect(name().attributes('style')).toContain('font-family: Arial, sans-serif')
       expect(name().attributes('style')).toContain('font-style: italic')
       expect(name().attributes('fill')).toBe('#333333')
-      expect(margin()).toBeGreaterThan(initialMargin)
+      // A 24px name fits inside the complete exponent's existing outer budget.
+      expect(margin()).toBe(initialMargin)
       expect(name().attributes('transform')).not.toBe(initialX)
       expect(
         wrapper.findAll('.waveform-chart__axis--y .tick text').map((tick) => tick.text()),
       ).toEqual(ticks)
+
+      await wrapper.setProps({ axes: { y: { labelTextStyle: { fontSize: 48 } } } })
+      expect(margin()).toBeGreaterThan(initialMargin)
+      expect(wrapper.get('.waveform-chart__y-axis-label-bg').attributes('width')).toBe('56')
 
       await wrapper.setProps({ axes: { y: { labelTextStyle: { fontWeight: 700 } } } })
       expect(name().attributes('style')).toContain('font-weight: 700')

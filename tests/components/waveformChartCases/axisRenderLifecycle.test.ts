@@ -96,6 +96,8 @@ describe('axis rendering lifecycle', () => {
       await flushPromises()
       const minimum = axes.get('text[data-axis-minimum-label]').element
       const maximum = axes.get('text[data-axis-maximum-label]').element
+      // Font-driven collision checks still apply to ordinary ticks, not enabled extrema.
+      maximum.parentElement!.removeAttribute('data-maximum-tick')
       maximum.parentElement!.setAttribute('data-tick-y', '1')
       vi.spyOn(minimum, 'getBoundingClientRect').mockReturnValue(new DOMRect(0, 0, 20, 12))
       const bounds = vi

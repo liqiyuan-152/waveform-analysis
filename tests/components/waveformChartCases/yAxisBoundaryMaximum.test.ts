@@ -5,8 +5,51 @@ import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVis
 import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('Y axis boundary maximum labels', () => {
+  it('keeps compact track maxima and their scientific multipliers despite label collisions', async () => {
+    const wrapper = await mountSizedChart(
+      {
+        kind: 'series',
+        series: ['first', 'second'].map((id) => ({
+          id,
+          name: id,
+          data: { kind: 'samples' as const, values: [-2143.6, -2001], sampleRate: 1 },
+        })),
+      },
+      {
+        displayMode: 'compact',
+        axes: { y: { upperPaddingEnabled: true, upperPaddingRatio: 0.1 } },
+      },
+    )
+    try {
+      const axes = wrapper.findAll('.waveform-track__axis--y')
+      expect(axes).toHaveLength(2)
+      for (const axis of axes) {
+        for (const selector of ['[data-minimum-tick] text', '[data-maximum-tick] text']) {
+          Object.defineProperty(axis.get(selector).element, 'getBoundingClientRect', {
+            value: () => ({ left: 0, right: 80, top: 0, bottom: 11, width: 80, height: 11 }),
+          })
+        }
+      }
+      for (let pass = 0; pass < 2; pass++) {
+        updateMaximumTickVisibility(wrapper.get('svg').element as SVGSVGElement)
+        for (const axis of axes) {
+          const maximum = axis.get('[data-maximum-tick]')
+          expect(maximum.get('text').attributes('display')).toBeUndefined()
+          expect(maximum.get('line').attributes('display')).toBeUndefined()
+          expect(maximum.get('text').text()).toContain('E+03')
+          expect(axis.get('[data-minimum-tick] text').attributes('display')).toBeUndefined()
+          expect(
+            axis.findAll('.tick text').filter((text) => text.text().includes('E+03')),
+          ).toHaveLength(1)
+        }
+      }
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
   it.each(['independent', 'separated', 'compact'] as const)(
-    'hides the upper boundary label in %s mode and updates after domain changes',
+    'omits ticks above the maximum in %s mode and updates after domain changes',
     async (displayMode) => {
       const wrapper = await mountSizedChart(
         {
@@ -26,9 +69,7 @@ describe('Y axis boundary maximum labels', () => {
           await wrapper.setProps({ yDomain: domain })
           await flushPromises()
           const ticks = wrapper.findAll('.waveform-chart__axis--y .tick')
-          const top = ticks.find((tick) => Math.abs(Number(tick.attributes('data-tick-y'))) < 1e-6)!
-          expect(top.get('text').attributes('display')).toBe('none')
-          expect(top.get('line').attributes('display')).toBe('none')
+          expect(ticks.every((tick) => Number(tick.attributes('data-tick-value')) <= 1)).toBe(true)
           expect(ticks[0].get('text').attributes('display')).toBeUndefined()
           // Original data extremes inside the frame remain available.
           expect(wrapper.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
@@ -69,7 +110,7 @@ describe('Y axis boundary maximum labels', () => {
           .filter((text) => text.attributes('display') !== 'none')
         expect(labels.filter((text) => text.text().includes('E+03'))).toHaveLength(1)
         expect(labels.at(-1)!.text()).toContain('E+03')
-        expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe('none')
+        expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBeUndefined()
       })
     } finally {
       wrapper.unmount()
@@ -182,7 +223,7 @@ describe('enabled maximum ticks at the upper boundary', () => {
       w.unmount()
     }
   })
-  it('still prefers the minimum label when an enabled boundary maximum overlaps it', async () => {
+  it('keeps both extrema visible when an enabled boundary maximum overlaps the minimum', async () => {
     const w = await mountSizedChart(data, {
       axes: { y: { upperPaddingEnabled: false, lowerPaddingEnabled: false } },
     })
@@ -194,7 +235,7 @@ describe('enabled maximum ticks at the upper boundary', () => {
       }
       updateMaximumTickVisibility(w.get('svg').element as SVGSVGElement)
       expect(w.get('[data-minimum-tick] text').attributes('display')).toBeUndefined()
-      expect(w.get('[data-maximum-tick] text').attributes('display')).toBe('none')
+      expect(w.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
       expect(w.get('[data-maximum-tick] line').attributes('display')).toBeUndefined()
     } finally {
       w.unmount()

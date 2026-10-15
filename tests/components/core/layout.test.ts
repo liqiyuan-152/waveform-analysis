@@ -278,7 +278,7 @@ describe('multi-value Y-axis grouping', () => {
     ])
   })
 
-  it('uses the longest tick clearance on the left and reserved clearance on the right', () => {
+  it('reserves symmetric complete tick and title bands on either side', () => {
     const layout = buildTrackLayouts({
       cells: [
         {
@@ -319,8 +319,8 @@ describe('multi-value Y-axis grouping', () => {
         labelOffset: Math.abs(labelX - x),
       })),
     ).toEqual([
-      { side: 'left', labelOffset: 38 },
-      { side: 'right', labelOffset: 28 },
+      { side: 'left', labelOffset: 61 },
+      { side: 'right', labelOffset: 61 },
     ])
   })
 

@@ -27,8 +27,12 @@ describe('WaveformChart X-axis tick compatibility', () => {
         const endpoints = () =>
           wrapper.findAll('.waveform-chart__axis-endpoint').map((el) => el.text())
         const labels = () =>
-          wrapper.findAll('.waveform-chart__axis--x .tick text').map((el) => el.text())
+          wrapper
+            .findAll('.waveform-chart__axis--x .tick text')
+            .filter((el) => el.attributes('display') !== 'none')
+            .map((el) => el.text())
         const originalLabels = labels()
+        const originalTickCount = wrapper.findAll('.waveform-chart__axis--x .tick').length
         expect(endpoints()).toEqual(['0.13', '13.87'])
         await wrapper.setProps({ timeUnit: 'ms' })
         await flushPromises()
@@ -38,6 +42,10 @@ describe('WaveformChart X-axis tick compatibility', () => {
         await flushPromises()
         expect(endpoints()).toEqual(['130', '13870'])
         expect(labels().length).toBeLessThan(originalLabels.length)
+        expect(wrapper.findAll('.waveform-chart__axis--x .tick')).toHaveLength(originalTickCount)
+        resizeObservers.at(-1)?.resize(800, 360)
+        await flushPromises()
+        expect(labels().length).toBe(originalLabels.length)
         expect(JSON.stringify(data)).toBe(snapshot)
       } finally {
         wrapper.unmount()

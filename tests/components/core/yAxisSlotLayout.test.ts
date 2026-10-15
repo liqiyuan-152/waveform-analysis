@@ -8,7 +8,11 @@ import {
   resolveRenderedYAxisSeriesGroups,
 } from '@/components/core/layout'
 import type { DisplaySeries, DisplayTrack } from '@/components/core/types'
-import { Y_AXIS_RIGHT_LABEL_OFFSET } from '@/components/core/yAxisConstants'
+import {
+  fitYAxisSlotsToMargins,
+  resolveStableYAxisLayout,
+} from '@/components/core/yAxisStableLayout'
+import { resolveYAxisSpaceBudget } from '@/components/core/yAxisSpaceBudget'
 
 function series(id: string, minimum: number, maximum: number): DisplaySeries {
   return {
@@ -40,13 +44,42 @@ function track(seriesList: DisplaySeries[]): DisplayTrack {
 }
 
 describe('Y-axis slots', () => {
+  it('merges different name offsets independently of track order', () => {
+    const labelTextStyle = { fontSize: 1 }
+    const plain = resolveYAxisSpaceBudget({ labelTextStyle })
+    const widerName = resolveYAxisSpaceBudget({ unit: '.', labelTextStyle })
+    expect(widerName.clearance).toBeGreaterThanOrEqual(plain.clearance)
+    expect(widerName.titleDistance).toBeGreaterThan(plain.titleDistance)
+    const tracks = ['', '.'].map((unit, index) =>
+      track(['left', 'right'].map((side) => ({ ...series(`${side}-${index}`, -1, 1), unit }))),
+    )
+    const layout = resolveStableYAxisLayout(tracks, 'multi-axis', {
+      showUnits: true,
+      labelTextStyle,
+    })
+    expect(layout.slots.map((slot) => slot.labelOffset)).toEqual([
+      -widerName.titleDistance,
+      widerName.titleDistance,
+    ])
+    expect(
+      resolveStableYAxisLayout([...tracks].reverse(), 'multi-axis', {
+        showUnits: true,
+        labelTextStyle,
+      }),
+    ).toEqual(layout)
+  })
+
   it('aligns matching slots across single and multi-axis tracks', () => {
     const tracks = [
       track([series('single', -1e120, 1e120)]),
       track([series('left', 0, 1), series('right', 1000, 3000)]),
       track([series('left-two', 0, 1), series('right-two', 1000, 3000)]),
     ]
-    const yAxisSlots = buildYAxisSlots(tracks, 'multi-axis')
+    const base = resolveStableYAxisLayout(tracks, 'multi-axis', { showUnits: true })
+    const yAxisSlots = fitYAxisSlotsToMargins(base, {
+      left: base.clearance.left + 20,
+      right: base.clearance.right + 20,
+    })
     const layouts = buildTrackLayouts({
       cells: tracks.map((series, index) => ({
         slotIndex: index,
@@ -81,21 +114,45 @@ describe('Y-axis slots', () => {
     })
 
     expect(layouts.map((layout) => layout.yAxes[0]?.labelX)).toEqual([
-      layouts[0]?.yAxes[0]?.labelX,
-      layouts[0]?.yAxes[0]?.labelX,
-      layouts[0]?.yAxes[0]?.labelX,
+      yAxisSlots.slots[0]!.labelOffset,
+      yAxisSlots.slots[0]!.labelOffset,
+      yAxisSlots.slots[0]!.labelOffset,
     ])
     expect(layouts[1]?.yAxes[1]?.labelX).toBe(layouts[2]?.yAxes[1]?.labelX)
     expect(layouts[1]?.yAxes[1]?.labelX).toBe(
-      600 +
-        yAxisSlots.slots.find((slot) => slot.side === 'right')!.labelOffset -
-        Y_AXIS_RIGHT_LABEL_OFFSET,
+      600 + yAxisSlots.slots.find((slot) => slot.side === 'right')!.labelOffset,
     )
     expect(yAxisSlots.slots).toMatchObject([
       { side: 'left', sideIndex: 0, axisOffset: 0 },
       { side: 'right', sideIndex: 0, axisOffset: 0 },
     ])
-    expect(yAxisSlots.clearance.left).toBeGreaterThan(yAxisSlots.clearance.right)
+    expect(yAxisSlots.clearance.left).toBe(yAxisSlots.clearance.right)
+  })
+
+  it('keeps extra edge space outside the fixed name gap without mutating the base', () => {
+    const base = resolveStableYAxisLayout(
+      [track(Array.from({ length: 4 }, (_, index) => series(`axis-${index}`, -1, 1)))],
+      'multi-axis',
+      { showUnits: false },
+    )
+    const snapshot = structuredClone(base)
+    const fitted = fitYAxisSlotsToMargins(base, {
+      left: base.clearance.left + 10,
+      right: base.clearance.right + 30,
+    })
+    expect(base).toEqual(snapshot)
+    for (const side of ['left', 'right'] as const) {
+      const original = base.slots.filter((slot) => slot.side === side)
+      const adjusted = fitted.slots.filter((slot) => slot.side === side)
+      expect(adjusted[0]).toEqual(original[0])
+      const extra = side === 'left' ? 10 : 30
+      expect(adjusted[1]!.axisOffset).toBe(original[1]!.axisOffset)
+      expect(adjusted[1]!.clearance).toBe(original[1]!.clearance + extra)
+      expect(adjusted[1]!.labelOffset).toBe(original[1]!.labelOffset)
+    }
+    expect(fitYAxisSlotsToMargins(base, { left: 0, right: 0 })).toEqual(base)
+    const empty = resolveStableYAxisLayout([], 'single-axis', { showUnits: true })
+    expect(fitYAxisSlotsToMargins(empty, { left: 48, right: 24 })).toEqual(empty)
   })
 
   it('reserves outward second slots for three and four value axes', () => {

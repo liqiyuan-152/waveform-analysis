@@ -1,5 +1,5 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { InputNumber, Select } from 'ant-design-vue'
+import { Checkbox, InputNumber, Select } from 'ant-design-vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
 
@@ -11,6 +11,44 @@ const frameDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'requestAnim
 
 describe('App workspace layout', { timeout: 20_000 }, () => {
   afterEach(() => Object.defineProperty(globalThis, 'requestAnimationFrame', frameDescriptor))
+  it('updates toolbar placement and button selection from demo controls', async () => {
+    const wrapper = mount(App)
+    await flushPromises()
+    const chart = wrapper.getComponent(WaveformChart)
+    expect(chart.props('toolbar')).toMatchObject({
+      position: 'top-right',
+      offsetX: -30,
+      offsetY: 18,
+    })
+    wrapper
+      .findAllComponents(Select)
+      .find((s) => s.attributes('aria-label') === '工具栏位置')!
+      .vm.$emit('update:value', 'bottom-left')
+    wrapper
+      .findAllComponents(InputNumber)
+      .find((s) => s.find('[aria-label="工具栏水平偏移"]').exists())!
+      .vm.$emit('update:value', -16)
+    wrapper
+      .findAllComponents(InputNumber)
+      .find((s) => s.find('[aria-label="工具栏垂直偏移"]').exists())!
+      .vm.$emit('update:value', -8)
+    wrapper.getComponent(Checkbox.Group).vm.$emit('update:value', ['export', 'reset'])
+    await flushPromises()
+    expect(chart.props('toolbar')).toMatchObject({
+      position: 'bottom-left',
+      offsetX: -16,
+      offsetY: -8,
+      items: ['reset', 'export'],
+    })
+    wrapper.getComponent(Checkbox.Group).vm.$emit('update:value', [])
+    await flushPromises()
+    expect(wrapper.find('[role="toolbar"]').exists()).toBe(false)
+    expect(wrapper.find('[aria-label="工具栏按钮"]').exists()).toBe(true)
+    wrapper.getComponent(Checkbox.Group).vm.$emit('update:value', ['reset'])
+    await flushPromises()
+    expect(wrapper.find('[data-command="reset"]').exists()).toBe(true)
+    wrapper.unmount()
+  })
   it('restores full data and invalidates a pending zoom request', async () => {
     vi.useFakeTimers()
     const wrapper = mount(App)
@@ -333,6 +371,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       '微量级电流',
       '十亿量级压力脉冲',
       '纳量级阻尼位移',
+      '四位小数电压',
+      '四位尾数百万电压',
+      '四位尾数微量电流',
     ])
     simulatedSeries.forEach((item) => {
       expect(item.data.kind).toBe('points')
@@ -358,7 +399,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
         .findAll('.waveform-chart__track')
         .filter((track) => !track.classes().includes('waveform-chart__track--empty'))
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
-    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移'])
+    ).toEqual(['十亿量级压力脉冲', '纳量级阻尼位移', '四位小数电压', '四位尾数百万电压'])
     expect(wrapper.findAll('.waveform-chart__track--empty')).toHaveLength(0)
     expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
 

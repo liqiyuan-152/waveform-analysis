@@ -266,7 +266,7 @@ describe('WaveformChart', () => {
   )
 
   it.each(['independent', 'separated'] as const)(
-    'shows the Y-axis end value once on every track in %s mode',
+    'shows the data maximum once on every track in %s mode',
     async (displayMode) => {
       const wrapper = await mountSizedChart(
         {
@@ -297,11 +297,10 @@ describe('WaveformChart', () => {
         { displayMode },
       )
 
-      const expectedEndValues = [1, 5]
+      const expectedEndValues = [0.89, 4.89]
       wrapper.findAll('.waveform-chart__track').forEach((track, index) => {
         const endTicks = track.findAll('.waveform-chart__axis--y .tick').filter((tick) => {
-          const match = tick.attributes('transform')?.match(/translate\(0,\s*([\d.]+)\)/)
-          return match ? Math.abs(Number(match[1])) <= 1 : false
+          return tick.attributes('data-maximum-tick') === 'true'
         })
 
         expect(endTicks).toHaveLength(1)

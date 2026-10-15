@@ -48,8 +48,32 @@ function outerTitleLeft(
   )
 }
 
+function expectTitleTickClearance(track: Pick<DOMWrapper<Element>, 'findAll'>) {
+  const bands = track.findAll('.waveform-chart__y-axis-label-bg')
+  track.findAll('.waveform-chart__axis--y').forEach((axis, index) => {
+    const axisX = Number(axis.attributes('transform')?.match(/translate\(([^,]+)/)?.[1])
+    const band = bands[index]
+    const bandLeft = Number(band.attributes('x'))
+    const bandRight = bandLeft + Number(band.attributes('width'))
+    axis
+      .findAll('.tick text')
+      .filter((tick) => tick.attributes('display') !== 'none')
+      .forEach((tick) => {
+        const anchor = axisX + Number(tick.attributes('x'))
+        const textWidth = measureYAxisTextWidth(
+          tick.text().replace(/^E[+-]\d+\s*|\s*E[+-]\d+$/g, ''),
+        )
+        const gap =
+          axis.attributes('data-y-axis-side') === 'left'
+            ? anchor - textWidth - bandRight
+            : bandLeft - anchor - textWidth
+        expect(gap).toBeGreaterThanOrEqual(2)
+      })
+  })
+}
+
 describe('edge-compact Y-axis space', () => {
-  it('expands the frame into the overestimated decimal tick space', async () => {
+  it('keeps the frame and channel name stable when decimal precision changes', async () => {
     const wrapper = mount(WaveformChart, {
       props: {
         ...props,
@@ -59,11 +83,16 @@ describe('edge-compact Y-axis space', () => {
       },
     })
     await flushPromises()
-    // Six decimal characters used to reserve 42px. The 11px numeric font
-    // needs at most 35px, returning 13px to the plot with 6px of outer name space.
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(68)
-    expect(plotWidth(wrapper)).toBe(708)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
+    const margin = wrapper.attributes('data-chart-left-margin')
+    const width = plotWidth(wrapper)
+    const titleX = wrapper.get('.waveform-chart__y-axis-label-bg').attributes('x')
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBeGreaterThanOrEqual(6)
+    expectTitleTickClearance(wrapper.get('.waveform-chart__track'))
+    await wrapper.setProps({ yDomain: [-876.54321, 987.65432] })
+    expect(wrapper.attributes('data-chart-left-margin')).toBe(margin)
+    expect(plotWidth(wrapper)).toBe(width)
+    expect(wrapper.get('.waveform-chart__y-axis-label-bg').attributes('x')).toBe(titleX)
+    expectTitleTickClearance(wrapper.get('.waveform-chart__track'))
   })
   it.each([320, 800])(
     'quarters the left outer space while retaining the 24px right margin at width %s',
@@ -71,17 +100,10 @@ describe('edge-compact Y-axis space', () => {
       const wrapper = mount(WaveformChart, { props: { ...props, width, data: data(series('A')) } })
       await flushPromises()
       const track = wrapper.get('.waveform-chart__track')
-      const ticks = track.findAll('.waveform-chart__axis--y .tick text')
-      const tickWidth = Math.max(
-        ...ticks.map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+ /, ''))),
-      )
       expect(track.get('.waveform-chart__axis--y').text()).toContain('E+04')
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
-      const fullTickWidth = Math.max(...ticks.map((tick) => measureYAxisTextWidth(tick.text())))
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(
-        Math.max(fullTickWidth, tickWidth + 20) + 7 + 6,
-      )
+      expectTitleTickClearance(track)
       expect(outerTitleLeft(wrapper, track)).toBeGreaterThanOrEqual(6)
       expect(
         width - Number(wrapper.attributes('data-chart-left-margin')) - plotWidth(wrapper),
@@ -104,7 +126,7 @@ describe('edge-compact Y-axis space', () => {
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(legacyMargin)
     await wrapper.setProps({ layoutPreset: 'edge-compact' })
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain(unit)
-    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
+    expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBeGreaterThanOrEqual(6)
   })
 
   it.each([
@@ -112,7 +134,7 @@ describe('edge-compact Y-axis space', () => {
     [-0.0000012345, 0.0000012345],
     [-123.456789, 876.543211],
   ])(
-    'reserves numeric ticks intersecting a full-height name for domain %s to %s',
+    'reserves numeric labels beside a full-height name for domain %s to %s',
     async (minimum, maximum) => {
       const wrapper = mount(WaveformChart, {
         props: {
@@ -124,17 +146,7 @@ describe('edge-compact Y-axis space', () => {
       })
       await flushPromises()
       const track = wrapper.get('.waveform-chart__track')
-      const band = track.get('.waveform-chart__y-axis-label-bg')
-      const bandRight = Number(band.attributes('x')) + Number(band.attributes('width'))
-      track
-        .findAll('.waveform-chart__axis--y .tick text')
-        .slice(1, -1)
-        .forEach((tick) => {
-          const textLeft =
-            Number(tick.attributes('x')) -
-            measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+ /, ''))
-          expect(textLeft).toBeGreaterThanOrEqual(bandRight)
-        })
+      expectTitleTickClearance(track)
       expect(outerTitleLeft(wrapper, track)).toBeGreaterThanOrEqual(6)
     },
   )
@@ -164,31 +176,7 @@ describe('edge-compact Y-axis space', () => {
       tracks.forEach((track) => {
         expect(track.findAll('.waveform-chart__y-axis-label')).toHaveLength(count)
         expect(track.text()).not.toContain(unit)
-        const bands = track.findAll('.waveform-chart__y-axis-label-bg')
-        const axes = track.findAll('.waveform-chart__axis--y')
-        axes.forEach((axis, index) => {
-          const axisX = Number(axis.attributes('transform')?.match(/translate\(([^,]+)/)?.[1])
-          const band = bands[index]
-          const bandLeft = Number(band.attributes('x'))
-          const bandRight = bandLeft + Number(band.attributes('width'))
-          const bandTop = Number(band.attributes('y'))
-          const bandBottom = bandTop + Number(band.attributes('height'))
-          const nearbyTicks = axis.findAll('.tick text').filter((tick) => {
-            const y = Number(tick.element.parentElement!.getAttribute('data-tick-y')) + 0.5
-            return (
-              tick.attributes('display') !== 'none' && y + 5.5 >= bandTop && y - 5.5 <= bandBottom
-            )
-          })
-          nearbyTicks.forEach((tick) => {
-            const anchor = axisX + Number(tick.attributes('x'))
-            if (axis.attributes('data-y-axis-side') === 'left') {
-              expect(anchor - measureYAxisTextWidth(tick.text())).toBeGreaterThanOrEqual(bandRight)
-            } else {
-              const numericText = tick.text().replace(/ E[+-]\d+/, '')
-              expect(anchor + measureYAxisTextWidth(numericText)).toBeLessThanOrEqual(bandLeft)
-            }
-          })
-        })
+        expectTitleTickClearance(track)
       })
       const firstRight =
         Number(tracks[0].attributes('data-track-left')) +

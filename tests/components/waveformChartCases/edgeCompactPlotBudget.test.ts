@@ -164,6 +164,7 @@ describe('edge-compact actual plot bounds', () => {
           title: withTitle ? props.title : undefined,
           data: gridSeries(1),
           yDomain: [0, 30000],
+          axes: { y: { maximumTickVisible: false } },
           grid: { rowCount: 1 },
         },
       })

@@ -1,9 +1,22 @@
-import { flushPromises } from '@vue/test-utils'
+import { flushPromises, type DOMWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 import { resizeObservers } from '@tests/support/setup'
 
 import { mountSizedChart } from '@tests/support/waveformChart'
+
+function expectCompleteTickClearance(track: Pick<DOMWrapper<Element>, 'get' | 'findAll'>) {
+  const band = track.get('.waveform-chart__y-axis-label-bg')
+  const bandRight = Number(band.attributes('x')) + Number(band.attributes('width'))
+  track
+    .findAll('.waveform-chart__axis--y .tick text')
+    .filter((tick) => tick.attributes('display') !== 'none')
+    .forEach((tick) => {
+      const tickLeft = Number(tick.attributes('x')) - measureYAxisTextWidth(tick.text())
+      expect(tickLeft - bandRight).toBeGreaterThanOrEqual(2)
+    })
+}
 
 describe('WaveformChart Y-axis layout', () => {
   it('reserves the longest tick label including the top unit across resizes', async () => {
@@ -37,6 +50,7 @@ describe('WaveformChart Y-axis layout', () => {
         const background = track.get('.waveform-chart__y-axis-label-bg')
         expect(Number(background.attributes('x'))).toBe(titleX - 10)
         expect(Number(background.attributes('width'))).toBe(20)
+        expectCompleteTickClearance(track)
       }
       assertTitlePosition()
       resizeObservers.at(-1)?.resize(375, 280)
@@ -179,26 +193,33 @@ describe('WaveformChart Y-axis layout', () => {
     )
     const firstTrack = wrapper.get('.waveform-chart__track')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
-    expect(firstTrack.attributes('data-y-axis-label-x')).toBe('-94')
+    const initialMargin = wrapper.attributes('data-chart-left-margin')
+    const initialLabelX = firstTrack.attributes('data-y-axis-label-x')
+    expectCompleteTickClearance(firstTrack)
     expect(firstTrack.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe(
       '(V) -0.3434',
     )
 
     resizeObservers.at(-1)?.resize(520, 280)
     await flushPromises()
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
+    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe(
+      initialLabelX,
+    )
+    expectCompleteTickClearance(wrapper.get('.waveform-chart__track'))
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
-    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
+    expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe(
+      initialLabelX,
+    )
+    expectCompleteTickClearance(wrapper.get('.waveform-chart__track'))
     expect(wrapper.get('.waveform-chart__axis--y').findAll('.tick text').at(-1)?.text()).toBe(
       '(V) -1.3434',
     )
   })
 
-  it('keeps compact-row units on the highest remaining label', async () => {
+  it('keeps compact-row units on the visible maximum label', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -223,12 +244,14 @@ describe('WaveformChart Y-axis layout', () => {
     )
     const tracks = wrapper.findAll('.waveform-chart__track')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('101')
-    expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-87')
+    expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe(
+      tracks[0]?.attributes('data-y-axis-label-x'),
+    )
+    tracks.forEach(expectCompleteTickClearance)
     const labels = tracks[1]!.findAll('.waveform-chart__axis--y .tick text')
     expect(labels.at(-1)?.text()).toBe('(V) 100')
-    expect(labels.at(-1)?.attributes('display')).toBe('none')
-    expect(labels.at(-2)?.text()).toContain('(V)')
+    expect(labels.at(-1)?.attributes('display')).toBeUndefined()
+    expect(labels.at(-2)?.text()).not.toContain('(V)')
     expect(labels.at(-2)?.attributes('display')).toBeUndefined()
   })
 })

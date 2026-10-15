@@ -5,7 +5,11 @@ export type WaveformToolbarItem =
 export interface WaveformToolbarOptions {
   visible?: boolean
   display?: 'hover' | 'always'
-  position?: 'top-right' | 'top-left'
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+  /** Pixel offset: negative moves left, positive moves right, regardless of corner. Default: -30. */
+  offsetX?: number
+  /** Pixel offset: negative moves up, positive moves down, regardless of corner. Default: 18. */
+  offsetY?: number
   items?: WaveformToolbarItem[]
 }
 export interface WaveformControlTarget {

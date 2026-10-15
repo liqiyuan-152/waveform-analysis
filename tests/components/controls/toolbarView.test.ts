@@ -22,9 +22,9 @@ describe('toolbar view interaction', () => {
     await w.get('[role="toolbar"]').trigger('keydown', { key: 'Escape' })
     expect(w.find('[aria-label="图片格式"]').exists()).toBe(false)
     expect(w.get('[aria-label="图表工具"]').attributes('aria-expanded')).toBe('false')
-    await w.get('[aria-label="操作图框"]').setValue('channel-1')
+    expect(w.find('[aria-label="操作图框"]').exists()).toBe(false)
     await w.setProps({ grid: { rowCount: 1, columnCount: 1 } })
-    expect((w.get('select').element as HTMLSelectElement).value).toBe('')
+    expect(w.find('.waveform-toolbar select').exists()).toBe(false)
     w.unmount()
   })
   it('reports export errors and then downloads with cleanup', async () => {

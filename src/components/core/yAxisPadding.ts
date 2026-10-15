@@ -70,7 +70,9 @@ export function withMaximumTick(values: number[], maximum?: number, minimum?: nu
     values = [...values.filter((value) => !sameTick(value, minimum)), minimum].sort((a, b) => a - b)
   }
   if (maximum === undefined || !Number.isFinite(maximum)) return values
-  return [...values.filter((value) => !sameTick(value, maximum)), maximum].sort((a, b) => a - b)
+  return [...values.filter((value) => value < maximum && !sameTick(value, maximum)), maximum].sort(
+    (a, b) => a - b,
+  )
 }
 
 export function sameTick(a: number, b: number): boolean {

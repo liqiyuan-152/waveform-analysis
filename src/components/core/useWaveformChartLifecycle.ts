@@ -1,6 +1,6 @@
 import { useWaveformMeasurements } from './useWaveformMeasurements'
 import { useWaveformViewportRestore } from './useWaveformViewportRestore'
-import { zoomIdentity, type ZoomTransform } from 'd3'
+import type { ZoomTransform } from 'd3'
 import {
   nextTick,
   onBeforeUnmount,
@@ -17,6 +17,7 @@ import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import type { ResolvedWaveformChartProps, WaveformChartEmit } from './waveformChartTypes'
 import { isEditableTarget } from '../interaction/interactionTarget'
 import { remotePanBoundary } from '../interaction/remoteViewport'
+import { usePageViewports } from './usePageViewports'
 
 export interface LifecycleContext {
   preserveFullViewport?: () => boolean
@@ -72,7 +73,6 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     pointerInsideChart,
     currentPage,
     pageCount,
-    pagedTracks,
     gridOptions,
     chartSeries,
     chartTracks,
@@ -81,8 +81,6 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     activeInteractionMode,
     hiddenSeriesIdSet,
     internalHiddenSeriesIds,
-    independentTransforms,
-    independentYDomains,
     annotationInteraction,
     editorSeriesOptions,
     isPresentationMode,
@@ -117,17 +115,16 @@ export function useWaveformChartLifecycle(context: LifecycleContext) {
     if (event.code === 'Space') spacePressed.value = false
   }
 
+  const pageViewports = usePageViewports(context)
   function goToPage(page: number) {
     const nextPage = Math.min(pageCount.value, Math.max(1, Math.floor(page)))
     if (nextPage === currentPage.value) return
+    pageViewports.save()
     currentPage.value = nextPage
     clearHover()
     annotationInteraction.closeContextMenu()
     cancelAnnotation()
-    if (props.displayMode === 'independent') {
-      independentTransforms.value = pagedTracks.value.map(() => zoomIdentity)
-      independentYDomains.value = {}
-    }
+    pageViewports.restore()
     void nextTick(configureZoom)
     emit('page-change', nextPage, pageCount.value)
   }

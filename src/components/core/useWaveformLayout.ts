@@ -9,7 +9,7 @@ import {
 } from '../annotation'
 import { channelColors } from './constants'
 import { getPageCount, normalizeGridOptions, paginateSeries, resolveGridCellGeometry } from './grid'
-import { buildTrackLayouts, resolveYAxisTickCount } from './layout'
+import { buildTrackLayouts } from './layout'
 import type { DisplaySeries, DisplayTrack, TrackLayout } from './types'
 import { createFrameNumberResolver, resolvePageableTracks } from './trackPagination'
 import type { PreparedWaveformSeries } from './useWaveformData'
@@ -121,9 +121,6 @@ export function useWaveformLayout(context: LayoutContext) {
       ? tracksWithSeries
       : pagedTracks.value
   })
-  const yAxisTickCount = computed(() =>
-    resolveYAxisTickCount(innerHeight.value, props.axes?.y?.splitNumber),
-  )
   const viewportYDomains = computed(() =>
     resolveViewportYDomains(
       props.displayMode,
@@ -137,6 +134,7 @@ export function useWaveformLayout(context: LayoutContext) {
     yAxisSlots,
     resolvedChartLeftMargin,
     innerWidth,
+    renderedChartWidth,
     yAxisLayout,
     hasVisibleWaveformData,
   } = useWaveformYAxisLayout({
@@ -145,8 +143,6 @@ export function useWaveformLayout(context: LayoutContext) {
     layoutTracks,
     chartWidth,
     gridOptions,
-    viewportYDomains,
-    yAxisTickCount,
   })
   const hasWaveformData = computed(() => chartSeries.value.length > 0)
   const hasWaveformSamples = computed(() =>
@@ -350,6 +346,7 @@ export function useWaveformLayout(context: LayoutContext) {
     pagedTracks,
     resolvedChartLeftMargin,
     innerWidth,
+    renderedChartWidth,
     hasVisibleWaveformData,
     hasWaveformData,
     hasWaveformSamples,

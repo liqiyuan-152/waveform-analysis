@@ -2,6 +2,8 @@ import { scaleLinear } from 'd3'
 import { describe, expect, it } from 'vitest'
 
 import { alignLeftYAxisTitles } from '@/components/core/yAxisTitleLayout'
+import { formatYAxisTickLayoutLabel } from '@/components/core/layout'
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 import type { DisplaySeries, WaveformYAxisLayout } from '@/components/core/types'
 
 function axis(name = 'SX2_7_02', unit = 'V'): WaveformYAxisLayout {
@@ -36,15 +38,28 @@ function track(yAxis = axis(), column = 0) {
   return { height: 200, column, yAxes: [yAxis] }
 }
 
+function expectTickClearance(yAxis: WaveformYAxisLayout, unit = yAxis.seriesList[0]?.unit) {
+  const titleRight = yAxis.labelX + 10
+  yAxis.tickValues.forEach((value) => {
+    const label = formatYAxisTickLayoutLabel(
+      value,
+      yAxis.scale.domain() as [number, number],
+      yAxis.tickValues,
+      unit,
+    )
+    expect(yAxis.x - 7 - measureYAxisTextWidth(label) - titleRight).toBeGreaterThanOrEqual(2)
+  })
+}
+
 describe('channel name clearance', () => {
-  it('excludes scientific multipliers while retaining every numeric tick', () => {
+  it('clears the scientific mantissa beside a full-height channel name', () => {
     const long = track(axis('A_VERY_LONG_CHANNEL_NAME_THAT_REACHES_THE_TOP', 'V'))
     const yAxis = long.yAxes[0]
     yAxis.scale.domain([0, 30000])
     yAxis.tickValues = [0, 7500, 15000, 22500, 30000]
     yAxis.labelX = -73
     alignLeftYAxisTitles([long], undefined, { compact: true })
-    expect(yAxis.labelX).toBe(-45)
+    expectTickClearance(yAxis)
   })
 
   it('measures only rendered units when positioning a compact name', () => {
@@ -71,12 +86,12 @@ describe('channel name clearance', () => {
     expect(normal.yAxes[0].labelX).toBe(long.yAxes[0].labelX)
   })
 
-  it('includes tick labels outside the name height', () => {
+  it('reserves complete tick labels outside the name height', () => {
     const nearby = track(axis('ABCD', 'WIDE-UNIT'))
     nearby.yAxes[0].scale.domain([0, 200])
     nearby.yAxes[0].tickValues = [0, 123]
     alignLeftYAxisTitles([nearby])
-    expect(nearby.yAxes[0].labelX).toBeLessThan(-59)
+    expectTickClearance(nearby.yAxes[0])
   })
 
   it('includes endpoint labels with fallback names', () => {
@@ -84,7 +99,7 @@ describe('channel name clearance', () => {
     short.yAxes[0].scale.domain([0, 200])
     short.yAxes[0].tickValues = [79, 200]
     alignLeftYAxisTitles([short], 'ABCD')
-    expect(short.yAxes[0].labelX).toBe(-66)
+    expectTickClearance(short.yAxes[0])
   })
 
   it('keeps the longest extrema clearance when the frame height changes', () => {
@@ -97,21 +112,26 @@ describe('channel name clearance', () => {
     short.yAxes[0].tickValues = [...tall.yAxes[0].tickValues]
     alignLeftYAxisTitles([tall])
     alignLeftYAxisTitles([short])
-    expect(tall.yAxes[0].labelX).toBe(-59)
+    expectTickClearance(tall.yAxes[0])
     expect(short.yAxes[0].labelX).toBe(tall.yAxes[0].labelX)
   })
 
-  it.each([30000, 0.0003])('ignores the exponent for range maximum %s', (maximum) => {
-    const decimal = track(axis('SHORT', ''))
-    const scientific = track(axis('SHORT', ''))
-    decimal.yAxes[0].scale.domain([0, 3])
-    decimal.yAxes[0].tickValues = [0, 0.75, 1.5, 2.25, 3]
-    scientific.yAxes[0].scale.domain([0, maximum])
-    scientific.yAxes[0].tickValues = [0, maximum / 4, maximum / 2, maximum * 0.75, maximum]
-    alignLeftYAxisTitles([decimal])
-    alignLeftYAxisTitles([scientific])
-    expect(scientific.yAxes[0].labelX).toBe(decimal.yAxes[0].labelX)
-  })
+  it.each([30000, 0.0003, 1e120, 1e-120])(
+    'keeps title positions stable while excluding the exponent for range maximum %s',
+    (maximum) => {
+      const decimal = track(axis('SHORT', ''))
+      const scientific = track(axis('SHORT', ''))
+      decimal.yAxes[0].scale.domain([0, 3])
+      decimal.yAxes[0].tickValues = [0, 0.75, 1.5, 2.25, 3]
+      scientific.yAxes[0].scale.domain([0, maximum])
+      scientific.yAxes[0].tickValues = [0, maximum / 4, maximum / 2, maximum * 0.75, maximum]
+      alignLeftYAxisTitles([decimal])
+      alignLeftYAxisTitles([scientific])
+      expect(scientific.yAxes[0].labelX).toBe(decimal.yAxes[0].labelX)
+      expectTickClearance(decimal.yAxes[0])
+      expectTickClearance(scientific.yAxes[0])
+    },
+  )
 
   it('keeps each column and left-axis slot independent and preserves right-axis positions', () => {
     const first = track()

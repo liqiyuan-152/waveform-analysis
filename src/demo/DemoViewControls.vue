@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { InputNumber, Radio, Select, Switch } from 'ant-design-vue'
 
+import DemoToolbarControls from './DemoToolbarControls.vue'
 import type { DemoControlPanelModel } from './types'
 
 const model = defineModel<DemoControlPanelModel>('model', { required: true })
@@ -34,13 +35,10 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
       <Radio.Button value="multi-axis">多值轴</Radio.Button>
     </Radio.Group>
   </section>
+  <DemoToolbarControls v-model:model="model" />
   <section class="control-section">
     <h2>视图</h2>
-    <label class="frame-style-control frame-style-control--switch">
-      <span>内置工具栏</span>
-      <Switch v-model:checked="model.toolbarVisible" size="small" aria-label="显示内置工具栏" />
-    </label>
-    <div class="auxiliary-style-controls" style="margin-top: 10px">
+    <div class="auxiliary-style-controls">
       <label class="frame-style-control frame-style-control--switch">
         <span>整数缩放</span>
         <Switch v-model:checked="model.integerZoom" size="small" aria-label="整数缩放" />

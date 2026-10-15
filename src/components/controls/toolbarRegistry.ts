@@ -36,6 +36,7 @@ const labels = {
   fit: '显示全部',
   export: '导出图片',
 }
+export const defaultToolbarOffsets = { offsetX: -30, offsetY: 18 }
 export const defaultToolbarItems: WaveformToolbarItem[] = [
   'zoom-box',
   'pan',
@@ -87,6 +88,13 @@ export function resolveToolbar(options?: boolean | WaveformToolbarOptions) {
     visible: !!options && config.visible !== false && items.length > 0,
     display: config.display ?? 'hover',
     position: config.position ?? 'top-right',
+    offsetX: normalizeToolbarOffset(config.offsetX, defaultToolbarOffsets.offsetX),
+    offsetY: normalizeToolbarOffset(config.offsetY, defaultToolbarOffsets.offsetY),
     groups,
   }
+}
+
+function normalizeToolbarOffset(value: number | undefined, fallback: number) {
+  if (value === undefined) return fallback
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }

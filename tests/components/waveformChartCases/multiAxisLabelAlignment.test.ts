@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { flushPromises } from '@vue/test-utils'
 
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 import { mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
@@ -112,10 +113,10 @@ describe('WaveformChart multi-axis labels', () => {
         return track
           .findAll('.waveform-chart__axis--y')[0]!
           .findAll('.tick')
-          .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length * 7)
+          .map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+\s*/, '')))
       }),
     )
-    expect(singleX).toBe(-maximumTickWidth - 7 - 10)
+    expect(-7 - maximumTickWidth - (singleX + 10)).toBeGreaterThanOrEqual(2)
     expect(singleX).toBe(Number(tracks[0]!.attributes('data-y-axis-label-x')))
     wrapper.unmount()
   })

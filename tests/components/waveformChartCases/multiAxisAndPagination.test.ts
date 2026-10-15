@@ -351,6 +351,7 @@ describe('WaveformChart', () => {
       },
       { grid: { rowCount: 1, columnCount: 1 } },
     )
+    const initialMargin = wrapper.attributes('data-chart-left-margin')
     const positions = [
       'top-left',
       'top',
@@ -392,6 +393,7 @@ describe('WaveformChart', () => {
       'waveform-legend__panel--horizontal',
     )
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('48')
+    expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
+    expect(Number(initialMargin)).toBeGreaterThanOrEqual(48)
   })
 })

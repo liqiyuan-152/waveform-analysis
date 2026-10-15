@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import WaveformToolbar from './controls/WaveformToolbar.vue'
 import { Pagination } from 'ant-design-vue'
-import { computed, toRefs } from 'vue'
+import { computed, ref, toRefs } from 'vue'
 
 import { WaveformAnnotationContextMenu, WaveformAnnotationLayer } from './annotation'
 import WaveformAnnotationEditor from './annotation/WaveformAnnotationEditor.vue'
@@ -44,6 +44,7 @@ const {
   titleTextStyle,
   titleLayout,
   chartWidth,
+  renderedChartWidth,
   drawingHeight,
   hasWaveformData,
   hasWaveformSamples,
@@ -115,6 +116,16 @@ const {
   setSharedOverlayElement,
 } = toRefs(props.controller)
 
+const scrollLeft = ref(0)
+const viewportHoverState = computed(() => ({
+  ...hoverState.value,
+  position: { ...hoverState.value.position, x: hoverState.value.position.x - scrollLeft.value },
+}))
+function handleChartScroll(event: Event) {
+  scrollLeft.value = (event.currentTarget as HTMLElement).scrollLeft
+  handlePointerLeave.value()
+}
+
 function handleChartPointerLeave() {
   pointerInsideChart.value = false
   handlePointerLeave.value()
@@ -133,9 +144,10 @@ function handleChartPointerLeave() {
         'waveform-chart--edge-compact': isEdgeCompact,
         'waveform-chart--presentation': isPresentationMode,
         'waveform-chart--panning': selection?.kind === 'pan',
+        'waveform-chart--scrollable': renderedChartWidth > chartWidth,
       },
     ]"
-    :style="containerStyle"
+    :style="{ ...containerStyle, '--waveform-scroll-left': `${scrollLeft}px` }"
     :data-display-mode="displayMode"
     :data-interaction-mode="activeInteractionMode"
     :data-presentation-mode="isPresentationMode"
@@ -152,6 +164,7 @@ function handleChartPointerLeave() {
     @pointerenter="pointerInsideChart = true"
     @pointerleave="handleChartPointerLeave"
     @contextmenu="handleNativeContextMenu"
+    @scroll="handleChartScroll"
   >
     <div
       v-if="titleAreaReserved"
@@ -184,7 +197,7 @@ function handleChartPointerLeave() {
     <svg
       :ref="setSvgElement"
       class="waveform-chart__svg"
-      :width="chartWidth"
+      :width="renderedChartWidth"
       :height="drawingHeight"
       role="img"
       :aria-label="hasWaveformSamples ? '波形折线图' : '暂无波形数据'"
@@ -346,7 +359,7 @@ function handleChartPointerLeave() {
       <text
         v-if="hasChartArea && !hasWaveformSamples"
         class="waveform-chart__empty"
-        :x="chartWidth / 2"
+        :x="renderedChartWidth / 2"
         :y="drawingHeight / 2"
         text-anchor="middle"
       >
@@ -394,7 +407,7 @@ function handleChartPointerLeave() {
     />
 
     <WaveformHoverHost
-      :state="hoverState"
+      :state="viewportHoverState"
       :visible="showTooltip && !isPresentationMode"
       :time-unit="timeUnit"
       :container-width="chartWidth"

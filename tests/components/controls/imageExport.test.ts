@@ -155,6 +155,49 @@ describe('chart image export', () => {
     expect(result).not.toContain('zoom-selection')
     container.remove()
   })
+  it.each([0.75, 1, 1.5])(
+    'exports a complete scrolled chart with stable title placement at CSS scale %s',
+    (cssScale) => {
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+      const container = document.createElement('div')
+      container.innerHTML =
+        '<span class="waveform-chart__title-text">完整波形</span><svg width="600" height="200"><path d="M0 0L600 200"/></svg>'
+      document.body.appendChild(container)
+      const title = container.querySelector<HTMLElement>('.waveform-chart__title-text')!
+      const svg = container.querySelector('svg')!
+      const originLeft = 37
+      Object.defineProperties(container, {
+        offsetWidth: { value: 320 },
+        clientLeft: { value: 2 },
+      })
+      vi.spyOn(container, 'getBoundingClientRect').mockImplementation(
+        () => new DOMRect(originLeft, 0, 320 * cssScale, 240 * cssScale),
+      )
+      const svgLeft = () => originLeft + (2 - container.scrollLeft) * cssScale
+      vi.spyOn(svg, 'getBoundingClientRect').mockImplementation(
+        () => new DOMRect(svgLeft(), 40 * cssScale, 600 * cssScale, 200 * cssScale),
+      )
+      vi.spyOn(title, 'getBoundingClientRect').mockImplementation(
+        () => new DOMRect(svgLeft() + 240 * cssScale, 0, 120 * cssScale, 40 * cssScale),
+      )
+      try {
+        const snapshots = [0, 100, 280].map((scrollLeft) => {
+          container.scrollLeft = scrollLeft
+          const result = createChartSnapshot(container, svg, 600, 240, 40)
+          const parsed = new DOMParser().parseFromString(result, 'image/svg+xml')
+          expect(parsed.documentElement.getAttribute('width')).toBe('600')
+          expect(parsed.documentElement.querySelector('svg')?.getAttribute('width')).toBe('600')
+          expect(parsed.documentElement.lastElementChild?.getAttribute('transform')).toBe(
+            'translate(300,20) rotate(0) scale(1)',
+          )
+          return result
+        })
+        expect(new Set(snapshots).size).toBe(1)
+      } finally {
+        container.remove()
+      }
+    },
+  )
   it('integrates raw sampling and rejects data replacement during font wait', async () => {
     let finish!: () => void
     Object.defineProperty(document, 'fonts', {

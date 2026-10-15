@@ -111,6 +111,7 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
   }
   const minimumLabels = [...svg.querySelectorAll<SVGTextElement>('text[data-axis-minimum-label]')]
   svg.querySelectorAll<SVGTextElement>('text[data-axis-maximum-label]').forEach((maximum) => {
+    if (maximum.parentElement?.hasAttribute('data-maximum-tick')) return
     const maximumBox = box(maximum)
     if (minimumLabels.some((minimum) => labelsOverlap(maximumBox, box(minimum)))) hide(maximum)
   })
@@ -131,20 +132,7 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
   const minimumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-minimum-tick]')]
   const maximumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-maximum-tick]')]
   const labels = [...svg.querySelectorAll<SVGTextElement>('.waveform-track__axis--y .tick text')]
-  minimumTicks.forEach((tick) => {
-    const text = tick.querySelector('text')
-    if (!text) return
-    maximumTicks.forEach((maximum) => {
-      const other = maximum.querySelector('text')
-      if (
-        other &&
-        other !== text &&
-        other.getAttribute('display') !== 'none' &&
-        labelsOverlap(box(text), box(other))
-      )
-        hide(other)
-    })
-  })
+  // Enabled data extrema stay visible even when adjacent tracks have little clearance.
   const extremeTicks = [...new Set([...minimumTicks, ...maximumTicks])]
   extremeTicks.forEach((tick) => {
     const text = tick.querySelector('text')

@@ -1,12 +1,13 @@
 import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 import { resizeObservers } from '@tests/support/setup'
 
 import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
-  it('reserves full scientific ticks while keeping numeric name spacing', async () => {
+  it('reserves complete scientific ticks at the edge and numeric clearance beside names', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -32,13 +33,18 @@ describe('WaveformChart', () => {
     const labelBackgroundX = Number(
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
-    const longestTickLabel = Math.max(
+    const fullTickWidth = Math.max(
       ...tracks[0]
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
+        .map((tick) => measureYAxisTextWidth(tick.text())),
     )
 
-    expect(Math.abs(labelX)).toBeGreaterThanOrEqual(7 + longestTickLabel * 7 + 6)
+    const numericWidth = Math.max(
+      ...tracks[0]
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+\s*/, ''))),
+    )
+    expect(-7 - numericWidth - (labelX + 10)).toBeGreaterThanOrEqual(2)
     const renderedLabelX = Number(
       tracks[0]
         .get('.waveform-chart__y-axis-label')
@@ -47,11 +53,6 @@ describe('WaveformChart', () => {
     )
     expect(labelBackgroundX).toBe(renderedLabelX - 10)
     expect(labelBackgroundX).toBeGreaterThanOrEqual(labelX - 10)
-    const fullTickWidth = Math.max(
-      ...tracks[0]
-        .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().length * 7),
-    )
     expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
       fullTickWidth + 11,
     )
@@ -84,15 +85,18 @@ describe('WaveformChart', () => {
     const fullTickWidth = Math.max(
       ...tracks[0]
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().length * 7),
+        .map((tick) => measureYAxisTextWidth(tick.text())),
     )
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(
-      Math.max(48, fullTickWidth + 11),
-    )
+    const tickOnlyMargin = Number(wrapper.attributes('data-chart-left-margin'))
+    expect(tickOnlyMargin).toBeGreaterThanOrEqual(Math.max(48, fullTickWidth + 11))
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(fullTickWidth + 11)
+    await wrapper.setProps({ yLabel: 'Channel' })
+    expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(2)
+    // The name band fits in the horizontal space already reserved for a full exponent.
+    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(tickOnlyMargin)
   })
 
-  it('updates the Y-axis label position while preserving the chart gutter between pages', async () => {
+  it('preserves Y-axis label positions and chart gutters between pages with different ranges', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -125,27 +129,25 @@ describe('WaveformChart', () => {
     )
     const initialMargin = wrapper.attributes('data-chart-left-margin')
     const initialTrack = wrapper.get('.waveform-chart__track')
-    const initialLongestTickLabel = Math.max(
+    const initialLabelX = initialTrack.attributes('data-y-axis-label-x')
+    const initialTickWidth = Math.max(
       ...initialTrack
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
+        .map((tick) => measureYAxisTextWidth(tick.text())),
     )
-    expect(initialTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + initialLongestTickLabel * 7 + 10)),
-    )
+    expect(-7 - initialTickWidth - (Number(initialLabelX) + 10)).toBeGreaterThanOrEqual(2)
 
     await wrapper.get('.ant-pagination-next button').trigger('click')
 
     expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
     const pagedTrack = wrapper.get('.waveform-chart__track')
-    const pagedLongestTickLabel = Math.max(
+    const pagedTickWidth = Math.max(
       ...pagedTrack
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
+        .map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+\s*/, ''))),
     )
-    expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + pagedLongestTickLabel * 7 + 10)),
-    )
+    expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(initialLabelX)
+    expect(-7 - pagedTickWidth - (Number(initialLabelX) + 10)).toBeGreaterThanOrEqual(2)
   })
 
   it('hides only secondary-column Y-axis labels when the grid is too narrow', async () => {

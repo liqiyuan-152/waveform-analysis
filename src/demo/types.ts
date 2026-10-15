@@ -17,6 +17,7 @@ import type {
   WaveformZoomIntentPayload,
 } from '../components'
 import type { WaveformZoomResetPayload, WaveformPanEndPayload } from '../types'
+import type { WaveformToolbarOptions, WaveformToolbarItem } from '../types/controls'
 import type { DemoXAxisLabelFormat, DemoXAxisLabelTimeZone } from './useDemoXAxisLabelControls'
 
 interface SelectOption<T> {
@@ -26,6 +27,10 @@ interface SelectOption<T> {
 
 export interface DemoControlPanelModel {
   toolbarVisible: boolean
+  toolbarPosition: NonNullable<WaveformToolbarOptions['position']>
+  toolbarOffsetX: number
+  toolbarOffsetY: number
+  toolbarItems: WaveformToolbarItem[]
   controlsOpen: boolean
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
@@ -97,6 +102,7 @@ export interface DemoControlPanelModel {
 
 export interface DemoChartModel {
   toolbarVisible: boolean
+  toolbarOptions?: WaveformToolbarOptions
   data: WaveformData
   initialXDomain?: [number, number]
   recordDomain: [number, number]

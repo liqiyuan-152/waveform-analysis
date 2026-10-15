@@ -135,7 +135,7 @@ describe('extrema tick visibility API', () => {
       chart
         .findAll('.waveform-track__axis--y .tick')
         .find((tick) => tick.attributes('data-tick-value') === '100.1')!
-    expect(upper().get('text').attributes('display')).toBe('none')
+    expect(upper()).toBeUndefined()
     await chart.setProps({
       axes: {
         y: {

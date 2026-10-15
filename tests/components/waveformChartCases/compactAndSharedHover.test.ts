@@ -139,7 +139,12 @@ describe('WaveformChart', () => {
           },
         ],
       },
-      { displayMode: 'compact', grid: { rowCount: 2, columnCount: 1 }, yDomain },
+      {
+        displayMode: 'compact',
+        grid: { rowCount: 2, columnCount: 1 },
+        yDomain,
+        axes: { y: { maximumTickVisible: false } },
+      },
     )
 
     const [topTrack, bottomTrack] = wrapper.findAll('.waveform-chart__track')

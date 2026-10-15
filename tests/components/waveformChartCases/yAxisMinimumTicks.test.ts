@@ -138,7 +138,7 @@ describe('Y-axis actual minimum ticks', () => {
     w.unmount()
   })
 
-  it('prefers the minimum when extrema labels overlap', async () => {
+  it('preserves both extrema when their labels overlap', async () => {
     const w = await mountSizedChart(data, {
       axes: { y: { nice: false, lowerPaddingEnabled: true, upperPaddingEnabled: true } },
     })
@@ -149,7 +149,7 @@ describe('Y-axis actual minimum ticks', () => {
     }
     updateMaximumTickVisibility(w.get('svg').element as SVGSVGElement)
     expect(w.get('[data-minimum-tick] text').attributes('display')).toBeUndefined()
-    expect(w.get('[data-maximum-tick] text').attributes('display')).toBe('none')
+    expect(w.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
     w.unmount()
   })
 })

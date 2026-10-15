@@ -11,6 +11,7 @@ import { sameTick } from '../core/yAxisPadding'
 import { resolveYAxisLabelBandWidth, resolveYAxisLabelFontSize } from '../core/yAxisLabelStyle'
 import { formatChannelLabel } from './channelLabel'
 import { updateAxis, updateSvgAttribute } from './updateAxis'
+import { updateXAxisTickVisibility } from './xAxisTickVisibility'
 
 interface Props {
   track: TrackLayout
@@ -37,6 +38,7 @@ const labelTextStyle = computed(() => {
   }
 })
 const xAxisElement = ref<SVGGElement>()
+const xEndpointElement = ref<SVGGElement>()
 const yAxisElements = ref<SVGGElement[]>([])
 
 function resolveYAxisLabel(series: DisplaySeries): string {
@@ -115,7 +117,8 @@ function renderAxes() {
     })
   })
 
-  scheduleVisibility()
+  const svg = yAxisElements.value[0]?.ownerSVGElement
+  if (svg) scheduleMaximumTickVisibility(svg)
   if (!xAxisElement.value) return
   const selection = select(xAxisElement.value)
   const format = (value: number) =>
@@ -142,11 +145,24 @@ function renderAxes() {
   selection.selectAll<SVGPathElement, unknown>('path.domain').each(function () {
     updateSvgAttribute(this, 'display', props.axes?.x?.lineVisible === false ? 'none' : null)
   })
+  updateXVisibility()
+}
+
+function updateXVisibility() {
+  if (xAxisElement.value && xEndpointElement.value) {
+    updateXAxisTickVisibility(
+      xAxisElement.value,
+      xEndpointElement.value,
+      props.track,
+      props.track.width ?? props.innerWidth,
+    )
+  }
 }
 
 let disposed = false
 function scheduleVisibility() {
   if (disposed) return
+  updateXVisibility()
   const apply = () => {
     const svg = yAxisElements.value[0]?.ownerSVGElement
     if (svg) scheduleMaximumTickVisibility(svg)
@@ -171,6 +187,10 @@ watch(
     () => props.track.xScale,
     () => props.track.yAxes,
     () => props.track.xAxisTickValues,
+    () => props.track.endpointLabels,
+    () => props.track.showXAxis,
+    () => props.track.width,
+    () => props.innerWidth,
     () => props.track.yAxisTickValues,
     () => props.timeUnit,
     () => props.showUnits,
@@ -197,6 +217,7 @@ watch(
   />
   <g
     v-if="track.showXAxis"
+    ref="xEndpointElement"
     class="waveform-track__axis-endpoints waveform-chart__axis-endpoints"
     :transform="`translate(0, ${track.height})`"
     font-family="sans-serif"

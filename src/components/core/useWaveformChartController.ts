@@ -313,10 +313,11 @@ export function useWaveformChartController(
     cancelControls,
     { flush: 'sync' },
   )
-  watch([currentPage, () => props.displayMode], () => {
-    boundaries.value = {}
-    cancelControls()
-  })
+  watch([currentPage, () => props.displayMode], cancelControls)
+  watch(
+    () => props.displayMode,
+    () => (boundaries.value = {}),
+  )
   watch(
     [
       () => props.initialXDomain,
@@ -386,14 +387,14 @@ export function useWaveformChartController(
     container: () => container.value,
     svg: () => svgElement.value,
     size: () => ({
-      width: chartWidth.value,
+      width: layout.renderedChartWidth.value,
       height: chartHeight.value,
       titleHeight: titleAreaHeight.value,
     }),
     version: () =>
       chartExportVersion(props, {
         hidden: [...hiddenSeriesIdSet.value],
-        width: chartWidth.value,
+        width: layout.renderedChartWidth.value,
         height: chartHeight.value,
         titleHeight: titleAreaHeight.value,
         page: currentPage.value,

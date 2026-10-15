@@ -76,8 +76,8 @@ describe('Y padding lifecycle and axis grouping', () => {
       const ranges = w
         .findAll('.waveform-track__axis--y')
         .map((axis) => axis.findAll('.tick').map((t) => Number(t.attributes('data-tick-value'))))
-      expect([ranges[0]![0], ranges[0]!.at(-1)]).toEqual([14, 86])
-      expect([ranges[1]![0], ranges[1]!.at(-1)]).toEqual([-210, -90])
+      expect([ranges[0]![0], ranges[0]!.at(-1)]).toEqual([14, 80])
+      expect([ranges[1]![0], ranges[1]!.at(-1)]).toEqual([-210, -100])
       await w.setProps({ hiddenSeriesIds: ['a'] })
       await flushPromises()
       expect(maxima(w)).toEqual([-100])
@@ -129,7 +129,8 @@ describe('Y padding lifecycle and axis grouping', () => {
     const ticks = w
       .findAll('.waveform-track__axis--y .tick')
       .map((t) => Number(t.attributes('data-tick-value')))
-    expect(ticks.at(-1)).toBe(150)
+    expect(ticks.at(-1)).toBe(100)
+    expect(axis.attributes('data-label-domain-max')).toBe('150')
     expect(maxima(w)).toEqual([100])
     expect(minima(w)).toEqual([0])
     w.unmount()

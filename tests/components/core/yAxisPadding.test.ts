@@ -100,13 +100,28 @@ describe('Y padding and maximum tick rules', () => {
     ).toBeUndefined()
   })
   it('keeps tiny distinct values but merges relative floating point duplicates', () => {
-    expect(withMaximumTick([0, 0.3, 1], 0.1 + 0.2)).toHaveLength(3)
-    expect(withMaximumTick([1e-20, 2e-20], 1.5e-20)).toHaveLength(3)
+    expect(withMaximumTick([0, 0.3, 1], 0.1 + 0.2)).toEqual([0, 0.1 + 0.2])
+    expect(withMaximumTick([1e-20, 2e-20], 1.5e-20)).toEqual([1e-20, 1.5e-20])
     expect(withMaximumTick([0, 1])).toEqual([0, 1])
     expect(withMaximumTick([0, 0.3, 1], 1, 0.1 + 0.2)).toHaveLength(3)
-    expect(withMaximumTick([0, 1], 0.3, 0.1 + 0.2)).toHaveLength(3)
+    expect(withMaximumTick([0, 1], 0.3, 0.1 + 0.2)).toEqual([0, 0.3])
     expect(withMaximumTick([1e-20, 2e-20], undefined, 1.5e-20)).toHaveLength(3)
     expect(withMaximumTick([0, 1], undefined, NaN)).toEqual([0, 1])
+  })
+  it('caps negative maxima without mutating grid ticks and ignores invalid maxima', () => {
+    const values = [-100, -50, 0, 50]
+    expect(withMaximumTick(values, -20, -80)).toEqual([-100, -80, -50, -20])
+    expect(values).toEqual([-100, -50, 0, 50])
+    for (const maximum of [undefined, NaN, Infinity]) {
+      expect(withMaximumTick(values, maximum)).toEqual(values)
+    }
+  })
+  it('measures only capped ticks even when reserving alternative top labels', () => {
+    for (const compact of [false, true]) {
+      const measure = (values: number[]) =>
+        axisTextMetrics([0, 1000], false, values, 'V', 5, compact, undefined, 20)
+      expect(measure([0, 10, 20, 123.456, 999])).toEqual(measure([0, 10, 20]))
+    }
   })
   it('preserves raw minima for constants independently of padding and excludes empty data', () => {
     for (const y of [0, 5, -5]) {

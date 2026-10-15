@@ -32,7 +32,7 @@ describe('Y padding chart integration', () => {
     wrapper.findAll('.waveform-track__axis--y').forEach((axis) => {
       const labels = axis.findAll('.tick text')
       expect(labels[0].attributes('display')).toBeUndefined()
-      expect(labels.at(-1)!.attributes('display')).toBe('none')
+      expect(axis.findAll('.tick').at(-1)!.attributes('data-tick-value')).toBe('100')
     })
     wrapper.unmount()
   })
@@ -45,7 +45,10 @@ describe('Y padding chart integration', () => {
         axes: { y: { nice: false, upperPaddingEnabled: true, lowerPaddingEnabled: true } },
       })
       expect(ticks(wrapper)[0]).toBe(-10)
-      expect(ticks(wrapper).at(-1)).toBe(110)
+      expect(ticks(wrapper).at(-1)).toBe(100)
+      expect(wrapper.get('.waveform-track__axis--y').attributes('data-label-domain-max')).toBe(
+        '110',
+      )
       expect(wrapper.get('[data-maximum-tick]').attributes('data-tick-value')).toBe('100')
       await wrapper.setProps({
         axes: {
@@ -73,11 +76,13 @@ describe('Y padding chart integration', () => {
     const ordinary = wrapper
       .findAll('.waveform-track__axis--y .tick')
       .find((t) => t.attributes('data-tick-value') === '100.1')!
-    expect(ordinary.get('text').attributes('display')).toBe('none')
-    expect(ordinary.get('line').attributes('display')).toBe('none')
+    expect(ordinary).toBeUndefined()
     expect(wrapper.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
     expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(true)
-    expect(ticks(wrapper).at(-1)).toBe(100.1)
+    expect(ticks(wrapper).at(-1)).toBe(100)
+    expect(wrapper.get('.waveform-track__axis--y').attributes('data-label-domain-max')).toBe(
+      '100.1',
+    )
     wrapper.unmount()
   })
   it('keeps fixed ranges unchanged and updates on replacement without accumulation', async () => {
@@ -98,11 +103,12 @@ describe('Y padding chart integration', () => {
       },
     })
     await flushPromises()
-    expect(ticks(wrapper).at(-1)).toBe(220)
+    expect(ticks(wrapper).at(-1)).toBe(200)
     resizeObservers.at(-1)?.resize(360, 300)
     await flushPromises()
     await flushPromises()
-    expect(ticks(wrapper).at(-1)).toBe(220)
+    expect(ticks(wrapper).at(-1)).toBe(200)
+    expect(wrapper.get('.waveform-track__axis--y').attributes('data-label-domain-max')).toBe('220')
     expect(wrapper.get('[data-maximum-tick]').attributes('data-tick-value')).toBe('200')
     wrapper.unmount()
   })

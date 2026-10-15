@@ -6,7 +6,21 @@ export function snapshotTitle(container: HTMLElement, titleHeight: number, width
   const style = getComputedStyle(title)
   const rect = title.getBoundingClientRect()
   const origin = container.getBoundingClientRect()
-  const ratio = origin.width ? width / origin.width : 1
+  const svg = container.querySelector('svg')
+  const svgRect = svg?.getBoundingClientRect()
+  let titleCenterX: number
+  if (svgRect && svgRect.width > 0) {
+    // The title and SVG share a scroll origin. Their relative screen positions
+    // cancel scrolling; only the SVG's actual CSS scale needs conversion.
+    const svgWidth = Number(svg?.getAttribute('width')) || width
+    titleCenterX = ((rect.left - svgRect.left + rect.width / 2) * svgWidth) / svgRect.width
+  } else {
+    const ratio = origin.width && container.offsetWidth ? container.offsetWidth / origin.width : 1
+    titleCenterX =
+      (rect.left - origin.left + rect.width / 2) * ratio -
+      container.clientLeft +
+      container.scrollLeft
+  }
   const group = document.createElementNS(NS, 'g')
   const matrix =
     typeof DOMMatrix !== 'undefined' && style.transform !== 'none' && style.transform
@@ -16,7 +30,7 @@ export function snapshotTitle(container: HTMLElement, titleHeight: number, width
   const scale = matrix ? Math.hypot(matrix.a, matrix.b) : 1
   group.setAttribute(
     'transform',
-    `translate(${(rect.left - origin.left + rect.width / 2) * ratio},${titleHeight / 2}) rotate(${angle}) scale(${scale})`,
+    `translate(${titleCenterX},${titleHeight / 2}) rotate(${angle}) scale(${scale})`,
   )
   const text = document.createElementNS(NS, 'text')
   text.setAttribute('fill', style.color)

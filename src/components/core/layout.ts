@@ -234,8 +234,8 @@ export function axisTextMetrics(
       (maximumTick !== undefined && sameTick(value, maximumTick)),
   )
   if (visibleTicks.length) tickValueSets.push(visibleTicks)
-  if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
-    tickValueSets.push(resolvedTicks.values.slice(0, -1))
+  if (includeWithoutLastTick && tickValueSets[0]!.length > 1) {
+    tickValueSets.push(tickValueSets[0]!.slice(0, -1))
   }
   const width = (text: string) =>
     measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH

@@ -289,7 +289,7 @@ export interface WaveformAxesOptions {
     splitNumber?: number
     /** Uses human-friendly intervals; explicit padding sides keep their exact bounds. Defaults to true. */
     nice?: boolean
-    /** Shows the full data maximum's extra tick and label. Defaults to true. */
+    /** Shows the full data maximum's tick and label, hiding higher axis ticks. Defaults to true. */
     maximumTickVisible?: boolean
     /** Shows the full data minimum's extra tick and label. Defaults to true. */
     minimumTickVisible?: boolean

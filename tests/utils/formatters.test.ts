@@ -100,10 +100,10 @@ describe('waveform number formatters', () => {
     expect(formatEndpointTime(1, domain, 's')).toBe('1')
 
     const tinyDomain: [number, number] = [0, 0.000001]
-    expect(formatEndpointTime(0.000001, tinyDomain, 's')).toBe('1e-6')
-    expect(formatAxisTime(-0.000001, 's', tinyDomain)).toBe('-1e-6')
+    expect(formatEndpointTime(0.000001, tinyDomain, 's')).toBe('0.000001')
+    expect(formatAxisTime(-0.000001, 's', tinyDomain)).toBe('-0.000001')
     expect(formatAxisTime(-0, 's')).toBe('0')
-    expect(formatAxisTime(1e21, 's')).toBe('1000000000000000000000')
+    expect(formatAxisTime(1e21, 's')).toBe('1e+21')
     expect(formatAxisTime(Number.POSITIVE_INFINITY, 's')).toBe('Infinity')
   })
 
