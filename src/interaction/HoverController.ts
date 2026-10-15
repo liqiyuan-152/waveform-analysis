@@ -27,6 +27,7 @@ export class HoverController {
     root.addEventListener('pointerout', this.out)
     root.addEventListener('pointerleave', this.leave)
     root.addEventListener('pointercancel', this.leave)
+    root.addEventListener('scroll', this.scroll)
   }
 
   private overlay(event: PointerEvent) {
@@ -39,6 +40,10 @@ export class HoverController {
     if (this.overlay(event)) this.clear()
   }
   private readonly leave = () => this.clear()
+  private readonly scroll = () => {
+    this.root.style.setProperty('--waveform-scroll-left', `${this.root.scrollLeft}px`)
+    this.clear()
+  }
   private readonly move = (event: PointerEvent) => {
     if (this.disposed || !this.context.alive() || this.blocked()) return
     if (this.context.model.options.value.presentationMode) return
@@ -126,7 +131,14 @@ export class HoverController {
     const options = this.context.model.options.value
     const state = options.showTooltip && !options.presentationMode ? this.state : undefined
     this.view.render(state, layout.trackLayouts, layout.left, layout.top)
-    this.tooltip.render(state, options.timeUnit, layout.width, layout.height)
+    this.tooltip.render(
+      state
+        ? { ...state, position: { ...state.position, x: state.position.x - this.root.scrollLeft } }
+        : undefined,
+      options.timeUnit,
+      layout.width,
+      layout.height,
+    )
   }
 
   clear() {
@@ -153,6 +165,7 @@ export class HoverController {
     this.root.removeEventListener('pointerout', this.out)
     this.root.removeEventListener('pointerleave', this.leave)
     this.root.removeEventListener('pointercancel', this.leave)
+    this.root.removeEventListener('scroll', this.scroll)
     this.view.dispose()
     this.tooltip.dispose()
   }

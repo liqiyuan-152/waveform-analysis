@@ -1,4 +1,5 @@
 import { scaleLinear } from 'd3'
+import { decimalPrecision } from '../../utils/numericPrecision'
 
 const MAX_TICK_COUNT = 3000
 
@@ -21,7 +22,7 @@ export function resolveXAxisTicks(
   const coefficient =
     fraction < 1.5 ? 1 : fraction < 2.5 ? 2 : fraction < 4 ? 3 : fraction < 7 ? 5 : 10
   const interval = Math.max(coefficient * power, minInterval)
-  const precision = Math.max(0, 2 - Math.floor(Math.log10(interval)))
+  const precision = decimalPrecision(interval) + 2
   const fallback = () => fallbackTicks(start, end, count)
 
   // Extreme magnitudes may exceed decimal rounding or safe integer index precision.

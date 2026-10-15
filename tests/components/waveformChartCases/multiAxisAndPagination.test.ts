@@ -1,9 +1,10 @@
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 import { type WaveformData } from '@/components/waveform'
 
-import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('resolves a separate scientific multiplier for every Y axis', async () => {
@@ -56,6 +57,7 @@ describe('WaveformChart', () => {
       wrapper.findAll('.waveform-chart__axis--y').map((axis) =>
         axis
           .findAll('.tick text')
+          .filter((label) => label.attributes('display') !== 'none')
           .map((label) => label.text())
           .filter((label) => /E[+-]\d+/.test(label)),
       ),
@@ -98,7 +100,7 @@ describe('WaveformChart', () => {
     const singleAxisY = wrapper.get('.waveform-annotation__arrow').attributes('y2')
 
     await wrapper.setProps({ overlayMode: 'multi-axis' })
-    await flushVueChartUpdates()
+    await flushPromises()
 
     expect(wrapper.get('.waveform-annotation__arrow').attributes('y2')).not.toBe(singleAxisY)
 
@@ -277,11 +279,9 @@ describe('WaveformChart', () => {
       '1',
       '2',
     ])
-    expect(wrapper.find('.waveform-pagination').isVisible()).toBe(false)
+    expect(wrapper.find('.ant-pagination').exists()).toBe(false)
 
-    const firstTrackOverlay = wrapper.get(
-      '.waveform-chart__overlay[data-independent-overlay-index="0"]',
-    )
+    const firstTrackOverlay = wrapper.get('[data-independent-overlay-index="0"]')
     const overlayWidth = Number(firstTrackOverlay.attributes('width'))
     const overlayHeight = Number(firstTrackOverlay.attributes('height'))
     Object.defineProperty(firstTrackOverlay.element, 'getBoundingClientRect', {
@@ -295,7 +295,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushVueChartUpdates()
+    await flushPromises()
 
     const tooltipSeries = wrapper.findAll('.waveform-chart__tooltip-series')
     expect(tooltipSeries).toHaveLength(3)
@@ -351,6 +351,7 @@ describe('WaveformChart', () => {
       },
       { grid: { rowCount: 1, columnCount: 1 } },
     )
+    const initialMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
     const positions = [
       'top-left',
       'top',
@@ -392,6 +393,7 @@ describe('WaveformChart', () => {
       'waveform-legend__panel--horizontal',
     )
 
-    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('48')
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe(initialMargin)
+    expect(Number(initialMargin)).toBeGreaterThanOrEqual(48)
   })
 })

@@ -1,7 +1,7 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 import type { WaveformData, WaveformSeries } from '@/index'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 
 const series = (id: string, trackId = id, unit?: string): WaveformSeries => ({
   id,
@@ -32,7 +32,7 @@ describe('page channel labels and legend units', () => {
         data(series('one', 'one', 'V'), series('a', 'merged', 'V'), series('b', 'merged', 'A')),
         options,
       )
-      resizeObservers.at(-1)?.resize(width, 360)
+      resizeChart(width, 360)
       await flushVueChartUpdates()
       expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
       expect(wrapper.get('[data-legend-track-id="one"] .waveform-legend__label').text()).toBe(

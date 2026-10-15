@@ -58,7 +58,7 @@ describe('WaveformChart viewport reset', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
-  it('ignores independent track double-clicks and resets the toolbar-selected track', async () => {
+  it('ignores independent track double-clicks and resets all current-page tracks', async () => {
     const wrapper = await mountSizedChart(gridSeries(2), {
       displayMode: 'independent',
       toolbar: true,
@@ -99,18 +99,26 @@ describe('WaveformChart viewport reset', () => {
       secondTrackStart,
     )
 
-    await wrapper.get('select[aria-label="操作图框"]').setValue('channel-0')
+    expect(wrapper.find('select[aria-label="操作图框"]').exists()).toBe(false)
     await wrapper.get('[data-command="reset"]').trigger('click')
     await flushVueChartUpdates()
 
     const startsAfterReset = wrapper.findAll('.waveform-chart__axis-endpoint--start')
     expect(startsAfterReset[0].text()).toBe('0')
-    expect(startsAfterReset[1].text()).toBe(secondTrackStart)
+    expect(startsAfterReset[1].text()).toBe('0')
     expect(wrapper.emitted('zoom-reset')).toEqual([
       [
         expect.objectContaining({
           trackIndex: 0,
           seriesIds: ['channel-0'],
+          source: 'toolbar',
+          action: 'reset',
+        }),
+      ],
+      [
+        expect.objectContaining({
+          trackIndex: 1,
+          seriesIds: ['channel-1'],
           source: 'toolbar',
           action: 'reset',
         }),

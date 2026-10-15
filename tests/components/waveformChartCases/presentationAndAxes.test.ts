@@ -223,7 +223,7 @@ describe('WaveformChart', () => {
     expect(yAxis.get('path.domain').attributes('display')).toBe('none')
     const yTicks = yAxis.findAll('.tick')
     expect(yTicks[0]!.get('line').attributes('display')).toBe('none')
-    expect(yTicks.at(-1)!.get('line').attributes('display')).toBe('none')
+    expect(yTicks.at(-1)!.get('line').attributes('display')).toBeUndefined()
     expect(
       yTicks.slice(1, -1).every((tick) => tick.get('line').attributes('display') === undefined),
     ).toBe(true)

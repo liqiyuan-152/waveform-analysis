@@ -1,3 +1,4 @@
+import { ToolbarPositionController } from '../controls/ToolbarPositionController'
 import { resolveToolbar, type ToolbarCommands } from '../components/controls/toolbarRegistry'
 import type {
   WaveformControlState,
@@ -20,14 +21,12 @@ export interface ToolbarContext {
 export class ToolbarView {
   readonly root: HTMLDivElement
   private readonly toggle: HTMLButtonElement
-  private readonly select: HTMLSelectElement
-  private readonly scope: HTMLSpanElement
   private readonly menu: HTMLDivElement
   private readonly feedback: HTMLSpanElement
   private readonly buttons = new Map<WaveformToolbarItem, HTMLButtonElement>()
   private readonly groups: HTMLDivElement[] = []
+  private readonly position: ToolbarPositionController
   private readonly download: ToolbarDownloadController
-  private selected = ''
   private expanded = false
   private menuOpen = false
   private disposed = false
@@ -52,15 +51,6 @@ export class ToolbarView {
       this.menuOpen = false
       this.refresh()
     }
-    this.select = document.createElement('select')
-    this.select.setAttribute('aria-label', '操作图框')
-    this.select.onchange = () => {
-      this.selected = this.select.value
-      this.refresh()
-    }
-    this.scope = document.createElement('span')
-    this.scope.className = 'waveform-toolbar__scope'
-    this.scope.textContent = '共享范围'
     this.menu = document.createElement('div')
     this.menu.className = 'waveform-toolbar__menu'
     this.menu.setAttribute('role', 'group')
@@ -79,13 +69,14 @@ export class ToolbarView {
     this.feedback = document.createElement('span')
     this.feedback.className = 'waveform-toolbar__feedback'
     this.feedback.setAttribute('role', 'status')
-    this.root.append(this.toggle, this.select, this.scope, this.menu, this.feedback)
+    this.root.append(this.toggle, this.menu, this.feedback)
     this.download = new ToolbarDownloadController(document, context.export, () => this.refresh())
     for (const name of ['pointerdown', 'click', 'dblclick', 'wheel', 'contextmenu'])
       this.root.addEventListener(name, this.stop)
     this.root.addEventListener('keydown', this.keydown)
     document.addEventListener('pointerdown', this.outside, true)
     parent.append(this.root)
+    this.position = new ToolbarPositionController(this.root, this.menu)
     this.root.hidden = true
   }
 
@@ -118,36 +109,15 @@ export class ToolbarView {
     if (this.disposed || !this.options || !this.layout) return
     const config = resolveToolbar(this.options.toolbar)
     const state = this.context.state()
-    if (!state.independent || !state.targets.some((target) => target.trackId === this.selected))
-      this.selected = ''
     const compact = this.layout.width < 440
     this.root.hidden = !config.visible
     this.root.style.display = config.visible ? '' : 'none'
     this.root.className = `waveform-toolbar waveform-toolbar--${config.display} waveform-toolbar--${config.position}`
     this.root.classList.toggle('waveform-toolbar--collapsed', compact && !this.expanded)
-    this.root.style.top = `${this.layout.titleHeight + 2}px`
     if (!config.visible) this.menuOpen = false
     this.toggle.hidden = !compact
     this.toggle.style.display = compact ? '' : 'none'
     this.toggle.setAttribute('aria-expanded', String(this.expanded))
-    this.select.hidden = !state.independent
-    this.select.style.display = state.independent ? '' : 'none'
-    this.scope.hidden = state.independent
-    this.scope.style.display = state.independent ? 'none' : ''
-    const targets = [{ trackId: '', label: '当前页全部' }, ...state.targets]
-    const signature = JSON.stringify(targets.map((target) => [target.trackId, target.label]))
-    if (this.select.dataset.signature !== signature) {
-      this.select.dataset.signature = signature
-      this.select.replaceChildren(
-        ...targets.map((target) => {
-          const option = this.root.ownerDocument.createElement('option')
-          option.value = target.trackId
-          option.textContent = target.label
-          return option
-        }),
-      )
-    }
-    this.select.value = this.selected
     const live = new Set(config.groups.flatMap((group) => group.map((item) => item.id)))
     for (const [id, button] of this.buttons)
       if (!live.has(id)) {
@@ -162,7 +132,7 @@ export class ToolbarView {
       group.className = 'waveform-toolbar__group'
       group.dataset.group = items[0].group
       this.groups[index] = group
-      const expected = this.root.children[index + 3]
+      const expected = this.root.children[index + 1]
       if (expected !== group) this.root.insertBefore(group, expected ?? this.menu)
       items.forEach((item, position) => {
         let button = this.buttons.get(item.id)
@@ -183,16 +153,14 @@ export class ToolbarView {
             if (item.id === 'export') {
               this.menuOpen = !this.menuOpen
               this.refresh()
-            } else item.run(this.context.commands, this.selected || undefined)
+            } else item.run(this.context.commands)
           }
           this.buttons.set(item.id, button)
         }
         if (item.group === 'mode') button.setAttribute('aria-pressed', String(item.active(state)))
         else button.removeAttribute('aria-pressed')
         if (item.id === 'export') button.setAttribute('aria-expanded', String(this.menuOpen))
-        button.disabled =
-          !item.enabled(state, this.selected || undefined) ||
-          (item.id === 'export' && this.download.busy)
+        button.disabled = !item.enabled(state) || (item.id === 'export' && this.download.busy)
         if (group.children[position] !== button)
           group.insertBefore(button, group.children[position] ?? null)
       })
@@ -202,18 +170,19 @@ export class ToolbarView {
     this.feedback.textContent = this.download.busy ? '正在导出…' : this.download.feedback
     this.feedback.hidden = !this.feedback.textContent
     this.feedback.style.display = this.feedback.textContent ? '' : 'none'
+    this.position.update(this.layout, config)
   }
 
   dispose() {
     if (this.disposed) return
     this.disposed = true
+    this.position.dispose()
     this.download.dispose()
     this.root.ownerDocument.removeEventListener('pointerdown', this.outside, true)
     for (const name of ['pointerdown', 'click', 'dblclick', 'wheel', 'contextmenu'])
       this.root.removeEventListener(name, this.stop)
     this.root.removeEventListener('keydown', this.keydown)
     this.toggle.onclick = null
-    this.select.onchange = null
     for (const button of [...this.buttons.values(), ...this.menu.querySelectorAll('button')])
       button.onclick = null
     this.buttons.clear()

@@ -158,7 +158,7 @@ describe('WaveformTooltip', () => {
     await nextTick()
     measuredWidth = 420
     measuredHeight = 250
-    resizeObservers.at(-1)!.resize(420, 250)
+    resizeObservers.at(-1)?.resize(420, 250)
     await nextTick()
     expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('right: 312px')
     expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('top: 42px')

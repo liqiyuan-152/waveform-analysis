@@ -1,7 +1,7 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVisibility'
 import type { WaveformData } from '@/types'
 
@@ -49,7 +49,11 @@ describe('Y-axis actual minimum ticks', () => {
       expect(
         w
           .findAll('.waveform-track__axis--y .tick text')
-          .every((text) => text.attributes('display') !== 'none'),
+          .every(
+            (text) =>
+              (text.attributes('display') === 'none') ===
+              (Number(text.element.parentElement!.getAttribute('data-tick-y')) === 0),
+          ),
       ).toBe(true)
       w.unmount()
     },
@@ -116,25 +120,25 @@ describe('Y-axis actual minimum ticks', () => {
     await w.setProps({ data })
     await flushVueChartUpdates()
     expect(minima(w)).toEqual([20])
-    resizeObservers.at(-1)?.resize(360, 300)
+    resizeChart(360, 300)
     await flushVueChartUpdates()
     expect(minima(w)).toEqual([20])
     expect(w.findAll('.waveform-track__axis--y .tick')[0].attributes('data-tick-value')).toBe('14')
     w.unmount()
   })
 
-  it('marks in-range extrema in fixed domains but not empty data', async () => {
+  it('retains cached extrema when a previously populated series becomes empty', async () => {
     const w = await mountSizedChart(data, {
       yDomain: [0, 100],
       axes: { y: { nice: false, lowerPaddingEnabled: true } },
     })
     expect(minima(w)).toEqual([20])
     await w.setProps({ yDomain: undefined, data: { kind: 'points', points: [] } })
-    expect(minima(w)).toEqual([])
+    expect(minima(w)).toEqual([20])
     w.unmount()
   })
 
-  it('prefers the minimum when extrema labels overlap', async () => {
+  it('preserves both extrema when their labels overlap', async () => {
     const w = await mountSizedChart(data, {
       axes: { y: { nice: false, lowerPaddingEnabled: true, upperPaddingEnabled: true } },
     })
@@ -145,7 +149,7 @@ describe('Y-axis actual minimum ticks', () => {
     }
     updateMaximumTickVisibility(w.get('svg').element as SVGSVGElement)
     expect(w.get('[data-minimum-tick] text').attributes('display')).toBeUndefined()
-    expect(w.get('[data-maximum-tick] text').attributes('display')).toBe('none')
+    expect(w.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
     w.unmount()
   })
 })

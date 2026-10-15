@@ -1,10 +1,11 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 import {
   hasMinimumVisibleXValues,
   selectRenderablePoints,
   resolveWaveformRenderingOptions,
 } from '@/core/rendering'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const points = [2134.377, 2134.378, 2134.379].map((time, y) => ({ x: time / 1000, y }))
@@ -61,7 +62,7 @@ describe('zoom with two visible samples and an outside line neighbor', () => {
         },
       )
       try {
-        resizeObservers.at(-1)?.resize(width, 600)
+        resizeChart(width, 600)
         await flushVueChartUpdates()
         w.vm.setViewportDomain(viewport)
         await flushVueChartUpdates()

@@ -36,7 +36,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         :aria-label="side === 'maximum' ? '显示最大值刻度' : '显示最小值刻度'"
       />
     </div>
-    <small>仅作用于自动 Y 范围；刻度取整可能增加实际留白。</small>
+    <small>按数据跨度计算上下留白；保留漂亮刻度，配置侧不再额外扩域。</small>
   </section>
 </template>
 

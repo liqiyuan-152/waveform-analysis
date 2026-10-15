@@ -17,7 +17,17 @@ export class SvgTitleExporter {
     const style = window.getComputedStyle(title)
     const rect = title.getBoundingClientRect()
     const origin = container.getBoundingClientRect()
-    const ratio = origin.width ? width / origin.width : 1
+    const svg = container.querySelector('svg')
+    const svgRect = svg?.getBoundingClientRect()
+    const ratio = origin.width && container.offsetWidth ? container.offsetWidth / origin.width : 1
+    const centerX =
+      svgRect && svgRect.width > 0
+        ? ((rect.left - svgRect.left + rect.width / 2) *
+            (Number(svg?.getAttribute('width')) || width)) /
+          svgRect.width
+        : (rect.left - origin.left + rect.width / 2) * ratio -
+          container.clientLeft +
+          container.scrollLeft
     const group = svgNode(document, 'g')
     const matrix =
       typeof window.DOMMatrix !== 'undefined' && style.transform !== 'none' && style.transform
@@ -27,7 +37,7 @@ export class SvgTitleExporter {
     const scale = matrix ? Math.hypot(matrix.a, matrix.b) : 1
     group.setAttribute(
       'transform',
-      `translate(${(rect.left - origin.left + rect.width / 2) * ratio},${titleHeight / 2}) rotate(${angle}) scale(${scale})`,
+      `translate(${centerX},${titleHeight / 2}) rotate(${angle}) scale(${scale})`,
     )
     const text = svgNode(document, 'text')
     text.setAttribute('fill', style.color)

@@ -1,10 +1,10 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
-import { resizeObservers } from '@tests/support/setup'
 
 describe('demo initial X-axis range', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
@@ -17,7 +17,7 @@ describe('demo initial X-axis range', () => {
           await wrapper.get(`input[value="${displayMode}"]`).setValue(true)
           await flushPromises()
         }
-        resizeObservers.at(-1)?.resize(800, 800)
+        resizeChart(800, 800)
         await flushPromises()
         const chart = wrapper.getComponent(WaveformChart)
         const recordDomain = chart.props('initialXDomain')!

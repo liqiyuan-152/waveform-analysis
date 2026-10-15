@@ -1,61 +1,36 @@
 import { margin, MINIMUM_PLOT_WIDTH } from '../components/core/constants'
 import { getGridGap, type NormalizedWaveformGridOptions } from '../components/core/grid'
-import { buildYAxisSlots, resolveYAxisTickCount } from '../components/core/layout'
-import { resolveYAxisLayoutMetrics } from '../components/core/yAxisLayoutMetrics'
-import { measureYAxisTextWidth } from '../components/core/yAxisTextWidth'
+import {
+  fitYAxisSlotsToMargins,
+  resolveStableYAxisLayout,
+} from '../components/core/yAxisStableLayout'
 import { Y_AXIS_OUTER_PADDING } from '../components/core/yAxisConstants'
 import type { DisplayTrack } from '../components/core/types'
 import type { ResolvedWaveformChartProps } from '../types/options'
 
 export class AxisLayoutEngine {
-  constructor(private readonly measureTextWidth = measureYAxisTextWidth) {}
-
   calculate(
     options: ResolvedWaveformChartProps,
     tracks: DisplayTrack[],
     pageTracks: DisplayTrack[],
     grid: NormalizedWaveformGridOptions,
     width: number,
-    height: number,
-    yDomains: Record<string, [number, number]>,
-    tickCount = resolveYAxisTickCount(height, options.axes?.y?.splitNumber),
+    _height: number,
+    _yDomains: Record<string, [number, number]>,
+    _tickCount?: number,
   ) {
+    // Older internal callers supply viewport metrics; axis spacing now uses stable budgets.
+    void _height
+    void _yDomains
+    void _tickCount
     const edge = options.layoutPreset === 'edge-compact'
     const showUnits =
       options.unitDisplayMode !== 'channel-label' &&
       options.unitDisplayMode !== 'channel-label-or-legend' &&
       (!edge || options.unitDisplayMode === 'axis')
-    const nice = options.axes?.y?.nice !== false
-    const compact = options.displayMode === 'compact'
-    const measure = edge ? this.measureTextWidth : undefined
-    const metrics = resolveYAxisLayoutMetrics(
-      tracks,
-      options.overlayMode,
-      options.yDomain,
-      options.yDomains,
-      yDomains,
-      nice,
-      tickCount,
-      compact,
-      options.axes?.y,
-      showUnits,
-      measure,
-      options.amplitudeLimits,
-    )
-    const slots = buildYAxisSlots(
-      pageTracks.filter((track) => track.series.length > 0),
-      options.overlayMode,
-      options.yDomain,
-      options.yDomains,
-      tickCount,
-      nice,
-      compact,
-      yDomains,
-      options.axes?.y,
-      showUnits,
-      measure,
-      options.amplitudeLimits,
-    )
+    const stableOptions = { showUnits, labelTextStyle: options.axes?.y?.labelTextStyle }
+    const metrics = resolveStableYAxisLayout(tracks, options.overlayMode, stableOptions).metrics
+    const baseSlots = resolveStableYAxisLayout(pageTracks, options.overlayMode, stableOptions)
     const hasData = tracks.some((track) => track.series.length > 0)
     const hasLabels = tracks.some((track) => {
       const series = track.visibleSeries.length ? track.visibleSeries : track.series
@@ -68,27 +43,43 @@ export class AxisLayoutEngine {
     const compactLeft = !hasData
       ? 0
       : options.overlayMode === 'multi-axis' || hasLabels
-        ? slots.clearance.left
+        ? baseSlots.clearance.left
         : metrics.tickClearance
     const left = edge
       ? margin.right / 4 + Math.max(0, compactLeft - Y_AXIS_OUTER_PADDING)
       : options.overlayMode === 'multi-axis'
-        ? Math.max(chartLeft, slots.clearance.left)
+        ? Math.max(chartLeft, baseSlots.clearance.left)
         : chartLeft
     const right =
       options.overlayMode === 'multi-axis'
-        ? Math.max(margin.right, slots.clearance.right)
+        ? Math.max(margin.right, baseSlots.clearance.right)
         : margin.right
-    const innerWidth = Math.max(0, width - left - right)
+    const slots = fitYAxisSlotsToMargins(baseSlots, { left, right })
+    const availableWidth = Math.max(0, width - left - right)
+    const multiAxisGap = Math.max(
+      getGridGap(options.displayMode),
+      slots.clearance.left + slots.clearance.right,
+    )
+    const innerWidth =
+      options.overlayMode === 'multi-axis' && hasData
+        ? Math.max(
+            availableWidth,
+            MINIMUM_PLOT_WIDTH * grid.columnCount + multiAxisGap * (grid.columnCount - 1),
+          )
+        : availableWidth
+    const renderedWidth =
+      options.overlayMode === 'multi-axis' && hasData
+        ? Math.max(width, left + innerWidth + right)
+        : width
     const gap = getGridGap(options.displayMode)
-    const fullGap = Math.max(gap, edge ? slots.clearance.left : metrics.fullClearance)
+    const fullGap = Math.max(gap, slots.clearance.left)
     const tickGap = Math.max(gap, metrics.tickClearance)
     const columns = grid.columnCount
     const canReserve =
       (innerWidth - fullGap * Math.max(0, columns - 1)) / columns >= MINIMUM_PLOT_WIDTH
     const horizontalGap =
       options.overlayMode === 'multi-axis' && columns > 1 && hasData
-        ? Math.max(gap, slots.clearance.left + slots.clearance.right)
+        ? multiAxisGap
         : columns > 1 && hasData
           ? hasLabels && canReserve
             ? fullGap
@@ -98,6 +89,7 @@ export class AxisLayoutEngine {
       left,
       right,
       innerWidth,
+      renderedWidth,
       horizontalGap,
       showUnits,
       slots: slots.slots,

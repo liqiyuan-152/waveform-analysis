@@ -23,7 +23,19 @@ export class WaveformDataManager {
   prepare(input: WaveformData, retainEmpty = false): PreparedWaveformData {
     if (this.current?.input === input && this.current.retainEmpty === retainEmpty)
       return this.current
-    return { input, retainEmpty, series: prepareWaveformSeries(input, retainEmpty) }
+    const previousById = new Map(this.series.map((series) => [series.id, series]))
+    const series = prepareWaveformSeries(input, retainEmpty).map((series) => {
+      const previous = previousById.get(series.id)
+      if (series.source.length || !previous || series.trackId !== previous.trackId) return series
+      return {
+        ...series,
+        xDomain: previous.xDomain,
+        yDomain: previous.yDomain,
+        rawYMaximum: previous.rawYMaximum,
+        rawYMinimum: previous.rawYMinimum,
+      }
+    })
+    return { input, retainEmpty, series }
   }
 
   commit(candidate: PreparedWaveformData) {

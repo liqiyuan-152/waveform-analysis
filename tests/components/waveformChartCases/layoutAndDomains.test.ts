@@ -1,11 +1,13 @@
+import { resizeChart } from '@tests/support/setup'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
-import { resizeObservers } from '@tests/support/setup'
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 
-import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
-  it('reserves full scientific ticks while keeping numeric name spacing', async () => {
+  it('reserves complete scientific ticks at the edge and numeric clearance beside names', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -31,13 +33,18 @@ describe('WaveformChart', () => {
     const labelBackgroundX = Number(
       tracks[0].get('.waveform-chart__y-axis-label-bg').attributes('x'),
     )
-    const longestTickLabel = Math.max(
+    const fullTickWidth = Math.max(
       ...tracks[0]
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
+        .map((tick) => measureYAxisTextWidth(tick.text())),
     )
 
-    expect(Math.abs(labelX)).toBeGreaterThanOrEqual(7 + longestTickLabel * 7 + 6)
+    const numericWidth = Math.max(
+      ...tracks[0]
+        .findAll('.waveform-chart__axis--y .tick text')
+        .map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+\s*/, ''))),
+    )
+    expect(-7 - numericWidth - (labelX + 10)).toBeGreaterThanOrEqual(2)
     const renderedLabelX = Number(
       tracks[0]
         .get('.waveform-chart__y-axis-label')
@@ -46,11 +53,6 @@ describe('WaveformChart', () => {
     )
     expect(labelBackgroundX).toBe(renderedLabelX - 10)
     expect(labelBackgroundX).toBeGreaterThanOrEqual(labelX - 10)
-    const fullTickWidth = Math.max(
-      ...tracks[0]
-        .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().length * 7),
-    )
     expect(
       Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
     ).toBeGreaterThanOrEqual(fullTickWidth + 11)
@@ -83,15 +85,22 @@ describe('WaveformChart', () => {
     const fullTickWidth = Math.max(
       ...tracks[0]
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().length * 7),
+        .map((tick) => measureYAxisTextWidth(tick.text())),
     )
-    expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
-      Math.max(48, fullTickWidth + 11),
+    const tickOnlyMargin = Number(
+      wrapper.get('.waveform-chart').attributes('data-chart-left-margin'),
     )
+    expect(tickOnlyMargin).toBeGreaterThanOrEqual(Math.max(48, fullTickWidth + 11))
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(fullTickWidth + 11)
+    await wrapper.setProps({ yLabel: 'Channel' })
+    expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(2)
+    // The name band fits in the horizontal space already reserved for a full exponent.
+    expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
+      tickOnlyMargin,
+    )
   })
 
-  it('updates the Y-axis label position while preserving the chart gutter between pages', async () => {
+  it('preserves Y-axis label positions and chart gutters between pages with different ranges', async () => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -124,27 +133,25 @@ describe('WaveformChart', () => {
     )
     const initialMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
     const initialTrack = wrapper.get('.waveform-chart__track')
-    const initialLongestTickLabel = Math.max(
+    const initialLabelX = initialTrack.attributes('data-y-axis-label-x')
+    const initialTickWidth = Math.max(
       ...initialTrack
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
+        .map((tick) => measureYAxisTextWidth(tick.text())),
     )
-    expect(initialTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + initialLongestTickLabel * 7 + 10)),
-    )
+    expect(-7 - initialTickWidth - (Number(initialLabelX) + 10)).toBeGreaterThanOrEqual(2)
 
     await wrapper.get('[aria-label="下一页"]').trigger('click')
 
     expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe(initialMargin)
     const pagedTrack = wrapper.get('.waveform-chart__track')
-    const pagedLongestTickLabel = Math.max(
+    const pagedTickWidth = Math.max(
       ...pagedTrack
         .findAll('.waveform-chart__axis--y .tick text')
-        .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length),
+        .map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+\s*/, ''))),
     )
-    expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(
-      String(-(7 + pagedLongestTickLabel * 7 + 10)),
-    )
+    expect(pagedTrack.attributes('data-y-axis-label-x')).toBe(initialLabelX)
+    expect(-7 - pagedTickWidth - (Number(initialLabelX) + 10)).toBeGreaterThanOrEqual(2)
   })
 
   it('hides only secondary-column Y-axis labels when the grid is too narrow', async () => {
@@ -153,8 +160,8 @@ describe('WaveformChart', () => {
       grid: { rowCount: 2, columnCount: 2 },
     })
 
-    resizeObservers.at(-1)?.resize(120, 360)
-    await flushVueChartUpdates()
+    resizeChart(120, 360)
+    await flushPromises()
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(4)
@@ -218,12 +225,18 @@ describe('WaveformChart', () => {
     expect(emptyTracks[0].findAll('.waveform-chart__grid')).toHaveLength(2)
     expect(emptyTracks[0].find('.waveform-chart__plot-background').exists()).toBe(true)
     expect(emptyTracks[0].find('.waveform-chart__plot-frame').exists()).toBe(true)
-    expect(emptyTracks[0].find('.waveform-chart__axis--y').exists()).toBe(false)
-    expect(emptyTracks[0].find('.waveform-chart__line').exists()).toBe(false)
-    expect(emptyTracks[0].find('.waveform-chart__y-axis-label').exists()).toBe(false)
     expect(
-      emptyTracks[0].findAll('.waveform-chart__watermark').some((element) => element.isVisible()),
-    ).toBe(false)
+      emptyTracks[0].findAll('.waveform-chart__axis--y').filter((node) => node.isVisible()),
+    ).toHaveLength(0)
+    expect(
+      emptyTracks[0].findAll('.waveform-chart__line').filter((node) => node.isVisible()),
+    ).toHaveLength(0)
+    expect(
+      emptyTracks[0].findAll('.waveform-chart__y-axis-label').filter((node) => node.isVisible()),
+    ).toHaveLength(0)
+    expect(
+      emptyTracks[0].findAll('.waveform-chart__watermark').filter((node) => node.isVisible()),
+    ).toHaveLength(0)
 
     const populatedBottomTrack = tracks[3]
     expect(emptyTracks[0].get('.waveform-chart__axis-endpoint--start').text()).toBe(
@@ -234,18 +247,21 @@ describe('WaveformChart', () => {
     )
   })
 
-  it('shows the global empty state when compact data has no valid channels', async () => {
+  it('shows the global empty state while retaining the supplied compact channel frame', async () => {
     const wrapper = await mountSizedChart(
       { kind: 'samples', values: [1], sampleRate: -1 },
       { displayMode: 'compact', grid: { rowCount: 2, columnCount: 3 } },
     )
 
     expect(wrapper.get('.waveform-chart__empty').text()).toContain('暂无有效波形数据')
-    expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(6)
+    expect(wrapper.find('[data-track-id="series-0"] .waveform-chart__plot-frame').exists()).toBe(
+      true,
+    )
     expect(
       wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
-    ).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
+    ).toHaveLength(3)
+    expect(wrapper.findAll('.waveform-chart__line:not([display="none"])')).toHaveLength(0)
   })
 
   it('resets the page when the grid configuration changes', async () => {
@@ -256,7 +272,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('[aria-label="第 2 页"]').attributes('aria-current')).toBe('page')
 
     await wrapper.setProps({ grid: { rowCount: 2, columnCount: 1 } })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(wrapper.get('[aria-label="第 1 页"]').attributes('aria-current')).toBe('page')
   })
 
@@ -358,12 +374,12 @@ describe('WaveformChart', () => {
         .map((tick) => tick.text())
 
     await wrapper.setProps({ yDomain: [3, 97] })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(yTickLabels()).toContain('0')
     expect(yTickLabels()).toContain('100')
 
     await wrapper.setProps({ yDomain: undefined })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(yTickLabels()).not.toContain('3')
     expect(yTickLabels()).not.toContain('97')
   })
@@ -392,8 +408,8 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
     expect(wrapper.get('.waveform-chart').attributes('data-interaction-mode')).toBe('zoom')
 
-    resizeObservers.at(-1)?.resize(500, 360)
-    await flushVueChartUpdates()
+    resizeChart(500, 360)
+    await flushPromises()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('500')
     expect(wrapper.get('.waveform-chart__line').attributes('d')).not.toBe(initialPath)

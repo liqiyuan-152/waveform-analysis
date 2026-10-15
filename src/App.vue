@@ -20,6 +20,8 @@ import {
 } from './components'
 import { normalizeWaveformSeries } from './core'
 import { createSimulatedWaveformData } from './demo/data/simulatedWaveforms'
+import type { WaveformToolbarOptions, WaveformToolbarItem } from './types/controls'
+import { defaultToolbarItems, defaultToolbarOffsets } from './components/controls/toolbarRegistry'
 import DemoChartHost from './demo/DemoChartHost.vue'
 import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'
@@ -76,6 +78,17 @@ const zeroLineWidth = ref(1)
 const zeroLineOpacity = ref(0.5)
 const zeroLineDash = ref('6 4')
 const toolbarVisible = ref(true)
+const toolbarPosition = ref<NonNullable<WaveformToolbarOptions['position']>>('top-right')
+const toolbarOffsetX = ref(defaultToolbarOffsets.offsetX)
+const toolbarOffsetY = ref(defaultToolbarOffsets.offsetY)
+const toolbarItems = ref<WaveformToolbarItem[]>([...defaultToolbarItems])
+const toolbarOptions = computed<WaveformToolbarOptions>(() => ({
+  visible: toolbarVisible.value,
+  position: toolbarPosition.value,
+  offsetX: toolbarOffsetX.value,
+  offsetY: toolbarOffsetY.value,
+  items: defaultToolbarItems.filter((id) => toolbarItems.value.includes(id)),
+}))
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
 const legendOrientation = ref<WaveformLegendOrientation>('auto')
@@ -266,6 +279,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', handleWindowKeydown)
 
 const controlPanelModel = reactive({
   toolbarVisible,
+  toolbarPosition,
+  toolbarOffsetX,
+  toolbarOffsetY,
+  toolbarItems,
   controlsOpen,
   displayMode,
   overlayMode,
@@ -330,6 +347,7 @@ const controlPanelModel = reactive({
 
 const chartModel = reactive({
   toolbarVisible,
+  toolbarOptions,
   data: displayChartData,
   initialXDomain,
   recordDomain,

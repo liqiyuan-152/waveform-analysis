@@ -1,6 +1,7 @@
 import { axisBottom, axisLeft, axisRight, select } from 'd3'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../components/core/types'
 import { formatYAxisTickLabel } from '../components/core/layout'
+import { updateXAxisTickVisibility } from '../components/rendering/xAxisTickVisibility'
 import { sameTick } from '../components/core/yAxisPadding'
 import {
   resolveYAxisLabelBandWidth,
@@ -95,6 +96,7 @@ export class AxisView {
     this.start.textContent = track.endpointLabels.start
     this.end.textContent = track.endpointLabels.end
     this.end.setAttribute('x', String(track.width))
+    if (track.showXAxis) updateXAxisTickVisibility(this.x, this.endpoints, track, track.width)
 
     const axes = track.isEmpty ? [] : track.yAxes
     const active = new Set(axes.map((axis) => axis.index))

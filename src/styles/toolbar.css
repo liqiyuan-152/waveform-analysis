@@ -1,36 +1,46 @@
 .waveform-toolbar {
   position: absolute;
   z-index: 10;
-  top: 2px;
-  right: 2px;
+  box-sizing: border-box;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0;
+  gap: 4px;
+  width: max-content;
   max-width: calc(100% - 4px);
-  background: rgb(255 255 255 / 96%);
+  background: transparent;
 }
 .waveform-toolbar--collapsed > :not(.waveform-toolbar__toggle):not(.waveform-toolbar__feedback) {
   display: none;
 }
-.waveform-toolbar--top-left {
-  left: 2px;
-  right: auto;
-}
+
 .waveform-toolbar--hover {
   opacity: 0;
   pointer-events: none;
 }
 .waveform-chart:hover .waveform-toolbar--hover,
 .waveform-toolbar:focus-within,
-.waveform-toolbar:has(.waveform-toolbar__menu:not([hidden])),
-.waveform-toolbar:has(.waveform-toolbar__feedback:not([hidden])) {
+.waveform-toolbar:has(.waveform-toolbar__menu),
+.waveform-toolbar:has(.waveform-toolbar__feedback) {
   opacity: 1;
   pointer-events: auto;
 }
 .waveform-toolbar__group {
   display: flex;
-  padding-left: 8px;
+  flex-wrap: wrap;
+  padding: 3px 4px;
+}
+.waveform-toolbar__group,
+.waveform-toolbar__toggle,
+.waveform-toolbar__feedback {
+  background: rgb(255 255 255 / 45%);
+  border: 1px solid rgb(152 162 179 / 45%);
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgb(16 24 40 / 6%);
+}
+.waveform-toolbar__toggle {
+  min-height: 30px;
+  padding-inline: 8px;
 }
 .waveform-toolbar button {
   display: inline-flex;
@@ -49,16 +59,15 @@
   cursor: pointer;
 }
 .waveform-toolbar button:hover,
-.waveform-toolbar button[aria-pressed='true'] {
-  background: #e6f4ff;
+button[aria-pressed='true'] {
+  background: rgb(186 224 255 / 50%);
   color: #0960bd;
 }
 .waveform-toolbar button:disabled {
   opacity: 0.35;
   cursor: default;
 }
-.waveform-toolbar button:focus-visible,
-.waveform-toolbar select:focus-visible {
+.waveform-toolbar button:focus-visible {
   outline: 2px solid #0960bd;
   outline-offset: 1px;
 }
@@ -71,21 +80,7 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.waveform-toolbar select {
-  min-width: 0;
-  max-width: 120px;
-  box-sizing: border-box;
-  height: 22px;
-  padding: 0 2px;
-  font-size: 12px;
-  border: 1px solid #d0d5dd;
-  border-radius: 4px;
-  background: white;
-}
-.waveform-toolbar__scope {
-  font-size: 12px;
-  color: #667085;
-}
+
 .waveform-toolbar__menu {
   position: absolute;
   right: 0;
@@ -96,8 +91,19 @@
   background: white;
   display: flex;
 }
+.waveform-toolbar--top-left .waveform-toolbar__menu,
+.waveform-toolbar--bottom-left .waveform-toolbar__menu {
+  left: 0;
+  right: auto;
+}
+.waveform-toolbar--bottom-left .waveform-toolbar__menu,
+.waveform-toolbar--bottom-right .waveform-toolbar__menu {
+  top: auto;
+  bottom: 100%;
+}
 .waveform-toolbar__feedback {
   flex-basis: 100%;
+  padding: 4px 6px;
   font-size: 12px;
   max-width: 300px;
 }

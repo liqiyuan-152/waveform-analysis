@@ -1,6 +1,6 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 
 const data = {
   kind: 'points' as const,
@@ -46,7 +46,7 @@ describe('plot-centered chart and time titles', () => {
         })
         try {
           expect(assertPlotCenter(wrapper)).not.toBeCloseTo(400)
-          resizeObservers.at(-1)?.resize(320, 360)
+          resizeChart(320, 360)
           await flushVueChartUpdates()
           expect(assertPlotCenter(wrapper)).not.toBeCloseTo(160)
           await wrapper.setProps({ title: { text: 'shot:13366', textStyle: { rotation: 30 } } })

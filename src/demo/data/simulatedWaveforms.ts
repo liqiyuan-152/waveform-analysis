@@ -176,6 +176,33 @@ const seriesDefinitions: SimulatedSeriesDefinition[] = [
     pointType: 'none',
     signal: (time) => 6e-9 * Math.exp(-(time + 5) * 0.2) * Math.cos(TWO_PI * 0.8 * time),
   },
+  {
+    id: 'simulated-four-decimal-voltage',
+    shotNo: '13300',
+    name: '四位小数电压',
+    unit: 'V',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => Number((1.2345 * Math.cos(TWO_PI * 0.5 * (time + 5))).toFixed(4)),
+  },
+  {
+    id: 'simulated-four-decimal-mega-voltage',
+    shotNo: '13300',
+    name: '四位尾数百万电压',
+    unit: 'V',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => Number((1.2345 * Math.cos(TWO_PI * 0.5 * (time + 5))).toFixed(4)) * 1e6,
+  },
+  {
+    id: 'simulated-four-decimal-micro-current',
+    shotNo: '13300',
+    name: '四位尾数微量电流',
+    unit: 'A',
+    lineType: 'linear',
+    pointType: 'none',
+    signal: (time) => Number((3.4567 * Math.cos(TWO_PI * 0.5 * (time + 5))).toFixed(4)) * 1e-6,
+  },
 ]
 
 export function createSimulatedWaveformData(trackCount?: number): WaveformData {

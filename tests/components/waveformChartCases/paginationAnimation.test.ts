@@ -1,8 +1,9 @@
+import { resizeChart } from '@tests/support/setup'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { nextTick } from 'vue'
 import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import { observeNativePresentation } from '@tests/support/nativePresentation'
 let presentation: ReturnType<typeof observeNativePresentation>
 import type { WaveformAnnotation } from '@/index'
@@ -198,7 +199,7 @@ describe('pagination entrance replay', () => {
     const wrapper = await chart()
     await page(wrapper)
     await frame(100)
-    resizeObservers.at(-1)?.resize(600, 300)
+    resizeChart(600, 300)
     await flushVueChartUpdates()
     await nextTick()
     expect(drawingProgress(wrapper)).toBe(1)

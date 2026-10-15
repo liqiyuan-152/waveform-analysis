@@ -1,7 +1,7 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 
 describe('multi-axis right tick formatting', () => {
   it.each([
@@ -30,14 +30,16 @@ describe('multi-axis right tick formatting', () => {
     )
     try {
       for (const width of [800, 375]) {
-        resizeObservers.at(-1)?.resize(width, 360)
+        resizeChart(width, 360)
         await flushVueChartUpdates()
         const leftTicks = wrapper.get('[data-y-axis-side="left"]').findAll('.tick text')
         const rightTicks = wrapper.get('[data-y-axis-side="right"]').findAll('.tick text')
         expect(leftTicks.at(-1)?.text()).toBe(left)
         expect(rightTicks.at(-1)?.text()).toBe(right)
-        expect(rightTicks.slice(0, -1).map((tick) => tick.text())).toEqual(
-          leftTicks.slice(0, -1).map((tick) => tick.text()),
+        expect(rightTicks.at(-1)?.attributes('display')).toBeUndefined()
+        expect(leftTicks.at(-1)?.attributes('display')).toBeUndefined()
+        expect(rightTicks.slice(0, -2).map((tick) => tick.text())).toEqual(
+          leftTicks.slice(0, -2).map((tick) => tick.text()),
         )
       }
       await wrapper.setProps({ unitDisplayMode: 'channel-label-or-legend' })

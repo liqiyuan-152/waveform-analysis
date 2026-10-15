@@ -197,6 +197,7 @@ describe('WaveformChart', () => {
       const labels = wrapper
         .get('.waveform-chart__axis--y')
         .findAll('.tick text')
+        .filter((label) => label.attributes('display') !== 'none')
         .map((tick) => tick.text())
       const exponentLabels = labels.filter((label) => label.startsWith('E'))
 
@@ -254,6 +255,7 @@ describe('WaveformChart', () => {
     const middleTickLabels = wrapper
       .get('.waveform-chart__axis--x')
       .findAll('.tick text')
+      .filter((tick) => tick.attributes('display') !== 'none')
       .map((tick) => tick.text())
 
     expect(start.attributes('x')).toBe('0')

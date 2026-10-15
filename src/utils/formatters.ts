@@ -1,5 +1,6 @@
 import type { WaveformXAxisLabelFormatter, WaveformXAxisLabelKind } from '../types'
 import { formatXAxisNumber } from './xAxisNumber'
+import { cleanAxisNumber } from './numericPrecision'
 
 /**
  * 时间单位类型
@@ -27,6 +28,20 @@ const Y_AXIS_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
 const TOOLTIP_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 4,
 })
+
+/** Round outward in decimal space, avoiding binary multiplication at exact boundaries. */
+function formatXEndpoint(value: number, kind: 'start' | 'end'): string {
+  if (!Number.isFinite(value)) return String(value)
+  const negative = value < 0
+  const [integer, fraction = ''] = formatPlainNumber(Math.abs(value)).split('.')
+  let units = BigInt(integer + fraction.slice(0, 4).padEnd(4, '0'))
+  const hasRemainder = /[1-9]/.test(fraction.slice(4))
+  if (hasRemainder && (kind === 'start' ? negative : !negative)) units += 1n
+  const digits = units.toString().padStart(5, '0')
+  const decimals = digits.slice(-4).replace(/0+$/, '')
+  const sign = negative && units !== 0n ? '-' : ''
+  return `${sign}${digits.slice(0, -4)}${decimals ? `.${decimals}` : ''}`
+}
 
 function formatFixedNumber(value: number, precision: number): string {
   const formatted = value.toFixed(Math.max(0, precision))
@@ -148,6 +163,12 @@ export function formatXAxisLabel(
   formatter?: WaveformXAxisLabelFormatter,
 ): string {
   const value = displayTime(rawValue, timeUnit)
+  if (!formatter && kind !== 'tick') {
+    return formatXEndpoint(
+      cleanAxisNumber(value, [displayTime(domain[0], timeUnit), displayTime(domain[1], timeUnit)]),
+      kind,
+    )
+  }
   if (!formatter)
     return formatXAxisNumber(value, [
       displayTime(domain[0], timeUnit),

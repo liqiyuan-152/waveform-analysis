@@ -1,7 +1,8 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 import type { WaveformData } from '@/types'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 
 const data = (count: number): WaveformData => ({
   kind: 'series',
@@ -38,7 +39,7 @@ describe('empty remote windows', () => {
       await flushVueChartUpdates()
       const before = wrapper.vm.getControlState().targets[0].viewport.xDomain
       const emittedBefore = wrapper.emitted('zoom-change')?.length
-      resizeObservers.at(-1)?.resize(320, 600)
+      resizeChart(320, 600)
       await flushVueChartUpdates()
       wrapper.vm
         .getControlState()
@@ -106,10 +107,11 @@ describe('empty remote windows', () => {
     },
   )
 
-  it('keeps empty remote single-series charts usable while preserving local empty behavior', async () => {
+  it('keeps empty single-series charts usable with or without remote boundaries', async () => {
     const empty = { kind: 'points' as const, points: [] }
     const local = await mountSizedChart(empty)
-    expect(local.vm.getControlState().targets).toEqual([])
+    expect(local.vm.getControlState().targets[0].trackId).toBe('series-0')
+    expect(local.find('.waveform-chart__plot-frame').exists()).toBe(true)
     local.unmount()
     const remote = await mountSizedChart(empty, {
       initialXDomain: [0, 10],

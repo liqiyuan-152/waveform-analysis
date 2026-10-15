@@ -1,3 +1,4 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { InputNumber, Select } from 'ant-design-vue'
@@ -6,7 +7,6 @@ import { describe, expect, it } from 'vitest'
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
 import { formatDemoTimestamp } from '@/demo/useDemoXAxisLabelControls'
-import { resizeObservers } from '@tests/support/setup'
 
 describe('X-axis label demo controls', () => {
   it('formats timestamps in fixed UTC and China-standard-time formats', () => {
@@ -20,7 +20,7 @@ describe('X-axis label demo controls', () => {
     const wrapper = mount(App, { attachTo: document.body })
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
-    resizeObservers.at(-1)?.resize(800, 800)
+    resizeChart(800, 800)
     await flushPromises()
     chart.vm.resetViewport()
     await flushPromises()

@@ -17,7 +17,6 @@ export class ChartPaginationController {
     if (this.isDisposed()) return
     const pageCount = this.layout().pageCount
     if (!this.model.presentation.setPage(page, pageCount)) return
-    if (this.model.options.value.displayMode === 'independent') this.model.viewport.reset()
     this.changed()
     this.events.emit('page-change', this.model.presentation.page, pageCount)
   }

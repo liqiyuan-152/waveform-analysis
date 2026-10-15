@@ -1,10 +1,10 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
 import type { WaveformLayoutPreset } from '@/index'
 import { flushVueChartUpdates, gridSeries } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 
 const preset: WaveformLayoutPreset = 'edge-compact'
 const title = { text: 'shot: #1001', textStyle: { fontSize: 18, fontWeight: 700 } }
@@ -68,7 +68,7 @@ describe('WaveformChart edge-compact layout', () => {
       scrollWidth: { value: 280 },
       scrollHeight: { value: 43.2 },
     })
-    resizeObservers.at(-1)?.resize(320, 360)
+    resizeChart(320, 360)
     await flushVueChartUpdates()
     expect(Number(wrapper.get('.waveform-chart').attributes('data-title-area-height'))).toBeCloseTo(
       51.2,
@@ -127,7 +127,7 @@ describe('WaveformChart edge-compact layout', () => {
         Number(wrapper.get('.waveform-chart').attributes('data-title-area-height'))
       const drawingHeight = () => Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const labelY = () => Number(wrapper.get('.waveform-chart__x-label').attributes('y'))
-      const paginationBand = 16
+      const paginationBand = width <= 520 ? 40 : 16
       expect(
         wrapper.findAll('.waveform-chart__pagination').some((element) => element.isVisible()),
       ).toBe(true)

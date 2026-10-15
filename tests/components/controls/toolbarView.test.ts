@@ -1,10 +1,10 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it, vi } from 'vitest'
 import {
   mountSizedChart,
   gridSeries,
   flushVueChartUpdates as flushPromises,
 } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 import { getInstanceByDom } from '@/chart/init'
 
 describe('toolbar view interaction', () => {
@@ -14,7 +14,7 @@ describe('toolbar view interaction', () => {
       pannable: true,
       grid: { rowCount: 2, columnCount: 1 },
     })
-    resizeObservers.at(-1)?.resize(360, 500)
+    resizeChart(360, 500)
     await flushPromises()
     expect(w.get('[aria-label="图表工具"]').attributes('aria-expanded')).toBe('false')
     await w.get('[aria-label="图表工具"]').trigger('click')
@@ -24,9 +24,9 @@ describe('toolbar view interaction', () => {
     await w.get('[role="toolbar"]').trigger('keydown', { key: 'Escape' })
     expect(w.get('[aria-label="图片格式"]').isVisible()).toBe(false)
     expect(w.get('[aria-label="图表工具"]').attributes('aria-expanded')).toBe('false')
-    await w.get('[aria-label="操作图框"]').setValue('channel-1')
+    expect(w.find('[aria-label="操作图框"]').exists()).toBe(false)
     await w.setProps({ grid: { rowCount: 1, columnCount: 1 } })
-    expect((w.get('select').element as HTMLSelectElement).value).toBe('')
+    expect(w.find('.waveform-toolbar select').exists()).toBe(false)
     w.unmount()
   })
   it('reports export errors and then downloads with cleanup', async () => {

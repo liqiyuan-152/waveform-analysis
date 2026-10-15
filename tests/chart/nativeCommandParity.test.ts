@@ -104,7 +104,6 @@ describe('native command compatibility', () => {
     { zoomable: false },
     { presentationMode: true },
     { hiddenSeriesIds: ['a', 'b', 'c', 'd'] },
-    { data: { kind: 'points' as const, points: [] } },
   ])('preserves command limits and disabled/empty policies %j', async (options) => {
     const h = await pair(options)
     for (const command of [

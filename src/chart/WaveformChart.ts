@@ -240,6 +240,7 @@ export class WaveformChart implements WaveformChartInstance {
       )
       this.exporter = new ChartExporter(this.renderer.svg, this.scheduler, () => ({
         ...this.size.value,
+        width: this.ensureLayout(false).renderedWidth,
         titleHeight: this.ensureLayout(false).titleHeight,
       }))
       this.resources.add(() => this.exporter.dispose())

@@ -154,7 +154,7 @@ describe('edge-compact frame and pagination bounds', () => {
       )
       expect(itemHeight).toBe(32)
       const paginationTop = 360 - Number.parseFloat(paginationStyle.bottom) - itemHeight
-      const paginationBand = 16
+      const paginationBand = width <= 520 ? 40 : 16
       expect(titleArea + svgHeight).toBeCloseTo(360 - paginationBand)
       const track = wrapper.get('.waveform-chart__track')
       const plotBottom =
@@ -165,14 +165,15 @@ describe('edge-compact frame and pagination bounds', () => {
       const time = wrapper.get('.waveform-chart__x-label')
       expect(getComputedStyle(time.element).fontSize).toBe('18px')
       expect(getComputedStyle(time.element).fontWeight).toBe('600')
-      expect(360 - titleArea - plotBottom).toBeCloseTo(60)
-      expect(360 - titleArea - timeBaseline).toBeCloseTo(25)
+      expect(360 - titleArea - plotBottom).toBeCloseTo(paginationBand + 44)
+      expect(360 - titleArea - timeBaseline).toBeCloseTo(paginationBand + 9)
       const endpoint = wrapper.get('.waveform-chart__axis-endpoint--end')
       const endpointBaseline = plotBottom + Number(endpoint.attributes('y')) + 10 * 0.71
       // Allow a conservative 3px descent for the unchanged 10px endpoint text.
       const endpointBottom = titleArea + endpointBaseline + 3
-      expect(paginationTop - endpointBottom).toBeCloseTo(4.9)
+      expect(paginationTop - endpointBottom).toBeCloseTo(4.9 + paginationBand - 16)
       expect(endpointBottom).toBeLessThan(paginationTop)
+      if (width <= 520) expect(titleArea + timeBaseline + 6).toBeLessThan(paginationTop)
     },
   )
 })

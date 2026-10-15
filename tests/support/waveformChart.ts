@@ -1,3 +1,4 @@
+import { resizeChart } from '@tests/support/setup'
 import { flushPromises, mount, type DOMWrapper } from '@vue/test-utils'
 import { vi } from 'vitest'
 
@@ -41,7 +42,7 @@ export async function mountSizedChart(data: WaveformData, extraProps = {}) {
     props: { data, animationEnabled: false, ...extraProps },
     attachTo: document.body,
   })
-  resizeObservers.at(-1)?.resize(800, 360)
+  resizeChart(800, 360)
   await flushPromises()
   await flushVueChartUpdates()
   const setProps = wrapper.setProps.bind(wrapper)

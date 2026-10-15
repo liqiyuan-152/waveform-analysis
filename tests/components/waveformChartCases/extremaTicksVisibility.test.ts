@@ -1,7 +1,8 @@
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import type { WaveformAxesOptions, WaveformData } from '@/index'
-import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
+import { mountSizedChart } from '@tests/support/waveformChart'
 
 type Chart = Awaited<ReturnType<typeof mountSizedChart>>
 const data: WaveformData = {
@@ -32,7 +33,7 @@ describe('extrema tick visibility API', () => {
       [false, false],
     ] as const) {
       await chart.setProps({ axes: { y: { maximumTickVisible, minimumTickVisible } } })
-      await flushVueChartUpdates()
+      await flushPromises()
       expect(extrema(chart, 'maximum')).toEqual(maximumTickVisible ? [12.345] : [])
       expect(extrema(chart, 'minimum')).toEqual(minimumTickVisible ? [12.345] : [])
       expect(ticks(chart).filter((value) => value === 12.345)).toHaveLength(
@@ -55,9 +56,11 @@ describe('extrema tick visibility API', () => {
       })
       expect(extrema(chart, 'minimum')).toEqual([12.345])
       expect(extrema(chart, 'maximum')).toEqual([78.901])
+      expect(chart.get('[data-maximum-tick] text').attributes('display')).toBeUndefined()
+      expect(chart.get('[data-maximum-tick] line').attributes('display')).toBeUndefined()
       const originalDomain = domain(chart)
       chart.vm.setViewportDomain([0.2, 0.8])
-      await flushVueChartUpdates()
+      await flushPromises()
       const endpoints = () =>
         chart.findAll('.waveform-chart__axis-endpoint').map((label) => Number(label.text()))
       const zoomedEndpoints = endpoints()
@@ -68,7 +71,7 @@ describe('extrema tick visibility API', () => {
         [true, true],
       ] as const) {
         await chart.setProps({ axes: { y: { ...y, maximumTickVisible, minimumTickVisible } } })
-        await flushVueChartUpdates()
+        await flushPromises()
         expect(extrema(chart, 'minimum')).toEqual(minimumTickVisible ? [12.345] : [])
         expect(extrema(chart, 'maximum')).toEqual(maximumTickVisible ? [78.901] : [])
         expect(domain(chart)).toEqual(originalDomain)
@@ -79,7 +82,7 @@ describe('extrema tick visibility API', () => {
       await chart.setProps({
         axes: { y: { ...y, maximumTickVisible: false, minimumTickVisible: false } },
       })
-      await flushVueChartUpdates()
+      await flushPromises()
       expect(extrema(chart, 'minimum')).toEqual([])
       expect(extrema(chart, 'maximum')).toEqual([])
       expect(ticks(chart)).not.toContain(12.345)
@@ -89,7 +92,7 @@ describe('extrema tick visibility API', () => {
       expect(chart.props('data')).toEqual(data)
       expect(chart.emitted('zoom-reset')).toBeUndefined()
       await chart.setProps({ axes: { y } })
-      await flushVueChartUpdates()
+      await flushPromises()
       expect(extrema(chart, 'minimum')).toEqual([12.345])
       expect(extrema(chart, 'maximum')).toEqual([78.901])
       expect(domain(chart)).toEqual(originalDomain)
@@ -104,14 +107,14 @@ describe('extrema tick visibility API', () => {
     expect(extrema(chart, 'minimum')).toEqual([12.345])
     expect(extrema(chart, 'maximum')).toEqual([])
     await chart.setProps({ yDomain: [20, 100] })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(domain(chart)).toEqual([20, 100])
     expect(extrema(chart, 'minimum')).toEqual([])
     expect(extrema(chart, 'maximum')).toEqual([78.901])
     await chart.setProps({
       axes: { y: { nice: false, maximumTickVisible: false, minimumTickVisible: false } },
     })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(domain(chart)).toEqual([20, 100])
     expect(extrema(chart, 'maximum')).toEqual([])
     chart.unmount()
@@ -132,7 +135,7 @@ describe('extrema tick visibility API', () => {
       chart
         .findAll('.waveform-track__axis--y .tick')
         .find((tick) => tick.attributes('data-tick-value') === '100.1')!
-    expect(upper().get('text').attributes('display')).toBe('none')
+    expect(upper()).toBeUndefined()
     await chart.setProps({
       axes: {
         y: {
@@ -143,12 +146,12 @@ describe('extrema tick visibility API', () => {
         },
       },
     })
-    await flushVueChartUpdates()
-    expect(upper().get('text').attributes('display')).toBeUndefined()
+    await flushPromises()
+    expect(upper().get('text').attributes('display')).toBe('none')
     await chart.setProps({
       axes: { y: { nice: false, maximumTickVisible: false, minimumTickVisible: false } },
     })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(ticks(chart)).toEqual([0, 25, 50, 75, 100])
     expect(extrema(chart, 'minimum')).toEqual([])
     expect(extrema(chart, 'maximum')).toEqual([])
@@ -178,12 +181,12 @@ describe('extrema tick visibility API', () => {
     })
     expect(extrema(chart, 'minimum')).toEqual([12.345])
     await chart.setProps({ hiddenSeriesIds: ['channel'] })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(extrema(chart, 'minimum')).toEqual([])
     expect(extrema(chart, 'maximum')).toEqual([])
     expect(chart.find('.waveform-track__axis--y').exists()).toBe(true)
     await chart.setProps({ hiddenSeriesIds: [] })
-    await flushVueChartUpdates()
+    await flushPromises()
     expect(extrema(chart, 'minimum')).toEqual([12.345])
     expect(extrema(chart, 'maximum')).toEqual([78.901])
     chart.unmount()

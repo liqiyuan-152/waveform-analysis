@@ -1,7 +1,8 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import WaveformChart from '@/components/WaveformChart.vue'
 import { AnnotationDraftController } from '@/annotation/AnnotationDraftController'
 
@@ -23,7 +24,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
 
-    resizeObservers.at(-1)?.resize(640, 420)
+    resizeChart(640, 420)
     await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
@@ -42,7 +43,7 @@ describe('WaveformChart', () => {
     expect(wrapper.attributes('style')).toContain('width: 640px')
     expect(wrapper.attributes('style')).toContain('height: 100%')
 
-    resizeObservers.at(-1)?.resize(640, 500)
+    resizeChart(640, 500)
     await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
@@ -83,7 +84,7 @@ describe('WaveformChart', () => {
     expect(wrapper.attributes('style')).toContain('width: 100%')
     expect(wrapper.attributes('style')).toContain('height: 420px')
 
-    resizeObservers.at(-1)?.resize(900, 420)
+    resizeChart(900, 420)
     await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('900')
@@ -100,12 +101,12 @@ describe('WaveformChart', () => {
     expect(wrapper.attributes('style')).toContain('height: 100%')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('180')
 
-    resizeObservers.at(-1)?.resize(800, 520)
+    resizeChart(800, 520)
     await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('520')
 
-    resizeObservers.at(-1)?.resize(500, 300)
+    resizeChart(500, 300)
     await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('500')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('300')
@@ -250,7 +251,7 @@ describe('WaveformChart', () => {
         },
       },
     )
-    resizeObservers.at(-1)?.resize(160, 360)
+    resizeChart(160, 360)
     await flushVueChartUpdates()
 
     const title = wrapper.get('.waveform-chart__title-text')
@@ -317,7 +318,7 @@ describe('WaveformChart', () => {
       { title: { text: '自适应高度标题' } },
     )
     expect(adaptiveWrapper.get('.waveform-chart__svg').attributes('height')).toBe('316')
-    resizeObservers.at(-1)?.resize(800, 500)
+    resizeChart(800, 500)
     await flushVueChartUpdates()
     expect(adaptiveWrapper.get('.waveform-chart__svg').attributes('height')).toBe('456')
   })

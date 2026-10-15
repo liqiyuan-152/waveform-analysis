@@ -18,6 +18,7 @@ let animationFrameId = 0
 
 export class ResizeObserverMock {
   private target?: Element
+  readonly targets = new Set<Element>()
   private measured?: { width: number; height: number }
 
   constructor(private readonly callback: ResizeCallback) {
@@ -26,6 +27,7 @@ export class ResizeObserverMock {
 
   observe = vi.fn((target: Element) => {
     this.target = target
+    this.targets.add(target)
   })
 
   unobserve: () => void = vi.fn()
@@ -126,4 +128,14 @@ HTMLDialogElement.prototype.showModal = function () {
 }
 HTMLDialogElement.prototype.close = function () {
   this.removeAttribute('open')
+}
+
+export function resizeChart(width: number, height = 400) {
+  const observer = [...resizeObservers]
+    .reverse()
+    .find((observer) =>
+      [...observer.targets].some((target) => target.classList.contains('waveform-chart-host')),
+    )
+  if (!observer) throw new Error('Chart host observer not found')
+  observer.resize(width, height)
 }

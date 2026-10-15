@@ -1,10 +1,10 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { defineComponent, h, ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
 import type { WaveformData } from '@/components/waveform'
-import { resizeObservers } from '@tests/support/setup'
 import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 function seriesWindow(ids: string[]) {
@@ -85,7 +85,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
         }),
       )
       await flushVueChartUpdates()
-      resizeObservers.at(-1)?.resize(800, 360)
+      resizeChart(800, 360)
       await flushVueChartUpdates()
 
       const chart = host.findComponent(WaveformChart)
@@ -138,7 +138,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
         }),
       )
       await flushVueChartUpdates()
-      resizeObservers.at(-1)?.resize(800, 360)
+      resizeChart(800, 360)
       await flushVueChartUpdates()
 
       const chart = host.findComponent(WaveformChart)

@@ -21,6 +21,7 @@ import { resolveCompactPaginationBand } from '../components/core/pagination'
 export interface ChartLayoutSnapshot {
   geometryReady: boolean
   width: number
+  renderedWidth: number
   height: number
   drawingHeight: number
   titleHeight: number
@@ -49,7 +50,7 @@ export class ChartLayoutEngine {
   ) {
     this.domainTimeUnit = model.options.value.timeUnit
     this.text = new YAxisTextMeasurer(ownerDocument)
-    this.axes = new AxisLayoutEngine(this.text.measure)
+    this.axes = new AxisLayoutEngine()
   }
 
   calculate(
@@ -150,7 +151,9 @@ export class ChartLayoutEngine {
     const paginationVisible = grid.showPagination && pageCount > 1 && !options.cleanView
     const paginationBandHeight =
       options.layoutPreset === 'edge-compact'
-        ? resolveCompactPaginationBand(paginationVisible)
+        ? paginationVisible && width <= 520
+          ? 40
+          : resolveCompactPaginationBand(paginationVisible)
         : grid.showPagination && pageCount > 1 && width <= 520
           ? 40
           : 0
@@ -203,6 +206,7 @@ export class ChartLayoutEngine {
             yDomains,
             timeUnit: options.timeUnit,
             domainTimeUnit: this.domainTimeUnit,
+            xAxisSplitNumber: options.axes?.x?.splitNumber,
             xAxisLabelFormatter: options.axes?.x?.labelFormatter,
             yAxisSplitNumber: options.axes?.y?.splitNumber,
             yAxisNice: options.axes?.y?.nice,
@@ -224,6 +228,7 @@ export class ChartLayoutEngine {
     return {
       geometryReady: includeGeometry,
       width,
+      renderedWidth: axis.renderedWidth,
       height,
       drawingHeight,
       titleHeight,

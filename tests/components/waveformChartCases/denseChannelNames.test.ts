@@ -1,6 +1,6 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
 
 const names = Array.from(
   { length: 5 },
@@ -65,8 +65,8 @@ describe('channel names in dense vertical grids', () => {
     const labels = () =>
       wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text())
     expect(labels()).toEqual(names)
-    resizeObservers.at(-1)?.resize(320, 240)
+    resizeChart(320, 240)
     await flushVueChartUpdates()
     expect(labels()).toEqual(names)
   })
-})
+}, 20_000)

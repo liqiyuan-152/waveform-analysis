@@ -1,8 +1,6 @@
-import { formatYAxisTickLayoutLabel } from './layout'
 import type { TrackLayout, WaveformYAxisLayout } from './types'
 import type { WaveformYAxisLabelTextStyle } from '../../types'
-import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
-import { Y_AXIS_CHARACTER_WIDTH, Y_AXIS_TICK_PADDING } from './yAxisConstants'
+import { resolveYAxisSpaceBudget } from './yAxisSpaceBudget'
 
 interface TitleLayoutOptions {
   labelTextStyle?: WaveformYAxisLabelTextStyle
@@ -15,23 +13,11 @@ type TitleTrack = Pick<TrackLayout, 'height' | 'column' | 'yAxes'>
 
 function titleDistance(axis: WaveformYAxisLayout, options: TitleLayoutOptions): number {
   const series = axis.seriesList[0]
-  // Reserve the widest tick, including extrema, regardless of the frame height.
-  // The layout formatter excludes scientific multipliers but retains the numeric label.
-  const tickWidths = axis.tickValues.map((value) => {
-    const text = formatYAxisTickLayoutLabel(
-      value,
-      axis.scale.domain() as [number, number],
-      axis.tickValues,
-      options.showUnits === false ? undefined : series?.unit,
-    )
-    return options.measureTextWidth?.(text) ?? text.length * Y_AXIS_CHARACTER_WIDTH
-  })
-  // The title band leaves 4px beside each glyph.
-  return (
-    Math.max(Y_AXIS_CHARACTER_WIDTH, ...tickWidths) +
-    Y_AXIS_TICK_PADDING +
-    resolveYAxisLabelBandWidth(options.labelTextStyle) / 2
-  )
+  return resolveYAxisSpaceBudget({
+    unit: options.showUnits === false ? undefined : series?.unit,
+    labelTextStyle: options.labelTextStyle,
+    measureTextWidth: options.measureTextWidth,
+  }).titleDistance
 }
 
 export function alignLeftYAxisTitles(

@@ -278,6 +278,8 @@ export interface WaveformYAxisLabelTextStyle {
 export interface WaveformAxesOptions {
   x?: {
     lineVisible?: boolean
+    /** Target segment count for nice ticks, not an exact label count. Defaults to 5. */
+    splitNumber?: number
     /** Formats display-unit X values for ticks and visible-range endpoints. */
     labelFormatter?: WaveformXAxisLabelFormatter
   }
@@ -285,17 +287,17 @@ export interface WaveformAxesOptions {
     lineVisible?: boolean
     /** Styles series names on both left and right Y axes, without changing tick labels. */
     labelTextStyle?: WaveformYAxisLabelTextStyle
-    /** Target total number of equal Y-axis ticks, including endpoints. Defaults to 5. */
+    /** Target Y-axis tick count before filtering to explicit padding or amplitude bounds. Defaults to 5. */
     splitNumber?: number
-    /** Expands Y-axis domains to equal, human-friendly intervals. Defaults to true. */
+    /** Uses human-friendly intervals; explicit padding sides keep their exact bounds. Defaults to true. */
     nice?: boolean
-    /** Shows the full data maximum's extra tick and label. Defaults to true. */
+    /** Shows the full data maximum's tick and label, hiding higher axis ticks. Defaults to true. */
     maximumTickVisible?: boolean
     /** Shows the full data minimum's extra tick and label. Defaults to true. */
     minimumTickVisible?: boolean
-    /** Fraction of the automatic Y span added above its maximum. Defaults to 0. */
+    /** Exact fraction of the automatic Y span added above its maximum, even with nice. Defaults to 0. */
     upperPaddingRatio?: number
-    /** Fraction of the automatic Y span added below its minimum. Defaults to 0. */
+    /** Exact fraction of the automatic Y span added below its minimum, even with nice. Defaults to 0. */
     lowerPaddingRatio?: number
     /** False disables upper padding; true defaults an omitted ratio to 0.1. */
     upperPaddingEnabled?: boolean

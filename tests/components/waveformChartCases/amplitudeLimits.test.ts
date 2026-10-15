@@ -1,6 +1,7 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it, vi } from 'vitest'
 import { flushVueChartUpdates, mountSizedChart, gridSeries } from '@tests/support/waveformChart'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import { normalizeWaveformSeries, type WaveformData, type WaveformAmplitudeLimit } from '@/index'
 
 function data(min = -200, max = 200): WaveformData {
@@ -149,7 +150,7 @@ describe('WaveformChart amplitude limits', () => {
       check()
       expect(w.get('.waveform-chart__line').attributes('d')).toMatch(/^M[^,]+,-/)
       expect(w.find('[clip-path]').exists()).toBe(true)
-      resizeObservers.at(-1)?.resize(260, 180)
+      resizeChart(260, 180)
       await flushVueChartUpdates()
       check()
       expect(source).toEqual(original)
@@ -259,7 +260,7 @@ describe('WaveformChart amplitude limits', () => {
     w.unmount()
   })
 
-  it('preserves empty-data defaults without creating axes for absent series', async () => {
+  it('retains configured axes for an empty series and removes them when the series is deleted', async () => {
     const w = await mountSizedChart(
       {
         kind: 'series',
@@ -276,10 +277,11 @@ describe('WaveformChart amplitude limits', () => {
       },
       { amplitudeLimits: { a: { lower: -73, upper: 86 } } },
     )
-    expect(domains(w)).toEqual([])
+    expect(domains(w)).toEqual([[-73, 86]])
     await w.setProps({ data: { kind: 'series', series: [] } })
     await flushVueChartUpdates()
     expect(w.find('.waveform-chart').exists()).toBe(true)
+    expect(domains(w)).toEqual([])
     expect(domains(w).every((d) => d.every(Number.isFinite))).toBe(true)
     w.unmount()
   })

@@ -94,6 +94,7 @@ export class SvgChartRenderer {
       'data-plot-margin-bottom': layout.drawingHeight - layout.top - layout.innerHeight,
       'data-title-area-height': layout.titleHeight,
     })
+    this.root.classList.toggle('waveform-chart--scrollable', layout.renderedWidth > layout.width)
     this.root.classList.toggle('waveform-chart--clean', options.cleanView)
     this.root.classList.toggle(
       'waveform-chart--edge-compact',
@@ -103,9 +104,9 @@ export class SvgChartRenderer {
     this.pagination.render(layout)
     this.title.alignToPlot(layout.left, layout.innerWidth, options)
     setSvgAttributes(this.svg, {
-      width: layout.width,
+      width: layout.renderedWidth,
       height: layout.drawingHeight,
-      viewBox: `0 0 ${layout.width} ${layout.drawingHeight}`,
+      viewBox: `0 0 ${layout.renderedWidth} ${layout.drawingHeight}`,
     })
     if (
       layout.width <= 0 ||
@@ -125,8 +126,12 @@ export class SvgChartRenderer {
       x: layout.left + layout.innerWidth / 2,
       y: Math.max(0, layout.drawingHeight - 12 + (options.layoutPreset === 'edge-compact' ? 3 : 0)),
     })
-    this.empty.style.display = layout.tracks.some((track) => track.series.length) ? 'none' : ''
-    setSvgAttributes(this.empty, { x: layout.width / 2, y: layout.drawingHeight / 2 })
+    const hasSamples = layout.tracks.some((track) =>
+      track.series.some((series) => (series.source?.length ?? series.points.length) > 0),
+    )
+    this.svg.setAttribute('aria-label', hasSamples ? '波形折线图' : '暂无波形数据')
+    this.empty.style.display = hasSamples ? 'none' : ''
+    setSvgAttributes(this.empty, { x: layout.renderedWidth / 2, y: layout.drawingHeight / 2 })
     const active = new Set(layout.trackLayouts.map((track) => track.id))
     const hideTitles =
       options.unitDisplayMode === 'channel-label-or-legend' &&

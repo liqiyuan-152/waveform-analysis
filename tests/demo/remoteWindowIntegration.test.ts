@@ -1,3 +1,4 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
@@ -5,14 +6,14 @@ import App from '@/App.vue'
 import { WaveformChart } from '@/components'
 import { remoteWindowLoaderKey, type RemoteWindowRequest } from '@/demo/remoteWaveformLoader'
 import type { WaveformData } from '@/types'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import { applyXDomainStrategy } from '@/components/core/xDomain'
 
 describe('remote demo integration', () => {
   it('commits wheel gestures while request state updates rerender the demo', async () => {
     const wrapper = mount(App, { attachTo: document.body })
     await flushPromises()
-    resizeObservers.at(-1)?.resize(1000, 800)
+    resizeChart(1000, 800)
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
     const strategy = chart.props('xDomainStrategy')

@@ -1,5 +1,6 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const modes = ['independent', 'separated', 'compact'] as const
@@ -23,7 +24,7 @@ describe('wheel steps share toolbar zoom constraints', () => {
         },
       )
       try {
-        resizeObservers.at(-1)?.resize(containerWidth, 360)
+        resizeChart(containerWidth, 360)
         await flushVueChartUpdates()
         for (const ratio of [0.2, 0.5, 0.8]) {
           for (const deltaY of [-1, -100, -4000]) {

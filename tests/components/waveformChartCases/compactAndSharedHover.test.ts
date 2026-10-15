@@ -1,8 +1,9 @@
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 
-import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVisibility'
 
 describe('WaveformChart', () => {
@@ -12,7 +13,7 @@ describe('WaveformChart', () => {
     { width: 800, layoutPreset: 'edge-compact' },
     { width: 320, layoutPreset: 'edge-compact' },
   ] as const)(
-    'hides only overlapping compact maximum labels at $width px with $layoutPreset',
+    'hides compact upper boundary labels at $width px with $layoutPreset',
     async (size) => {
       const wrapper = await mountSizedChart(
         {
@@ -84,8 +85,8 @@ describe('WaveformChart', () => {
       expect(Number(endTicks[2][0].text())).toBe(3)
       expect(endTicks[3]).toHaveLength(1)
       expect(Number(endTicks[3][0].text())).toBe(5)
-      endTicks.forEach(([tick], index) => {
-        expect(tick.get('text').attributes('display')).toBe(index < 2 ? undefined : 'none')
+      endTicks.forEach(([tick]) => {
+        expect(tick.get('text').attributes('display')).toBe('none')
         expect(tick.get('text').attributes('dominant-baseline')).toBe('central')
         expect(tick.get('text').attributes('dy')).toBe('0')
       })
@@ -95,16 +96,12 @@ describe('WaveformChart', () => {
         ).toBeUndefined()
       })
       updateMaximumTickVisibility(wrapper.get('svg').element as SVGSVGElement)
-      endTicks.forEach(([tick], index) =>
-        expect(tick.get('text').attributes('display')).toBe(index < 2 ? undefined : 'none'),
-      )
+      endTicks.forEach(([tick]) => expect(tick.get('text').attributes('display')).toBe('none'))
       for (const displayMode of ['separated', 'independent', 'compact'] as const) {
         await wrapper.setProps({ displayMode })
-        await flushVueChartUpdates()
-        wrapper.findAll('.waveform-chart__axis--y').forEach((axis, index) => {
-          expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe(
-            displayMode === 'compact' && index >= 2 ? 'none' : undefined,
-          )
+        await flushPromises()
+        wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
+          expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe('none')
         })
       }
       wrapper.unmount()
@@ -142,7 +139,12 @@ describe('WaveformChart', () => {
           },
         ],
       },
-      { displayMode: 'compact', grid: { rowCount: 2, columnCount: 1 }, yDomain },
+      {
+        displayMode: 'compact',
+        grid: { rowCount: 2, columnCount: 1 },
+        yDomain,
+        axes: { y: { maximumTickVisible: false } },
+      },
     )
 
     const [topTrack, bottomTrack] = wrapper.findAll('.waveform-chart__track')
@@ -277,7 +279,7 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushVueChartUpdates()
+    await flushPromises()
 
     const tooltip = wrapper.get('.waveform-chart__tooltip')
     expect(tooltip.text()).toContain('未配置炮号： BT2_2M')
@@ -305,7 +307,7 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushVueChartUpdates()
+    await flushPromises()
 
     expect(wrapper.findAll('.waveform-chart__crosshair')).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(2)

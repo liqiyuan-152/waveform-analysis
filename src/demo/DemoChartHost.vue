@@ -73,7 +73,7 @@ defineExpose({ resetViewport })
       :frame-number="model.frameWatermarkVisible ? 1 : undefined"
       :annotations-visible="model.annotationsVisible"
       v-model:interaction-mode="model.interactionMode"
-      :toolbar="model.toolbarVisible"
+      :toolbar="model.toolbarOptions ?? model.toolbarVisible"
       pannable
       @zoom-intent="model.handleZoomIntent"
       @zoom-change="model.handleZoomChange"

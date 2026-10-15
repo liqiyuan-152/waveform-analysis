@@ -1,9 +1,87 @@
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
-import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
+import { mountSizedChart } from '@tests/support/waveformChart'
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
 
 describe('scientific channel name placement', () => {
-  it.each([320, 800])('ignores scientific multipliers at width %s', async (width) => {
+  it.each(['default', 'edge-compact'] as const)(
+    'allows full exponents to overlap long names without changing layout (%s)',
+    async (layoutPreset) => {
+      const wrapper = await mountSizedChart(
+        {
+          kind: 'series',
+          series: ['left', 'right'].map((id) => ({
+            id,
+            trackId: 'frame',
+            name: `${id}_LONG_CHANNEL_NAME`.repeat(5),
+            data: { kind: 'samples', values: [-3.4567e-6, 3.4567e-6], sampleRate: 1 },
+          })),
+        },
+        {
+          overlayMode: 'multi-axis',
+          layoutPreset,
+          height: 200,
+          yDomain: [-1e-5, 2e-5],
+          grid: { rowCount: 1 },
+          animationEnabled: false,
+          axes: { y: { nice: false } },
+        },
+      )
+      try {
+        const track = wrapper.get('.waveform-chart__track')
+        const initialMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
+        const initialWidth = track.attributes('data-track-width')
+        const initialTitles = track
+          .findAll('.waveform-chart__y-axis-label')
+          .map((label) => label.attributes('transform'))
+        for (const axis of track.findAll('.waveform-track__axis--y')) {
+          const index = axis.attributes('data-y-axis-index')
+          const band = track.get(
+            `[data-y-axis-title-index="${index}"] .waveform-chart__y-axis-label-bg`,
+          )
+          const bandLeft = Number(band.attributes('x'))
+          const bandRight = bandLeft + Number(band.attributes('width'))
+          const label = axis.get('.tick[data-maximum-tick] text')
+          expect(label.text()).toContain('E-05')
+          expect(label.attributes('display')).toBeUndefined()
+          const x =
+            Number(axis.attributes('transform')?.match(/translate\(([^,]+)/)?.[1]) +
+            Number(label.attributes('x'))
+          const width = measureYAxisTextWidth(label.text())
+          if (axis.attributes('data-y-axis-side') === 'left') {
+            expect(x - width).toBeLessThan(bandRight)
+            expect(x).toBeGreaterThan(bandLeft)
+          } else {
+            expect(x + width).toBeGreaterThan(bandLeft)
+            expect(x).toBeLessThan(bandRight)
+          }
+        }
+        await wrapper.setProps({ yDomain: [-2e-5, 1e-5] })
+        await flushPromises()
+        expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe(
+          initialMargin,
+        )
+        expect(track.attributes('data-track-width')).toBe(initialWidth)
+        expect(
+          track
+            .findAll('.waveform-chart__y-axis-label')
+            .map((label) => label.attributes('transform')),
+        ).toEqual(initialTitles)
+        expect(
+          track
+            .findAll('.tick[data-maximum-tick] text')
+            .every(
+              (label) => label.text().includes('E-05') && label.attributes('display') !== 'none',
+            ),
+        ).toBe(true)
+      } finally {
+        wrapper.unmount()
+      }
+    },
+  )
+
+  it.each([320, 800])('keeps the reserved scientific label space at width %s', async (width) => {
     const wrapper = await mountSizedChart(
       {
         kind: 'series',
@@ -37,24 +115,23 @@ describe('scientific channel name placement', () => {
       const decimalX = labelX()
       const decimalMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
       await wrapper.setProps({ yDomain: [0, 30000] })
-      await flushVueChartUpdates()
+      await flushPromises()
       expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04')
-      // Both ranges show 0, 0.75, 1.5, 2.25, 3. The top scientific
-      // multiplier is excluded from name spacing, but included in outer clearance.
+      // Both formats fit the same reserved band, including the full exponent.
       expect(labelX()).toBe(decimalX)
-      expect(
-        Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
-      ).toBeGreaterThanOrEqual(Number(decimalMargin))
+      expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
+        Number(decimalMargin),
+      )
       expect(
         Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')) + labelX(),
-      ).toBeGreaterThanOrEqual(6)
+      ).toBeGreaterThanOrEqual(2)
       await wrapper.setProps({ yDomain: [0, 0.0003] })
-      await flushVueChartUpdates()
+      await flushPromises()
       expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E-04')
       expect(labelX()).toBe(decimalX)
-      expect(
-        Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
-      ).toBeGreaterThanOrEqual(Number(decimalMargin))
+      expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
+        Number(decimalMargin),
+      )
     } finally {
       wrapper.unmount()
     }
@@ -102,14 +179,15 @@ describe('dense scientific axes', () => {
         [38240, 'E+04'],
       ] as const) {
         await wrapper.setProps({ yDomain: [0, max] })
-        await flushVueChartUpdates()
+        await flushPromises()
         expect(positions()).toEqual(plainPositions)
-        expect(
-          Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
-        ).toBeGreaterThan(Number(plainMargin))
+        expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
+          Number(plainMargin),
+        )
         expect(
           wrapper
             .findAll('.waveform-chart__axis--y .tick text')
+            .filter((label) => label.attributes('display') !== 'none')
             .filter((label) => label.text().startsWith('E'))
             .map((label) => label.text().split(' ')[0]),
         ).toEqual(Array(6).fill(exponent))
@@ -124,7 +202,7 @@ describe('dense scientific axes', () => {
         ).toBe(true)
       }
       await wrapper.setProps({ yDomain: [0, 3.824] })
-      await flushVueChartUpdates()
+      await flushPromises()
       expect(
         wrapper
           .findAll('.waveform-chart__axis--y .tick text')

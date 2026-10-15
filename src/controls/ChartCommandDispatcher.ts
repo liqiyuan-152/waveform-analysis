@@ -102,18 +102,21 @@ export class ChartCommandDispatcher {
               )
         const resetsY = action === 'fit' || action === 'reset'
         const hasY = resetsY && Object.keys(this.model.viewport.get(id)?.yDomains ?? {}).length > 0
-        const status = !tracks.some((track) =>
+        const hasSeries = tracks.some((track) => track.seriesList.length > 0)
+        const hasSamples = tracks.some((track) =>
           track.seriesList.some((series) => (series.source?.length ?? series.points.length) > 0),
         )
-          ? ('empty-data' as const)
-          : options.presentationMode || !options.zoomable
-            ? ('disabled' as const)
-            : before &&
-                sameZoomDomain(before.xDomain, next) &&
-                !hasY &&
-                sameZoomDomain(bounds, currentBounds)
-              ? ('unchanged' as const)
-              : ('applied' as const)
+        const status =
+          !hasSeries || (action === 'fit' && !hasSamples)
+            ? ('empty-data' as const)
+            : options.presentationMode || !options.zoomable
+              ? ('disabled' as const)
+              : before &&
+                  sameZoomDomain(before.xDomain, next) &&
+                  !hasY &&
+                  sameZoomDomain(bounds, currentBounds)
+                ? ('unchanged' as const)
+                : ('applied' as const)
         return { id, tracks, before, bounds, next, status, resetsY }
       })
     return { entries, independent }

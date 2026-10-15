@@ -162,7 +162,7 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart({ kind: 'samples', values: [1], sampleRate: -1 })
 
     expect(wrapper.get('.waveform-chart__empty').text()).toContain('暂无有效波形数据')
-    expect(wrapper.find('.waveform-chart__line').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__line:not([display="none"])').exists()).toBe(false)
   })
 
   it('emits the nearest point on hover and clears it on leave', async () => {

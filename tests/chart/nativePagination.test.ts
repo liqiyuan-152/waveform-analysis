@@ -106,7 +106,9 @@ describe('native pagination ownership', () => {
       await click('下一页')
       expect(chart.getControlState().targets[0]?.viewport.xDomain).toEqual(expected)
       await click('上一页')
-      expect(chart.getControlState().targets[0]?.viewport.xDomain).toEqual(expected)
+      const restored = chart.getControlState().targets[0]!.viewport.xDomain
+      expect(restored[0]).toBeCloseTo(0.2)
+      expect(restored[1]).toBeCloseTo(0.8)
     },
   )
 

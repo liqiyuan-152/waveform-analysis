@@ -15,7 +15,12 @@ import {
 import { resolveYAxisTicks } from './yAxisTicks'
 export { resolveYAxisTicks, type ResolvedYAxisTicks } from './yAxisTicks'
 import { applyAmplitudeLimits, mergeAmplitudeLimits } from './amplitudeLimits'
-import { applyYAxisPadding, withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
+import {
+  applyYAxisPadding,
+  sameTick,
+  withMaximumTick,
+  type YAxisPaddingOptions,
+} from './yAxisPadding'
 import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 
 // 导出常量供外部使用
@@ -78,6 +83,8 @@ export interface YAxisSeriesGroup {
   domain: [number, number]
   fixed: boolean
   amplitudeLimit?: WaveformAmplitudeLimit
+  /** Bounds preserved during nice tick generation, including explicit padding. */
+  tickBounds?: WaveformAmplitudeLimit
   maximumTick?: number
   minimumTick?: number
 }
@@ -182,6 +189,16 @@ export function resolveRenderedYAxisSeriesGroups(
     if (limit) {
       padded.domain = applyAmplitudeLimits(padded.domain, limit, automatic.domain)
       padded.amplitudeLimit = limit
+      padded.tickBounds = {
+        lower:
+          limit.lower !== undefined || padded.tickBounds?.lower !== undefined
+            ? padded.domain[0]
+            : undefined,
+        upper:
+          limit.upper !== undefined || padded.tickBounds?.upper !== undefined
+            ? padded.domain[1]
+            : undefined,
+      }
     }
     return track.visibleSeries.length
       ? padded
@@ -211,8 +228,14 @@ export function axisTextMetrics(
   const tickValueSets = [
     withMaximumTick(resolvedTicks.values, inRange(maximumTick), inRange(minimumTick)),
   ]
-  if (includeWithoutLastTick && resolvedTicks.values.length > 1) {
-    tickValueSets.push(resolvedTicks.values.slice(0, -1))
+  const visibleTicks = tickValueSets[0]!.filter(
+    (value) =>
+      !sameTick(value, resolvedTicks.domain[1]) ||
+      (maximumTick !== undefined && sameTick(value, maximumTick)),
+  )
+  if (visibleTicks.length) tickValueSets.push(visibleTicks)
+  if (includeWithoutLastTick && tickValueSets[0]!.length > 1) {
+    tickValueSets.push(tickValueSets[0]!.slice(0, -1))
   }
   const width = (text: string) =>
     measureTextWidth ? measureTextWidth(text) : text.length * Y_AXIS_CHARACTER_WIDTH
@@ -335,7 +358,7 @@ export function buildYAxisSlots(
         measureTextWidth,
         group.maximumTick,
         group.minimumTick,
-        group.amplitudeLimit,
+        group.tickBounds,
       )
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, tickTextWidth))
       titleWidths.set(key, Math.max(titleWidths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, titleTextWidth))

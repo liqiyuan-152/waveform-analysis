@@ -20,7 +20,6 @@ import {
   type NormalizedWaveformGridOptions,
 } from './grid'
 import {
-  axisTextMetrics,
   resolveRenderedYAxisSeriesGroups,
   resolveYAxisTicks,
   resolveYAxisTickCount,
@@ -29,19 +28,12 @@ import {
 import type { DisplayTrack, TrackLayout, WaveformYAxisLayout } from './types'
 import { applyXDomainStrategy } from './xDomain'
 import { alignLeftYAxisTitles } from './yAxisTitleLayout'
-import { measureYAxisTextWidth } from './yAxisTextWidth'
-import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
+import { resolveYAxisSpaceBudget } from './yAxisSpaceBudget'
 import {
   alignIntegerZoomDomain,
   normalizeIntegerZoomDomain,
   integerZoomTicks,
 } from '../interaction/integerZoom'
-import {
-  Y_AXIS_LABEL_GAP,
-  Y_AXIS_OUTER_PADDING,
-  Y_AXIS_RIGHT_LABEL_OFFSET,
-  Y_AXIS_TICK_PADDING,
-} from './yAxisConstants'
 
 interface SeriesGridCell extends GridCellGeometry {
   series?: DisplayTrack
@@ -65,6 +57,7 @@ export interface BuildTrackLayoutsOptions {
   yDomains?: Record<string, [number, number]>
   timeUnit: 's' | 'ms'
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
+  xAxisSplitNumber?: number
   yAxisSplitNumber?: number
   yAxisNice?: boolean
   yAxisPadding?: YAxisPaddingOptions
@@ -157,7 +150,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         group.domain,
         tickCount,
         options.yAxisNice !== false,
-        group.amplitudeLimit,
+        group.tickBounds,
       )
       const scale = scaleLinear(resolvedTicks.domain, [cell.plotHeight, 0])
       const majorTicks = resolvedTicks.values
@@ -174,22 +167,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
           ? group.minimumTick
           : undefined
       const tickValues = withMaximumTick(majorTicks, maximumTick, minimumTick)
-      const { tickTextWidth, titleTextWidth } = axisTextMetrics(
-        scale.domain() as [number, number],
-        false,
-        tickValues,
-        options.showAxisUnits !== false ? group.seriesList[0]?.unit : undefined,
-        tickCount,
-      )
-      const clearance =
-        Math.max(
-          tickTextWidth,
-          titleTextWidth +
-            Y_AXIS_LABEL_GAP +
-            resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle),
-        ) +
-        Y_AXIS_TICK_PADDING +
-        Y_AXIS_OUTER_PADDING
+      const budget = resolveYAxisSpaceBudget({
+        unit: options.showAxisUnits !== false ? group.seriesList[0]?.unit : undefined,
+        labelTextStyle: options.yAxisPadding?.labelTextStyle,
+      })
       const slot = options.yAxisSlots?.find(
         (candidate) => candidate.side === group.side && candidate.sideIndex === sideIndex,
       )
@@ -198,17 +179,10 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         : group.side === 'left'
           ? -sideOffsets.left
           : cell.width + sideOffsets.right
-      const labelDistance =
-        titleTextWidth +
-        Y_AXIS_TICK_PADDING +
-        Y_AXIS_LABEL_GAP +
-        resolveYAxisLabelBandWidth(options.yAxisPadding?.labelTextStyle) / 2
-      const labelX =
-        (slot
-          ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
-          : x + (group.side === 'left' ? -labelDistance : labelDistance)) -
-        (group.side === 'right' && !options.compactYAxisLayout ? Y_AXIS_RIGHT_LABEL_OFFSET : 0)
-      if (!slot) sideOffsets[group.side] += clearance
+      const labelX = slot
+        ? (group.side === 'left' ? 0 : cell.width) + slot.labelOffset
+        : x + (group.side === 'left' ? -budget.titleDistance : budget.titleDistance)
+      if (!slot) sideOffsets[group.side] += budget.clearance
       return {
         index: group.index,
         side: group.side,
@@ -228,7 +202,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const yScale = yAxes[0]?.scale ?? fallbackYScale
     const xMajorTicks = integerZoomTicks(
       xScale.domain() as [number, number],
-      Math.max(2, Math.floor(cell.width / 100)),
+      options.xAxisSplitNumber ?? 5,
       options,
     )
     const xAxisLabelFormatter = options.xAxisLabelFormatter
@@ -243,12 +217,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
       start: formatXAxisLabel(domain[0], domain, options.timeUnit, 'start', xAxisLabelFormatter),
       end: formatXAxisLabel(domain[1], domain, options.timeUnit, 'end', xAxisLabelFormatter),
     }
-    const leftClearance = endpointLabels.start.length * 7 + 10
-    const rightClearance = endpointLabels.end.length * 7 + 10
-    const xAxisTickValues = xMajorTicks.filter((tick) => {
-      const position = xScale(tick)
-      return position > leftClearance && position < cell.width - rightClearance
-    })
+    const xAxisTickValues = xMajorTicks
     const seriesPaths = displayTrack.visibleSeries.map((trackSeries) => {
       const yAxis = yAxes.find((axis) =>
         axis.seriesList.some((series) => series.id === trackSeries.id),
@@ -329,13 +298,13 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     }
   })
 
-  alignLeftYAxisTitles(layouts, options.yLabel, {
-    labelTextStyle: options.yAxisPadding?.labelTextStyle,
-    showUnits: options.showAxisUnits,
-    compact: options.compactYAxisLayout,
-    measureTextWidth: options.compactYAxisLayout
-      ? (options.measureTextWidth ?? measureYAxisTextWidth)
-      : undefined,
-  })
+  // Supplied slots already share their numeric budget and include chart-edge padding.
+  if (!options.yAxisSlots) {
+    alignLeftYAxisTitles(layouts, options.yLabel, {
+      labelTextStyle: options.yAxisPadding?.labelTextStyle,
+      showUnits: options.showAxisUnits,
+      compact: options.compactYAxisLayout,
+    })
+  }
   return layouts
 }

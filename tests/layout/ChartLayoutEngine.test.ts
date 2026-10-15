@@ -73,11 +73,11 @@ describe('native chart layout', () => {
 
   it('handles empty, invalid and zero-size data without non-finite geometry', () => {
     const empty = new ChartLayoutEngine(new ChartModel())
-    expect(empty.calculate(800, 400).trackLayouts).toEqual([])
+    expect(empty.calculate(800, 400).trackLayouts[0].series?.source?.length).toBe(0)
     const invalid = new ChartLayoutEngine(
       new ChartModel({ data: { kind: 'points', points: [{ x: NaN, y: 1 }] } }),
     )
-    expect(invalid.calculate(800, 400).trackLayouts).toEqual([])
+    expect(invalid.calculate(800, 400).trackLayouts[0].series?.source?.length).toBe(0)
     const layout = new ChartLayoutEngine(new ChartModel({ data }))
     expect(layout.calculate(0, 0).trackLayouts).toEqual([])
     expect(
@@ -131,7 +131,7 @@ describe('native chart layout', () => {
     const after = engine.calculate(800, 400).trackLayouts[0]!
     expect(after.xScale.domain()).toEqual(before.xScale.domain())
     expect(before.endpointLabels.start).toBe('125')
-    expect(after.endpointLabels.start).toBe('0.13')
+    expect(after.endpointLabels.start).toBe('0.125')
     expect(model.query.nearestPoint('a', 0.123)?.x).toBe(0.123)
   })
 })

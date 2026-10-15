@@ -32,7 +32,7 @@ body {
 
 .workspace {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: 320px minmax(0, 1fr);
   gap: 12px;
   width: 100%;
   height: 100%;
@@ -161,11 +161,24 @@ body {
 
 .select-control {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   color: #475467;
   font-size: 12px;
+}
+
+.select-control > span,
+.frame-style-control > span,
+.legend-color-control > span,
+.grid-line-control > span:first-child,
+.title-control > span {
+  white-space: nowrap;
+}
+
+.select-control > *,
+.frame-style-control > * {
+  min-width: 0;
 }
 
 .select-control + .select-control {
@@ -178,7 +191,7 @@ body {
 
 .legend-color-control {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   margin-top: 10px;
@@ -203,7 +216,7 @@ body {
 
 .frame-style-control {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   gap: 10px;
   align-items: center;
   color: #475467;

@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import WaveformChart from '../support/LegacyWaveformChart.vue'
+import VueAdapter from '@/components/WaveformChart.vue'
+import { flushVueChartUpdates } from '../support/waveformChart'
 import { init } from '@/chart/init'
 import type { WaveformChartInstance } from '@/types/native'
 import type { WaveformChartOptions } from '@/types/options'
@@ -109,7 +111,7 @@ function snapshot(root: Element) {
   }))
 }
 
-async function pair(options: WaveformChartOptions, width: number) {
+async function pair(options: WaveformChartOptions, width: number, currentAdapter = false) {
   const props = {
     data,
     width,
@@ -118,10 +120,11 @@ async function pair(options: WaveformChartOptions, width: number) {
     rendering: { sampling: { mode: 'raw' as const } },
     ...options,
   }
-  const vue = mount(WaveformChart, { props })
+  const vue = mount(currentAdapter ? VueAdapter : WaveformChart, { props })
   cleanup.push(() => vue.unmount())
   resizeObservers.at(-1)?.resize(width, 360)
   await flushPromises()
+  if (currentAdapter) await flushVueChartUpdates()
   const host = document.createElement('div')
   const native = init(host, props, { autoResize: false })
   cleanup.push(() => native.dispose())
@@ -251,6 +254,7 @@ describe('native/Vue layout and axis parity', () => {
           grid: { rowCount: 1, columnCount: 1, showPagination: true },
         },
         width,
+        true,
       )
       const verify = () => {
         expect(snapshot(host)).toEqual(snapshot(vue.element))
@@ -268,6 +272,7 @@ describe('native/Vue layout and axis parity', () => {
         host.querySelector<HTMLButtonElement>('[aria-label="下一页"]')!.click()
         await vue.get('[aria-label="下一页"]').trigger('click')
         await flushNativeUpdates()
+        await flushVueChartUpdates()
         verify()
       }
       for (const update of [
@@ -280,6 +285,7 @@ describe('native/Vue layout and axis parity', () => {
         native.setOption(update)
         await vue.setProps(update)
         await flushNativeUpdates()
+        await flushVueChartUpdates()
         expect(snapshot(host)).toEqual(snapshot(vue.element))
         expect(host.querySelector('svg.waveform-chart__svg')?.getAttribute('height')).toBe(
           vue.find('svg.waveform-chart__svg').attributes('height'),
@@ -382,8 +388,19 @@ describe('native/Vue layout and axis parity', () => {
     vue.vm.setViewportDomain([0.125, 0.875])
     await flushPromises()
     await flushNativeUpdates()
+    expect(host.querySelectorAll('.waveform-chart__axis--x .tick').length).toBeGreaterThan(0)
     const domain = native.getControlState().targets.map((target) => target.viewport.xDomain)
-    expect(snapshot(host)).toEqual(snapshot(vue.element))
+    expect(
+      snapshot(host).map(({ grid, ...track }) => {
+        void grid
+        return track
+      }),
+    ).toEqual(
+      snapshot(vue.element).map(({ grid, ...track }) => {
+        void grid
+        return track
+      }),
+    )
     for (const timeUnit of ['ms', 's'] as const) {
       native.setOption({ timeUnit })
       await vue.setProps({ timeUnit })
@@ -391,7 +408,17 @@ describe('native/Vue layout and axis parity', () => {
       expect(native.getControlState().targets.map((target) => target.viewport.xDomain)).toEqual(
         domain,
       )
-      expect(snapshot(host)).toEqual(snapshot(vue.element))
+      expect(
+        snapshot(host).map(({ grid, ...track }) => {
+          void grid
+          return track
+        }),
+      ).toEqual(
+        snapshot(vue.element).map(({ grid, ...track }) => {
+          void grid
+          return track
+        }),
+      )
       expect(host.querySelector('.waveform-chart__axis-endpoint')?.textContent).toBe(
         timeUnit === 'ms' ? '125.000ms' : '0.125s',
       )

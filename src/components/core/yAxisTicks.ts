@@ -10,7 +10,7 @@ export function resolveYAxisTicks(
   domain: [number, number],
   tickCount = 5,
   nice = true,
-  limit?: WaveformAmplitudeLimit,
+  bounds?: WaveformAmplitudeLimit,
 ): ResolvedYAxisTicks {
   if (!nice) {
     // 如果不需要 nice，使用简单的线性分割
@@ -30,8 +30,11 @@ export function resolveYAxisTicks(
 
   // 使用 ECharts 兼容的 1/2/5 系列算法
   const ticks = resolveYAxisTicksECharts(domain, tickCount)
-  if (!limit) return ticks
-  const bounded: [number, number] = [limit.lower ?? ticks.domain[0], limit.upper ?? ticks.domain[1]]
+  if (!bounds) return ticks
+  const bounded: [number, number] = [
+    bounds.lower ?? ticks.domain[0],
+    bounds.upper ?? ticks.domain[1],
+  ]
   return {
     domain: bounded,
     values: ticks.values.filter((value) => value >= bounded[0] && value <= bounded[1]),

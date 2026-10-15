@@ -1,3 +1,4 @@
+import { resizeChart } from '@tests/support/setup'
 import { mount } from '@vue/test-utils'
 import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
@@ -5,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
 import { remoteWindowLoaderKey } from '@/demo/remoteWaveformLoader'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 
 const points = [-0.1, 0, 0.1].map((x) => ({ x, y: x }))
 const cases = (['independent', 'separated', 'compact'] as const).flatMap((displayMode) =>
@@ -30,7 +31,7 @@ describe('demo two-point zoom limit', () => {
           await wrapper.get(`input[value="${displayMode}"]`).setValue(true)
           await flushPromises()
         }
-        resizeObservers.at(-1)?.resize(containerWidth, 800)
+        resizeChart(containerWidth, 800)
         await flushPromises()
         const chart = wrapper.getComponent(WaveformChart)
         chart.vm.setViewportDomain([-0.1, 0.1])

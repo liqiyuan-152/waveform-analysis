@@ -5,7 +5,6 @@ import { PresentationModel } from './PresentationModel'
 import { WaveformDataManager } from '../data/WaveformDataManager'
 import { WaveformQueryService } from '../data/WaveformQueryService'
 import type { WaveformChartOptions, WaveformChartOptionUpdate } from '../types/options'
-import { remotePanBoundary } from '../components/interaction/remoteViewport'
 
 /** Composition owns state once; views read these owners instead of mirroring them. */
 export class ChartModel {
@@ -19,21 +18,12 @@ export class ChartModel {
   constructor(options: WaveformChartOptions | OptionManager = {}) {
     this.options = options instanceof OptionManager ? options : new OptionManager(options)
     this.visibility = new SeriesVisibilityModel(this.options.value.defaultHiddenSeriesIds)
-    this.data.commit(this.data.prepare(this.options.value.data, this.retainEmpty()))
-  }
-
-  private retainEmpty() {
-    return (
-      this.options.value.grid.trackOrder !== undefined || !!remotePanBoundary(this.options.value)
-    )
+    this.data.commit(this.data.prepare(this.options.value.data, true))
   }
 
   setOption(patch: WaveformChartOptionUpdate) {
     const candidate = this.options.prepare(patch)
-    const data = this.data.prepare(
-      candidate.resolved.data,
-      candidate.resolved.grid.trackOrder !== undefined || !!remotePanBoundary(candidate.resolved),
-    )
+    const data = this.data.prepare(candidate.resolved.data, true)
     const changed = Object.keys(patch).some(
       (key) =>
         candidate.resolved[key as keyof WaveformChartOptionUpdate] !==

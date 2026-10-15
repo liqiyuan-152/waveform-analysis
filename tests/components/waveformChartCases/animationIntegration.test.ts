@@ -1,8 +1,9 @@
+import { resizeChart } from '@tests/support/setup'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames } from '@tests/support/setup'
 import WaveformChart from '@/components/WaveformChart.vue'
 import { observeNativePresentation } from '@tests/support/nativePresentation'
 let presentation: ReturnType<typeof observeNativePresentation>
@@ -307,7 +308,7 @@ describe('chart animation composition', () => {
     await wrapper.setProps({ data: { kind: 'points', points: [] } })
     await flushVueChartUpdates()
     await nextTick()
-    expect(wrapper.find('.waveform-chart__line').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__line:not([display="none"])').exists()).toBe(false)
   })
   it('finishes latest state before pointer queries and external commands', async () => {
     const wrapper = await chart()
@@ -376,7 +377,7 @@ describe('chart animation composition', () => {
     expect(wrapper.findAll('.waveform-track__series-item')).toHaveLength(1)
     await wrapper.setProps({ hiddenSeriesIds: ['a'] })
     await flushVueChartUpdates()
-    expect(wrapper.find('.waveform-chart__line').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__line:not([display="none"])').exists()).toBe(false)
   })
   it('applies category config before data updates in the same batch', async () => {
     const wrapper = await chart(data(), { animation: { duration: 0 } })
@@ -505,7 +506,7 @@ it('starts initial enter when a hidden host first becomes measurable', async () 
   await nextTick()
   expect(clip(wrapper).exists()).toBe(false)
   expect(presentation.getAnimationCount()).toBe(0)
-  resizeObservers.at(-1)?.resize(798, 358)
+  resizeChart(798, 358)
   await flushVueChartUpdates()
   await nextTick()
   expect(clip(wrapper).exists()).toBe(true)

@@ -1,6 +1,6 @@
+import { resizeChart } from '@tests/support/setup'
 import { describe, expect, it } from 'vitest'
 
-import { resizeObservers } from '@tests/support/setup'
 import {
   flushVueChartUpdates,
   mountSizedChart,
@@ -20,10 +20,12 @@ describe('all hidden series axes and grids', () => {
             legend: { interactive: true },
             grid: { rowCount: 1, columnCount: 1 },
           })
-          resizeObservers.at(-1)?.resize(width, 360)
+          resizeChart(width, 360)
           await flushVueChartUpdates()
           const ticks = () =>
-            wrapper.findAll('.waveform-chart__axis .tick text').map((tick) => tick.text())
+            wrapper
+              .findAll('.waveform-chart__axis .tick')
+              .map((tick) => tick.attributes('data-tick-value') ?? tick.text())
           const endpoints = () =>
             wrapper.findAll('.waveform-chart__axis-endpoint').map((label) => label.text())
           const originalTicks = ticks()

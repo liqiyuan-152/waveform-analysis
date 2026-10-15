@@ -38,7 +38,7 @@ describe('remote point-aware viewport constraints', () => {
     ])
   })
 
-  it('enforces real sample counts for irregular, synchronized tracks and compact sources', () => {
+  it('keeps a supporting synchronized track for irregular compact sources', () => {
     const groups = [
       [series([2.046755, 2.0467551, 2.046757])],
       [series([2.0467552, 2.0467562, 2.0467572])],
@@ -56,11 +56,11 @@ describe('remote point-aware viewport constraints', () => {
       })),
     )
     const domain = constrainViewportZoom([2.046756, 2.0467563], boundary, groups, props)
-    for (const group of groups) {
-      expect(
-        group[0].points.filter((p) => p.x >= domain[0] && p.x <= domain[1]).length,
-      ).toBeGreaterThanOrEqual(2)
-    }
+    const counts = groups.map(
+      (group) => group[0].points.filter((p) => p.x >= domain[0] && p.x <= domain[1]).length,
+    )
+    expect(counts).toEqual([0, 2])
+    expect(domain[1] - domain[0]).toBeCloseTo(1.1e-6, 12)
     expect(domain[1] - domain[0]).toBeLessThan(3e-6)
   })
 

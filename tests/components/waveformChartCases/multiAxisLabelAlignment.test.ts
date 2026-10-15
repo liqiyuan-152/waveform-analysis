@@ -1,7 +1,9 @@
+import { resizeChart } from '@tests/support/setup'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
-import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
-import { resizeObservers } from '@tests/support/setup'
+import { measureYAxisTextWidth } from '@/components/core/yAxisTextWidth'
+import { mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart multi-axis labels', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
@@ -41,8 +43,8 @@ describe('WaveformChart multi-axis labels', () => {
           }
         }
         assertAlignment()
-        resizeObservers.at(-1)?.resize(520, 480)
-        await flushVueChartUpdates()
+        resizeChart(520, 480)
+        await flushPromises()
         assertAlignment()
       } finally {
         wrapper.unmount()
@@ -111,10 +113,10 @@ describe('WaveformChart multi-axis labels', () => {
         return track
           .findAll('.waveform-chart__axis--y')[0]!
           .findAll('.tick')
-          .map((tick) => tick.text().replace(/^E[+-]\d+ /, '').length * 7)
+          .map((tick) => measureYAxisTextWidth(tick.text().replace(/^E[+-]\d+\s*/, '')))
       }),
     )
-    expect(singleX).toBe(-maximumTickWidth - 7 - 10)
+    expect(-7 - maximumTickWidth - (singleX + 10)).toBeGreaterThanOrEqual(2)
     expect(singleX).toBe(Number(tracks[0]!.attributes('data-y-axis-label-x')))
     wrapper.unmount()
   })

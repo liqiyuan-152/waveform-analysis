@@ -14,6 +14,21 @@
   border-color: transparent;
 }
 
+.waveform-chart--scrollable {
+  overflow-x: auto;
+}
+
+.waveform-chart--scrollable .waveform-chart__svg {
+  max-width: none;
+}
+
+.waveform-chart--scrollable > .waveform-toolbar,
+.waveform-chart--scrollable > .waveform-chart__pagination,
+.waveform-chart--scrollable > .waveform-chart__tooltip,
+.waveform-chart--scrollable > .waveform-annotation-context-menu {
+  transform: translateX(var(--waveform-scroll-left, 0px));
+}
+
 .waveform-chart__pagination {
   position: absolute;
   right: 10px;

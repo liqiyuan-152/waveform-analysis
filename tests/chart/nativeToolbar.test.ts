@@ -97,43 +97,32 @@ describe('native toolbar instance integration', () => {
     expect(host.querySelectorAll('[aria-pressed="true"]')).toHaveLength(1)
   })
 
-  it('runs scoped viewport commands with toolbar metadata and resets page-invalid selections', async () => {
+  it('runs toolbar commands for the current page and keeps API track targeting', async () => {
     const { host, chart, button } = await setup()
-    const select = host.querySelector<HTMLSelectElement>('[aria-label="操作图框"]')!
-    select.value = 'b'
-    select.dispatchEvent(new Event('change'))
+    expect(host.querySelector('[aria-label="操作图框"]')).toBeNull()
     const end = vi.fn(),
       intent = vi.fn()
     chart.on('zoom-end', end)
     chart.on('zoom-intent', intent)
     button('zoom-in').click()
     await flushNativeUpdates()
+    expect(end).toHaveBeenCalledTimes(2)
     expect(intent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        source: 'toolbar',
-        action: 'zoom-in',
-        commandId: expect.any(String),
-        trackIndex: 1,
-      }),
+      expect.objectContaining({ source: 'toolbar', action: 'zoom-in' }),
     )
-    expect(end).toHaveBeenCalledWith(
-      expect.objectContaining({ source: 'toolbar', action: 'zoom-in', trackIndex: 1 }),
-    )
-    const state = chart.getControlState()
-    expect(state.targets[0].viewport.xDomain).toEqual([0, 10])
-    expect(state.targets[1].viewport.xDomain).not.toEqual([0, 10])
+    expect(
+      chart
+        .getControlState()
+        .targets.every((t) => t.viewport.xDomain[1] - t.viewport.xDomain[0] < 10),
+    ).toBe(true)
+    const first = chart.getControlState().targets[0].viewport
+    chart.dispatchAction({ type: 'reset', target: { trackId: 'b' } })
+    await flushNativeUpdates()
+    expect(chart.getControlState().targets[0].viewport).toEqual(first)
+    expect(chart.getControlState().targets[1].viewport.xDomain).toEqual([0, 10])
     host.querySelector<HTMLButtonElement>('[aria-label="下一页"]')!.click()
     await flushNativeUpdates()
-    expect(select.value).toBe('')
-    expect([...select.options].map((option) => option.value)).toEqual([
-      '',
-      'c',
-      'empty-grid-slot-1',
-    ])
-    chart.setOption({ displayMode: 'compact' })
-    await flushNativeUpdates()
-    expect(select.hidden).toBe(true)
-    expect(host.querySelector<HTMLElement>('.waveform-toolbar__scope')!.hidden).toBe(false)
+    expect(host.querySelector('[aria-label="操作图框"]')).toBeNull()
   })
 
   it('collapses small containers and dismisses export menus without chart gestures', async () => {

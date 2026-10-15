@@ -4,6 +4,14 @@ import { resolveXAxisTicks } from '@/components/core/xAxisTicks'
 import { integerZoomTicks } from '@/components/interaction/integerZoom'
 
 describe('X-axis numeric ticks', () => {
+  it('keeps fine screenshot ticks distinct and honors fractional minimum intervals', () => {
+    const domain = Object.freeze([1.175356, 1.175358] as const)
+    const ticks = resolveXAxisTicks(domain, 5)
+    expect(ticks.length).toBeGreaterThan(2)
+    expect(new Set(ticks).size).toBe(ticks.length)
+    expect(ticks.every((tick) => tick >= domain[0] && tick <= domain[1])).toBe(true)
+    expect(resolveXAxisTicks([0, 0.5], 10, 0.125)).toEqual([0, 0.125, 0.25, 0.375, 0.5])
+  })
   it('uses ECharts three-based intervals without extending or mutating the domain', () => {
     const domain = Object.freeze([0, 14] as const)
     expect(resolveXAxisTicks(domain, 5)).toEqual([0, 3, 6, 9, 12])

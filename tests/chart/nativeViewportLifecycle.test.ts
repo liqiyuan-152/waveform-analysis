@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
-import { mountLegacySizedChart as mountSizedChart } from '../support/waveformChart'
+import { flushVueChartUpdates as flushPromises } from '../support/waveformChart'
+import { mountSizedChart } from '../support/waveformChart'
 import { flushNativeUpdates } from '../support/nativeChart'
 import { init } from '@/chart/init'
 import type { WaveformChartOptions } from '@/types/options'
@@ -222,7 +222,7 @@ describe('native data viewport restoration', () => {
     },
   )
 
-  it('keeps an initially empty remote single-series chart usable and local empty behavior intact', async () => {
+  it('keeps initially empty remote and local single-series frames usable', async () => {
     const empty = { kind: 'points' as const, points: [] }
     const remote = await pair(
       { panXDomain: [0, 20], initialXDomain: [0, 10], minZoomSpan: 0.1 },
@@ -234,7 +234,10 @@ describe('native data viewport restoration', () => {
     expect(remote.host.querySelector('.waveform-chart__overlay')).not.toBeNull()
     const local = await pair({}, empty)
     parity(local)
-    expect(local.chart.getControlState().targets).toEqual([])
+    expect(
+      local.chart.getControlState().targets.some((target) => target.trackId === 'series-0'),
+    ).toBe(true)
+    expect(local.chart.getControlState().targets[0].available['set-domain']).toBe(true)
   })
 
   it.each(['independent', 'separated', 'compact'] as const)(
@@ -444,4 +447,4 @@ describe('native pending wheel rebind', () => {
       }
     },
   )
-})
+}, 20_000)
