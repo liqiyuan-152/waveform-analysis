@@ -278,6 +278,8 @@ export interface WaveformYAxisLabelTextStyle {
 export interface WaveformAxesOptions {
   x?: {
     lineVisible?: boolean
+    /** Target segment count for nice ticks, not an exact label count. Defaults to 5. */
+    splitNumber?: number
     /** Formats display-unit X values for ticks and visible-range endpoints. */
     labelFormatter?: WaveformXAxisLabelFormatter
   }

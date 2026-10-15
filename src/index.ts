@@ -96,7 +96,7 @@ export type {
   WaveformXAxisLabelFormatter,
   // Explicit axes.y padding ratios preserve exact bounds with nice ticks.
   // Includes axes.y.maximumTickVisible and minimumTickVisible for independent extrema ticks.
-  WaveformAxesOptions,
+  WaveformAxesOptions, // Includes axes.x.splitNumber for the target X-axis segment count.
   WaveformYAxisLabelTextStyle,
   WaveformZeroLineOptions,
   // 数据类型

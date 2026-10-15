@@ -3,8 +3,57 @@ import { describe, expect, it } from 'vitest'
 
 import { resizeObservers } from '@tests/support/setup'
 import { mountSizedChart } from '@tests/support/waveformChart'
+import type { WaveformAxesOptions } from '@/index'
 
 describe('WaveformChart X-axis tick compatibility', () => {
+  it.each(['independent', 'separated', 'compact'] as const)(
+    'updates configured split counts without changing the viewport in %s mode',
+    async (displayMode) => {
+      const wrapper = await mountSizedChart(
+        {
+          kind: 'points',
+          points: [
+            { x: 0, y: 0 },
+            { x: 10, y: 1 },
+          ],
+        },
+        {
+          displayMode,
+          initialXDomain: [0, 10],
+          timeUnit: 's',
+          grid: { rowCount: 1, columnCount: 1 },
+        },
+      )
+      try {
+        const ticks = () =>
+          wrapper.findAll('.waveform-chart__axis--x .tick text').map((el) => el.text())
+        const endpoints = () =>
+          wrapper.findAll('.waveform-chart__axis-endpoint').map((el) => el.text())
+        const defaults = ticks()
+        const bounds = endpoints()
+        expect(defaults).toEqual(['0', '2', '4', '6', '8', '10'])
+        const axes: WaveformAxesOptions = { x: { splitNumber: 10 } }
+        await wrapper.setProps({ axes })
+        await flushPromises()
+        expect(ticks()).toHaveLength(11)
+        expect(endpoints()).toEqual(bounds)
+        expect(wrapper.emitted('zoom-change')).toBeUndefined()
+        await wrapper.setProps({ axes: { x: { splitNumber: 2.4 } } })
+        await flushPromises()
+        expect(ticks()).toEqual(['0', '5', '10'])
+        for (const splitNumber of [NaN, Infinity, undefined]) {
+          await wrapper.setProps({ axes: { x: { splitNumber } } })
+          await flushPromises()
+          expect(ticks()).toEqual(defaults)
+        }
+        await wrapper.setProps({ axes: { x: { splitNumber: 0 } } })
+        await flushPromises()
+        expect(ticks()).toEqual(['0', '10'])
+      } finally {
+        wrapper.unmount()
+      }
+    },
+  )
   it.each(['independent', 'separated', 'compact'] as const)(
     'preserves explicit endpoints across unit changes and resizing in %s mode',
     async (displayMode) => {

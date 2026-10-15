@@ -270,6 +270,7 @@ export function useWaveformLayout(context: LayoutContext) {
       timeUnit: props.timeUnit,
       domainTimeUnit,
       xAxisLabelFormatter: props.axes?.x?.labelFormatter,
+      xAxisSplitNumber: props.axes?.x?.splitNumber,
       yAxisSplitNumber: props.axes?.y?.splitNumber,
       yAxisNice: props.axes?.y?.nice,
       yAxisPadding: props.axes?.y,

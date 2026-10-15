@@ -57,6 +57,7 @@ export interface BuildTrackLayoutsOptions {
   yDomains?: Record<string, [number, number]>
   timeUnit: 's' | 'ms'
   xAxisLabelFormatter?: WaveformXAxisLabelFormatter
+  xAxisSplitNumber?: number
   yAxisSplitNumber?: number
   yAxisNice?: boolean
   yAxisPadding?: YAxisPaddingOptions
@@ -196,7 +197,11 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     const fallbackYScale = scaleLinear(displayTrack.yDomain, [cell.plotHeight, 0])
     if (options.yAxisNice !== false) fallbackYScale.nice()
     const yScale = yAxes[0]?.scale ?? fallbackYScale
-    const xMajorTicks = integerZoomTicks(xScale.domain() as [number, number], 5, options)
+    const xMajorTicks = integerZoomTicks(
+      xScale.domain() as [number, number],
+      options.xAxisSplitNumber ?? 5,
+      options,
+    )
     const xAxisLabelFormatter = options.xAxisLabelFormatter
     const yMajorTicks =
       yAxes[0]?.majorTicks ??
