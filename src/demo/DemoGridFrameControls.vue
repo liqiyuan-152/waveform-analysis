@@ -54,6 +54,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
           picker-type="chrome"
           format="hex"
           :disable-alpha="true"
+          :disable-history="true"
           :blur-close="true"
         />
       </label>
@@ -108,6 +109,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
             picker-type="chrome"
             format="hex"
             :disable-alpha="true"
+            :disable-history="true"
             :blur-close="true"
           />
         </span>
@@ -126,6 +128,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
             picker-type="chrome"
             format="hex"
             :disable-alpha="true"
+            :disable-history="true"
             :blur-close="true"
           />
         </span>
@@ -222,6 +225,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
           picker-type="chrome"
           format="rgb"
           :disable-alpha="false"
+          :disable-history="true"
           :blur-close="true"
         />
       </label>
@@ -234,6 +238,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
           picker-type="chrome"
           format="rgb"
           :disable-alpha="false"
+          :disable-history="true"
           :blur-close="true"
         />
       </label>

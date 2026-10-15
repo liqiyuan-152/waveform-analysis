@@ -1,0 +1,36 @@
+/* Keep vue3-colorpicker's preview beside the sliders in the demo sidebar popups. */
+.vc-colorpicker .vc-chrome-colorPicker .chrome-controls {
+  height: 28px;
+  margin-right: 40px;
+  margin-bottom: 12px;
+}
+
+.vc-colorpicker .vc-chrome-colorPicker .chrome-controls .chrome-sliders {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  margin-left: 0;
+}
+
+.vc-colorpicker .vc-chrome-colorPicker .chrome-sliders > div {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+
+.vc-colorpicker
+  .vc-chrome-colorPicker
+  .chrome-controls:not(:has(.vc-alpha-slider))
+  .chrome-sliders {
+  justify-content: center;
+}
+
+.vc-colorpicker .vc-chrome-colorPicker .vc-display .vc-current-color {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  box-shadow: none;
+}

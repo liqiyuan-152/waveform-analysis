@@ -111,6 +111,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
           picker-type="chrome"
           format="hex"
           :disable-alpha="true"
+          :disable-history="true"
           :blur-close="true"
         />
       </div>
@@ -145,6 +146,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         picker-type="chrome"
         format="rgb"
         :disable-alpha="false"
+        :disable-history="true"
         :blur-close="true"
       />
     </label>

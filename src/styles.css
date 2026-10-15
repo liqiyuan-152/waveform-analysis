@@ -143,7 +143,7 @@ body {
 
 .grid-line-color-picker,
 .grid-line-color-picker .vc-color-wrap {
-  width: 48px;
+  width: 24px;
   height: 24px;
 }
 
@@ -200,7 +200,7 @@ body {
 }
 
 .legend-color-control .vc-color-wrap {
-  width: 100%;
+  width: 24px;
   height: 24px;
   margin: 0;
   border: 1px solid #d0d5dd;
@@ -234,7 +234,7 @@ body {
 }
 
 .frame-style-control .vc-color-wrap {
-  width: 100%;
+  width: 24px;
   height: 24px;
   margin: 0;
   border: 1px solid #d0d5dd;
@@ -300,8 +300,8 @@ body {
 }
 
 .title-control--color .vc-color-wrap {
-  width: 40px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   margin: 0;
   border: 1px solid #d0d5dd;
   border-radius: 4px;
