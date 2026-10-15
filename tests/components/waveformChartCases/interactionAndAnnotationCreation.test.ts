@@ -339,9 +339,14 @@ describe('WaveformChart', () => {
     )
     await flushVueChartUpdates()
     expect(
+      getAnnotationEditor().get('[role="combobox"][aria-label="选择标注波形"]').text(),
+    ).toContain('通道 A')
+    const firstSelect = getAnnotationEditor().get('[role="combobox"][aria-label="选择标注波形"]')
+    Object.defineProperty(firstSelect.element, 'getClientRects', { value: () => [{}] })
+    await firstSelect.trigger('click')
+    expect(
       getAnnotationEditor()
-        .get('select[aria-label="选择标注波形"]')
-        .findAll('option')
+        .findAll('[role="option"]')
         .map((item) => item.text()),
     ).toEqual(['通道 A'])
 
@@ -350,10 +355,12 @@ describe('WaveformChart', () => {
       new MouseEvent('click', { clientX: 356, clientY: 230, bubbles: true }),
     )
     await flushVueChartUpdates()
+    const secondSelect = getAnnotationEditor().get('[role="combobox"][aria-label="选择标注波形"]')
+    Object.defineProperty(secondSelect.element, 'getClientRects', { value: () => [{}] })
+    await secondSelect.trigger('click')
     expect(
       getAnnotationEditor()
-        .get('select[aria-label="选择标注波形"]')
-        .findAll('option')
+        .findAll('[role="option"]')
         .map((item) => item.text()),
     ).toEqual(['通道 B'])
   })

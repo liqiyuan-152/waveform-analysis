@@ -1,0 +1,213 @@
+/* Internal tokens are repeated on popup roots because dialogs live outside the chart. */
+.waveform-control-theme,
+.waveform-number-input,
+.waveform-annotation-editor textarea {
+  --waveform-control-primary: #1677ff;
+  --waveform-control-hover: #4096ff;
+  --waveform-control-border: #d9d9d9;
+  --waveform-control-error: #ff4d4f;
+  --waveform-control-radius: 6px;
+  --waveform-control-focus: 0 0 0 2px rgb(5 145 255 / 10%);
+  color: rgb(0 0 0 / 88%);
+  font:
+    14px/1.5715 -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  text-align: left;
+}
+.waveform-control-theme,
+.waveform-control-theme * {
+  box-sizing: border-box;
+}
+.waveform-control-theme [hidden] {
+  display: none !important;
+}
+.waveform-popup {
+  position: fixed;
+  z-index: 1050;
+  padding: 4px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  color: rgb(0 0 0 / 88%);
+  background: #fff;
+  border-radius: 8px;
+  box-shadow:
+    0 6px 16px 0 rgb(0 0 0 / 8%),
+    0 3px 6px -4px rgb(0 0 0 / 12%),
+    0 9px 28px 8px rgb(0 0 0 / 5%);
+}
+.waveform-select {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+}
+.waveform-select .waveform-select__trigger,
+.waveform-color-input .waveform-color-input__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  height: 32px;
+  margin: 0;
+  padding: 0 11px;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  background: #fff;
+  border: 1px solid var(--waveform-control-border);
+  border-radius: var(--waveform-control-radius);
+  box-shadow: none;
+  cursor: pointer;
+  appearance: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.waveform-select .waveform-select__trigger {
+  gap: 6px;
+}
+.waveform-select__trigger > span:first-child {
+  flex: 1;
+  line-height: 30px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.waveform-select .waveform-select__trigger:hover,
+.waveform-color-input .waveform-color-input__trigger:hover {
+  color: inherit;
+  background: #fff;
+  border-color: var(--waveform-control-hover);
+}
+.waveform-select .waveform-select__trigger:focus-visible,
+.waveform-select .waveform-select__trigger[aria-expanded='true'],
+.waveform-color-input .waveform-color-input__trigger:focus-visible,
+.waveform-color-input .waveform-color-input__trigger[aria-expanded='true'] {
+  border-color: var(--waveform-control-primary);
+  outline: none;
+  box-shadow: var(--waveform-control-focus);
+}
+.waveform-select .waveform-select__trigger:disabled {
+  color: rgb(0 0 0 / 25%);
+  background: rgb(0 0 0 / 4%);
+  border-color: var(--waveform-control-border);
+  cursor: not-allowed;
+  opacity: 1;
+}
+.waveform-select__arrow,
+.waveform-select__trigger.is-placeholder {
+  color: rgb(0 0 0 / 25%);
+}
+.waveform-select__arrow {
+  display: flex;
+  align-items: center;
+  flex: none;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+.waveform-select__arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.1;
+}
+.waveform-select .waveform-select__trigger:focus {
+  border-color: var(--waveform-control-primary);
+  outline: none;
+  box-shadow: var(--waveform-control-focus);
+}
+.waveform-select__trigger[aria-expanded='true'] > span:first-child {
+  color: rgb(0 0 0 / 25%);
+}
+.waveform-select__popup {
+  max-height: 264px;
+}
+
+.waveform-select__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.waveform-select__option > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.waveform-select__option.is-active {
+  background: rgb(0 0 0 / 4%);
+}
+.waveform-select__option[aria-selected='true'] {
+  font-weight: 600;
+  background: #e6f4ff;
+}
+.waveform-select__option[aria-disabled='true'] {
+  color: rgb(0 0 0 / 25%);
+  background: transparent;
+  cursor: not-allowed;
+}
+.waveform-select__option[aria-disabled='true'][aria-selected='true'] {
+  background: rgb(0 0 0 / 4%);
+  font-weight: normal;
+}
+.waveform-toolbar > .waveform-select {
+  max-width: 150px;
+}
+.waveform-annotation-editor textarea {
+  border-color: var(--waveform-control-border);
+  border-radius: var(--waveform-control-radius);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.waveform-annotation-editor textarea:hover {
+  border-color: var(--waveform-control-hover);
+}
+.waveform-annotation-editor textarea:focus {
+  border-color: var(--waveform-control-primary);
+  outline: none;
+  box-shadow: var(--waveform-control-focus);
+}
+
+.waveform-select--compact {
+  flex: 0 0 40px;
+  margin-right: 8px;
+}
+.waveform-select--compact .waveform-select__trigger,
+.waveform-select--compact .waveform-select__trigger:focus {
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  gap: 4px;
+  font-size: 12px;
+  box-shadow: none;
+  background: transparent;
+}
+.waveform-select--compact .waveform-select__trigger > span:first-child {
+  line-height: 24px;
+}
+.waveform-select--compact .waveform-select__arrow {
+  margin-right: 0;
+}
+.waveform-select__popup--compact {
+  min-width: 68px;
+  font-size: 12px;
+}
+.waveform-select__popup--compact .waveform-select__option {
+  min-height: 24px;
+  padding: 2px 8px;
+}

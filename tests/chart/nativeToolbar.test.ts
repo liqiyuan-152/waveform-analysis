@@ -1,7 +1,10 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { mockControlGeometry } from '../support/controlGeometry'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { init } from '@/chart/init'
 import type { WaveformChartOptions } from '@/types/options'
 import { flushNativeUpdates } from '../support/nativeChart'
+
+beforeEach(mockControlGeometry)
 
 const cleanup: Array<() => void> = []
 afterEach(() => {

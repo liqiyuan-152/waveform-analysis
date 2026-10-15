@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict'
 import { chromium } from 'playwright'
 import { createServer } from 'vite'
 import { mkdir, writeFile } from 'node:fs/promises'
@@ -58,6 +59,7 @@ try {
           title: { text: 'Main sync · framework independent' },
           grid: { rowCount: 2, columnCount: 1 },
           toolbar: { display: 'always' },
+          legend: { interactive: true },
           axes: { x: { splitNumber: 10 } },
         },
         { autoResize: false },
@@ -65,6 +67,20 @@ try {
       const stable = () => chart.exportImage({ format: 'svg' })
       await stable()
       const root = host.querySelector('.waveform-chart')
+      const legendItem = root.querySelector('.waveform-legend__item[aria-pressed="true"]')
+      if (!legendItem) throw new Error('Missing interactive legend item')
+      const legendStyle = globalThis.getComputedStyle(legendItem)
+      if (
+        legendStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' ||
+        legendStyle.color !== 'rgb(52, 64, 84)'
+      )
+        throw new Error('Toolbar active styling leaked into the legend')
+      const activeTool = root.querySelector('.waveform-toolbar button[aria-pressed="true"]')
+      if (
+        !activeTool ||
+        globalThis.getComputedStyle(activeTool).backgroundColor !== 'rgba(186, 224, 255, 0.5)'
+      )
+        throw new Error('Active toolbar highlight missing')
       const geometry = () =>
         [...host.querySelectorAll('.waveform-chart__track')].map((track) => [
           track.getAttribute('transform'),
@@ -146,6 +162,32 @@ try {
     await page.waitForTimeout(500)
     const axes = await page.locator('.waveform-track__axis--y').count()
     if (!axes) throw new Error('Demo axes missing')
+    const toolbar = page.locator('.waveform-toolbar--hover')
+    const opacity = () => toolbar.evaluate((node) => globalThis.getComputedStyle(node).opacity)
+    await page.mouse.move(0, 0)
+    assert.equal(await opacity(), '0', 'Toolbar should be hidden outside the chart')
+    await page.locator('.waveform-chart').hover({ position: { x: 3, y: 3 } })
+    assert.equal(await opacity(), '1', 'Hover should reveal the toolbar')
+    await page.mouse.move(0, 0)
+    assert.equal(await opacity(), '0', 'Leaving the chart should hide the toolbar')
+    await toolbar.locator('button:visible').first().focus()
+    assert.equal(await opacity(), '1', 'Keyboard focus should reveal the toolbar')
+    await page.evaluate(() => globalThis.document.activeElement.blur())
+    await page.waitForFunction(
+      () =>
+        globalThis.getComputedStyle(globalThis.document.querySelector('.waveform-toolbar--hover'))
+          .opacity === '0',
+    )
+    assert.equal(await opacity(), '0', 'Leaving keyboard focus should hide the toolbar')
+    if (width > 440) {
+      await page.locator('.waveform-chart').hover({ position: { x: 3, y: 3 } })
+      await toolbar.locator('[data-command="export"]').click()
+      await page.mouse.move(0, 0)
+      await toolbar.locator('[data-command="export"]').evaluate((node) => node.blur())
+      assert.equal(await opacity(), '1', 'An open export menu should keep the toolbar visible')
+      await toolbar.locator('[data-command="export"]').evaluate((node) => node.click())
+      assert.equal(await opacity(), '0', 'Closing the export menu should restore hover behavior')
+    }
     if (width <= 520) {
       const overlaps = await page.evaluate(() => {
         const label = globalThis.document

@@ -1,6 +1,10 @@
 .waveform-annotation-layer {
   pointer-events: none;
 }
+/* The label border below indicates keyboard focus without outlining the SVG arrow. */
+.waveform-annotation:focus {
+  outline: none;
+}
 .waveform-annotation-layer--interactive .waveform-annotation {
   pointer-events: auto;
   cursor: grab;

@@ -1,87 +1,128 @@
 .waveform-number-input {
+  box-sizing: border-box;
   position: relative;
+  display: inline-block;
   flex: 1;
   min-width: 96px;
   height: 32px;
-  overflow: hidden;
-  color: #344054;
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  margin: 0;
+  padding: 0;
+  color: rgb(0 0 0 / 88%);
   font-size: 14px;
   line-height: 1.5715;
   background: #fff;
-  border: 1px solid #d9d9d9;
-  border-radius: 2px;
+  border: 1px solid var(--waveform-control-border, #d9d9d9);
+  border-radius: var(--waveform-control-radius, 6px);
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
 }
-.waveform-number-input:hover,
-.waveform-number-input:focus-within {
-  border-color: #40a9ff;
+.waveform-number-input:hover {
+  border-color: var(--waveform-control-hover, #4096ff);
 }
 .waveform-number-input:focus-within {
-  box-shadow: 0 0 0 2px rgb(24 144 255 / 20%);
+  border-color: var(--waveform-control-primary, #1677ff);
+  box-shadow: var(--waveform-control-focus, 0 0 0 2px rgb(5 145 255 / 10%));
 }
 .waveform-number-input.is-invalid {
-  border-color: #ff4d4f;
+  border-color: var(--waveform-control-error, #ff4d4f);
+}
+.waveform-number-input.is-invalid:hover:not(:focus-within) {
+  border-color: #ffa39e;
 }
 .waveform-number-input.is-invalid:focus-within {
-  box-shadow: 0 0 0 2px rgb(255 77 79 / 20%);
+  box-shadow: 0 0 0 2px rgb(255 38 5 / 6%);
 }
 .waveform-number-input input {
   box-sizing: border-box;
   width: 100%;
   height: 30px;
   margin: 0;
-  padding: 0 11px;
+  padding: 4px 11px;
   color: inherit;
   font: inherit;
   letter-spacing: normal;
   background: transparent;
   border: 0;
-  border-radius: 2px;
+  border-radius: var(--waveform-control-radius, 6px);
   outline: none;
   box-shadow: none;
-  appearance: none;
+  appearance: textfield;
+}
+.waveform-number-input input::placeholder {
+  color: rgb(0 0 0 / 25%);
 }
 .waveform-number-input__steps {
   position: absolute;
   inset: 0 0 0 auto;
-  display: grid;
-  width: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 0;
+  height: 100%;
+  overflow: hidden;
   opacity: 0;
   background: #fff;
-  border-left: 1px solid #d9d9d9;
-  transition: opacity 0.2s;
+  border-radius: 0 6px 6px 0;
+  transition: all 0.2s;
 }
 .waveform-number-input:hover .waveform-number-input__steps,
 .waveform-number-input:focus-within .waveform-number-input__steps {
+  width: 22px;
   opacity: 1;
 }
 .waveform-number-input__steps button {
+  box-sizing: border-box;
   display: flex;
+  flex: auto;
   align-items: center;
   justify-content: center;
+  height: 40%;
+  min-height: 0;
   margin: 0;
   padding: 0;
+  overflow: hidden;
   color: rgb(0 0 0 / 45%);
+  line-height: 0;
   background: transparent;
   border: 0;
+  border-left: 1px solid #d9d9d9;
   border-radius: 0;
   box-shadow: none;
   cursor: pointer;
+  touch-action: none;
   appearance: none;
+  transition: all 0.2s linear;
 }
 .waveform-number-input__steps button + button {
   border-top: 1px solid #d9d9d9;
 }
 .waveform-number-input__steps button:hover {
-  color: #40a9ff;
+  height: 60%;
+  color: var(--waveform-control-primary, #1677ff);
+}
+.waveform-number-input__steps button:active {
+  background: rgb(0 0 0 / 2%);
 }
 .waveform-number-input__steps svg {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.5;
+  stroke-width: 1.1;
+}
+.waveform-number-input.is-disabled,
+.waveform-number-input.is-disabled:hover {
+  color: rgb(0 0 0 / 25%);
+  background: rgb(0 0 0 / 4%);
+  border-color: #d9d9d9;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.waveform-number-input.is-disabled input {
+  cursor: not-allowed;
+}
+.waveform-number-input.is-disabled .waveform-number-input__steps,
+.waveform-number-input.is-readonly .waveform-number-input__steps {
+  display: none;
 }

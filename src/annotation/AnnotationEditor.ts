@@ -1,5 +1,8 @@
+import { SelectView } from '../controls/SelectView'
+import { PopupController } from '../controls/PopupController'
 import type { WaveformAnnotation } from '../types/chart'
 import { formatAnnotationTime, formatPlainNumber } from '../utils/formatters'
+import { ModalMotion } from '../controls/ModalMotion'
 import { ModalController } from '../controls/ModalController'
 import { NumberInputView } from '../controls/NumberInputView'
 import { svgNode } from '../rendering/SvgDom'
@@ -28,6 +31,7 @@ let sequence = 0
 export class AnnotationEditor {
   readonly root: HTMLDialogElement
   private readonly modal: ModalController
+  private readonly motion: ModalMotion
   private readonly time: NumberInputView
   private readonly xLabel: HTMLLabelElement
   private readonly textarea: HTMLTextAreaElement
@@ -37,7 +41,7 @@ export class AnnotationEditor {
   private readonly seriesName: HTMLElement
   private readonly seriesColor: HTMLElement
   private readonly seriesUnit: HTMLElement
-  private readonly select: HTMLSelectElement
+  private readonly select: SelectView
   private readonly seriesRow: HTMLElement
   private readonly save: HTMLButtonElement
   private readonly buttons: HTMLButtonElement[] = []
@@ -79,12 +83,12 @@ export class AnnotationEditor {
       const element = node('button', className, text)
       element.type = 'button'
       element.onclick = () => {
-        if (!this.disposed) action()
+        if (!this.disposed && !this.motion.busy) action()
       }
       this.buttons.push(element)
       return element
     }
-    const close = button('', 'waveform-modal__close', () => context.cancel())
+    const close = button('', 'waveform-modal__close', () => this.cancel())
     close.setAttribute('aria-label', '关闭')
     const icon = svgNode(document, 'svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' })
     icon.append(svgNode(document, 'path', { d: 'm3 3 10 10M13 3 3 13' }))
@@ -120,23 +124,21 @@ export class AnnotationEditor {
       '修改 X 轴后失焦时会自动吸附最近的采样点',
     )
     hint.setAttribute('role', 'note')
-    this.seriesRow = node('label', 'waveform-annotation-editor__series')
+    this.seriesRow = node('div', 'waveform-annotation-editor__series')
     this.seriesRow.setAttribute('aria-label', '标注所属波形')
     this.seriesColor = node('i')
     this.seriesColor.setAttribute('aria-hidden', 'true')
     const label = node('span', 'waveform-annotation-editor__series-label')
     this.seriesName = node('b')
     label.append(node('small', '', '标注波形'), this.seriesName)
-    this.select = node('select')
-    this.select.setAttribute('aria-label', '选择标注波形')
-    this.select.onchange = () => {
+    this.select = new SelectView(document, '选择标注波形', (value) => {
       if (this.disposed) return
-      this.error = context.select(this.select.value)
+      this.error = context.select(value)
       this.validated = !!this.error
       this.refresh()
-    }
+    })
     this.seriesUnit = node('code')
-    this.seriesRow.append(this.seriesColor, label, this.select, this.seriesUnit)
+    this.seriesRow.append(this.seriesColor, label, this.select.root, this.seriesUnit)
     const field = node('label', 'waveform-annotation-editor__field')
     const textLabel = node('span', 'waveform-annotation-editor__label-row')
     this.counter = node('small')
@@ -158,16 +160,18 @@ export class AnnotationEditor {
       this.confirm(),
     )
     footer.append(
-      button('取 消', 'waveform-modal__button', () => context.cancel()),
+      button('取 消', 'waveform-modal__button', () => this.cancel()),
       this.save,
     )
     panel.append(header, close, body, footer)
     modal.append(panel)
     this.root.append(modal)
-    this.root.addEventListener('keydown', this.keydown)
+    this.root.addEventListener('keydown', this.keydown, true)
+    this.motion = new ModalMotion(this.root)
     this.modal = new ModalController(this.root, {
       initialFocus: () => this.textarea,
-      cancel: () => context.cancel(),
+      cancel: () => this.cancel(),
+      dismissPopup: () => PopupController.dismissWithin(this.root),
     })
     this.refresh()
   }
@@ -176,6 +180,7 @@ export class AnnotationEditor {
     if (this.disposed) return
     this.root.ownerDocument.body.append(this.root)
     this.modal.open()
+    this.motion.enter()
   }
 
   private commitTime() {
@@ -186,7 +191,22 @@ export class AnnotationEditor {
     return !this.error
   }
 
+  private cancel() {
+    if (this.disposed || this.motion.busy) return
+    this.select.close()
+    PopupController.dismissWithin(this.root)
+    this.motion.close(() => this.context.cancel())
+  }
+
   private confirm() {
+    if (this.disposed || this.motion.busy || !this.commitTime() || this.save.disabled) return
+    this.select.close()
+    PopupController.dismissWithin(this.root)
+    this.motion.close(() => this.confirmNow())
+  }
+
+  private confirmNow() {
+    // Data or units can change during the leave transition; validate the current draft again.
     if (this.disposed || !this.commitTime() || this.save.disabled) return
     const draft = this.context.draft()
     if (!draft) return
@@ -197,7 +217,7 @@ export class AnnotationEditor {
     })
   }
   private readonly keydown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+    if (!event.isComposing && event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault()
       this.confirm()
     }
@@ -232,23 +252,18 @@ export class AnnotationEditor {
     this.seriesColor.style.backgroundColor = series?.color ?? ''
     this.seriesUnit.textContent = series?.unit ?? ''
     this.seriesUnit.hidden = candidates.length > 0
-    const ids = candidates.map((item) => item.seriesId)
-    if (
-      JSON.stringify([...this.select.options].map((item) => item.value)) !== JSON.stringify(ids)
-    ) {
-      this.select.replaceChildren(
-        ...candidates.map((item) => {
-          const option = this.root.ownerDocument.createElement('option')
-          option.value = item.seriesId
-          option.textContent = `${item.name}${item.unit ? ` (${item.unit})` : ''}`
-          return option
-        }),
-      )
-    }
-    this.select.hidden = !candidates.length
-    this.select.value = draft.annotation.seriesId
+    this.select.update(
+      candidates.map((item) => ({
+        value: item.seriesId,
+        label: `${item.name}${item.unit ? ` (${item.unit})` : ''}`,
+      })),
+      draft.annotation.seriesId,
+    )
+    this.select.root.hidden = !candidates.length
+    if (!candidates.length || !series) this.select.close()
     const text = this.textarea.value,
       time = this.time.input.value
+    this.textarea.setAttribute('aria-invalid', String(text.length > ANNOTATION_MAX_TEXT_LENGTH))
     this.save.disabled =
       !text.trim() ||
       text.length > ANNOTATION_MAX_TEXT_LENGTH ||
@@ -261,9 +276,10 @@ export class AnnotationEditor {
   dispose() {
     if (this.disposed) return
     this.disposed = true
-    this.root.removeEventListener('keydown', this.keydown)
+    this.motion.dispose()
+    this.root.removeEventListener('keydown', this.keydown, true)
     this.textarea.oninput = null
-    this.select.onchange = null
+    this.select.dispose()
     for (const button of this.buttons) button.onclick = null
     this.time.dispose()
     this.style.dispose()

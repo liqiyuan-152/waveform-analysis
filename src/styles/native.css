@@ -4,6 +4,7 @@
 @import '../components/controls/WaveformNumberInput.css';
 @import '../components/controls/WaveformModal.css';
 @import './annotation.css';
+@import './controls.css';
 @import './colorInput.css';
 @import './annotationLayer.css';
 @import './legend.css';

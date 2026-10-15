@@ -20,8 +20,8 @@
 }
 .waveform-chart:hover .waveform-toolbar--hover,
 .waveform-toolbar:focus-within,
-.waveform-toolbar:has(.waveform-toolbar__menu),
-.waveform-toolbar:has(.waveform-toolbar__feedback) {
+.waveform-toolbar:has(.waveform-toolbar__menu:not([hidden])),
+.waveform-toolbar:has(.waveform-toolbar__feedback:not([hidden])) {
   opacity: 1;
   pointer-events: auto;
 }
@@ -59,7 +59,7 @@
   cursor: pointer;
 }
 .waveform-toolbar button:hover,
-button[aria-pressed='true'] {
+.waveform-toolbar button[aria-pressed='true'] {
   background: rgb(186 224 255 / 50%);
   color: #0960bd;
 }

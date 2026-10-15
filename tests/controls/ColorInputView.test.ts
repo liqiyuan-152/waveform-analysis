@@ -12,7 +12,7 @@ describe('native exact color control', () => {
     (value) => {
       const view = new ColorInputView(document, '颜色', value, () => {})
       expect(view.swatch.value).toBe('#123456')
-      input(view.alpha, '0.5')
+      input(view.alpha, '50')
       expect(view.value).toBe('rgba(18, 52, 86, 0.5)')
       view.dispose()
     },
@@ -20,7 +20,7 @@ describe('native exact color control', () => {
 
   it('changes alpha without quantizing fractional RGB channels through the native swatch', () => {
     const view = new ColorInputView(document, '颜色', 'rgba(18.25, 52.5, 86.75, 0.2)', () => {})
-    input(view.alpha, '0.123456')
+    input(view.alpha, '12.3456')
     expect(view.value).toBe('rgba(18.25, 52.5, 86.75, 0.123456)')
     view.dispose()
   })
@@ -31,7 +31,7 @@ describe('native exact color control', () => {
       const changed = vi.fn()
       const view = new ColorInputView(document, '颜色', value, changed)
       expect(view.value).toBe(value)
-      expect(view.text.value).toBe(value)
+      expect(view.text.value).toMatch(/^[A-F0-9]{6}$/)
       expect(view.valid).toBe(true)
       expect(changed).not.toHaveBeenCalled()
       view.dispose()
@@ -41,16 +41,16 @@ describe('native exact color control', () => {
   it('keeps exact alpha and emits no notification after disposal', () => {
     const changed = vi.fn()
     const view = new ColorInputView(document, '颜色', '#123456', changed)
-    input(view.alpha, '0.123456')
+    input(view.alpha, '12.3456')
     expect(view.value).toBe('rgba(18, 52, 86, 0.123456)')
-    input(view.swatch, '#fedcba')
+    input(view.text, 'rgba(254, 220, 186, 0.123456)')
     expect(view.value).toBe('rgba(254, 220, 186, 0.123456)')
     input(view.alpha, '0')
     expect(view.value).toBe('rgba(254, 220, 186, 0)')
     expect(view.valid).toBe(true)
     view.dispose()
     view.dispose()
-    input(view.alpha, '1')
+    input(view.alpha, '100')
     expect(changed).toHaveBeenCalledTimes(3)
   })
 
@@ -66,7 +66,7 @@ describe('native exact color control', () => {
     expect(view.valid).toBe(true)
     input(view.alpha, '-0.01')
     expect(view.valid).toBe(false)
-    input(view.alpha, '1')
+    input(view.alpha, '100')
     expect(view.valid).toBe(true)
     view.dispose()
   })

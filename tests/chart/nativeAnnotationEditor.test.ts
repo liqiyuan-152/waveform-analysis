@@ -1,8 +1,11 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { mockControlGeometry } from '../support/controlGeometry'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { init } from '@/chart/init'
 import type { WaveformChartOptions } from '@/types/options'
 import type { WaveformAnnotation } from '@/types/chart'
 import { flushNativeUpdates } from '../support/nativeChart'
+
+beforeEach(mockControlGeometry)
 
 const cleanup: Array<() => void> = []
 afterEach(() => {
@@ -109,10 +112,10 @@ describe('native annotation editor integration', () => {
     expect(
       editor.root.querySelector('.waveform-annotation-editor__coordinates code')!.textContent,
     ).toBe('10')
-    expect([...editor.root.querySelectorAll('option')].map((node) => node.value)).toEqual([
-      'a',
-      'b',
-    ])
+    editor.root.querySelector<HTMLButtonElement>('[aria-label="选择标注波形"]')!.click()
+    expect(
+      [...editor.root.querySelectorAll('[role="option"]')].map((node) => node.textContent),
+    ).toEqual(['通道 a (V)', '通道 b (V)'])
     expect(editor.root.querySelector('[role="note"]')!.textContent).toContain(
       '自动吸附最近的采样点',
     )
@@ -221,6 +224,27 @@ describe('native annotation editor integration', () => {
     },
   )
 
+  it('confirms the highlighted series on the first Tab before the dialog moves focus', async () => {
+    const { host } = await setup()
+    const editor = edit(host)
+    const select = editor.root.querySelector<HTMLButtonElement>('[aria-label="选择标注波形"]')!
+    select.focus()
+    select.click()
+    select.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'End', bubbles: true, cancelable: true }),
+    )
+    const tab = new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true })
+    select.dispatchEvent(tab)
+    expect(tab.defaultPrevented).toBe(true)
+    expect(select.textContent).toBe('通道 b (V)')
+    expect(document.activeElement).toBe(select)
+    expect(editor.root.querySelector('[role="listbox"]')).toBeNull()
+    select.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }),
+    )
+    expect(document.activeElement).not.toBe(select)
+  })
+
   it('shares decimal arrow/button stepping, focuses the input and retains partial numeric strings', async () => {
     const { host } = await setup()
     const editor = edit(host)
@@ -241,9 +265,9 @@ describe('native annotation editor integration', () => {
     const update = vi.fn()
     chart.on('annotation-update', update)
     const editor = edit(host),
-      select = editor.root.querySelector<HTMLSelectElement>('select')!
-    select.value = 'b'
-    select.dispatchEvent(new Event('change'))
+      select = editor.root.querySelector<HTMLButtonElement>('[aria-label="选择标注波形"]')!
+    select.click()
+    editor.root.querySelectorAll<HTMLElement>('[role="option"]')[1].click()
     expect(editor.root.querySelector('.waveform-annotation-editor__series b')!.textContent).toBe(
       '通道 b',
     )
@@ -400,6 +424,66 @@ describe('native annotation editor integration', () => {
     expect(request).toHaveBeenCalledOnce()
   })
 
+  it('blocks repeated submission during the leave transition and revalidates changed data', async () => {
+    const { host, chart } = await setup()
+    const request = vi.fn()
+    chart.on('update:annotations', request)
+    const editor = edit(host)
+    const animation = { cancel: vi.fn(), onfinish: undefined as (() => void) | undefined }
+    editor.root.querySelector<HTMLElement>('.waveform-modal__panel')!.animate = vi.fn(
+      () => animation as unknown as Animation,
+    )
+    input(editor.time, '2000')
+    editor.save.click()
+    editor.save.click()
+    expect(editor.root.getAttribute('aria-busy')).toBe('true')
+    expect(request).not.toHaveBeenCalled()
+    chart.setOption({
+      data: {
+        kind: 'series',
+        series: data.series.map((series) => ({
+          ...series,
+          data: { kind: 'points', points: series.data.points.slice(0, 2) },
+        })),
+      },
+    })
+    await flushNativeUpdates()
+    animation.onfinish!()
+    expect(request).not.toHaveBeenCalled()
+    expect(editor.error.textContent).toBe('时间超出当前波形范围')
+    expect(editor.root.getAttribute('aria-busy')).toBeNull()
+    input(editor.time, '1000')
+    editor.save.click()
+    animation.onfinish!()
+    expect(request).toHaveBeenCalledOnce()
+  })
+
+  it('ignores composing save shortcuts and cancels pending animation callbacks on destruction', async () => {
+    const { host, chart } = await setup()
+    const request = vi.fn()
+    chart.on('update:annotations', request)
+    const editor = edit(host)
+    editor.text.dispatchEvent(
+      new KeyboardEvent('keydown', {
+        bubbles: true,
+        key: 'Enter',
+        ctrlKey: true,
+        isComposing: true,
+      }),
+    )
+    expect(request).not.toHaveBeenCalled()
+    const animation = { cancel: vi.fn(), onfinish: undefined as (() => void) | undefined }
+    editor.root.querySelector<HTMLElement>('.waveform-modal__panel')!.animate = vi.fn(
+      () => animation as unknown as Animation,
+    )
+    editor.save.click()
+    chart.dispose()
+    animation.onfinish!()
+    expect(animation.cancel).toHaveBeenCalledOnce()
+    expect(request).not.toHaveBeenCalled()
+    expect(document.querySelector('dialog')).toBeNull()
+  })
+
   it('removes hidden alternatives without resetting local edits', async () => {
     const { host, chart } = await setup()
     const update = vi.fn()
@@ -408,7 +492,10 @@ describe('native annotation editor integration', () => {
     input(editor.text, '保留文字')
     chart.setOption({ hiddenSeriesIds: ['b'] })
     await flushNativeUpdates()
-    expect([...editor.root.querySelectorAll('option')].map((node) => node.value)).toEqual(['a'])
+    editor.root.querySelector<HTMLButtonElement>('[aria-label="选择标注波形"]')!.click()
+    expect(
+      [...editor.root.querySelectorAll('[role="option"]')].map((node) => node.textContent),
+    ).toEqual(['通道 a (V)'])
     expect(editor.text.value).toBe('保留文字')
     editor.save.click()
     expect(update.mock.calls[0]![0]).toMatchObject({ seriesId: 'a', text: '保留文字' })
@@ -594,14 +681,16 @@ describe('native annotation style editing', () => {
       updated = vi.fn()
     chart.on('update:annotations', request)
     chart.on('annotation-update', updated)
+    editor.root.querySelector<HTMLButtonElement>('[aria-label="标注边框色"]')!.click()
     const text = editor.root.querySelector<HTMLInputElement>('[aria-label="标注边框色精确值"]')!
-    const alpha = editor.root.querySelector<HTMLInputElement>('[aria-label="标注背景色透明度"]')!
     input(text, '#12345678')
-    input(alpha, '0.123456')
+    editor.root.querySelector<HTMLButtonElement>('[aria-label="标注背景色"]')!.click()
+    const alpha = editor.root.querySelector<HTMLInputElement>('[aria-label="标注背景色透明度"]')!
+    input(alpha, '12.3456')
     chart.setOption({ width: 700 })
     await flushNativeUpdates()
     expect(text.value).toBe('#12345678')
-    expect(alpha.value).toBe('0.123456')
+    expect(alpha.value).toBe('12.3456')
     editor.save.click()
     const [replacement] = request.mock.calls[0]
     expect(replacement[0].style).toEqual({
@@ -620,11 +709,48 @@ describe('native annotation style editing', () => {
     )
   })
 
+  it('dismisses nested format, then color popup, then dialog and restores trigger focus', async () => {
+    const { host } = await setup()
+    const editor = edit(host)
+    const trigger = editor.root.querySelector<HTMLButtonElement>('[aria-label="标注文字色"]')!
+    trigger.click()
+    const format = editor.root.querySelector<HTMLButtonElement>(
+      '[aria-label="标注文字色颜色格式"]',
+    )!
+    format.click()
+    const escape = () =>
+      format.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    escape()
+    expect(editor.root.querySelectorAll('.waveform-popup')).toHaveLength(1)
+    expect(document.activeElement).toBe(format)
+    escape()
+    expect(editor.root.querySelector('.waveform-popup')).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+    expect(editor.root.open).toBe(true)
+    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    expect(editor.root.isConnected).toBe(false)
+  })
+
+  it('preserves Ctrl+Enter save from a field inside the color popup', async () => {
+    const { host, chart } = await setup()
+    const request = vi.fn()
+    chart.on('update:annotations', request)
+    const editor = edit(host)
+    editor.root.querySelector<HTMLButtonElement>('[aria-label="标注文字色"]')!.click()
+    const text = editor.root.querySelector<HTMLInputElement>('[aria-label="标注文字色精确值"]')!
+    input(text, '#abcdef')
+    text.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', ctrlKey: true, bubbles: true }))
+    expect(request).toHaveBeenCalledOnce()
+    expect(request.mock.calls[0][0][0].style.textColor).toBe('#abcdef')
+    expect(editor.root.isConnected).toBe(false)
+  })
+
   it('blocks invalid colors and alpha, restores validity and cancels without requests', async () => {
     const { host, chart } = await setup()
     const editor = edit(host),
       request = vi.fn()
     chart.on('update:annotations', request)
+    editor.root.querySelector<HTMLButtonElement>('[aria-label="标注文字色"]')!.click()
     const text = editor.root.querySelector<HTMLInputElement>('[aria-label="标注文字色精确值"]')!
     const alpha = editor.root.querySelector<HTMLInputElement>('[aria-label="标注文字色透明度"]')!
     input(text, 'not a color')
@@ -634,7 +760,7 @@ describe('native annotation style editing', () => {
     expect(request).not.toHaveBeenCalled()
     input(text, 'hsl(120, 100%, 25%)')
     expect(editor.save.disabled).toBe(false)
-    input(alpha, '1.01')
+    input(alpha, '101')
     expect(editor.save.disabled).toBe(true)
     input(alpha, '')
     expect(editor.save.disabled).toBe(true)

@@ -146,15 +146,21 @@ export class ModalController {
   private dismissPopup() {
     if (!this.options.dismissPopup?.()) return false
     // Teleported popup fields can be removed without a focusin event on the dialog.
-    this.session?.focus()
+    if (!this.dialog.contains(this.document.activeElement)) this.session?.focus()
     return true
   }
   private readonly keydown = (event: KeyboardEvent) => {
     if (!this.top() || this.disposed) return
+    if (this.dialog.getAttribute('aria-busy') === 'true') {
+      event.preventDefault()
+      event.stopPropagation()
+      return
+    }
     const target = event.target as Element | null
     const targetDialog = target?.nodeType === 1 ? target.closest('dialog') : null
     if (targetDialog && targetDialog !== this.dialog) return
     if (event.key === 'Tab') {
+      if (target?.closest('.waveform-select__trigger[aria-expanded="true"]')) return
       const controls = [
         ...this.dialog.querySelectorAll<HTMLElement>(
           'button, input, select, textarea, a[href], [tabindex]',

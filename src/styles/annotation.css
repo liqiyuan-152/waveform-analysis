@@ -205,3 +205,34 @@
     grid-template-columns: 1fr;
   }
 }
+.waveform-annotation-editor-root [hidden] {
+  display: none !important;
+}
+.waveform-annotation-editor__series > .waveform-select {
+  max-width: 190px;
+  margin-left: auto;
+}
+.waveform-annotation-editor__color-field > .waveform-color-input {
+  width: 100%;
+}
+.waveform-annotation-editor__color-field .waveform-color-input .waveform-color-input__trigger {
+  width: 100%;
+  padding: 0;
+}
+.waveform-annotation-editor__color-field .waveform-color-input__trigger i {
+  height: 30px;
+  border-radius: inherit;
+  background-size: 12px 12px;
+}
+.waveform-annotation-editor textarea[aria-invalid='true'] {
+  border-color: #ff4d4f;
+}
+.waveform-annotation-editor textarea[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 2px rgb(255 38 5 / 6%);
+}
+
+.waveform-annotation-editor-root.waveform-annotation-editor textarea {
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+}

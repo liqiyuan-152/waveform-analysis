@@ -5,7 +5,10 @@ import { join, resolve } from 'node:path'
 import { chromium, firefox, webkit } from 'playwright'
 import { build, preview } from 'vite'
 
-const evidence = resolve('openspec/changes/decouple-waveform-engine-from-vue/evidence')
+const evidence = resolve(
+  process.env.WAVEFORM_COLORS_EVIDENCE_DIR ??
+    'openspec/changes/decouple-waveform-engine-from-vue/evidence',
+)
 await mkdir(evidence, { recursive: true })
 const outDir = await mkdtemp(join(tmpdir(), 'waveform-native-colors-'))
 await build({
@@ -24,7 +27,7 @@ const report = {
   startedAt: new Date().toISOString(),
   node: process.version,
   scope:
-    '8.3 原生精确 CSS 色值、alpha、键盘输入、受控保存和标注出现/消失/finished；原生色板操作仅验证 DOM input 接线，平台色板弹层及完整焦点层级留待 8.4',
+    '8.3 原生精确 CSS 色值、alpha、键盘输入、受控保存和标注出现/消失/finished；自绘色板交互与弹层层级另由 test-themed-controls-browser 验证',
   browsers: [],
 }
 let failed = false
@@ -65,25 +68,25 @@ try {
           await page.locator('#native .waveform-annotation__box').click({ button: 'right' })
           await page.locator('#native .waveform-annotation-context-menu button').first().click()
           const dialog = page.locator('dialog[open]')
+          await dialog.getByRole('button', { name: '标注边框色', exact: true }).click()
           const border = dialog.locator('[aria-label="标注边框色精确值"]')
-          assert.equal(await border.inputValue(), '#12345678')
+          assert.equal(await border.inputValue(), '123456')
           await border.fill('invalid')
           assert.equal(await dialog.locator('.waveform-modal__button--primary').isDisabled(), true)
           await border.fill('#abcdef80')
+          await dialog.getByRole('button', { name: '标注背景色', exact: true }).click()
           const alpha = dialog.locator('[aria-label="标注背景色透明度"]')
-          await alpha.fill('0.37')
+          await alpha.fill('37')
           await alpha.press('ArrowUp')
-          assert.equal(await alpha.inputValue(), '0.38')
-          await alpha.fill('0.123456')
-          const swatch = dialog.locator('[aria-label="标注文字色"]')
-          await swatch.evaluate((node) => {
-            node.value = '#fedcba'
-            node.dispatchEvent(new Event('input', { bubbles: true }))
-          })
+          assert.equal(await alpha.inputValue(), '38')
+          await alpha.fill('12.3456')
+          await dialog.getByRole('button', { name: '标注文字色', exact: true }).click()
+          await dialog.getByLabel('标注文字色精确值', { exact: true }).fill('#fedcba')
+          await dialog.getByRole('button', { name: '标注边框色', exact: true }).click()
           await border.focus()
           await border.press('Tab')
           assert.equal(
-            await alpha.evaluate((node) =>
+            await border.evaluate((node) =>
               node.ownerDocument.activeElement?.getAttribute('aria-label'),
             ),
             '标注边框色透明度',
@@ -102,7 +105,7 @@ try {
           const replacement = snapshot.nativeAnnotationEvents['update:annotations'][0][0]
           assert.deepEqual(replacement[0].style, {
             borderColor: '#abcdef80',
-            textColor: 'rgb(254, 220, 186)',
+            textColor: '#fedcba',
             backgroundColor: 'rgba(255, 255, 255, 0.123456)',
           })
           assert.equal(snapshot.native[0].fill, 'rgba(255, 255, 255, 0.5)')
