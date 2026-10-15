@@ -7,6 +7,14 @@ interface NumberInputState {
   readOnly?: boolean
 }
 
+interface NumberInputOptions {
+  compact?: boolean
+  step?: number
+  shiftStep?: number
+  min?: number
+  max?: number
+}
+
 /** Decimal text input and explicit step buttons share the existing numeric stepping policy. */
 export class NumberInputView {
   readonly root: HTMLDivElement
@@ -21,14 +29,22 @@ export class NumberInputView {
     label: string,
     private readonly changed: (value: string) => void,
     private readonly commit: () => void,
+    private readonly options: NumberInputOptions = {},
   ) {
     this.root = document.createElement('div')
     this.root.className = 'waveform-control-theme waveform-number-input'
+    this.root.classList.toggle('waveform-number-input--compact', !!options.compact)
     this.input = document.createElement('input')
     this.input.type = 'text'
     this.input.inputMode = 'decimal'
     this.input.setAttribute('role', 'spinbutton')
     this.input.setAttribute('aria-label', label)
+    for (const bound of ['min', 'max'] as const) {
+      if (options[bound] !== undefined) {
+        this.input[bound] = String(options[bound])
+        this.input.setAttribute(`aria-value${bound}`, String(options[bound]))
+      }
+    }
     this.hold = new NumberInputHold(this.root, this.input, (direction, shift) =>
       this.step(direction, shift),
     )
@@ -38,7 +54,16 @@ export class NumberInputView {
       const button = document.createElement('button')
       button.type = 'button'
       button.tabIndex = -1
-      button.setAttribute('aria-label', direction === 1 ? '增加时间' : '减少时间')
+      button.setAttribute(
+        'aria-label',
+        options.compact
+          ? direction === 1
+            ? '增加数值'
+            : '减少数值'
+          : direction === 1
+            ? '增加时间'
+            : '减少时间',
+      )
       const icon = svgNode(document, 'svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true' })
       icon.append(
         svgNode(document, 'path', { d: direction === 1 ? 'm1 9 5-6 5 6' : 'm1 3 5 6 5-6' }),
@@ -87,7 +112,14 @@ export class NumberInputView {
   }
   private step(direction: 1 | -1, shift = false) {
     if (this.disposed || this.input.disabled || this.input.readOnly) return
-    this.changed(stepNumberInput(this.input.value, direction, shift ? 0.01 : 0.001))
+    const next = stepNumberInput(
+      this.input.value,
+      direction,
+      shift ? (this.options.shiftStep ?? 0.01) : (this.options.step ?? 0.001),
+    )
+    const min = this.input.min === '' ? -Infinity : Number(this.input.min)
+    const max = this.input.max === '' ? Infinity : Number(this.input.max)
+    this.changed(String(Math.max(min, Math.min(max, Number(next)))))
     this.input.focus()
   }
 

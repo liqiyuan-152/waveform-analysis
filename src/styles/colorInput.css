@@ -105,9 +105,8 @@
   gap: 4px;
   min-width: 0;
 }
-.waveform-color-panel__channels > label {
+.waveform-color-panel__channels > .waveform-number-input {
   flex: 1;
-  gap: 0;
 }
 .waveform-color-popup small {
   color: var(--waveform-control-error);
@@ -206,104 +205,38 @@
   display: flex;
   align-items: center;
 }
-.waveform-color-panel__preset-group {
-  border-top: 1px solid rgb(5 5 5 / 6%);
-  margin-top: 12px;
-  padding-top: 8px;
+.waveform-color-panel__format .waveform-select--compact {
+  flex-basis: 56px;
+  margin-right: 4px;
 }
-.waveform-color-panel__preset-heading {
+.waveform-color-panel__format .waveform-select--compact .waveform-select__trigger {
+  padding: 0 4px;
+  border: 1px solid var(--waveform-control-border);
+  border-radius: 4px;
+}
+.waveform-color-panel__format .waveform-number-input--compact {
   display: flex;
   align-items: center;
-  gap: 6px;
-  width: 100%;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 12px;
-  line-height: 20px;
-  text-align: left;
-  cursor: pointer;
-}
-.waveform-color-panel__preset-heading::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  margin-left: 2px;
-  border-right: 1.5px solid rgb(0 0 0 / 25%);
-  border-bottom: 1.5px solid rgb(0 0 0 / 25%);
-  transform: translateY(-2px) rotate(45deg);
-}
-.waveform-color-panel__preset-heading[aria-expanded='false']::before {
-  transform: rotate(-45deg);
-}
-.waveform-color-panel__presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 0;
-}
-.waveform-color-panel__presets button {
-  display: grid;
-  place-items: center;
-  width: 24px;
+  min-width: 0;
   height: 24px;
-  padding: 0;
-  color: #fff;
-  position: relative;
-  border: 0;
-  box-shadow: inset 0 0 1px rgb(0 0 0 / 25%);
+  font-size: 12px;
   border-radius: 4px;
-  cursor: pointer;
 }
-.waveform-color-panel__presets button:focus-visible {
-  outline: 2px solid var(--waveform-control-primary);
-  outline-offset: 2px;
+.waveform-color-panel__format .waveform-number-input--compact input {
+  flex: 1;
+  padding: 0 2px;
 }
-
-.waveform-color-panel__hue,
-.waveform-color-panel__alpha {
-  grid-column: 1;
+.waveform-color-panel__suffix {
+  flex: none;
+  padding-right: 2px;
 }
-.waveform-color-panel__presets .is-transparent {
-  background-image: conic-gradient(
-    rgb(0 0 0 / 6%) 25%,
-    transparent 0 50%,
-    rgb(0 0 0 / 6%) 0 75%,
-    transparent 0
-  );
-  background-size: 50% 50%;
+.waveform-color-panel__format .waveform-number-input__steps {
+  border-radius: 0 4px 4px 0;
 }
-
-.waveform-color-panel__presets button::before {
-  position: absolute;
-  inset: -2px;
-  content: '';
-  border: 1px solid transparent;
-  border-radius: 6px;
+.waveform-color-panel__format .waveform-number-input:hover .waveform-number-input__steps,
+.waveform-color-panel__format .waveform-number-input:focus-within .waveform-number-input__steps {
+  width: 12px;
 }
-.waveform-color-panel__presets button:hover::before {
-  border-color: rgb(0 0 0 / 15%);
-}
-.waveform-color-panel__presets button[aria-pressed='true']::after {
-  position: absolute;
-  top: 50%;
-  left: 21.5%;
-  width: 9.23px;
-  height: 14.77px;
-  content: '';
-  border: 2px solid #fff;
-  border-top: 0;
-  border-left: 0;
-  transform: rotate(45deg) translate(-50%, -50%);
-}
-.waveform-color-panel__presets button[title='#ffffff']::after,
-.waveform-color-panel__presets button.is-transparent::after {
-  border-color: rgb(0 0 0 / 45%);
-}
-
 .waveform-color-panel__preview,
 .waveform-color-popup .waveform-color-panel__alpha {
   background-image:
@@ -326,13 +259,6 @@
   transform: rotate(45deg);
   box-shadow: -2px -2px 3px rgb(0 0 0 / 4%);
   pointer-events: none;
-}
-
-.waveform-color-panel__opacity input {
-  max-width: calc(100% - 11px);
-}
-.waveform-color-panel__opacity span {
-  flex: none;
 }
 
 .waveform-color-panel__preview {

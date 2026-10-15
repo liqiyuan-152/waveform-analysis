@@ -1,6 +1,6 @@
-import { rgb } from 'd3'
 import { fromHsv } from './colorValue'
 import { ColorChannels } from './ColorChannels'
+import type { NumberInputView } from './NumberInputView'
 
 /** Pointer and keyboard editing for HSV, plus a formatted channel entry. */
 export class ColorPanel {
@@ -18,11 +18,11 @@ export class ColorPanel {
     document: Document,
     label: string,
     text: HTMLInputElement,
-    alpha: HTMLInputElement,
+    alpha: NumberInputView,
     alphaSlider: HTMLInputElement,
     invalid: () => void,
     private readonly change: (hue: number, saturation: number, value: number) => void,
-    private readonly textChange: (value: string) => void,
+    textChange: (value: string) => void,
   ) {
     this.root = document.createElement('div')
     this.root.className = 'waveform-color-panel'
@@ -82,43 +82,7 @@ export class ColorPanel {
     this.preview.className = 'waveform-color-panel__preview'
     this.preview.setAttribute('aria-hidden', 'true')
     sliders.append(tracks, this.preview)
-    const presets = document.createElement('div')
-    presets.className = 'waveform-color-panel__presets'
-    for (const color of [
-      '#f5222d',
-      '#fa8c16',
-      '#fadb14',
-      '#52c41a',
-      '#13c2c2',
-      '#1677ff',
-      '#722ed1',
-      '#eb2f96',
-      '#000000',
-      '#ffffff',
-      'transparent',
-    ]) {
-      const button = document.createElement('button')
-      button.type = 'button'
-      button.title = color
-      button.setAttribute('aria-label', `${label}预设 ${color}`)
-      button.style.backgroundColor = color
-      if (color === 'transparent') button.className = 'is-transparent'
-      button.onclick = () => this.textChange(color)
-      presets.append(button)
-    }
-    const group = document.createElement('div')
-    group.className = 'waveform-color-panel__preset-group'
-    const heading = document.createElement('button')
-    heading.type = 'button'
-    heading.className = 'waveform-color-panel__preset-heading'
-    heading.textContent = 'Recommended'
-    heading.setAttribute('aria-expanded', 'true')
-    heading.onclick = () => {
-      presets.hidden = !presets.hidden
-      heading.setAttribute('aria-expanded', String(!presets.hidden))
-    }
-    group.append(heading, presets)
-    this.root.append(this.area, sliders, this.inputs.root, group)
+    this.root.append(this.area, sliders, this.inputs.root)
   }
 
   focus() {
@@ -141,14 +105,6 @@ export class ColorPanel {
       `饱和度 ${Math.round(hsv[1] * 100)}%，明度 ${Math.round(hsv[2] * 100)}%`,
     )
     this.preview.style.setProperty('--waveform-color-fill', `linear-gradient(${color}, ${color})`)
-    const hex = rgb(channels[0], channels[1], channels[2]).formatHex()
-    for (const button of this.root.querySelectorAll<HTMLButtonElement>(
-      '.waveform-color-panel__presets button',
-    )) {
-      const selected =
-        alpha === 0 ? button.title === 'transparent' : alpha === 1 && button.title === hex
-      button.setAttribute('aria-pressed', String(selected))
-    }
     this.inputs.update(hsv, channels, alpha)
   }
 
@@ -183,6 +139,5 @@ export class ColorPanel {
         null
     this.area.onkeydown = null
     this.hue.oninput = null
-    for (const button of this.root.querySelectorAll('button')) button.onclick = null
   }
 }

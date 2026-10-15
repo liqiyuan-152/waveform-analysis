@@ -22,6 +22,67 @@ function input(node: HTMLInputElement, value: string) {
 }
 
 describe('native color panel', () => {
+  it('steps compact channel and opacity inputs within their current format bounds', () => {
+    setup('#ffffff')
+    const format = document.querySelector<HTMLButtonElement>('[aria-label="颜色颜色格式"]')!
+    const choose = (mode: string) => {
+      format.click()
+      Array.from(document.querySelectorAll<HTMLElement>('[role="option"]'))
+        .find((option) => option.textContent === mode)!
+        .click()
+    }
+    const step = (input: HTMLInputElement, key: string) =>
+      input.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true }))
+    choose('RGB')
+    const red = document.querySelector<HTMLInputElement>('[aria-label="R通道"]')!
+    expect(red.getAttribute('role')).toBe('spinbutton')
+    step(red, 'ArrowUp')
+    expect(red.value).toBe('255')
+    step(red, 'ArrowDown')
+    expect(red.value).toBe('254')
+    input(red, 'Infinity')
+    expect(view.valid).toBe(false)
+    input(red, '0')
+    step(red, 'ArrowDown')
+    expect(red.value).toBe('0')
+    choose('HSB')
+    const saturation = document.querySelector<HTMLInputElement>('[aria-label="S通道"]')!
+    input(saturation, '100')
+    step(saturation, 'ArrowUp')
+    expect(saturation.value).toBe('100')
+    step(view.alpha, 'ArrowDown')
+    expect(view.alpha.value).toBe('99')
+    expect(view.value).toContain('0.99')
+    input(view.alpha, '0')
+    step(view.alpha, 'ArrowDown')
+    expect(view.alpha.value).toBe('0')
+  })
+
+  it('retains input focus while holding a step button inside the color popup', () => {
+    vi.useFakeTimers()
+    try {
+      setup('#123456')
+      const down = view.alpha.parentElement!.querySelectorAll('button')[1]
+      down.dispatchEvent(
+        new PointerEvent('pointerdown', {
+          button: 0,
+          pointerId: 1,
+          bubbles: true,
+          cancelable: true,
+        }),
+      )
+      expect(document.activeElement).toBe(view.alpha)
+      expect(view.alpha.value).toBe('99')
+      vi.advanceTimersByTime(600)
+      expect(view.alpha.value).toBe('98')
+      view.dispose()
+      vi.advanceTimersByTime(1000)
+      expect(view.alpha.value).toBe('98')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('keeps exact source when opening, formatting and closing without editing', () => {
     const changed = setup()
     const format = document.querySelector<HTMLButtonElement>('[aria-label="颜色颜色格式"]')!
@@ -63,7 +124,7 @@ describe('native color panel', () => {
     expect(changed).toHaveBeenCalledTimes(5)
   })
 
-  it('keeps invalid partial format text and recovers through presets without stale callbacks', () => {
+  it('keeps invalid partial format text and recovers through valid text without stale callbacks', () => {
     const changed = setup()
     const formatted = document.querySelector<HTMLInputElement>('[aria-label="颜色精确值"]')!
     input(formatted, '#')
@@ -71,12 +132,10 @@ describe('native color panel', () => {
     expect(formatted.getAttribute('aria-invalid')).toBe('true')
     expect(view.valid).toBe(false)
     expect(view.value).toBe('rgba(18.25, 52.5, 86.75, 0.123456)')
-    const preset = document.querySelector<HTMLButtonElement>('[aria-label="颜色预设 #1677ff"]')!
-    preset.click()
+    input(formatted, '#1677ff')
     expect(view.value).toBe('#1677ff')
     expect(view.valid).toBe(true)
     view.dispose()
-    preset.click()
     input(formatted, '#fff')
     expect(changed).toHaveBeenCalledTimes(2)
   })
@@ -121,17 +180,11 @@ describe('native color panel', () => {
     expect(view.value).toContain('0.12345678901234566')
   })
 
-  it('collapses preset colors without changing the saved color', () => {
-    const changed = setup()
-    const heading = document.querySelector<HTMLButtonElement>(
-      '.waveform-color-panel__preset-heading',
-    )!
-    heading.click()
-    expect(heading.getAttribute('aria-expanded')).toBe('false')
-    expect(document.querySelector<HTMLElement>('.waveform-color-panel__presets')!.hidden).toBe(true)
-    heading.click()
-    expect(heading.getAttribute('aria-expanded')).toBe('true')
-    expect(changed).not.toHaveBeenCalled()
+  it('ends the panel at the channel inputs without a color swatch section', () => {
+    setup()
+    const panel = document.querySelector('.waveform-color-panel')!
+    expect(panel.lastElementChild?.className).toBe('waveform-color-panel__format')
+    expect(panel.querySelector('.waveform-color-panel__preset-group')).toBeNull()
   })
 
   it.each([

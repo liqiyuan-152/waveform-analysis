@@ -2,6 +2,7 @@ import { rgb } from 'd3'
 import { parseColorValue, toHsv, fromHsv } from './colorValue'
 import { PopupController } from './PopupController'
 import { ColorPanel } from './ColorPanel'
+import { NumberInputView } from './NumberInputView'
 
 let sequence = 0
 
@@ -15,6 +16,7 @@ export class ColorInputView {
   private readonly error: HTMLElement
   private readonly popup: PopupController
   private readonly panel: ColorPanel
+  private readonly alphaNumber: NumberInputView
   private hsv: [number, number, number] = [0, 0, 0]
   private opacity = 1
   private current: string
@@ -77,10 +79,17 @@ export class ColorInputView {
     this.alphaSlider.max = '1'
     this.alphaSlider.step = '0.01'
     this.alphaSlider.className = 'waveform-color-panel__alpha'
-    this.alpha = input('number', `${label}透明度`)
-    this.alpha.min = '0'
-    this.alpha.max = '100'
-    this.alpha.step = 'any'
+    this.alphaNumber = new NumberInputView(
+      document,
+      `${label}透明度`,
+      (value) => {
+        this.alpha.value = value
+        this.fromChannels(true)
+      },
+      () => {},
+      { compact: true, step: 1, shiftStep: 10, min: 0, max: 100 },
+    )
+    this.alpha = this.alphaNumber.input
     this.error = document.createElement('small')
     this.error.id = `waveform-native-color-error-${++sequence}`
     this.error.setAttribute('role', 'alert')
@@ -89,7 +98,7 @@ export class ColorInputView {
       document,
       label,
       this.text,
-      this.alpha,
+      this.alphaNumber,
       this.alphaSlider,
       () => {
         this.validate(true)
@@ -113,7 +122,6 @@ export class ColorInputView {
     this.text.onblur = () => {
       if (!this.invalid) this.preview()
     }
-    this.alpha.oninput = () => this.fromChannels(true)
     this.alphaSlider.oninput = () => {
       this.alpha.value = String(Number(this.alphaSlider.value) * 100)
       this.fromChannels(true)
@@ -202,7 +210,7 @@ export class ColorInputView {
     preview.style.setProperty('--waveform-swatch-color', this.current)
     this.swatch.title = this.current
     this.swatch.value = rgb(...this.channels).formatHex()
-    this.alpha.style.width = `${this.alpha.value.length}ch`
+    this.alphaNumber.update(this.alpha.value, this.invalid)
     this.alphaSlider.style.setProperty('--waveform-slider-color', this.current)
     this.alphaSlider.value = String(this.opacity)
     this.alphaSlider.style.setProperty('--waveform-slider-shift', `${this.opacity * 12 - 6}px`)
@@ -219,6 +227,7 @@ export class ColorInputView {
     this.text.onblur = this.text.oninput = this.alpha.oninput = this.alphaSlider.oninput = null
     this.swatch.onclick = this.swatch.onkeydown = this.swatch.onpointerdown = null
     this.panel.dispose()
+    this.alphaNumber.dispose()
     this.popup.dispose()
     this.root.remove()
   }
