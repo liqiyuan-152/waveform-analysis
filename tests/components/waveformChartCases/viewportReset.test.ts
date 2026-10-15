@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart viewport reset', () => {
   const niceExplicitStrategy = {
@@ -38,20 +37,20 @@ describe('WaveformChart viewport reset', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).not.toBe('0')
     const startBefore = wrapper.get('.waveform-chart__axis-endpoint--start').text()
     const endBefore = wrapper.get('.waveform-chart__axis-endpoint--end').text()
 
     overlay.element.dispatchEvent(new MouseEvent('dblclick', { bubbles: true, cancelable: true }))
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-reset')).toBeUndefined()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe(startBefore)
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe(endBefore)
 
     await wrapper.get('[data-command="reset"]').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('zoom-reset')).toEqual([
       [expect.objectContaining({ source: 'toolbar', action: 'reset' })],
     ])
@@ -81,7 +80,7 @@ describe('WaveformChart viewport reset', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
     }
     const startsBeforeReset = wrapper.findAll('.waveform-chart__axis-endpoint--start')
     expect(startsBeforeReset[0].text()).not.toBe('0')
@@ -92,7 +91,7 @@ describe('WaveformChart viewport reset', () => {
     overlays[0].element.dispatchEvent(
       new MouseEvent('dblclick', { bubbles: true, cancelable: true }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-reset')).toBeUndefined()
     expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe(firstTrackStart)
@@ -102,7 +101,7 @@ describe('WaveformChart viewport reset', () => {
 
     await wrapper.get('select[aria-label="操作图框"]').setValue('channel-0')
     await wrapper.get('[data-command="reset"]').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const startsAfterReset = wrapper.findAll('.waveform-chart__axis-endpoint--start')
     expect(startsAfterReset[0].text()).toBe('0')
@@ -139,12 +138,12 @@ describe('WaveformChart viewport reset', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).not.toBe('0')
 
     const chart = wrapper.vm as unknown as { resetViewport: () => void }
     chart.resetViewport()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.findAll('.waveform-chart__axis-endpoint--start')[0].text()).toBe('0')
     expect(wrapper.findAll('.waveform-chart__axis-endpoint--end')[0].text()).toBe('1000')
@@ -165,7 +164,7 @@ describe('WaveformChart viewport reset', () => {
       setViewportDomain: (domain: [number, number], trackIndex?: number) => void
     }
     chart.setViewportDomain([0.25, 0.75])
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const startBefore = Number(wrapper.get('.waveform-chart__axis-endpoint--start').text())
     const endBefore = Number(wrapper.get('.waveform-chart__axis-endpoint--end').text())
@@ -181,7 +180,7 @@ describe('WaveformChart viewport reset', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(Number(wrapper.get('.waveform-chart__axis-endpoint--start').text())).toBeCloseTo(
       startBefore,
@@ -203,7 +202,7 @@ describe('WaveformChart viewport reset', () => {
     }
     chart.setViewportDomain([0.2, 0.8], 0)
     chart.setViewportDomain([0.1, 0.9], 1)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const endpoints = () =>
       wrapper.findAll('.waveform-chart__track').map((track) => ({
@@ -217,7 +216,7 @@ describe('WaveformChart viewport reset', () => {
     expect(Number(endpointsBefore[1].end)).toBeLessThan(1000)
 
     await wrapper.setProps({ data: gridSeries(2) })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const endpointsAfter = endpoints()
     endpointsAfter.forEach((endpoint, index) => {
@@ -241,12 +240,12 @@ describe('WaveformChart viewport reset', () => {
       setViewportDomain: (domain: [number, number], trackIndex?: number) => void
     }
     chart.setViewportDomain([Number.NaN, 0.5])
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
 
     chart.setViewportDomain([0.49, 0.51])
-    await flushPromises()
+    await flushVueChartUpdates()
     const start = Number(wrapper.get('.waveform-chart__axis-endpoint--start').text())
     const end = Number(wrapper.get('.waveform-chart__axis-endpoint--end').text())
     expect(end - start).toBeGreaterThanOrEqual(200)
@@ -271,7 +270,7 @@ describe('WaveformChart viewport reset', () => {
 
     ;(shared.vm as unknown as { resetViewport: () => void }).resetViewport()
     ;(independent.vm as unknown as { resetViewport: () => void }).resetViewport()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(shared.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
     expect(shared.get('.waveform-chart__axis-endpoint--end').text()).toBe('5000')

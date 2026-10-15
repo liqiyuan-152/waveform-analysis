@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const points = [
   { x: 2.046755, y: 0.34927901121538163 },
@@ -36,7 +35,7 @@ describe('three-sample remote zoom', () => {
         },
       )
       wrapper.vm.setViewportDomain([2.046755, 2.0467573])
-      await flushPromises()
+      await flushVueChartUpdates()
       const overlay = wrapper.get('.waveform-chart__overlay')
       const width = Number(overlay.attributes('width'))
       const height = Number(overlay.attributes('height'))
@@ -54,7 +53,7 @@ describe('three-sample remote zoom', () => {
           }),
         )
         flushAnimationFrames()
-        await flushPromises()
+        await flushVueChartUpdates()
       }
       if (gesture === 'wheel') {
         await wheel(-1000)
@@ -72,7 +71,7 @@ describe('three-sample remote zoom', () => {
           Object.defineProperty(event, 'pointerId', { value: 81 })
           overlay.element.dispatchEvent(event)
         }
-        await flushPromises()
+        await flushVueChartUpdates()
       }
       for (let step = 0; step < 40; step += 1) await wheel(-1000)
       const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]

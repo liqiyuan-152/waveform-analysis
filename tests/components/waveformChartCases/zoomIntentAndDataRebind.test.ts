@@ -1,11 +1,11 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { defineComponent, h, ref } from 'vue'
 import { describe, expect, it, vi } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
 import type { WaveformData } from '@/components/waveform'
 import { resizeObservers } from '@tests/support/setup'
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 function seriesWindow(ids: string[]) {
   return {
@@ -66,7 +66,7 @@ function dispatchWheel(overlay: Element, deltaY: number, width: number, height: 
 
 describe('WaveformChart zoom intent and data rebind', () => {
   it('keeps one shared wheel end after an immediate intent-driven data replacement', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       const data = ref<WaveformData>(fullSeries(['shared']))
       const host = mount(
@@ -84,8 +84,9 @@ describe('WaveformChart zoom intent and data rebind', () => {
           },
         }),
       )
+      await flushVueChartUpdates()
       resizeObservers.at(-1)?.resize(800, 360)
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const chart = host.findComponent(WaveformChart)
       const overlay = chart.get('.waveform-chart__overlay')
@@ -99,14 +100,14 @@ describe('WaveformChart zoom intent and data rebind', () => {
       expect(firstIntent.end - firstIntent.start).toBeCloseTo(50)
       expect(chart.emitted('zoom-change')).toBeUndefined()
 
-      await flushPromises()
+      await flushVueChartUpdates()
       dispatchWheel(overlay.element, 1_000, width, height)
-      await flushPromises()
+      await flushVueChartUpdates()
       await vi.advanceTimersByTimeAsync(199)
       expect(chart.emitted('zoom-end')).toBeUndefined()
 
       await vi.advanceTimersByTimeAsync(1)
-      await flushPromises()
+      await flushVueChartUpdates()
       const zoomEnd = chart.emitted('zoom-end')?.[0]?.[0] as { start: number; end: number }
       expect(chart.emitted('zoom-intent')).toHaveLength(2)
       expect(chart.emitted('zoom-end')).toHaveLength(1)
@@ -117,7 +118,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
   })
 
   it('retains a pending independent wheel gesture by stable series identity', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       const data = ref<WaveformData>(fullSeries(['channel-a', 'channel-b']))
       const host = mount(
@@ -136,16 +137,17 @@ describe('WaveformChart zoom intent and data rebind', () => {
           },
         }),
       )
+      await flushVueChartUpdates()
       resizeObservers.at(-1)?.resize(800, 360)
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const chart = host.findComponent(WaveformChart)
       const overlay = chart.findAll('.waveform-chart__overlay--independent')[0]!
       const { width, height } = configureOverlay(overlay.element)
       dispatchWheel(overlay.element, -4_000, width, height)
-      await flushPromises()
+      await flushVueChartUpdates()
       await vi.advanceTimersByTimeAsync(200)
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const zoomEnd = chart.emitted('zoom-end')?.[0]?.[0] as {
         trackIndex: number
@@ -175,7 +177,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
     dispatchPointer('pointerdown', width * 0.25, height / 2)
     dispatchPointer('pointermove', width * 0.75, height / 2)
     dispatchPointer('pointerup', width * 0.75, height / 2)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-intent')?.[0]?.[0]).toMatchObject({
       trackIndex: 0,
@@ -185,7 +187,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
   })
 
   it('cancels pending wheel ends when reset or pagination changes the viewport', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       const reset = await mountSizedChart(fullSeries(['reset']), { initialXDomain: [0, 100] })
       const resetOverlay = reset.get('.waveform-chart__overlay--independent')
@@ -203,7 +205,7 @@ describe('WaveformChart zoom intent and data rebind', () => {
       const pageBounds = configureOverlay(pageOverlay.element)
       dispatchWheel(pageOverlay.element, -4_000, pageBounds.width, pageBounds.height)
       await paged.get('[aria-label="下一页"]').trigger('click')
-      await flushPromises()
+      await flushVueChartUpdates()
       await vi.advanceTimersByTimeAsync(200)
       expect(paged.emitted('zoom-end')).toBeUndefined()
     } finally {

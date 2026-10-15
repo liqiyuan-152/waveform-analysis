@@ -1,4 +1,4 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { InputNumber, Select } from 'ant-design-vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
@@ -6,14 +6,32 @@ import { ColorPicker } from 'vue3-colorpicker'
 import App from '@/App.vue'
 import { WaveformChart, type WaveformData } from '@/components'
 import { resizeObservers } from '@tests/support/setup'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
+
+async function mountWorkspace() {
+  const wrapper = mount(App, { attachTo: document.body })
+  resizeObservers.at(-1)?.resize(800, 800)
+  await flushPromises()
+  await vi.waitFor(() => {
+    const data = wrapper.getComponent(WaveformChart).props('data') as WaveformData
+    expect(
+      data.kind === 'series' &&
+        data.series.every(
+          (series) => series.data.kind === 'points' && series.data.points.length > 0,
+        ),
+    ).toBe(true)
+  })
+  await flushPromises()
+  return wrapper
+}
 
 const frameDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'requestAnimationFrame')!
 
 describe('App workspace layout', { timeout: 20_000 }, () => {
   afterEach(() => Object.defineProperty(globalThis, 'requestAnimationFrame', frameDescriptor))
   it('restores full data and invalidates a pending zoom request', async () => {
-    vi.useFakeTimers()
-    const wrapper = mount(App)
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const wrapper = await mountWorkspace()
     try {
       await flushPromises()
       const chart = wrapper.getComponent(WaveformChart)
@@ -33,7 +51,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
     }
   })
   it('places controls in the sidebar beside the chart', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     const panel = wrapper.get('#waveform-control-panel')
     const frameControls = panel.get('.frame-style-controls')
@@ -93,7 +111,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('passes clean view, presentation mode, and zero-line controls to the chart', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
 
@@ -121,7 +139,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('passes live zero-line color, opacity, and line-style changes to the chart', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
     const controls = wrapper.get('.zero-line-controls')
@@ -152,7 +170,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('passes horizontal and vertical grid controls to every track', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
 
@@ -177,7 +195,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('passes independent X and Y axis-line controls to the chart', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
 
@@ -198,7 +216,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('passes tooltip and per-series line-style controls to the chart', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
 
@@ -226,7 +244,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('switches overlaid tracks between single-axis and multi-axis rendering', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
 
     const overlayControl = wrapper.get('[aria-label="波形叠加方式"]')
@@ -248,7 +266,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       ...frameDescriptor,
       value: undefined,
     })
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     resizeObservers.at(-1)?.resize(800, 800)
     await flushPromises()
@@ -270,7 +288,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     const sineSeries = firstFrame.get('.waveform-chart__series[data-series-name="正弦基波"]')
     expect(sineSeries.find('.waveform-chart__line').exists()).toBe(true)
-    expect(sineSeries.get('.waveform-chart__points').attributes('data-point-type')).toBe('circle')
+    expect(sineSeries.get('.waveform-chart__point').attributes('data-point-type')).toBe('circle')
     expect(sineSeries.get('.waveform-chart__error-bar').attributes()).toMatchObject({
       stroke: '#0960bd',
       'stroke-width': '1.5',
@@ -284,7 +302,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       ...frameDescriptor,
       value: undefined,
     })
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
     resizeObservers.at(-1)?.resize(800, 800)
     await flushPromises()
@@ -349,6 +367,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
         .map((track) => track.get('.waveform-chart__series').attributes('data-series-name')),
     ).toEqual(['脉冲响应', '带噪信号', '百万量级电压', '微量级电流'])
 
+    await vi.waitFor(() =>
+      expect(wrapper.get('[aria-label="下一页"]').attributes('disabled')).toBeUndefined(),
+    )
     await wrapper.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     expect(
@@ -364,7 +385,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('updates title content, text styles, and visibility', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
 
     const renderedTitle = () => wrapper.get('.waveform-chart__title-text')
@@ -375,6 +396,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     await wrapper.get('input[aria-label="标题名称"]').setValue('实验标题')
     await wrapper.get('[aria-label="标题粗体"]').trigger('click')
+    await flushPromises()
     expect(renderedTitle().attributes('style')).toContain('font-weight: 400')
     await wrapper.get('[aria-label="标题粗体"]').trigger('click')
     await wrapper.get('[aria-label="标题斜体"]').trigger('click')
@@ -394,13 +416,13 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     await wrapper.get('[aria-label="显示标题"]').trigger('click')
     await flushPromises()
-    expect(wrapper.find('.waveform-chart__title-area').exists()).toBe(false)
+    expect(wrapper.get('.waveform-chart__title-area').isVisible()).toBe(false)
 
     wrapper.unmount()
   })
 
   it('updates every visible frame from the frame style controls', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
 
     const frameControls = wrapper.get('.frame-style-controls')
@@ -440,7 +462,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('shows and hides every frame watermark from the frame style controls', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     await flushPromises()
 
     const watermarkToggle = wrapper.get('[aria-label="显示图框水印"]')
@@ -451,7 +473,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
 
     await watermarkToggle.trigger('click')
     await flushPromises()
-    expect(wrapper.findAll('.waveform-chart__watermark')).toHaveLength(0)
+    expect(wrapper.findAll('.waveform-chart__watermark').some((item) => item.isVisible())).toBe(
+      false,
+    )
 
     await watermarkToggle.trigger('click')
     await flushPromises()
@@ -463,7 +487,7 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
   })
 
   it('opens and closes the mobile control drawer', async () => {
-    const wrapper = mount(App)
+    const wrapper = await mountWorkspace()
     const toggle = wrapper.get('.mobile-control-toggle')
 
     expect(toggle.attributes('aria-expanded')).toBe('false')

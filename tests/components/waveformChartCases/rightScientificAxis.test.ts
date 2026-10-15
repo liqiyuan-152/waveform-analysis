@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
 describe('multi-axis right tick formatting', () => {
@@ -32,7 +31,7 @@ describe('multi-axis right tick formatting', () => {
     try {
       for (const width of [800, 375]) {
         resizeObservers.at(-1)?.resize(width, 360)
-        await flushPromises()
+        await flushVueChartUpdates()
         const leftTicks = wrapper.get('[data-y-axis-side="left"]').findAll('.tick text')
         const rightTicks = wrapper.get('[data-y-axis-side="right"]').findAll('.tick text')
         expect(leftTicks.at(-1)?.text()).toBe(left)
@@ -42,7 +41,7 @@ describe('multi-axis right tick formatting', () => {
         )
       }
       await wrapper.setProps({ unitDisplayMode: 'channel-label-or-legend' })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.get('[data-y-axis-side="right"]').findAll('.tick text').at(-1)?.text()).toBe(
         right.replace(' (V)', ''),
       )

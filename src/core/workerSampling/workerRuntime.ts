@@ -12,7 +12,7 @@ function requiresWasm(request: WorkerSamplingRequest) {
   )
 }
 
-async function initializeWasmBackend() {
+export async function initializeWasmBackend() {
   if (wasmInitializationError) return
   wasmInitialization ??= initializeWasmSampling()
     .then(() => {

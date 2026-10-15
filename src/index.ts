@@ -3,8 +3,7 @@
  * @packageDocumentation
  */
 
-// Vue 组件
-export { default as WaveformChart } from './components/WaveformChart.vue'
+// Framework-independent algorithms and public integration contracts.
 export type { WaveformChartProps } from './components/core/waveformChartTypes'
 
 // Numeric engine, pure preset factories and owner-scoped chart animation.
@@ -152,7 +151,7 @@ export {
   type WasmSamplingStrategy,
 } from './core'
 
-export { parseWaveformAnnotations, serializeWaveformAnnotations } from './components/annotation'
+export { parseWaveformAnnotations, serializeWaveformAnnotations } from './annotation/serialization'
 
 export type {
   WaveformToolbarItem,
@@ -170,3 +169,17 @@ export type {
   WaveformImageExportError,
   WaveformChartHandle,
 } from './types/controls'
+
+export type {
+  WaveformChartOptions,
+  WaveformChartOptionUpdate,
+  WaveformChartInitOptions,
+} from './types/options'
+export type {
+  WaveformChartEvents,
+  WaveformChartEventHandler,
+  WaveformChartAction,
+  WaveformChartInstance,
+  WaveformChartErrorCode,
+} from './types/native'
+export { init, getInstanceByDom, dispose } from './chart/init'

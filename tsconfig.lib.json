@@ -9,6 +9,6 @@
     "rootDir": "./src",
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.lib.tsbuildinfo"
   },
-  "include": ["src/**/*.ts", "src/**/*.vue"],
+  "include": ["src/index.ts", "src/native.ts", "src/vue.ts", "src/env.d.ts"],
   "exclude": ["src/demo/**", "src/App.vue", "src/main.ts"]
 }

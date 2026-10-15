@@ -1,0 +1,1097 @@
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 736 modules transformed.
+
+(!) outDir /var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T/tests/browser/native-resource-lifecycle.html      0.35 kB │ gzip:  0.22 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T/assets/waveform_sampling_wasm_bg-CRvgnxY9.wasm   60.23 kB │ gzip: 22.54 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T/assets/workerRuntime-DKdxQyA4.js                 61.46 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T/assets/nativeWorkerRuntime-USrfs04Q.js           61.46 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T/assets/native-resource-lifecycle-CxpZF8vS.css    19.63 kB │ gzip:  4.08 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-resources-mRU74T/assets/native-resource-lifecycle-5ONzWQxl.js    322.71 kB │ gzip: 98.27 kB
+
+✓ built in 419ms
+{
+  "startedAt": "2026-10-15T06:25:06.105Z",
+  "node": "v22.23.2",
+  "browsers": [
+    {
+      "name": "chromium",
+      "errors": [],
+      "cycles": [
+        {
+          "index": 0,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 1,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 2,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 3,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 4,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 5,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 6,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 7,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 8,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 9,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 10,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 11,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 12,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 13,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 14,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 15,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 16,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 17,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 18,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 19,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 20,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 21,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 22,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 23,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 24,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 25,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 26,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 27,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 28,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 29,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        }
+      ],
+      "heap": {
+        "before": 3053484,
+        "after": 3569368,
+        "growth": 515884
+      },
+      "detachedDOM": {
+        "before": {
+          "heap": 3053484,
+          "documents": 1,
+          "nodes": 17,
+          "jsEventListeners": 13
+        },
+        "after": {
+          "heap": 3569368,
+          "documents": 1,
+          "nodes": 17,
+          "jsEventListeners": 13
+        },
+        "method": "total DOM nodes after forced GC"
+      },
+      "version": "141.0.7390.37",
+      "baseline": {
+        "frames": 0,
+        "timers": 0,
+        "intervals": 0,
+        "observers": 0,
+        "workers": 0,
+        "globalListeners": 13
+      },
+      "allocated": {
+        "workers": 66,
+        "observers": 66
+      },
+      "status": "passed"
+    },
+    {
+      "name": "firefox",
+      "errors": [],
+      "cycles": [
+        {
+          "index": 0,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 1,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 2,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 3,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 4,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 5,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 6,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 7,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 8,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 9,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 10,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 11,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 12,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 13,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 14,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 15,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 16,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 17,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 18,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 19,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 20,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 21,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 22,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 23,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 24,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 25,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 26,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 27,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 28,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 29,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        }
+      ],
+      "heap": "unavailable",
+      "detachedDOM": "unavailable",
+      "version": "142.0.1",
+      "baseline": {
+        "frames": 0,
+        "timers": 0,
+        "intervals": 0,
+        "observers": 0,
+        "workers": 0,
+        "globalListeners": 13
+      },
+      "allocated": {
+        "workers": 66,
+        "observers": 66
+      },
+      "status": "passed"
+    },
+    {
+      "name": "webkit",
+      "errors": [],
+      "cycles": [
+        {
+          "index": 0,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 1,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 2,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 3,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 4,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 5,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 6,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 7,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 8,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 9,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 10,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 11,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 12,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 13,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 14,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 15,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 16,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 17,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 18,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 19,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 20,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 21,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 22,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 23,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 24,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 25,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 26,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 27,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 28,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        },
+        {
+          "index": 29,
+          "resources": {
+            "frames": 0,
+            "timers": 0,
+            "intervals": 0,
+            "observers": 0,
+            "workers": 0,
+            "globalListeners": 13
+          }
+        }
+      ],
+      "heap": "unavailable",
+      "detachedDOM": "unavailable",
+      "version": "26.0",
+      "baseline": {
+        "frames": 0,
+        "timers": 0,
+        "intervals": 0,
+        "observers": 0,
+        "workers": 0,
+        "globalListeners": 13
+      },
+      "allocated": {
+        "workers": 66,
+        "observers": 66
+      },
+      "status": "passed"
+    }
+  ],
+  "finishedAt": "2026-10-15T06:25:44.723Z"
+}

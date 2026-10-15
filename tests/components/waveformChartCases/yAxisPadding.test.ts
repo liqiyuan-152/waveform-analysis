@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
-import { mountSizedChart } from '@tests/support/waveformChart'
+
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
 import type { WaveformData } from '@/types'
 
@@ -57,7 +57,7 @@ describe('Y padding chart integration', () => {
           },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(ticks(wrapper).at(-1)).toBe(100)
       expect(wrapper.get('[data-maximum-tick]').attributes('data-tick-value')).toBe('100')
       wrapper.unmount()
@@ -69,7 +69,7 @@ describe('Y padding chart integration', () => {
       axes: { y: { nice: false, upperPaddingRatio: 0.001 } },
     })
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     const ordinary = wrapper
       .findAll('.waveform-track__axis--y .tick')
       .find((t) => t.attributes('data-tick-value') === '100.1')!
@@ -97,11 +97,11 @@ describe('Y padding chart integration', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(ticks(wrapper).at(-1)).toBe(220)
     resizeObservers.at(-1)?.resize(360, 300)
-    await flushPromises()
-    await flushPromises()
+    await flushVueChartUpdates()
+    await flushVueChartUpdates()
     expect(ticks(wrapper).at(-1)).toBe(220)
     expect(wrapper.get('[data-maximum-tick]').attributes('data-tick-value')).toBe('200')
     wrapper.unmount()

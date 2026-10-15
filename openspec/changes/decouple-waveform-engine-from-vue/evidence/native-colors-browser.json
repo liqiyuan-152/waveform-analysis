@@ -1,0 +1,557 @@
+{
+  "startedAt": "2026-10-14T21:53:05.609Z",
+  "node": "v22.23.2",
+  "scope": "8.3 原生精确 CSS 色值、alpha、键盘输入、受控保存和标注出现/消失/finished；原生色板操作仅验证 DOM input 接线，平台色板弹层及完整焦点层级留待 8.4",
+  "browsers": [
+    {
+      "name": "chromium",
+      "colors": [
+        {
+          "width": 1200,
+          "displayMode": "independent",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 1200,
+          "displayMode": "separated",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 1200,
+          "displayMode": "compact",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "independent",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "separated",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        }
+      ],
+      "animations": [
+        {
+          "width": 1200,
+          "displayMode": "independent",
+          "reduced": false,
+          "renderedFrames": 94,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 1200,
+          "displayMode": "separated",
+          "reduced": false,
+          "renderedFrames": 91,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 1200,
+          "displayMode": "compact",
+          "reduced": false,
+          "renderedFrames": 93,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "independent",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "separated",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "reduced": true,
+          "renderedFrames": 7,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "errors": [],
+      "version": "141.0.7390.37",
+      "status": "passed"
+    },
+    {
+      "name": "firefox",
+      "colors": [
+        {
+          "width": 1200,
+          "displayMode": "independent",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 1200,
+          "displayMode": "separated",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 1200,
+          "displayMode": "compact",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "independent",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "separated",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        }
+      ],
+      "animations": [
+        {
+          "width": 1200,
+          "displayMode": "independent",
+          "reduced": false,
+          "renderedFrames": 91,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 1200,
+          "displayMode": "separated",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 1200,
+          "displayMode": "compact",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "independent",
+          "reduced": false,
+          "renderedFrames": 93,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "separated",
+          "reduced": false,
+          "renderedFrames": 94,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "reduced": false,
+          "renderedFrames": 91,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "reduced": true,
+          "renderedFrames": 7,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "errors": [],
+      "version": "142.0.1",
+      "status": "passed"
+    },
+    {
+      "name": "webkit",
+      "colors": [
+        {
+          "width": 1200,
+          "displayMode": "independent",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 1200,
+          "displayMode": "separated",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 1200,
+          "displayMode": "compact",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 1280,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "independent",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "separated",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "savedStyle": {
+            "borderColor": "#abcdef80",
+            "textColor": "rgb(254, 220, 186)",
+            "backgroundColor": "rgba(255, 255, 255, 0.123456)"
+          },
+          "keyboardAlpha": 0.38,
+          "bounds": {
+            "x": 0,
+            "y": 0,
+            "width": 390,
+            "height": 1000
+          }
+        }
+      ],
+      "animations": [
+        {
+          "width": 1200,
+          "displayMode": "independent",
+          "reduced": false,
+          "renderedFrames": 91,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 1200,
+          "displayMode": "separated",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 1200,
+          "displayMode": "compact",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "independent",
+          "reduced": false,
+          "renderedFrames": 91,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "separated",
+          "reduced": false,
+          "renderedFrames": 91,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "reduced": false,
+          "renderedFrames": 92,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "width": 360,
+          "displayMode": "compact",
+          "reduced": true,
+          "renderedFrames": 7,
+          "finished": [
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      "errors": [],
+      "version": "26.0",
+      "status": "passed"
+    }
+  ],
+  "finishedAt": "2026-10-14T21:53:43.000Z"
+}

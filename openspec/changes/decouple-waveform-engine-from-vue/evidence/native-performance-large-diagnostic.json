@@ -1,0 +1,2109 @@
+{
+  "startedAt": "2026-10-15T02:34:59.387Z",
+  "status": "passed",
+  "pilot": false,
+  "diagnostic": true,
+  "animationProbe": false,
+  "largeProbe": true,
+  "traceGc": true,
+  "chartOptions": {
+    "title": "波形迁移基线",
+    "frameNumber": "001",
+    "initializationAnimations": false,
+    "animationWorkload": "100ms data update; both engines must complete the animation",
+    "animationThreshold": 10000000,
+    "animationDuration": 100
+  },
+  "commit": "247144ee3e88a7fceb6cb3382fb80eb5b274dd3e",
+  "worktreeSha256": "da128207c60ab02c4d0e877f24c0a1fc2bbebb77e2e39d4d2c091b4401fae8b6",
+  "snapshotFiles": [
+    "package.json",
+    "pnpm-lock.yaml",
+    "scripts/animation-browser-server.mjs",
+    "scripts/animation-build-inputs.mjs",
+    "scripts/animation-gzip-report.d.mts",
+    "scripts/animation-gzip-report.mjs",
+    "scripts/animation-memory-attribution.mjs",
+    "scripts/build-native-compatibility-inventory.mjs",
+    "scripts/build-native-styles.mjs",
+    "scripts/capture-native-api-baseline.mjs",
+    "scripts/capture-native-browser-baseline.mjs",
+    "scripts/capture-native-performance.mjs",
+    "scripts/check-file-length.d.mts",
+    "scripts/check-file-length.mjs",
+    "scripts/check-native-boundary.mjs",
+    "scripts/check-third-party-notices.mjs",
+    "scripts/clean-types.mjs",
+    "scripts/compare-animation-gzip.mjs",
+    "scripts/data-source-baseline.ts",
+    "scripts/issue_triage_agent.py",
+    "scripts/package-animation-consumer.ts",
+    "scripts/package-animation-runtime.mjs",
+    "scripts/package-native-controls-consumer.ts",
+    "scripts/prepare-package-types.mjs",
+    "scripts/prepare-wasm.d.mts",
+    "scripts/prepare-wasm.mjs",
+    "scripts/reliability-browser.html",
+    "scripts/reliability-browser.ts",
+    "scripts/serve-animation-native.mjs",
+    "scripts/test-animation-browser.mjs",
+    "scripts/test-animation-memory.mjs",
+    "scripts/test-animation-mobile-emulation.mjs",
+    "scripts/test-animation-smoke.mjs",
+    "scripts/test-native-animation-instance-browser.mjs",
+    "scripts/test-native-annotations-browser.mjs",
+    "scripts/test-native-colors-browser.mjs",
+    "scripts/test-native-controlled-browser.mjs",
+    "scripts/test-native-controls.mjs",
+    "scripts/test-native-editor-browser.mjs",
+    "scripts/test-native-examples-browser.mjs",
+    "scripts/test-native-export-browser.mjs",
+    "scripts/test-native-floating-browser.mjs",
+    "scripts/test-native-gestures-browser.mjs",
+    "scripts/test-native-hover-browser.mjs",
+    "scripts/test-native-instance-browser.mjs",
+    "scripts/test-native-pagination-parity.mjs",
+    "scripts/test-native-resources-browser.mjs",
+    "scripts/test-native-toolbar-browser.mjs",
+    "scripts/test-package.mjs",
+    "scripts/test-pagination-animation.mjs",
+    "scripts/test-vue-adapter-browser.mjs",
+    "scripts/verify-native-example-features.mjs",
+    "scripts/verify-native-package.mjs",
+    "scripts/verify-package-native-controls.mjs",
+    "scripts/verify-vue-adapter-package.mjs",
+    "scripts/wasm-sampling-baseline-browser.ts",
+    "scripts/wasm-sampling-baseline.html",
+    "scripts/wasm-sampling-baseline.mjs",
+    "scripts/wasmSamplingBaseline.ts",
+    "src/App.vue",
+    "src/DemoRouterApp.vue",
+    "src/adapters/vue/VueChartAdapter.ts",
+    "src/adapters/vue/WaveformChart.vue",
+    "src/adapters/vue/index.ts",
+    "src/adapters/vue/vueOptionSnapshot.ts",
+    "src/animation/NativeChartAnimation.ts",
+    "src/animation/WaveformAnimationController.ts",
+    "src/animation/core/Animation.ts",
+    "src/animation/core/Animator.ts",
+    "src/animation/core/easing.ts",
+    "src/animation/core/errors.ts",
+    "src/animation/core/handle.ts",
+    "src/animation/core/owner.ts",
+    "src/animation/core/propertyGroups.ts",
+    "src/animation/core/task.ts",
+    "src/animation/core/types.ts",
+    "src/animation/core/validation.ts",
+    "src/animation/core/values.ts",
+    "src/animation/presentation/AnnotationPresentation.ts",
+    "src/animation/presentation/PaginationPresentation.ts",
+    "src/animation/presentation/WaveformPresentation.ts",
+    "src/animation/presentation/config.ts",
+    "src/animation/presentation/context.ts",
+    "src/animation/presentation/geometry.ts",
+    "src/animation/presentation/pathBuffer.ts",
+    "src/animation/presentation/trackPresentation.ts",
+    "src/animation/presets/annotation.ts",
+    "src/animation/presets/lineDrawing.ts",
+    "src/animation/presets/shared.ts",
+    "src/animation/presets/transitions.ts",
+    "src/animation/types.ts",
+    "src/annotation/AnnotationContextMenu.ts",
+    "src/annotation/AnnotationController.ts",
+    "src/annotation/AnnotationDraftController.ts",
+    "src/annotation/AnnotationDragController.ts",
+    "src/annotation/AnnotationEditor.ts",
+    "src/annotation/AnnotationModel.ts",
+    "src/annotation/AnnotationStyleEditor.ts",
+    "src/annotation/AnnotationView.ts",
+    "src/annotation/annotationLayout.ts",
+    "src/annotation/annotationTracks.ts",
+    "src/annotation/markup.ts",
+    "src/annotation/serialization.ts",
+    "src/annotation/types.ts",
+    "src/chart/ChartEventEmitter.ts",
+    "src/chart/ChartRegistry.ts",
+    "src/chart/ChartResources.ts",
+    "src/chart/ChartSizeObserver.ts",
+    "src/chart/ChartUpdateScheduler.ts",
+    "src/chart/WaveformChart.ts",
+    "src/chart/WaveformChartError.ts",
+    "src/chart/init.ts",
+    "src/chart/reportChartError.ts",
+    "src/components/WaveformChart.vue",
+    "src/components/animation/annotationPresentation.ts",
+    "src/components/animation/geometry.ts",
+    "src/components/animation/pathBuffer.ts",
+    "src/components/animation/trackPresentation.ts",
+    "src/components/annotation/annotationLayout.ts",
+    "src/components/annotation/serialization.ts",
+    "src/components/controls/WaveformModal.css",
+    "src/components/controls/WaveformNumberInput.css",
+    "src/components/controls/WaveformPagination.css",
+    "src/components/controls/chartExportOptions.ts",
+    "src/components/controls/numberInput.ts",
+    "src/components/controls/pagination.ts",
+    "src/components/controls/snapshotTitle.ts",
+    "src/components/controls/toolbarRegistry.ts",
+    "src/components/core/amplitudeLimits.ts",
+    "src/components/core/constants.ts",
+    "src/components/core/grid.ts",
+    "src/components/core/index.ts",
+    "src/components/core/latestTaskScheduler.ts",
+    "src/components/core/layout.ts",
+    "src/components/core/niceScale.ts",
+    "src/components/core/pagination.ts",
+    "src/components/core/title.ts",
+    "src/components/core/trackLayoutBuilder.ts",
+    "src/components/core/trackPagination.ts",
+    "src/components/core/types.ts",
+    "src/components/core/waveformChartTypes.ts",
+    "src/components/core/waveformSamplingSession.ts",
+    "src/components/core/workerSamplingClient.ts",
+    "src/components/core/xAxisTicks.ts",
+    "src/components/core/xDomain.ts",
+    "src/components/core/yAxisConstants.ts",
+    "src/components/core/yAxisLabelStyle.ts",
+    "src/components/core/yAxisLayoutMetrics.ts",
+    "src/components/core/yAxisPadding.ts",
+    "src/components/core/yAxisTextWidth.ts",
+    "src/components/core/yAxisTicks.ts",
+    "src/components/core/yAxisTitleLayout.ts",
+    "src/components/core/yDomain.ts",
+    "src/components/data/index.ts",
+    "src/components/data/types.ts",
+    "src/components/index.ts",
+    "src/components/interaction/integerZoom.ts",
+    "src/components/interaction/pointerCapture.ts",
+    "src/components/interaction/remoteViewport.ts",
+    "src/components/interaction/stepZoom.ts",
+    "src/components/interaction/viewportInteractionState.ts",
+    "src/components/interaction/zoomConstraints.ts",
+    "src/components/interaction/zoomEventPayload.ts",
+    "src/components/rendering/WaveformTrack.css",
+    "src/components/rendering/channelLabel.ts",
+    "src/components/rendering/compactFrame.ts",
+    "src/components/rendering/seriesStyle.ts",
+    "src/components/rendering/updateAxis.ts",
+    "src/components/rendering/updateGrid.ts",
+    "src/components/rendering/yAxisTickVisibility.ts",
+    "src/components/waveform.ts",
+    "src/controls/ChartCommandDispatcher.ts",
+    "src/controls/ChartPaginationController.ts",
+    "src/controls/ColorInputView.ts",
+    "src/controls/ControlStateObserver.ts",
+    "src/controls/ModalController.ts",
+    "src/controls/NumberInputView.ts",
+    "src/controls/ToolbarDownloadController.ts",
+    "src/controls/validateChartAction.ts",
+    "src/core/compactSamplePointSource.ts",
+    "src/core/data.ts",
+    "src/core/index.ts",
+    "src/core/lineBoundary.ts",
+    "src/core/preparedWaveformSeries.ts",
+    "src/core/rendering.ts",
+    "src/core/renderingOptions.ts",
+    "src/core/renderingStrategies.ts",
+    "src/core/samplingReference.ts",
+    "src/core/samplingReferenceValues.ts",
+    "src/core/samplingReferenceVectors.ts",
+    "src/core/wasmSampling.ts",
+    "src/core/waveformPointSource.ts",
+    "src/core/workerSampling/index.ts",
+    "src/core/workerSampling/javascriptBackend.ts",
+    "src/core/workerSampling/multiresolution.ts",
+    "src/core/workerSampling/outputBoundaries.ts",
+    "src/core/workerSampling/protocol.ts",
+    "src/core/workerSampling/repository.ts",
+    "src/core/workerSampling/repositoryDataset.ts",
+    "src/core/workerSampling/repositorySupport.ts",
+    "src/core/workerSampling/samplingCache.ts",
+    "src/core/workerSampling/workerRuntime.ts",
+    "src/data/WaveformDataManager.ts",
+    "src/data/WaveformQueryService.ts",
+    "src/demo/DemoChartHost.vue",
+    "src/demo/DemoControlPanel.vue",
+    "src/demo/DemoGridFrameControls.vue",
+    "src/demo/DemoTitleLegendControls.vue",
+    "src/demo/DemoViewControls.vue",
+    "src/demo/DemoYAxisPaddingControls.vue",
+    "src/demo/data/recordedDampedWaveform.ts",
+    "src/demo/data/simulatedWaveforms.ts",
+    "src/demo/embedBridge.ts",
+    "src/demo/remoteWaveformLoader.ts",
+    "src/demo/types.ts",
+    "src/demo/useDemoXAxisLabelControls.ts",
+    "src/demo/useRemoteWaveformWindow.ts",
+    "src/demoRoutes.css",
+    "src/env.d.ts",
+    "src/export/ChartExporter.ts",
+    "src/export/PngExporter.ts",
+    "src/export/SvgExporter.ts",
+    "src/export/SvgLegendExporter.ts",
+    "src/export/SvgTitleExporter.ts",
+    "src/export/imageExportError.ts",
+    "src/export/svgSnapshotStyles.ts",
+    "src/index.ts",
+    "src/interaction/HoverController.ts",
+    "src/interaction/InteractionContext.ts",
+    "src/interaction/InteractionManager.ts",
+    "src/interaction/ViewportDragController.ts",
+    "src/interaction/ViewportRestorer.ts",
+    "src/interaction/WheelZoomController.ts",
+    "src/interaction/hoverQuery.ts",
+    "src/layout/AxisLayoutEngine.ts",
+    "src/layout/ChartLayoutEngine.ts",
+    "src/layout/YAxisTextMeasurer.ts",
+    "src/main.ts",
+    "src/model/ChartModel.ts",
+    "src/model/OptionManager.ts",
+    "src/model/PresentationModel.ts",
+    "src/model/SeriesVisibilityModel.ts",
+    "src/model/ViewportModel.ts",
+    "src/model/validateOptions.ts",
+    "src/native.ts",
+    "src/rendering/SvgChartRenderer.ts",
+    "src/rendering/SvgDom.ts",
+    "src/rendering/geometry/seriesGeometry.ts",
+    "src/rendering/presentationOptions.ts",
+    "src/router.ts",
+    "src/sampling/LatestTaskScheduler.ts",
+    "src/sampling/RenderSamplingController.ts",
+    "src/sampling/SamplingSession.ts",
+    "src/sampling/WorkerSamplingClient.ts",
+    "src/sampling/samplingTargets.ts",
+    "src/styles.css",
+    "src/styles/annotation.css",
+    "src/styles/annotationLayer.css",
+    "src/styles/base.css",
+    "src/styles/colorInput.css",
+    "src/styles/legend.css",
+    "src/styles/native.css",
+    "src/styles/nativeStyle.ts",
+    "src/styles/toolbar.css",
+    "src/styles/tooltip.css",
+    "src/types/chart.ts",
+    "src/types/controls.ts",
+    "src/types/data.ts",
+    "src/types/index.ts",
+    "src/types/native.ts",
+    "src/types/options.ts",
+    "src/utils/domain.ts",
+    "src/utils/formatters.ts",
+    "src/utils/geometry.ts",
+    "src/utils/index.ts",
+    "src/utils/sampling.ts",
+    "src/utils/xAxisNumber.ts",
+    "src/view/AxisView.ts",
+    "src/view/GridView.ts",
+    "src/view/HoverView.ts",
+    "src/view/LegendView.ts",
+    "src/view/PaginationView.ts",
+    "src/view/SeriesView.ts",
+    "src/view/TitleView.ts",
+    "src/view/ToolbarView.ts",
+    "src/view/TooltipView.ts",
+    "src/view/TrackView.ts",
+    "src/view/ZeroLineView.ts",
+    "src/view/tooltipPlacement.ts",
+    "src/views/AnimationDemo.vue",
+    "src/views/FixedYDomainDemo.vue",
+    "src/views/WasmSamplingDemo.vue",
+    "src/views/wasmSamplingDemoSampling.ts",
+    "src/vue.ts",
+    "tests/browser/animation-native.html",
+    "tests/browser/animation-native.ts",
+    "tests/browser/animation.html",
+    "tests/browser/animation.ts",
+    "tests/browser/native-animation-instance.html",
+    "tests/browser/native-animation-instance.ts",
+    "tests/browser/native-annotation-animation.html",
+    "tests/browser/native-annotation-animation.ts",
+    "tests/browser/native-controls.html",
+    "tests/browser/native-controls.ts",
+    "tests/browser/native-export.html",
+    "tests/browser/native-export.ts",
+    "tests/browser/native-floating.html",
+    "tests/browser/native-floating.ts",
+    "tests/browser/native-gestures.html",
+    "tests/browser/native-gestures.ts",
+    "tests/browser/native-instance-smoke.html",
+    "tests/browser/native-instance-smoke.ts",
+    "tests/browser/native-migration-baseline.html",
+    "tests/browser/native-migration-baseline.ts",
+    "tests/browser/native-pagination-parity.html",
+    "tests/browser/native-pagination-parity.ts",
+    "tests/browser/native-resource-lifecycle.html",
+    "tests/browser/native-resource-lifecycle.ts",
+    "tests/browser/vue-adapter.html",
+    "tests/browser/vue-adapter.ts",
+    "tests/fixtures/legacy/README.md",
+    "tests/fixtures/legacy/components/WaveformChart.css",
+    "tests/fixtures/legacy/components/WaveformChartView.vue",
+    "tests/fixtures/legacy/components/animation/chartExportVersion.ts",
+    "tests/fixtures/legacy/components/animation/config.ts",
+    "tests/fixtures/legacy/components/animation/context.ts",
+    "tests/fixtures/legacy/components/animation/paginationPresentation.ts",
+    "tests/fixtures/legacy/components/animation/useWaveformAnimations.ts",
+    "tests/fixtures/legacy/components/annotation/WaveformAnnotationContextMenu.vue",
+    "tests/fixtures/legacy/components/annotation/WaveformAnnotationEditor.css",
+    "tests/fixtures/legacy/components/annotation/WaveformAnnotationEditor.vue",
+    "tests/fixtures/legacy/components/annotation/WaveformAnnotationLayer.vue",
+    "tests/fixtures/legacy/components/annotation/index.ts",
+    "tests/fixtures/legacy/components/annotation/markup.ts",
+    "tests/fixtures/legacy/components/annotation/types.ts",
+    "tests/fixtures/legacy/components/annotation/useWaveformAnnotationInteraction.ts",
+    "tests/fixtures/legacy/components/annotation/useWaveformChartAnnotations.ts",
+    "tests/fixtures/legacy/components/controls/WaveformModal.vue",
+    "tests/fixtures/legacy/components/controls/WaveformNumberInput.vue",
+    "tests/fixtures/legacy/components/controls/WaveformPagination.vue",
+    "tests/fixtures/legacy/components/controls/WaveformToolbar.vue",
+    "tests/fixtures/legacy/components/controls/chartSnapshot.ts",
+    "tests/fixtures/legacy/components/controls/modalLifecycle.ts",
+    "tests/fixtures/legacy/components/controls/useChartCommands.ts",
+    "tests/fixtures/legacy/components/controls/useChartImageExport.ts",
+    "tests/fixtures/legacy/components/controls/useControlMode.ts",
+    "tests/fixtures/legacy/components/core/usePlotLabelLayout.ts",
+    "tests/fixtures/legacy/components/core/useWaveformChartController.ts",
+    "tests/fixtures/legacy/components/core/useWaveformChartLifecycle.ts",
+    "tests/fixtures/legacy/components/core/useWaveformData.ts",
+    "tests/fixtures/legacy/components/core/useWaveformLayout.ts",
+    "tests/fixtures/legacy/components/core/useWaveformMeasurements.ts",
+    "tests/fixtures/legacy/components/core/useWaveformPresentation.ts",
+    "tests/fixtures/legacy/components/core/useWaveformRenderSampling.ts",
+    "tests/fixtures/legacy/components/core/useWaveformViewportRestore.ts",
+    "tests/fixtures/legacy/components/core/useWaveformYAxisLayout.ts",
+    "tests/fixtures/legacy/components/interaction/WaveformHoverHost.vue",
+    "tests/fixtures/legacy/components/interaction/WaveformTooltip.vue",
+    "tests/fixtures/legacy/components/interaction/index.ts",
+    "tests/fixtures/legacy/components/interaction/interactionTarget.ts",
+    "tests/fixtures/legacy/components/interaction/useExtremaTickViewport.ts",
+    "tests/fixtures/legacy/components/interaction/useWaveformHover.ts",
+    "tests/fixtures/legacy/components/interaction/useWaveformViewport.ts",
+    "tests/fixtures/legacy/components/interaction/useWaveformZoom.ts",
+    "tests/fixtures/legacy/components/interaction/viewportDomain.ts",
+    "tests/fixtures/legacy/components/interaction/viewportPan.ts",
+    "tests/fixtures/legacy/components/rendering/WaveformHoverLayer.vue",
+    "tests/fixtures/legacy/components/rendering/WaveformLegend.vue",
+    "tests/fixtures/legacy/components/rendering/WaveformSeriesLayer.vue",
+    "tests/fixtures/legacy/components/rendering/WaveformTrack.vue",
+    "tests/fixtures/legacy/components/rendering/WaveformTrackAxes.vue",
+    "tests/fixtures/legacy/components/rendering/WaveformTrackBackdrop.vue",
+    "tests/fixtures/legacy/components/rendering/WaveformZeroLines.vue",
+    "tests/fixtures/legacy/components/rendering/index.ts",
+    "tests/fixtures/legacy/components/utils/assignElement.ts",
+    "tests/fixtures/legacy/components/utils/useAnimationFrameThrottle.ts",
+    "tests/fixtures/legacy/utils/waveformId.ts",
+    "tests/support/LegacyWaveformChart.vue",
+    "tests/support/animationScheduler.ts",
+    "tests/support/nativeChart.ts",
+    "tests/support/nativeEventSamples.ts",
+    "tests/support/nativePresentation.ts",
+    "tests/support/setup.ts",
+    "tests/support/waveformChart.ts",
+    "vite.config.ts",
+    "wasm/Cargo.lock",
+    "wasm/Cargo.toml",
+    "wasm/src/lib.rs"
+  ],
+  "assetHashes": {
+    "assets/index.es-CGUcvVcK.js": "d50330965aae979da83fb7a748e50e9f8d918d331282ceff87cd14a8237e2ccf",
+    "assets/native-migration-baseline-B9O9EmT5.css": "65c6d0313024e659f33d1cf6987b597c76c4897a77936b09979d0506fc34d793",
+    "assets/native-migration-baseline-DDLhmOMg.js": "89533857d0a6b7dd4930d07934982b9196f70bcd0d766686b5aaf88538831a44",
+    "assets/waveform_sampling_wasm_bg-CRvgnxY9.wasm": "3205a5de76a6182c69cde493c8292ea565b032d18a9144d12ba900456c47950c",
+    "assets/workerRuntime-DKdxQyA4.js": "dc38999f359f3f1f5eccfd163d06e440f8c2db8abcfdfff3cbafc9fdca363aad",
+    "tests/browser/native-migration-baseline.html": "7acc9da2011e36ba4ebce70785be572791b0371f0678d75120edba175657f999"
+  },
+  "node": "v22.23.2",
+  "browser": "141.0.7390.37",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M1"
+  },
+  "buildMode": "production; same fixture and data generator; typed Float64 samples",
+  "measurement": "data generation excluded; stable SVG export barrier + two RAFs included",
+  "rawTotalPointCap": 100000,
+  "capReason": "Both engines share the original default rawPointLimit resource envelope (100000 total SVG points). Larger raw cases are explicitly resource-capped for both engines; auto sampling still measures every requested size.",
+  "warmups": 0,
+  "runs": 1,
+  "viewportOperationsPerRun": 100,
+  "scenarios": [
+    {
+      "width": 1200,
+      "height": 720,
+      "series": 8,
+      "pointsPerSeries": 100000,
+      "sampling": "auto",
+      "animationEnabled": false,
+      "animationWorkload": "update",
+      "legacy": {
+        "runs": [
+          {
+            "mountMs": 221.90000000596046,
+            "updateMs": 132.40000000596046,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 110.89999997615814
+              },
+              {
+                "event": "stable:start",
+                "time": 199.69999998807907
+              },
+              {
+                "event": "export:start",
+                "time": 293
+              },
+              {
+                "event": "export:end",
+                "time": 331.89999997615814
+              },
+              {
+                "event": "stable:end",
+                "time": 332.7999999821186
+              },
+              {
+                "event": "update:start",
+                "time": 384.09999999403954
+              },
+              {
+                "event": "stable:start",
+                "time": 384.09999999403954
+              },
+              {
+                "event": "export:start",
+                "time": 476.39999997615814
+              },
+              {
+                "event": "export:end",
+                "time": 515.2999999821186
+              },
+              {
+                "event": "stable:end",
+                "time": 516.5
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 0
+            },
+            "viewport": [
+              26.30000001192093,
+              12.199999988079071,
+              23.099999994039536,
+              20.200000017881393,
+              17.799999982118607,
+              17.900000005960464,
+              17,
+              18,
+              18.099999994039536,
+              18,
+              17,
+              17.30000001192093,
+              17.900000005960464,
+              16.5,
+              22.69999998807907,
+              16.30000001192093,
+              15.799999982118607,
+              19,
+              17.5,
+              17.700000017881393,
+              16,
+              18.30000001192093,
+              17.299999982118607,
+              16.400000005960464,
+              16.80000001192093,
+              16.19999998807907,
+              17.599999994039536,
+              17.80000001192093,
+              19.799999982118607,
+              15,
+              18.400000005960464,
+              16.5,
+              17.30000001192093,
+              16.5,
+              18.299999982118607,
+              17.400000005960464,
+              15.700000017881393,
+              17.299999982118607,
+              16.5,
+              17.599999994039536,
+              18.099999994039536,
+              22,
+              16.299999982118607,
+              16.100000023841858,
+              16.299999982118607,
+              16.200000017881393,
+              16.899999976158142,
+              17.399999976158142,
+              15.900000005960464,
+              15.800000011920929,
+              16.099999994039536,
+              18,
+              15.599999994039536,
+              16.099999994039536,
+              16.100000023841858,
+              18,
+              18.099999994039536,
+              16.299999982118607,
+              20,
+              16.600000023841858,
+              17,
+              16,
+              16.5,
+              17,
+              15.799999982118607,
+              18.30000001192093,
+              15.299999982118607,
+              16.100000023841858,
+              18.69999998807907,
+              15.900000005960464,
+              17,
+              15.5,
+              15.5,
+              16.400000005960464,
+              16.400000005960464,
+              20.19999998807907,
+              17.400000005960464,
+              16.799999982118607,
+              17.400000005960464,
+              16.599999994039536,
+              16.100000023841858,
+              17.099999994039536,
+              18.299999982118607,
+              15.700000017881393,
+              16.19999998807907,
+              16.900000005960464,
+              17.5,
+              16,
+              15.800000011920929,
+              15.899999976158142,
+              17.400000005960464,
+              15.800000011920929,
+              16.900000005960464,
+              19.399999976158142,
+              17.80000001192093,
+              16.599999994039536,
+              16.099999994039536,
+              17,
+              17.200000017881393,
+              19.799999982118607
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 221.90000000596046,
+            "p95": 221.90000000596046
+          },
+          "update": {
+            "median": 132.40000000596046,
+            "p95": 132.40000000596046
+          },
+          "viewportTotal": {
+            "median": 1726.1999999582767,
+            "p95": 1726.1999999582767
+          },
+          "viewportFrame": {
+            "median": 17,
+            "p95": 20.19999998807907
+          }
+        }
+      },
+      "native": {
+        "runs": [
+          {
+            "mountMs": 144.2000000178814,
+            "updateMs": 124.40000000596046,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 2358.899999976158
+              },
+              {
+                "event": "stable:start",
+                "time": 2394.7999999821186
+              },
+              {
+                "event": "rendered",
+                "time": 2409
+              },
+              {
+                "event": "export:start",
+                "time": 2409.199999988079
+              },
+              {
+                "event": "rendered",
+                "time": 2415.0999999940395
+              },
+              {
+                "event": "rendered",
+                "time": 2463.699999988079
+              },
+              {
+                "event": "rendered",
+                "time": 2466.7999999821186
+              },
+              {
+                "event": "finished",
+                "time": 2466.7999999821186
+              },
+              {
+                "event": "export:end",
+                "time": 2502
+              },
+              {
+                "event": "stable:end",
+                "time": 2503.0999999940395
+              },
+              {
+                "event": "update:start",
+                "time": 2552.899999976158
+              },
+              {
+                "event": "stable:start",
+                "time": 2579.2999999821186
+              },
+              {
+                "event": "rendered",
+                "time": 2589.7999999821186
+              },
+              {
+                "event": "export:start",
+                "time": 2589.7999999821186
+              },
+              {
+                "event": "rendered",
+                "time": 2596.7999999821186
+              },
+              {
+                "event": "rendered",
+                "time": 2639.5
+              },
+              {
+                "event": "rendered",
+                "time": 2642.2999999821186
+              },
+              {
+                "event": "finished",
+                "time": 2642.399999976158
+              },
+              {
+                "event": "export:end",
+                "time": 2676
+              },
+              {
+                "event": "stable:end",
+                "time": 2677.2999999821186
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 0
+            },
+            "viewport": [
+              25.80000001192093,
+              14.599999994039536,
+              17.099999994039536,
+              16.900000005960464,
+              16.599999994039536,
+              17.200000017881393,
+              15,
+              18.19999998807907,
+              17.099999994039536,
+              16,
+              16,
+              16.100000023841858,
+              16.099999994039536,
+              17.400000005960464,
+              16.69999998807907,
+              17.69999998807907,
+              15.800000011920929,
+              16.69999998807907,
+              17,
+              16.700000017881393,
+              17.5,
+              16,
+              16.099999994039536,
+              17.599999994039536,
+              16.5,
+              15.300000011920929,
+              16.900000005960464,
+              15.799999982118607,
+              17.80000001192093,
+              16.69999998807907,
+              17,
+              15.900000005960464,
+              15.699999988079071,
+              17.5,
+              18.5,
+              16.400000005960464,
+              15.700000017881393,
+              16,
+              16,
+              17.899999976158142,
+              16.700000017881393,
+              16.599999994039536,
+              17.69999998807907,
+              15.700000017881393,
+              17.400000005960464,
+              15.799999982118607,
+              17,
+              16.200000017881393,
+              17.599999994039536,
+              16.299999982118607,
+              16.80000001192093,
+              15.800000011920929,
+              16.299999982118607,
+              17.30000001192093,
+              16.5,
+              18.19999998807907,
+              15.5,
+              16.5,
+              16.30000001192093,
+              16,
+              17.69999998807907,
+              15.599999994039536,
+              19.30000001192093,
+              15.900000005960464,
+              16.400000005960464,
+              17.399999976158142,
+              15.100000023841858,
+              16.899999976158142,
+              16.600000023841858,
+              16.799999982118607,
+              17.599999994039536,
+              15.600000023841858,
+              16.799999982118607,
+              16.099999994039536,
+              17.600000023841858,
+              17.19999998807907,
+              14.5,
+              18.099999994039536,
+              17,
+              16.30000001192093,
+              17.099999994039536,
+              16,
+              17.400000005960464,
+              15.5,
+              16.099999994039536,
+              17.599999994039536,
+              15.5,
+              18.200000017881393,
+              16.599999994039536,
+              17.299999982118607,
+              16.100000023841858,
+              14.5,
+              17.69999998807907,
+              17.80000001192093,
+              16.5,
+              18,
+              15.299999982118607,
+              16.900000005960464,
+              17.30000001192093,
+              16.399999976158142
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 144.2000000178814,
+            "p95": 144.2000000178814
+          },
+          "update": {
+            "median": 124.40000000596046,
+            "p95": 124.40000000596046
+          },
+          "viewportTotal": {
+            "median": 1674,
+            "p95": 1674
+          },
+          "viewportFrame": {
+            "median": 16.600000023841858,
+            "p95": 18.19999998807907
+          }
+        }
+      }
+    },
+    {
+      "width": 1200,
+      "height": 720,
+      "series": 8,
+      "pointsPerSeries": 100000,
+      "sampling": "auto",
+      "animationEnabled": true,
+      "animationWorkload": "update",
+      "legacy": {
+        "runs": [
+          {
+            "mountMs": 143.09999999403954,
+            "updateMs": 236,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 4471.5
+              },
+              {
+                "event": "stable:start",
+                "time": 4498
+              },
+              {
+                "event": "export:start",
+                "time": 4578
+              },
+              {
+                "event": "export:end",
+                "time": 4613.699999988079
+              },
+              {
+                "event": "stable:end",
+                "time": 4614.5999999940395
+              },
+              {
+                "event": "update:start",
+                "time": 4664.399999976158
+              },
+              {
+                "event": "stable:start",
+                "time": 4664.5
+              },
+              {
+                "event": "export:start",
+                "time": 4858.399999976158
+              },
+              {
+                "event": "export:end",
+                "time": 4899.5
+              },
+              {
+                "event": "stable:end",
+                "time": 4900.399999976158
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 8
+            },
+            "viewport": [
+              20.900000005960464,
+              21.099999994039536,
+              20.400000005960464,
+              21.30000001192093,
+              12.199999988079071,
+              17.80000001192093,
+              18.799999982118607,
+              17.80000001192093,
+              15.900000005960464,
+              16.599999994039536,
+              16.900000005960464,
+              16.099999994039536,
+              17.099999994039536,
+              18,
+              18.200000017881393,
+              21.799999982118607,
+              18.200000017881393,
+              17.69999998807907,
+              19.099999994039536,
+              23.200000017881393,
+              17.399999976158142,
+              16.100000023841858,
+              16.799999982118607,
+              17.100000023841858,
+              15.599999994039536,
+              19.69999998807907,
+              15.099999994039536,
+              15.800000011920929,
+              16.400000005960464,
+              17.299999982118607,
+              17.200000017881393,
+              16.799999982118607,
+              17.700000017881393,
+              15.799999982118607,
+              16.599999994039536,
+              16.900000005960464,
+              16.099999994039536,
+              16.900000005960464,
+              17.5,
+              19.399999976158142,
+              17.100000023841858,
+              17.19999998807907,
+              17,
+              16.900000005960464,
+              17.400000005960464,
+              22.899999976158142,
+              17.100000023841858,
+              17.299999982118607,
+              24.5,
+              16.80000001192093,
+              16,
+              17.299999982118607,
+              17.600000023841858,
+              17,
+              15.5,
+              21.099999994039536,
+              16.900000005960464,
+              16.099999994039536,
+              17.69999998807907,
+              15.400000005960464,
+              16,
+              16.5,
+              16.80000001192093,
+              16.899999976158142,
+              15.5,
+              16.900000005960464,
+              16.200000017881393,
+              15.699999988079071,
+              18.099999994039536,
+              15.900000005960464,
+              16.099999994039536,
+              31,
+              20.200000017881393,
+              19.799999982118607,
+              18.700000017881393,
+              19.899999976158142,
+              19.30000001192093,
+              24.80000001192093,
+              20.299999982118607,
+              20.700000017881393,
+              18.399999976158142,
+              19.400000005960464,
+              18.200000017881393,
+              19.799999982118607,
+              19.80000001192093,
+              18.900000005960464,
+              20.799999982118607,
+              20.599999994039536,
+              19.700000017881393,
+              19.19999998807907,
+              20,
+              19.30000001192093,
+              21.69999998807907,
+              19.80000001192093,
+              19.19999998807907,
+              20.900000005960464,
+              19.80000001192093,
+              26,
+              21.099999994039536,
+              20.599999994039536
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 143.09999999403954,
+            "p95": 143.09999999403954
+          },
+          "update": {
+            "median": 236,
+            "p95": 236
+          },
+          "viewportTotal": {
+            "median": 1840.5999999940395,
+            "p95": 1840.5999999940395
+          },
+          "viewportFrame": {
+            "median": 17.69999998807907,
+            "p95": 22.899999976158142
+          }
+        }
+      },
+      "native": {
+        "runs": [
+          {
+            "mountMs": 121.90000000596046,
+            "updateMs": 244.5,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 6847.799999982119
+              },
+              {
+                "event": "stable:start",
+                "time": 6864.799999982119
+              },
+              {
+                "event": "rendered",
+                "time": 6875.299999982119
+              },
+              {
+                "event": "export:start",
+                "time": 6875.299999982119
+              },
+              {
+                "event": "rendered",
+                "time": 6880.199999988079
+              },
+              {
+                "event": "rendered",
+                "time": 6931.0999999940395
+              },
+              {
+                "event": "rendered",
+                "time": 6933.5999999940395
+              },
+              {
+                "event": "finished",
+                "time": 6933.5999999940395
+              },
+              {
+                "event": "export:end",
+                "time": 6968.299999982119
+              },
+              {
+                "event": "stable:end",
+                "time": 6969.699999988079
+              },
+              {
+                "event": "update:start",
+                "time": 7019.5
+              },
+              {
+                "event": "stable:start",
+                "time": 7043.699999988079
+              },
+              {
+                "event": "rendered",
+                "time": 7053.5999999940395
+              },
+              {
+                "event": "export:start",
+                "time": 7053.799999982119
+              },
+              {
+                "event": "rendered",
+                "time": 7106.5999999940395
+              },
+              {
+                "event": "rendered",
+                "time": 7112.199999988079
+              },
+              {
+                "event": "rendered",
+                "time": 7146.899999976158
+              },
+              {
+                "event": "rendered",
+                "time": 7163
+              },
+              {
+                "event": "rendered",
+                "time": 7180.199999988079
+              },
+              {
+                "event": "rendered",
+                "time": 7195.199999988079
+              },
+              {
+                "event": "rendered",
+                "time": 7212.299999982119
+              },
+              {
+                "event": "rendered",
+                "time": 7229.899999976158
+              },
+              {
+                "event": "finished",
+                "time": 7229.899999976158
+              },
+              {
+                "event": "export:end",
+                "time": 7263.199999988079
+              },
+              {
+                "event": "stable:end",
+                "time": 7264
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 8
+            },
+            "viewport": [
+              19.69999998807907,
+              17,
+              16.400000005960464,
+              17.900000005960464,
+              16.399999976158142,
+              14.900000005960464,
+              17.5,
+              18.599999994039536,
+              15.300000011920929,
+              16.19999998807907,
+              15.300000011920929,
+              18.400000005960464,
+              16.5,
+              16.799999982118607,
+              16.80000001192093,
+              15,
+              17.099999994039536,
+              16.700000017881393,
+              17.599999994039536,
+              17.099999994039536,
+              16.400000005960464,
+              16.69999998807907,
+              16.400000005960464,
+              16.30000001192093,
+              15.899999976158142,
+              15.900000005960464,
+              18.900000005960464,
+              16.5,
+              16.700000017881393,
+              16.899999976158142,
+              14.600000023841858,
+              17.799999982118607,
+              16.700000017881393,
+              17.599999994039536,
+              17.19999998807907,
+              14.599999994039536,
+              17.600000023841858,
+              16.69999998807907,
+              16.5,
+              16.900000005960464,
+              14.400000005960464,
+              18.399999976158142,
+              16.100000023841858,
+              17.799999982118607,
+              15.5,
+              17.400000005960464,
+              16.400000005960464,
+              16.599999994039536,
+              16.900000005960464,
+              17.900000005960464,
+              14.099999994039536,
+              18.19999998807907,
+              15.900000005960464,
+              17.200000017881393,
+              16,
+              14.799999982118607,
+              20.099999994039536,
+              16.600000023841858,
+              16.399999976158142,
+              16.80000001192093,
+              16,
+              16.900000005960464,
+              16.19999998807907,
+              18.5,
+              16,
+              16.700000017881393,
+              18.599999994039536,
+              14.099999994039536,
+              18,
+              16,
+              17,
+              15.699999988079071,
+              16.5,
+              17.80000001192093,
+              16,
+              16.900000005960464,
+              16.299999982118607,
+              16.30000001192093,
+              17.900000005960464,
+              15.5,
+              15,
+              16.799999982118607,
+              17,
+              18.100000023841858,
+              15.799999982118607,
+              16.30000001192093,
+              18.900000005960464,
+              16,
+              16.799999982118607,
+              16.30000001192093,
+              13.900000005960464,
+              19.299999982118607,
+              17.599999994039536,
+              15.400000005960464,
+              17.599999994039536,
+              14.5,
+              18.400000005960464,
+              16.099999994039536,
+              17.30000001192093,
+              16.80000001192093
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 121.90000000596046,
+            "p95": 121.90000000596046
+          },
+          "update": {
+            "median": 244.5,
+            "p95": 244.5
+          },
+          "viewportTotal": {
+            "median": 1670.300000011921,
+            "p95": 1670.300000011921
+          },
+          "viewportFrame": {
+            "median": 16.69999998807907,
+            "p95": 18.599999994039536
+          }
+        }
+      }
+    },
+    {
+      "width": 1200,
+      "height": 720,
+      "series": 8,
+      "pointsPerSeries": 1000000,
+      "sampling": "auto",
+      "animationEnabled": false,
+      "animationWorkload": "update",
+      "legacy": {
+        "runs": [
+          {
+            "mountMs": 493.59999999403954,
+            "updateMs": 464.7000000178814,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 9505.199999988079
+              },
+              {
+                "event": "stable:start",
+                "time": 9654
+              },
+              {
+                "event": "export:start",
+                "time": 9959.399999976158
+              },
+              {
+                "event": "export:end",
+                "time": 9997.699999988079
+              },
+              {
+                "event": "stable:end",
+                "time": 9998.799999982119
+              },
+              {
+                "event": "update:start",
+                "time": 10503.399999976158
+              },
+              {
+                "event": "stable:start",
+                "time": 10503.5
+              },
+              {
+                "event": "export:start",
+                "time": 10927.899999976158
+              },
+              {
+                "event": "export:end",
+                "time": 10966.399999976158
+              },
+              {
+                "event": "stable:end",
+                "time": 10968.09999999404
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 0
+            },
+            "viewport": [
+              12.5,
+              17.69999998807907,
+              17.30000001192093,
+              16,
+              16.30000001192093,
+              16.5,
+              16.799999982118607,
+              19.30000001192093,
+              16.099999994039536,
+              15.699999988079071,
+              16,
+              16.200000017881393,
+              17,
+              17.19999998807907,
+              16.30000001192093,
+              16.099999994039536,
+              15.800000011920929,
+              18.69999998807907,
+              15.599999994039536,
+              22.80000001192093,
+              17,
+              17.099999994039536,
+              16.900000005960464,
+              17.900000005960464,
+              16.799999982118607,
+              21.700000017881393,
+              15.599999994039536,
+              16.099999994039536,
+              16,
+              16,
+              17.099999994039536,
+              17.100000023841858,
+              16,
+              15.5,
+              16.299999982118607,
+              18,
+              16.30000001192093,
+              17.400000005960464,
+              16.799999982118607,
+              15.599999994039536,
+              17.80000001192093,
+              15.199999988079071,
+              16.400000005960464,
+              16.80000001192093,
+              17.099999994039536,
+              15.400000005960464,
+              16.299999982118607,
+              16.099999994039536,
+              15.5,
+              16.900000005960464,
+              21.399999976158142,
+              16.900000005960464,
+              17.200000017881393,
+              16.69999998807907,
+              17.30000001192093,
+              17,
+              19.799999982118607,
+              18.400000005960464,
+              16.30000001192093,
+              16.899999976158142,
+              17.600000023841858,
+              16.799999982118607,
+              16.30000001192093,
+              17,
+              16.400000005960464,
+              17.099999994039536,
+              15.700000017881393,
+              16.899999976158142,
+              16.200000017881393,
+              16.5,
+              17.5,
+              16.5,
+              16,
+              16.69999998807907,
+              17.599999994039536,
+              17.80000001192093,
+              16.30000001192093,
+              15.699999988079071,
+              16.80000001192093,
+              17.099999994039536,
+              23.400000005960464,
+              17.5,
+              16.899999976158142,
+              17.600000023841858,
+              17.099999994039536,
+              16.799999982118607,
+              21,
+              16.5,
+              16.700000017881393,
+              17.299999982118607,
+              16.700000017881393,
+              16.599999994039536,
+              17.599999994039536,
+              16.099999994039536,
+              17,
+              17.600000023841858,
+              15.899999976158142,
+              15.800000011920929,
+              16,
+              16.400000005960464
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 493.59999999403954,
+            "p95": 493.59999999403954
+          },
+          "update": {
+            "median": 464.7000000178814,
+            "p95": 464.7000000178814
+          },
+          "viewportTotal": {
+            "median": 1695.5,
+            "p95": 1695.5
+          },
+          "viewportFrame": {
+            "median": 16.799999982118607,
+            "p95": 19.799999982118607
+          }
+        }
+      },
+      "native": {
+        "runs": [
+          {
+            "mountMs": 478.5,
+            "updateMs": 466.7000000178814,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 13233.799999982119
+              },
+              {
+                "event": "stable:start",
+                "time": 13372.699999988079
+              },
+              {
+                "event": "rendered",
+                "time": 13388.899999976158
+              },
+              {
+                "event": "export:start",
+                "time": 13389
+              },
+              {
+                "event": "rendered",
+                "time": 13394.5
+              },
+              {
+                "event": "rendered",
+                "time": 13671.399999976158
+              },
+              {
+                "event": "rendered",
+                "time": 13675.399999976158
+              },
+              {
+                "event": "finished",
+                "time": 13675.399999976158
+              },
+              {
+                "event": "export:end",
+                "time": 13710.5
+              },
+              {
+                "event": "stable:end",
+                "time": 13712.299999982119
+              },
+              {
+                "event": "update:start",
+                "time": 14212.299999982119
+              },
+              {
+                "event": "stable:start",
+                "time": 14356.799999982119
+              },
+              {
+                "event": "rendered",
+                "time": 14369.299999982119
+              },
+              {
+                "event": "export:start",
+                "time": 14369.59999999404
+              },
+              {
+                "event": "rendered",
+                "time": 14379.199999988079
+              },
+              {
+                "event": "rendered",
+                "time": 14641.699999988079
+              },
+              {
+                "event": "rendered",
+                "time": 14643.899999976158
+              },
+              {
+                "event": "finished",
+                "time": 14643.899999976158
+              },
+              {
+                "event": "export:end",
+                "time": 14678
+              },
+              {
+                "event": "stable:end",
+                "time": 14678.899999976158
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 0
+            },
+            "viewport": [
+              21.5,
+              17,
+              16.399999976158142,
+              17.5,
+              16.100000023841858,
+              15.399999976158142,
+              18.100000023841858,
+              16.5,
+              17.099999994039536,
+              17.900000005960464,
+              13.599999994039536,
+              15.900000005960464,
+              18,
+              18.599999994039536,
+              15.900000005960464,
+              14.899999976158142,
+              17.700000017881393,
+              15.400000005960464,
+              19.799999982118607,
+              15.900000005960464,
+              14.099999994039536,
+              18.900000005960464,
+              16.30000001192093,
+              16.69999998807907,
+              16.69999998807907,
+              15.300000011920929,
+              16.30000001192093,
+              18.299999982118607,
+              17,
+              19.400000005960464,
+              12.199999988079071,
+              17.600000023841858,
+              16.69999998807907,
+              16.80000001192093,
+              16.799999982118607,
+              14.700000017881393,
+              18.399999976158142,
+              16.700000017881393,
+              17.19999998807907,
+              16.700000017881393,
+              15.299999982118607,
+              18,
+              17,
+              15.800000011920929,
+              17.099999994039536,
+              14.199999988079071,
+              18.600000023841858,
+              18.19999998807907,
+              15.5,
+              18.30000001192093,
+              13.799999982118607,
+              17.900000005960464,
+              16.69999998807907,
+              16.900000005960464,
+              17.200000017881393,
+              14.5,
+              17.5,
+              16.19999998807907,
+              16.900000005960464,
+              17.099999994039536,
+              14.800000011920929,
+              19.299999982118607,
+              16.099999994039536,
+              16.600000023841858,
+              16.799999982118607,
+              15.400000005960464,
+              18.30000001192093,
+              16.299999982118607,
+              18.400000005960464,
+              17.400000005960464,
+              13.799999982118607,
+              15.200000017881393,
+              17.19999998807907,
+              18.200000017881393,
+              16.799999982118607,
+              13.800000011920929,
+              18.799999982118607,
+              15.800000011920929,
+              17.69999998807907,
+              15.600000023841858,
+              16,
+              18.599999994039536,
+              16.69999998807907,
+              16.700000017881393,
+              17,
+              13.5,
+              19.19999998807907,
+              18.099999994039536,
+              16.400000005960464,
+              16.599999994039536,
+              15.099999994039536,
+              17.80000001192093,
+              16.400000005960464,
+              17.099999994039536,
+              16.5,
+              14.800000011920929,
+              18.19999998807907,
+              16.69999998807907,
+              16.700000017881393,
+              16.799999982118607
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 478.5,
+            "p95": 478.5
+          },
+          "update": {
+            "median": 466.7000000178814,
+            "p95": 466.7000000178814
+          },
+          "viewportTotal": {
+            "median": 1671.8999999761581,
+            "p95": 1671.8999999761581
+          },
+          "viewportFrame": {
+            "median": 16.700000017881393,
+            "p95": 18.900000005960464
+          }
+        }
+      }
+    },
+    {
+      "width": 1200,
+      "height": 720,
+      "series": 8,
+      "pointsPerSeries": 1000000,
+      "sampling": "auto",
+      "animationEnabled": true,
+      "animationWorkload": "update",
+      "legacy": {
+        "runs": [
+          {
+            "mountMs": 514.4000000059605,
+            "updateMs": 644.4000000059605,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 16919.899999976158
+              },
+              {
+                "event": "stable:start",
+                "time": 17071.29999998212
+              },
+              {
+                "event": "export:start",
+                "time": 17394.69999998808
+              },
+              {
+                "event": "export:end",
+                "time": 17433
+              },
+              {
+                "event": "stable:end",
+                "time": 17434.29999998212
+              },
+              {
+                "event": "update:start",
+                "time": 17935.29999998212
+              },
+              {
+                "event": "stable:start",
+                "time": 17935.29999998212
+              },
+              {
+                "event": "export:start",
+                "time": 18509.79999998212
+              },
+              {
+                "event": "export:end",
+                "time": 18577.69999998808
+              },
+              {
+                "event": "stable:end",
+                "time": 18579.69999998808
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 8
+            },
+            "viewport": [
+              16.599999994039536,
+              40.099999994039536,
+              18.100000023841858,
+              22.5,
+              20.099999994039536,
+              21,
+              19.599999994039536,
+              29.5,
+              21.599999994039536,
+              19.700000017881393,
+              21.5,
+              20.69999998807907,
+              19.80000001192093,
+              20,
+              19.099999994039536,
+              19,
+              20.099999994039536,
+              22.69999998807907,
+              20.100000023841858,
+              20.599999994039536,
+              19.799999982118607,
+              19.80000001192093,
+              19.099999994039536,
+              20.099999994039536,
+              21.400000005960464,
+              25,
+              19.30000001192093,
+              19.099999994039536,
+              20.30000001192093,
+              20.399999976158142,
+              19.5,
+              24.400000005960464,
+              20.5,
+              20.900000005960464,
+              19,
+              20,
+              18.19999998807907,
+              18.5,
+              18.600000023841858,
+              19.19999998807907,
+              21.099999994039536,
+              20.30000001192093,
+              20.299999982118607,
+              19,
+              19.100000023841858,
+              19.799999982118607,
+              19.30000001192093,
+              21.799999982118607,
+              20.600000023841858,
+              24.099999994039536,
+              18.799999982118607,
+              19.30000001192093,
+              19.69999998807907,
+              19.100000023841858,
+              20.299999982118607,
+              22.400000005960464,
+              23,
+              18.5,
+              19.19999998807907,
+              19,
+              20.200000017881393,
+              18.900000005960464,
+              20.19999998807907,
+              21,
+              18.599999994039536,
+              19.099999994039536,
+              20.5,
+              19.100000023841858,
+              19.69999998807907,
+              19.19999998807907,
+              20.80000001192093,
+              19,
+              26,
+              19.69999998807907,
+              20.700000017881393,
+              20.5,
+              20.599999994039536,
+              19.599999994039536,
+              23.400000005960464,
+              20.099999994039536,
+              21.599999994039536,
+              18.30000001192093,
+              20.19999998807907,
+              18.30000001192093,
+              18.5,
+              19.30000001192093,
+              19,
+              22.299999982118607,
+              19,
+              19.900000005960464,
+              20.30000001192093,
+              20,
+              19.799999982118607,
+              21.200000017881393,
+              19,
+              27,
+              18.899999976158142,
+              19.100000023841858,
+              20.299999982118607,
+              19.099999994039536
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 514.4000000059605,
+            "p95": 514.4000000059605
+          },
+          "update": {
+            "median": 644.4000000059605,
+            "p95": 644.4000000059605
+          },
+          "viewportTotal": {
+            "median": 2048.199999988079,
+            "p95": 2048.199999988079
+          },
+          "viewportFrame": {
+            "median": 19.900000005960464,
+            "p95": 24.400000005960464
+          }
+        }
+      },
+      "native": {
+        "runs": [
+          {
+            "mountMs": 471.59999999403954,
+            "updateMs": 589.1999999880791,
+            "paths": 8,
+            "timeline": [
+              {
+                "event": "mount:start",
+                "time": 21189.59999999404
+              },
+              {
+                "event": "stable:start",
+                "time": 21328
+              },
+              {
+                "event": "rendered",
+                "time": 21344.09999999404
+              },
+              {
+                "event": "export:start",
+                "time": 21344.19999998808
+              },
+              {
+                "event": "rendered",
+                "time": 21349.59999999404
+              },
+              {
+                "event": "rendered",
+                "time": 21622.09999999404
+              },
+              {
+                "event": "rendered",
+                "time": 21625.69999998808
+              },
+              {
+                "event": "finished",
+                "time": 21625.69999998808
+              },
+              {
+                "event": "export:end",
+                "time": 21659.79999998212
+              },
+              {
+                "event": "stable:end",
+                "time": 21661.19999998808
+              },
+              {
+                "event": "update:start",
+                "time": 22160.19999998808
+              },
+              {
+                "event": "stable:start",
+                "time": 22303.59999999404
+              },
+              {
+                "event": "rendered",
+                "time": 22315.899999976158
+              },
+              {
+                "event": "export:start",
+                "time": 22316.09999999404
+              },
+              {
+                "event": "rendered",
+                "time": 22585.5
+              },
+              {
+                "event": "rendered",
+                "time": 22588.79999998212
+              },
+              {
+                "event": "rendered",
+                "time": 22611.899999976158
+              },
+              {
+                "event": "rendered",
+                "time": 22629.09999999404
+              },
+              {
+                "event": "rendered",
+                "time": 22646.29999998212
+              },
+              {
+                "event": "rendered",
+                "time": 22662
+              },
+              {
+                "event": "rendered",
+                "time": 22677.399999976158
+              },
+              {
+                "event": "rendered",
+                "time": 22694.29999998212
+              },
+              {
+                "event": "rendered",
+                "time": 22713.19999998808
+              },
+              {
+                "event": "finished",
+                "time": 22713.19999998808
+              },
+              {
+                "event": "export:end",
+                "time": 22748.19999998808
+              },
+              {
+                "event": "stable:end",
+                "time": 22749.399999976158
+              }
+            ],
+            "animationCompletions": {
+              "enter": 0,
+              "update": 8
+            },
+            "viewport": [
+              18.099999994039536,
+              13.900000005960464,
+              19.099999994039536,
+              15.599999994039536,
+              17.400000005960464,
+              16.799999982118607,
+              14.600000023841858,
+              19.899999976158142,
+              16.80000001192093,
+              16.900000005960464,
+              14.099999994039536,
+              16.900000005960464,
+              17.799999982118607,
+              15.400000005960464,
+              18.700000017881393,
+              14.799999982118607,
+              16.200000017881393,
+              18.399999976158142,
+              16.5,
+              17.80000001192093,
+              14.300000011920929,
+              16.099999994039536,
+              17.900000005960464,
+              16,
+              17.799999982118607,
+              15.300000011920929,
+              16.599999994039536,
+              18.599999994039536,
+              15.599999994039536,
+              17.30000001192093,
+              15,
+              16.099999994039536,
+              19.700000017881393,
+              15.799999982118607,
+              17.099999994039536,
+              14.800000011920929,
+              16.19999998807907,
+              20,
+              15.300000011920929,
+              17.80000001192093,
+              14.599999994039536,
+              16.69999998807907,
+              17.599999994039536,
+              16.600000023841858,
+              16.19999998807907,
+              15.5,
+              15.599999994039536,
+              19.200000017881393,
+              17.399999976158142,
+              15.700000017881393,
+              16.19999998807907,
+              16.30000001192093,
+              18,
+              16.5,
+              17,
+              14.799999982118607,
+              16,
+              19.100000023841858,
+              15.599999994039536,
+              18.19999998807907,
+              14.400000005960464,
+              18.19999998807907,
+              15.800000011920929,
+              16.69999998807907,
+              17.30000001192093,
+              17.400000005960464,
+              14.599999994039536,
+              18.400000005960464,
+              16.900000005960464,
+              16.099999994039536,
+              15.199999988079071,
+              17,
+              17.900000005960464,
+              15.599999994039536,
+              17.5,
+              15.900000005960464,
+              16,
+              18.80000001192093,
+              16.5,
+              16.799999982118607,
+              20.200000017881393,
+              17.399999976158142,
+              17.5,
+              67.10000002384186,
+              29.899999976158142,
+              14.300000011920929,
+              15.599999994039536,
+              16.200000017881393,
+              18.099999994039536,
+              17,
+              15.900000005960464,
+              15.799999982118607,
+              16.400000005960464,
+              18.80000001192093,
+              16.69999998807907,
+              16.900000005960464,
+              14.099999994039536,
+              16.5,
+              19,
+              18.5
+            ],
+            "cleanup": {
+              "elements": 0,
+              "animationTasks": 0
+            }
+          }
+        ],
+        "summary": {
+          "mount": {
+            "median": 471.59999999403954,
+            "p95": 471.59999999403954
+          },
+          "update": {
+            "median": 589.1999999880791,
+            "p95": 589.1999999880791
+          },
+          "viewportTotal": {
+            "median": 1736.699999988079,
+            "p95": 1736.699999988079
+          },
+          "viewportFrame": {
+            "median": 16.69999998807907,
+            "p95": 19.700000017881393
+          }
+        }
+      }
+    }
+  ],
+  "capped": [],
+  "regressions": [],
+  "errors": [],
+  "finishedAt": "2026-10-15T02:35:23.964Z"
+}

@@ -1,11 +1,11 @@
-import { flushPromises, mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
 import WaveformChart from '@/components/WaveformChart.vue'
-import WaveformChartView from '@/components/WaveformChartView.vue'
+import { AnnotationDraftController } from '@/annotation/AnnotationDraftController'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('uses fixed dimensions when both width and height are specified', async () => {
@@ -16,6 +16,7 @@ describe('WaveformChart', () => {
         height: 420,
       },
     })
+    await flushVueChartUpdates()
 
     expect(wrapper.attributes('style')).toContain('width: 640px')
     expect(wrapper.attributes('style')).toContain('height: 420px')
@@ -23,7 +24,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
 
     resizeObservers.at(-1)?.resize(640, 420)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
@@ -36,12 +37,13 @@ describe('WaveformChart', () => {
         width: 640,
       },
     })
+    await flushVueChartUpdates()
 
     expect(wrapper.attributes('style')).toContain('width: 640px')
     expect(wrapper.attributes('style')).toContain('height: 100%')
 
     resizeObservers.at(-1)?.resize(640, 500)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('640')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('500')
@@ -59,9 +61,11 @@ describe('WaveformChart', () => {
     const narrow = mount(WaveformChart, {
       props: { data, width: 390, height: 360, grid: { rowCount: 1, columnCount: 1 } },
     })
+    await flushVueChartUpdates()
     const wide = mount(WaveformChart, {
       props: { data, width: 640, height: 360, grid: { rowCount: 1, columnCount: 1 } },
     })
+    await flushVueChartUpdates()
 
     expect(narrow.get('.waveform-chart__svg').attributes('height')).toBe('320')
     expect(wide.get('.waveform-chart__svg').attributes('height')).toBe('360')
@@ -74,12 +78,13 @@ describe('WaveformChart', () => {
         height: 420,
       },
     })
+    await flushVueChartUpdates()
 
     expect(wrapper.attributes('style')).toContain('width: 100%')
     expect(wrapper.attributes('style')).toContain('height: 420px')
 
     resizeObservers.at(-1)?.resize(900, 420)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('900')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
@@ -89,18 +94,19 @@ describe('WaveformChart', () => {
     const wrapper = mount(WaveformChart, {
       props: { data: { kind: 'samples', values: [0, 1], sampleRate: 1 } },
     })
+    await flushVueChartUpdates()
 
     expect(wrapper.attributes('style')).toContain('width: 100%')
     expect(wrapper.attributes('style')).toContain('height: 100%')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('180')
 
     resizeObservers.at(-1)?.resize(800, 520)
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('520')
 
     resizeObservers.at(-1)?.resize(500, 300)
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('500')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('300')
   })
@@ -115,15 +121,16 @@ describe('WaveformChart', () => {
       },
     )
 
-    expect(wrapper.attributes('data-plot-margin-top')).toBe('30')
-    expect(wrapper.attributes('data-plot-margin-bottom')).toBe('70')
+    expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-top')).toBe('30')
+    expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-bottom')).toBe('70')
     expect(wrapper.get('.waveform-chart__overlay').attributes('height')).toBe('260')
-    expect(wrapper.get('.waveform-chart__svg > g').attributes('transform')).toContain(', 30)')
+    expect(wrapper.get('.waveform-chart__svg > g').attributes('transform')).toMatch(/,\s*30\)/)
 
     await wrapper.setProps({ plotMargin: { top: 12 } })
+    await flushVueChartUpdates()
 
-    expect(wrapper.attributes('data-plot-margin-top')).toBe('12')
-    expect(wrapper.attributes('data-plot-margin-bottom')).toBe('52')
+    expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-top')).toBe('12')
+    expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-bottom')).toBe('52')
     expect(wrapper.get('.waveform-chart__overlay').attributes('height')).toBe('296')
   })
 
@@ -137,8 +144,8 @@ describe('WaveformChart', () => {
       },
     )
 
-    expect(wrapper.attributes('data-plot-margin-top')).toBe('18')
-    expect(wrapper.attributes('data-plot-margin-bottom')).toBe('52')
+    expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-top')).toBe('18')
+    expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-bottom')).toBe('52')
     expect(wrapper.get('.waveform-chart__overlay').attributes('height')).toBe('290')
   })
 
@@ -157,11 +164,12 @@ describe('WaveformChart', () => {
     const initialY = xAxisTitle.attributes('y')
 
     await wrapper.setProps({ plotMargin: { top: 60, bottom: 90 } })
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__title-area').attributes('style')).toBe(titleAreaStyle)
     expect(wrapper.get('.waveform-chart__x-label').attributes('x')).toBe(initialX)
     expect(wrapper.get('.waveform-chart__x-label').attributes('y')).toBe(initialY)
-    expect(wrapper.get('.waveform-chart__svg > g').attributes('transform')).toContain(', 60)')
+    expect(wrapper.get('.waveform-chart__svg > g').attributes('transform')).toMatch(/,\s*60\)/)
   })
 
   it('does not render or reserve space for missing, hidden, or blank titles', async () => {
@@ -171,8 +179,8 @@ describe('WaveformChart', () => {
         title ? { title } : {},
       )
 
-      expect(wrapper.find('.waveform-chart__title-area').exists()).toBe(false)
-      expect(wrapper.attributes('data-title-area-height')).toBe('0')
+      expect(wrapper.find('.waveform-chart__title-area').isVisible()).toBe(false)
+      expect(wrapper.get('.waveform-chart').attributes('data-title-area-height')).toBe('0')
       expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('360')
     }
   })
@@ -228,7 +236,7 @@ describe('WaveformChart', () => {
     expect(visual.attributes('style')).toContain('width: 752px')
     expect(title.attributes('style')).toContain('width: 752px')
     expect(title.attributes('style')).toContain('rotate(0deg)')
-    expect(wrapper.attributes('data-title-area-height')).toBe('44')
+    expect(wrapper.get('.waveform-chart').attributes('data-title-area-height')).toBe('44')
     expect(wrapper.get('.waveform-chart__svg').attributes('height')).toBe('316')
   })
 
@@ -243,7 +251,7 @@ describe('WaveformChart', () => {
       },
     )
     resizeObservers.at(-1)?.resize(160, 360)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const title = wrapper.get('.waveform-chart__title-text')
     expect(title.attributes('style')).toContain('font-size: 14px')
@@ -254,7 +262,9 @@ describe('WaveformChart', () => {
     expect(title.attributes('style')).toContain('overflow-wrap: anywhere')
     expect(title.attributes('title')).toBeUndefined()
     expect(title.attributes('data-title-wrapped')).toBe('true')
-    expect(Number(wrapper.attributes('data-title-area-height'))).toBeGreaterThan(44)
+    expect(
+      Number(wrapper.get('.waveform-chart').attributes('data-title-area-height')),
+    ).toBeGreaterThan(44)
   })
 
   it.each([45, 90, -90, 180])(
@@ -269,7 +279,9 @@ describe('WaveformChart', () => {
           },
         },
       )
-      const titleHeight = Number(wrapper.attributes('data-title-area-height'))
+      const titleHeight = Number(
+        wrapper.get('.waveform-chart').attributes('data-title-area-height'),
+      )
       const title = wrapper.get('.waveform-chart__title-text')
 
       expect(titleHeight).toBeGreaterThanOrEqual(44)
@@ -293,9 +305,11 @@ describe('WaveformChart', () => {
         title: { text: '固定高度标题' },
       },
     })
+    await flushVueChartUpdates()
     expect(fixedWrapper.get('.waveform-chart__svg').attributes('height')).toBe('376')
 
     await fixedWrapper.setProps({ title: { visible: false, text: '固定高度标题' } })
+    await flushVueChartUpdates()
     expect(fixedWrapper.get('.waveform-chart__svg').attributes('height')).toBe('420')
 
     const adaptiveWrapper = await mountSizedChart(
@@ -304,7 +318,7 @@ describe('WaveformChart', () => {
     )
     expect(adaptiveWrapper.get('.waveform-chart__svg').attributes('height')).toBe('316')
     resizeObservers.at(-1)?.resize(800, 500)
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(adaptiveWrapper.get('.waveform-chart__svg').attributes('height')).toBe('456')
   })
 
@@ -329,7 +343,7 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: overlayWidth / 2, clientY: 100, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const tooltipTop = Number.parseFloat(
       (wrapper.get('.waveform-chart__tooltip').element as HTMLElement).style.top,
@@ -338,6 +352,7 @@ describe('WaveformChart', () => {
   })
 
   it('includes the title offset in annotation editor anchors', async () => {
+    const create = vi.spyOn(AnnotationDraftController.prototype, 'create')
     const wrapper = await mountSizedChart(
       {
         kind: 'points',
@@ -364,11 +379,9 @@ describe('WaveformChart', () => {
         bubbles: true,
       }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
 
-    const controller = wrapper.getComponent(WaveformChartView).props('controller') as unknown as {
-      annotationInteraction: { editorDraft: { value: { anchor: { y: number } } | null } }
-    }
-    expect(controller.annotationInteraction.editorDraft.value?.anchor.y).toBe(162)
+    expect(create).toHaveBeenCalledOnce()
+    expect(create.mock.calls[0][2].y).toBe(162)
   })
 })

@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('scientific channel name placement', () => {
   it.each([320, 800])('ignores scientific multipliers at width %s', async (width) => {
@@ -36,26 +35,26 @@ describe('scientific channel name placement', () => {
     try {
       const labelX = () => Number(wrapper.get('.waveform-chart__y-axis-label-bg').attributes('x'))
       const decimalX = labelX()
-      const decimalMargin = wrapper.attributes('data-chart-left-margin')
+      const decimalMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
       await wrapper.setProps({ yDomain: [0, 30000] })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E+04')
       // Both ranges show 0, 0.75, 1.5, 2.25, 3. The top scientific
       // multiplier is excluded from name spacing, but included in outer clearance.
       expect(labelX()).toBe(decimalX)
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
-        Number(decimalMargin),
-      )
       expect(
-        Number(wrapper.attributes('data-chart-left-margin')) + labelX(),
+        Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
+      ).toBeGreaterThanOrEqual(Number(decimalMargin))
+      expect(
+        Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')) + labelX(),
       ).toBeGreaterThanOrEqual(6)
       await wrapper.setProps({ yDomain: [0, 0.0003] })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('E-04')
       expect(labelX()).toBe(decimalX)
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
-        Number(decimalMargin),
-      )
+      expect(
+        Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
+      ).toBeGreaterThanOrEqual(Number(decimalMargin))
     } finally {
       wrapper.unmount()
     }
@@ -96,18 +95,18 @@ describe('dense scientific axes', () => {
           .findAll('.waveform-chart__y-axis-label')
           .map((label) => label.attributes('transform'))
       const plainPositions = positions()
-      const plainMargin = wrapper.attributes('data-chart-left-margin')
+      const plainMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
       expect(plainPositions).toHaveLength(6)
       for (const [max, exponent] of [
         [0.0003824, 'E-04'],
         [38240, 'E+04'],
       ] as const) {
         await wrapper.setProps({ yDomain: [0, max] })
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(positions()).toEqual(plainPositions)
-        expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThan(
-          Number(plainMargin),
-        )
+        expect(
+          Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
+        ).toBeGreaterThan(Number(plainMargin))
         expect(
           wrapper
             .findAll('.waveform-chart__axis--y .tick text')
@@ -125,7 +124,7 @@ describe('dense scientific axes', () => {
         ).toBe(true)
       }
       await wrapper.setProps({ yDomain: [0, 3.824] })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(
         wrapper
           .findAll('.waveform-chart__axis--y .tick text')

@@ -1,6 +1,5 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
 const data = {
@@ -12,7 +11,7 @@ const data = {
 }
 
 function assertPlotCenter(wrapper: Awaited<ReturnType<typeof mountSizedChart>>) {
-  const left = Number(wrapper.attributes('data-chart-left-margin'))
+  const left = Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))
   const tracks = wrapper.findAll('.waveform-chart__track')
   const plotRight = Math.max(
     ...tracks.map(
@@ -48,7 +47,7 @@ describe('plot-centered chart and time titles', () => {
         try {
           expect(assertPlotCenter(wrapper)).not.toBeCloseTo(400)
           resizeObservers.at(-1)?.resize(320, 360)
-          await flushPromises()
+          await flushVueChartUpdates()
           expect(assertPlotCenter(wrapper)).not.toBeCloseTo(160)
           await wrapper.setProps({ title: { text: 'shot:13366', textStyle: { rotation: 30 } } })
           assertPlotCenter(wrapper)
@@ -57,7 +56,7 @@ describe('plot-centered chart and time titles', () => {
           })
           const area = wrapper.get('.waveform-chart__title-area').element as HTMLElement
           expect(Number.parseFloat(area.style.marginLeft)).toBeCloseTo(
-            Number(wrapper.attributes('data-chart-left-margin')),
+            Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
           )
           expect(area.style.paddingLeft).toBe('0px')
           expect(area.style.justifyContent).toBe('flex-start')
@@ -117,7 +116,7 @@ describe('plot-centered chart and time titles', () => {
         const area = wrapper.get('.waveform-chart__title-area').element as HTMLElement
         if (align === 'left') {
           expect(Number.parseFloat(area.style.marginLeft)).toBeCloseTo(
-            Number(wrapper.attributes('data-chart-left-margin')),
+            Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
           )
           expect(area.style.paddingLeft).toBe('0px')
           expect(Number.parseFloat(area.style.width)).toBeGreaterThan(0)

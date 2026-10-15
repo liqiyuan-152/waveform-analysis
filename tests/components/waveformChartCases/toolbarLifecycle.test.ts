@@ -1,6 +1,5 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames } from '@tests/support/setup'
 
 const input = {
@@ -24,7 +23,7 @@ describe('toolbar boundaries and lifecycle', () => {
     const w = await mountSizedChart(input, config)
     const api = w.vm
     api.fitToData()
-    await flushPromises()
+    await flushVueChartUpdates()
     const overlay = w.get('.waveform-chart__overlay').element
     const width = Number(overlay.getAttribute('width'))
     Object.defineProperty(overlay, 'getBoundingClientRect', {
@@ -34,12 +33,12 @@ describe('toolbar boundaries and lifecycle', () => {
       new WheelEvent('wheel', { deltaY: -500, clientX: width / 2, clientY: 50, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     const wheel = api.getControlState().targets[0]!.viewport.xDomain
     expect(wheel[1] - wheel[0]).toBeCloseTo(5)
     api.setViewportDomain([0, 5], {})
     api.setInteractionMode('pan')
-    await flushPromises()
+    await flushVueChartUpdates()
     drag(overlay, 'pointerdown', 200)
     drag(overlay, 'pointermove', 100)
     drag(overlay, 'pointerup', 100)
@@ -48,7 +47,7 @@ describe('toolbar boundaries and lifecycle', () => {
     expect(pan[0]).toBeLessThan(2)
     api.setInteractionMode('zoom')
     api.fitToData()
-    await flushPromises()
+    await flushVueChartUpdates()
     drag(overlay, 'pointerdown', 0)
     drag(overlay, 'pointerup', width / 2)
     expect(api.getControlState().targets[0]!.viewport.xDomain[0]).toBeCloseTo(0)
@@ -93,7 +92,7 @@ describe('toolbar boundaries and lifecycle', () => {
     expect(domain[1]).toBeLessThanOrEqual(7)
     w.vm.fitToData()
     await w.setProps({ data: { ...input, points: input.points.slice(0, 80) } })
-    await flushPromises()
+    await flushVueChartUpdates()
     const replaced = w.vm.getControlState().targets[0]!.viewport.xDomain
     expect(replaced[0]).toBeGreaterThanOrEqual(3)
     expect(replaced[1]).toBeLessThanOrEqual(7)
@@ -124,7 +123,7 @@ it('preserves a full fitted interval across data replacement when initial bounds
   const w = await mountSizedChart(input, { ...config, initialXDomain: [-5, 15] })
   w.vm.fitToData()
   await w.setProps({ data: { ...input, points: [...input.points] } })
-  await flushPromises()
+  await flushVueChartUpdates()
   expect(w.vm.getControlState().targets[0]!.viewport.xDomain).toEqual([0, 10])
   w.unmount()
 })

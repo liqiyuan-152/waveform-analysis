@@ -1,30 +1,34 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const modes = ['independent', 'separated', 'compact'] as const
 const points = Array.from({ length: 101 }, (_, x) => ({ x, y: x }))
 
 describe('wheel steps share toolbar zoom constraints', () => {
-  it.each(modes)('anchors at the pointer and reverses the step in %s mode', async (displayMode) => {
-    const w = await mountSizedChart(
-      { kind: 'points', points },
-      {
-        displayMode,
-        initialXDomain: [0, 100],
-        minVisiblePoints: 2,
-        maxZoomScale: null,
-      },
-    )
-    try {
-      for (const containerWidth of [320, 800]) {
+  it.each(
+    modes.flatMap((displayMode) =>
+      [320, 800].map((containerWidth) => ({ displayMode, containerWidth })),
+    ),
+  )(
+    'anchors at the pointer and reverses the step in $displayMode at $containerWidth px',
+    async ({ displayMode, containerWidth }) => {
+      const w = await mountSizedChart(
+        { kind: 'points', points },
+        {
+          displayMode,
+          initialXDomain: [0, 100],
+          minVisiblePoints: 2,
+          maxZoomScale: null,
+        },
+      )
+      try {
         resizeObservers.at(-1)?.resize(containerWidth, 360)
-        await flushPromises()
+        await flushVueChartUpdates()
         for (const ratio of [0.2, 0.5, 0.8]) {
           for (const deltaY of [-1, -100, -4000]) {
             w.vm.setViewportDomain([0, 100])
-            await flushPromises()
+            await flushVueChartUpdates()
             const overlay = w.get('.waveform-chart__overlay')
             const width = Number(overlay.attributes('width'))
             Object.defineProperty(overlay.element, 'getBoundingClientRect', {
@@ -42,7 +46,7 @@ describe('wheel steps share toolbar zoom constraints', () => {
                 }),
               )
               flushAnimationFrames()
-              await flushPromises()
+              await flushVueChartUpdates()
             }
             await wheel(deltaY)
             const domain = w.vm.getControlState().targets[0]!.viewport.xDomain
@@ -55,11 +59,11 @@ describe('wheel steps share toolbar zoom constraints', () => {
             expect(restored[1]).toBeCloseTo(100)
           }
         }
+      } finally {
+        w.unmount()
       }
-    } finally {
-      w.unmount()
-    }
-  })
+    },
+  )
 
   it.each(modes)(
     'matches toolbar steps at the center, including integer limits (%s)',
@@ -82,10 +86,10 @@ describe('wheel steps share toolbar zoom constraints', () => {
           value: () => ({ left: 0, top: 0, width, height: 200 }),
         })
         w.vm.zoomIn()
-        await flushPromises()
+        await flushVueChartUpdates()
         const expected = w.vm.getControlState().targets[0]!.viewport.xDomain
         w.vm.setViewportDomain([0, 0.004])
-        await flushPromises()
+        await flushVueChartUpdates()
         overlay.element.dispatchEvent(
           new WheelEvent('wheel', {
             deltaY: -1,
@@ -96,7 +100,7 @@ describe('wheel steps share toolbar zoom constraints', () => {
           }),
         )
         flushAnimationFrames()
-        await flushPromises()
+        await flushVueChartUpdates()
         const actual = w.vm.getControlState().targets[0]!.viewport.xDomain
         expect(actual[0]).toBeCloseTo(expected[0], 12)
         expect(actual[1]).toBeCloseTo(expected[1], 12)
@@ -130,7 +134,7 @@ describe('wheel steps share toolbar zoom constraints', () => {
         )
       for (let step = 0; step < 64; step += 1) wheel(-1)
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       const domain = w.vm.getControlState().targets[0]!.viewport.xDomain
       expect(points.filter((p) => p.x >= domain[0] && p.x <= domain[1])).toHaveLength(2)
       const count = w.emitted('zoom-change')?.length
@@ -138,11 +142,11 @@ describe('wheel steps share toolbar zoom constraints', () => {
       wheel(-1)
       wheel(0)
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(w.emitted('zoom-change')?.length).toBe(count)
       wheel(1)
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       const expanded = w.vm.getControlState().targets[0]!.viewport.xDomain
       expect(expanded[1] - expanded[0]).toBeGreaterThan(domain[1] - domain[0])
     } finally {
@@ -175,7 +179,7 @@ describe('wheel steps share toolbar zoom constraints', () => {
       expect(w.emitted('zoom-intent')).toHaveLength(2)
       expect(w.emitted('zoom-change')).toBeUndefined()
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(w.emitted('zoom-change')).toHaveLength(1)
       const domain = w.vm.getControlState().targets[0]!.viewport.xDomain
       expect(domain[0]).toBeCloseTo(18.75)

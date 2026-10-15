@@ -1,0 +1,173 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+
+import { resolveFrameStyle } from '@/rendering/presentationOptions'
+import { ZERO_LINE_DEFAULTS } from '@/components/core/constants'
+import type {
+  WaveformAxesOptions,
+  WaveformFrameStyle,
+  WaveformZeroLineOptions,
+} from '@/types/index'
+import type { TrackLayout } from '@/components/core/types'
+import type { WaveformDisplayMode, WaveformInteractionMode } from '@/components/data/types'
+import WaveformSeriesLayer from './WaveformSeriesLayer.vue'
+import WaveformZeroLines from './WaveformZeroLines.vue'
+import WaveformTrackAxes from './WaveformTrackAxes.vue'
+import WaveformTrackBackdrop from './WaveformTrackBackdrop.vue'
+
+interface Props {
+  track: TrackLayout
+  clipPathId: string
+  innerWidth: number
+  zoomable: boolean
+  interactive?: boolean
+  displayMode: WaveformDisplayMode
+  interactionMode?: WaveformInteractionMode
+  frameNumber?: string | number
+  frameStyle?: WaveformFrameStyle
+  framePath?: string
+  axes?: WaveformAxesOptions
+  timeUnit: 's' | 'ms'
+  yLabel?: string
+  showAxisUnits?: boolean
+  showLabelUnits?: boolean
+  hideYAxisTitles?: boolean
+  containFrameStroke?: boolean
+  cleanView?: boolean
+  zeroLine?: Required<WaveformZeroLineOptions>
+}
+
+interface Emits {
+  (event: 'pointer-move', pointerEvent: PointerEvent): void
+  (event: 'pointer-down', pointerEvent: PointerEvent): void
+  (event: 'pointer-up', pointerEvent: PointerEvent): void
+  (event: 'pointer-cancel', pointerEvent: PointerEvent): void
+  (event: 'pointer-leave'): void
+  (event: 'click', mouseEvent: MouseEvent): void
+  (event: 'contextmenu', mouseEvent: MouseEvent): void
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  interactionMode: 'zoom',
+  interactive: true,
+  cleanView: false,
+  showAxisUnits: true,
+  zeroLine: () => ({
+    visible: true,
+    color: ZERO_LINE_DEFAULTS.COLOR,
+    width: ZERO_LINE_DEFAULTS.WIDTH,
+    dash: ZERO_LINE_DEFAULTS.DASH,
+    opacity: ZERO_LINE_DEFAULTS.OPACITY,
+    boundaryThreshold: ZERO_LINE_DEFAULTS.BOUNDARY_THRESHOLD,
+  }),
+})
+const emit = defineEmits<Emits>()
+
+const resolvedFrameStyle = computed(() => resolveFrameStyle(props.frameStyle))
+const frameInset = computed(() =>
+  props.containFrameStroke ? resolvedFrameStyle.value.borderWidth / 2 : 0,
+)
+</script>
+
+<template>
+  <g
+    class="waveform-track waveform-chart__track"
+    :class="{ 'waveform-track--empty waveform-chart__track--empty': track.isEmpty }"
+    :data-track-index="track.index"
+    :data-track-id="track.id"
+    :data-track-empty="track.isEmpty || undefined"
+    :data-track-left="track.left"
+    :data-track-width="track.width"
+    :data-y-axis-label-x="track.yAxisLabelX"
+    :data-track-top="track.top"
+    :data-track-height="track.height"
+    :transform="`translate(${track.left ?? 0}, ${track.top})`"
+  >
+    <WaveformTrackBackdrop
+      :track="track"
+      :clip-path-id="clipPathId"
+      :inner-width="innerWidth"
+      :clean-view="cleanView"
+      :frame-number="frameNumber"
+      :frame-style="resolvedFrameStyle"
+      show-empty-frame
+    />
+    <WaveformTrackAxes
+      :track="track"
+      :inner-width="innerWidth"
+      :clean-view="cleanView"
+      :axes="axes"
+      :time-unit="timeUnit"
+      :y-label="yLabel"
+      :show-units="showAxisUnits"
+      :show-label-units="showLabelUnits"
+      :hide-y-axis-titles="hideYAxisTitles"
+      :hide-overlapping-maximum-label="displayMode === 'compact'"
+    />
+
+    <component
+      :is="framePath ? 'path' : 'rect'"
+      class="waveform-track__plot-frame waveform-chart__plot-frame"
+      :d="framePath"
+      :x="containFrameStroke ? frameInset : undefined"
+      :y="containFrameStroke ? frameInset : undefined"
+      :width="Math.max(0, (track.width ?? innerWidth) - frameInset * 2)"
+      :height="Math.max(0, track.height - frameInset * 2)"
+      fill="none"
+      :stroke="resolvedFrameStyle.borderColor"
+      :stroke-width="resolvedFrameStyle.borderWidth"
+      :stroke-dasharray="
+        resolvedFrameStyle.borderStyle === 'dashed'
+          ? '6 4'
+          : resolvedFrameStyle.borderStyle === 'dotted'
+            ? '1 3'
+            : undefined
+      "
+      :stroke-linecap="resolvedFrameStyle.borderStyle === 'dotted' ? 'round' : undefined"
+      aria-hidden="true"
+    />
+
+    <WaveformSeriesLayer :track="track" :clip-path-id="clipPathId" />
+    <WaveformZeroLines
+      :track="track"
+      :clip-path-id="clipPathId"
+      :inner-width="innerWidth"
+      :clean-view="cleanView"
+      :zero-line="zeroLine"
+    />
+
+    <rect
+      v-if="!track.isEmpty && track.hasVisibleSeries && displayMode === 'independent'"
+      class="waveform-track__overlay waveform-track__overlay--independent waveform-chart__overlay waveform-chart__overlay--independent"
+      :class="{
+        'is-zoomable': interactive && zoomable && interactionMode === 'zoom',
+        'is-annotating': interactive && interactionMode === 'annotation',
+        'is-presentation': !interactive,
+      }"
+      :data-interactive="interactive"
+      :data-independent-overlay-index="track.index"
+      :width="track.width ?? innerWidth"
+      :height="track.height"
+      @pointermove="emit('pointer-move', $event)"
+      @pointerdown="emit('pointer-down', $event)"
+      @pointerup="emit('pointer-up', $event)"
+      @pointercancel="emit('pointer-cancel', $event)"
+      @pointerleave="emit('pointer-leave')"
+      @click="emit('click', $event)"
+      @contextmenu="emit('contextmenu', $event)"
+    />
+
+    <text
+      v-if="!track.isEmpty && !track.hasVisibleSeries && !cleanView"
+      class="waveform-track__no-visible-series"
+      :x="(track.width ?? innerWidth) / 2"
+      :y="track.height / 2"
+      text-anchor="middle"
+      dominant-baseline="central"
+    >
+      暂无可见曲线
+    </text>
+  </g>
+</template>
+
+<style src="../../../../../src/components/rendering/WaveformTrack.css"></style>

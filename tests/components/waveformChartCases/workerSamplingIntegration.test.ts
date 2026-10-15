@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 function densePoints(count: number) {
   return Array.from({ length: count }, (_, index) => ({
@@ -16,7 +15,7 @@ async function samplingEvents(count: number, rendering = {}) {
     { kind: 'points', points: densePoints(count) },
     { rendering, grid: { rowCount: 1, columnCount: 1 } },
   )
-  await flushPromises()
+  await flushVueChartUpdates()
   await new Promise((resolve) => setTimeout(resolve, 120))
   return wrapper
 }
@@ -32,7 +31,7 @@ async function compactSamplingEvents(count: number, rendering = {}) {
     },
     { rendering, grid: { rowCount: 1, columnCount: 1 } },
   )
-  await flushPromises()
+  await flushVueChartUpdates()
   await new Promise((resolve) => setTimeout(resolve, 120))
   return wrapper
 }
@@ -90,7 +89,7 @@ describe('WaveformChart worker sampling integration', () => {
       new MouseEvent('pointermove', { clientX: width, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1_000, y: 100 }])
   })
@@ -111,7 +110,7 @@ describe('WaveformChart worker sampling integration', () => {
       new MouseEvent('pointermove', { clientX: width, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1_000, y: 100 }])
   })
 })

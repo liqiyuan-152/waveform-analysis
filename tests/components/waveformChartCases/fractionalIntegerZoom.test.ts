@@ -1,4 +1,3 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
@@ -9,7 +8,7 @@ import {
 } from '@/components/interaction/integerZoom'
 import { constrainZoomDomain } from '@/components/interaction/zoomConstraints'
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const data = {
   kind: 'points' as const,
@@ -71,7 +70,7 @@ describe('fractional integer zoom', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
     'supports decimal labels, wheel events and panning in %s mode',
     async (displayMode) => {
-      vi.useFakeTimers()
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
       const original = JSON.stringify(data)
       const wrapper = await mountSizedChart(data, {
         displayMode,
@@ -82,14 +81,14 @@ describe('fractional integer zoom', () => {
       })
       try {
         wrapper.vm.setViewportDomain([1.7, 1.9])
-        await flushPromises()
+        await flushVueChartUpdates()
         const endpoints = () => [
           Number(wrapper.get('.waveform-chart__axis-endpoint--start').text()),
           Number(wrapper.get('.waveform-chart__axis-endpoint--end').text()),
         ]
         expect(endpoints()[0]).toBeCloseTo(1.7, 12)
         expect(endpoints()[1]).toBeCloseTo(1.9, 12)
-        await wrapper.trigger('pointerenter')
+        await wrapper.get('.waveform-chart').trigger('pointerenter')
         const overlay = wrapper.get('.waveform-chart__overlay')
         const width = Number(overlay.attributes('width'))
         Object.defineProperty(overlay.element, 'getBoundingClientRect', {
@@ -117,19 +116,19 @@ describe('fractional integer zoom', () => {
           expect(event.defaultPrevented, type).toBe(true)
         }
         window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
-        await flushPromises()
+        await flushVueChartUpdates()
         const panned = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
         expect(panned[0]).toBeCloseTo(1.9, 12)
         expect(panned[1]).toBeCloseTo(2.1, 12)
         expect(endpoints()[0]).toBeCloseTo(panned[0], 12)
         expect(endpoints()[1]).toBeCloseTo(panned[1], 12)
         await wrapper.setProps({ data: { ...data, points: [...data.points] } })
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(endpoints()[0]).toBeCloseTo(panned[0], 12)
         expect(endpoints()[1]).toBeCloseTo(panned[1], 12)
 
         wrapper.vm.setViewportDomain([1.2, 1.8])
-        await flushPromises()
+        await flushVueChartUpdates()
         const wheel = async (deltaY: number) => {
           overlay.element.dispatchEvent(
             new WheelEvent('wheel', {
@@ -141,7 +140,7 @@ describe('fractional integer zoom', () => {
             }),
           )
           flushAnimationFrames()
-          await flushPromises()
+          await flushVueChartUpdates()
           await vi.advanceTimersByTimeAsync(250)
         }
         await wheel(-200)
@@ -189,7 +188,7 @@ describe('fractional integer zoom', () => {
         Object.defineProperty(event, 'pointerId', { value: 1 })
         overlay.element.dispatchEvent(event)
       }
-      await flushPromises()
+      await flushVueChartUpdates()
       const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
       expect(domain[0]).toBeCloseTo(0.0012, 12)
       expect(domain[1]).toBeCloseTo(0.0018, 12)

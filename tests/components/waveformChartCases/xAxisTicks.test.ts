@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { resizeObservers } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart X-axis tick compatibility', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
@@ -31,11 +30,11 @@ describe('WaveformChart X-axis tick compatibility', () => {
         const originalLabels = labels()
         expect(endpoints()).toEqual(['0.13', '13.87'])
         await wrapper.setProps({ timeUnit: 'ms' })
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(endpoints()).toEqual(['130', '13870'])
         expect(labels().map(Number)).toEqual(originalLabels.map((value) => Number(value) * 1000))
         resizeObservers.at(-1)?.resize(320, 240)
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(endpoints()).toEqual(['130', '13870'])
         expect(labels().length).toBeLessThan(originalLabels.length)
         expect(JSON.stringify(data)).toBe(snapshot)

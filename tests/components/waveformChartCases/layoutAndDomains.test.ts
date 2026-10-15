@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { resizeObservers } from '@tests/support/setup'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('reserves full scientific ticks while keeping numeric name spacing', async () => {
@@ -52,9 +51,9 @@ describe('WaveformChart', () => {
         .findAll('.waveform-chart__axis--y .tick text')
         .map((tick) => tick.text().length * 7),
     )
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThanOrEqual(
-      fullTickWidth + 11,
-    )
+    expect(
+      Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
+    ).toBeGreaterThanOrEqual(fullTickWidth + 11)
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(fullTickWidth + 11)
   })
 
@@ -86,7 +85,7 @@ describe('WaveformChart', () => {
         .findAll('.waveform-chart__axis--y .tick text')
         .map((tick) => tick.text().length * 7),
     )
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(
+    expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
       Math.max(48, fullTickWidth + 11),
     )
     expect(secondLeft - firstWidth).toBeGreaterThanOrEqual(fullTickWidth + 11)
@@ -123,7 +122,7 @@ describe('WaveformChart', () => {
       },
       { grid: { rowCount: 1, columnCount: 1 } },
     )
-    const initialMargin = wrapper.attributes('data-chart-left-margin')
+    const initialMargin = wrapper.get('.waveform-chart').attributes('data-chart-left-margin')
     const initialTrack = wrapper.get('.waveform-chart__track')
     const initialLongestTickLabel = Math.max(
       ...initialTrack
@@ -136,7 +135,7 @@ describe('WaveformChart', () => {
 
     await wrapper.get('[aria-label="下一页"]').trigger('click')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe(initialMargin)
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe(initialMargin)
     const pagedTrack = wrapper.get('.waveform-chart__track')
     const pagedLongestTickLabel = Math.max(
       ...pagedTrack
@@ -155,7 +154,7 @@ describe('WaveformChart', () => {
     })
 
     resizeObservers.at(-1)?.resize(120, 360)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.findAll('.waveform-chart__y-axis-label')).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(4)
@@ -172,7 +171,9 @@ describe('WaveformChart', () => {
         grid: { rowCount: 2, columnCount: 2 },
       })
       expect(wrapper.findAll('.waveform-chart__overlay--shared')).toHaveLength(1)
-      expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(2)
+      expect(
+        wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+      ).toHaveLength(2)
       const tracks = wrapper.findAll('.waveform-chart__track')
       const firstTop = Number(tracks[0].attributes('data-track-top'))
       const secondRowTop = Number(tracks[2].attributes('data-track-top'))
@@ -210,7 +211,9 @@ describe('WaveformChart', () => {
     expect(emptyTracks).toHaveLength(2)
     expect(wrapper.find('.waveform-chart__grid-slot-placeholder').exists()).toBe(false)
     expect(secondRowFirstTrackTop).toBe(firstTrackTop + firstTrackHeight)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(3)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(3)
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(4)
     expect(emptyTracks[0].findAll('.waveform-chart__grid')).toHaveLength(2)
     expect(emptyTracks[0].find('.waveform-chart__plot-background').exists()).toBe(true)
@@ -218,7 +221,9 @@ describe('WaveformChart', () => {
     expect(emptyTracks[0].find('.waveform-chart__axis--y').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__line').exists()).toBe(false)
     expect(emptyTracks[0].find('.waveform-chart__y-axis-label').exists()).toBe(false)
-    expect(emptyTracks[0].find('.waveform-chart__watermark').exists()).toBe(false)
+    expect(
+      emptyTracks[0].findAll('.waveform-chart__watermark').some((element) => element.isVisible()),
+    ).toBe(false)
 
     const populatedBottomTrack = tracks[3]
     expect(emptyTracks[0].get('.waveform-chart__axis-endpoint--start').text()).toBe(
@@ -237,7 +242,9 @@ describe('WaveformChart', () => {
 
     expect(wrapper.get('.waveform-chart__empty').text()).toContain('暂无有效波形数据')
     expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(0)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(0)
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
   })
 
@@ -249,7 +256,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('[aria-label="第 2 页"]').attributes('aria-current')).toBe('page')
 
     await wrapper.setProps({ grid: { rowCount: 2, columnCount: 1 } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('[aria-label="第 1 页"]').attributes('aria-current')).toBe('page')
   })
 
@@ -351,12 +358,12 @@ describe('WaveformChart', () => {
         .map((tick) => tick.text())
 
     await wrapper.setProps({ yDomain: [3, 97] })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(yTickLabels()).toContain('0')
     expect(yTickLabels()).toContain('100')
 
     await wrapper.setProps({ yDomain: undefined })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(yTickLabels()).not.toContain('3')
     expect(yTickLabels()).not.toContain('97')
   })
@@ -383,10 +390,10 @@ describe('WaveformChart', () => {
 
     expect(initialPath).toContain('L')
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('800')
-    expect(wrapper.attributes('data-interaction-mode')).toBe('zoom')
+    expect(wrapper.get('.waveform-chart').attributes('data-interaction-mode')).toBe('zoom')
 
     resizeObservers.at(-1)?.resize(500, 360)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__svg').attributes('width')).toBe('500')
     expect(wrapper.get('.waveform-chart__line').attributes('d')).not.toBe(initialPath)

@@ -1,4 +1,5 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushVueChartUpdates } from '@tests/support/waveformChart'
+import { mount } from '@vue/test-utils'
 import type { DOMWrapper, VueWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
@@ -40,7 +41,7 @@ function outerTitleLeft(
   track: Pick<DOMWrapper<Element>, 'attributes' | 'findAll'>,
 ) {
   return (
-    Number(wrapper.attributes('data-chart-left-margin')) +
+    Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')) +
     Number(track.attributes('data-track-left')) +
     Math.min(
       ...track.findAll('.waveform-chart__y-axis-label-bg').map((bg) => Number(bg.attributes('x'))),
@@ -58,10 +59,11 @@ describe('edge-compact Y-axis space', () => {
         axes: { y: { nice: false } },
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
+    await flushVueChartUpdates()
     // Six decimal characters used to reserve 42px. The 11px numeric font
     // needs at most 35px, returning 13px to the plot with 6px of outer name space.
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(68)
+    expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(68)
     expect(plotWidth(wrapper)).toBe(708)
     expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
   })
@@ -69,7 +71,8 @@ describe('edge-compact Y-axis space', () => {
     'quarters the left outer space while retaining the 24px right margin at width %s',
     async (width) => {
       const wrapper = mount(WaveformChart, { props: { ...props, width, data: data(series('A')) } })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const track = wrapper.get('.waveform-chart__track')
       const ticks = track.findAll('.waveform-chart__axis--y .tick text')
       const tickWidth = Math.max(
@@ -79,12 +82,14 @@ describe('edge-compact Y-axis space', () => {
       expect(track.get('.waveform-chart__axis--y').text()).not.toContain(unit)
       expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CHANNEL_A')
       const fullTickWidth = Math.max(...ticks.map((tick) => measureYAxisTextWidth(tick.text())))
-      expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(
+      expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
         Math.max(fullTickWidth, tickWidth + 20) + 7 + 6,
       )
       expect(outerTitleLeft(wrapper, track)).toBeGreaterThanOrEqual(6)
       expect(
-        width - Number(wrapper.attributes('data-chart-left-margin')) - plotWidth(wrapper),
+        width -
+          Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')) -
+          plotWidth(wrapper),
       ).toBe(24)
       expect(Number(wrapper.get('.waveform-chart__x-label').attributes('y'))).toBe(491)
     },
@@ -93,16 +98,23 @@ describe('edge-compact Y-axis space', () => {
   it('gains plot width by excluding hidden units from all axis sizing paths', async () => {
     const ordinarySeries = series('A', 'A', 0, 3)
     const wrapper = mount(WaveformChart, { props: { ...props, data: data(ordinarySeries) } })
+    await flushVueChartUpdates()
     const compactWidth = plotWidth(wrapper)
     await wrapper.setProps({ data: data({ ...ordinarySeries, unit: undefined }) })
+    await flushVueChartUpdates()
     expect(plotWidth(wrapper)).toBe(compactWidth)
     await wrapper.setProps({ data: data(ordinarySeries), layoutPreset: 'default' })
+    await flushVueChartUpdates()
     expect(plotWidth(wrapper)).toBeLessThan(compactWidth)
     expect(wrapper.get('.waveform-chart__x-label').attributes('y')).toBe('488')
-    const legacyMargin = Number(wrapper.attributes('data-chart-left-margin'))
+    const legacyMargin = Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))
     await wrapper.setProps({ unitDisplayMode: 'axis' })
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBe(legacyMargin)
+    await flushVueChartUpdates()
+    expect(Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))).toBe(
+      legacyMargin,
+    )
     await wrapper.setProps({ layoutPreset: 'edge-compact' })
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain(unit)
     expect(outerTitleLeft(wrapper, wrapper.get('.waveform-chart__track'))).toBe(6)
   })
@@ -122,7 +134,8 @@ describe('edge-compact Y-axis space', () => {
           axes: { y: { nice: false } },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const track = wrapper.get('.waveform-chart__track')
       const band = track.get('.waveform-chart__y-axis-label-bg')
       const bandRight = Number(band.attributes('x')) + Number(band.attributes('width'))
@@ -155,7 +168,8 @@ describe('edge-compact Y-axis space', () => {
           grid: { rowCount: 2, columnCount: 2 },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const tracks = wrapper.findAll('.waveform-chart__track')
       expect(tracks).toHaveLength(4)
       expect(outerTitleLeft(wrapper, tracks[0])).toBeGreaterThanOrEqual(6)
@@ -205,6 +219,7 @@ describe('edge-compact Y-axis space', () => {
       expect(nextLeft).toBeGreaterThan(firstRight)
       const widths = tracks.map((track) => track.attributes('data-track-width'))
       await wrapper.setProps({ data: data(...items.map((item) => ({ ...item, unit: undefined }))) })
+      await flushVueChartUpdates()
       expect(
         wrapper
           .findAll('.waveform-chart__track')
@@ -213,11 +228,14 @@ describe('edge-compact Y-axis space', () => {
     },
   )
 
-  it('reserves tick clearance when every series is hidden', () => {
+  it('reserves tick clearance when every series is hidden', async () => {
     const wrapper = mount(WaveformChart, {
       props: { ...props, data: data(series('A')), hiddenSeriesIds: ['A'] },
     })
-    expect(Number(wrapper.attributes('data-chart-left-margin'))).toBeGreaterThan(6)
+    await flushVueChartUpdates()
+    expect(
+      Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')),
+    ).toBeGreaterThan(6)
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
   })
 })

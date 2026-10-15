@@ -1,11 +1,10 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 import type { WaveformXAxisLabelFormatter } from '@/types'
 import { type WaveformData } from '@/components/waveform'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('renders reference grid styling and an optional frame watermark', async () => {
@@ -31,7 +30,7 @@ describe('WaveformChart', () => {
     expect(
       wrapper.findAll('.waveform-chart__grid--minor [data-grid-direction="vertical"]'),
     ).not.toHaveLength(0)
-    expect(getComputedStyle(wrapper.element).borderTopWidth).toBe('1.2px')
+    expect(getComputedStyle(wrapper.get('.waveform-chart').element).borderTopWidth).toBe('1.2px')
     expect(wrapper.find('.waveform-chart__plot-frame').exists()).toBe(true)
     expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
       fill: 'none',
@@ -232,7 +231,11 @@ describe('WaveformChart', () => {
     expect(millisecondTicks.length).toBeGreaterThan(0)
     expect(millisecondsChart.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
     expect(millisecondsChart.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
-    expect(millisecondsChart.find('.waveform-chart__watermark').exists()).toBe(false)
+    expect(
+      millisecondsChart
+        .findAll('.waveform-chart__watermark')
+        .some((element) => element.isVisible()),
+    ).toBe(false)
 
     const secondsChart = await mountSizedChart(data, { timeUnit: 's', xLabel: 'Elapsed time' })
     expect(secondsChart.text()).toContain('Elapsed time')
@@ -331,7 +334,7 @@ describe('WaveformChart', () => {
     await wrapper.setProps({
       axes: { x: { labelFormatter: (value: number) => `updated:${value}` } },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('updated:125')
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('updated:1875')
     expect(
@@ -370,7 +373,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const emittedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as
       [number, number] | undefined

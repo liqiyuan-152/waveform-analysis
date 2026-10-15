@@ -1,0 +1,124 @@
+.waveform-chart {
+  box-sizing: border-box;
+  position: relative;
+  min-width: 0;
+  min-height: 180px;
+  overflow: hidden;
+  color: #475467;
+  background: #fff;
+  border: 1.2px solid rgb(0 0 0 / 8%);
+  border-radius: 6px;
+}
+
+.waveform-chart--clean {
+  border-color: transparent;
+}
+
+.waveform-chart__pagination {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  z-index: 2;
+  max-width: calc(100% - 20px);
+}
+
+.waveform-chart__title-area {
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  padding: 0 24px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.waveform-chart__title-measure {
+  position: absolute;
+  display: block;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.waveform-chart__title-visual {
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 0;
+  overflow: visible;
+}
+
+.waveform-chart__title-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: block;
+  overflow: visible;
+  line-height: 1.2;
+  transform-origin: center;
+}
+
+.waveform-chart__grid-slot-placeholder {
+  fill: #fafbfc;
+  stroke: #e4e7ec;
+  stroke-dasharray: 4 4;
+  pointer-events: none;
+}
+
+.waveform-chart__svg {
+  display: block;
+  max-width: 100%;
+}
+
+.waveform-chart__overlay {
+  fill: transparent;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.waveform-chart__overlay.is-zoomable {
+  cursor: crosshair;
+}
+
+.waveform-chart--panning .waveform-chart__overlay.is-zoomable {
+  cursor: grabbing;
+}
+
+.waveform-chart__zoom-selection {
+  fill: rgb(22 119 255 / 14%);
+  stroke: #1677ff;
+  stroke-width: 1;
+  pointer-events: none;
+}
+
+.waveform-chart__overlay.is-annotating {
+  cursor: crosshair;
+}
+
+.waveform-chart--presentation .waveform-chart__overlay {
+  cursor: default;
+  pointer-events: none;
+}
+
+.waveform-chart__label,
+.waveform-chart__empty {
+  fill: #595959;
+  font-size: 12px;
+}
+
+.waveform-chart--interaction-pan:not(.waveform-chart--presentation) .waveform-chart__overlay {
+  cursor: grab;
+}
+.waveform-chart--interaction-pan.waveform-chart--panning .waveform-chart__overlay {
+  cursor: grabbing;
+}
+.waveform-chart--interaction-none .waveform-chart__overlay {
+  cursor: default;
+}
+
+.waveform-chart--edge-compact .waveform-chart__x-label {
+  font-weight: 600;
+}
+
+.waveform-chart__label {
+  font-weight: 700;
+}

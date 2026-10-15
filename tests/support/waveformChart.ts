@@ -1,13 +1,66 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { flushPromises, mount, type DOMWrapper } from '@vue/test-utils'
+import { vi } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
+import LegacyWaveformChart from './LegacyWaveformChart.vue'
 import type { WaveformData } from '@/components/waveform'
-import { resizeObservers } from '@tests/support/setup'
+import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
+
+/** Drain queued chart frames; tests with explicit animation clocks may still have active frames. */
+export async function flushVueChartUpdates() {
+  await flushPromises()
+  for (let turn = 0; turn < 4; turn++) {
+    if (!globalThis.requestAnimationFrame && vi.isFakeTimers())
+      await vi.advanceTimersByTimeAsync(16)
+    flushAnimationFrames(performance.now())
+    await Promise.resolve()
+  }
+}
+
+const decoratedElements = new WeakSet<object>()
+function withChartTrigger<T extends DOMWrapper<Node>>(element: T): T {
+  if (!element.exists()) return element
+  if (decoratedElements.has(element)) return element
+  decoratedElements.add(element)
+  const trigger = element.trigger.bind(element)
+  element.trigger = async (...args: Parameters<typeof trigger>) => {
+    await trigger(...args)
+    await flushVueChartUpdates()
+  }
+  const find = element.find.bind(element)
+  element.find = ((...args: Parameters<typeof find>) =>
+    withChartTrigger(find(...args))) as typeof element.find
+  const findAll = element.findAll.bind(element)
+  element.findAll = ((...args: Parameters<typeof findAll>) =>
+    findAll(...args).map(withChartTrigger)) as typeof element.findAll
+  return element
+}
 
 export async function mountSizedChart(data: WaveformData, extraProps = {}) {
   const wrapper = mount(WaveformChart, {
-    props: { data, ...extraProps },
+    props: { data, animationEnabled: false, ...extraProps },
+    attachTo: document.body,
   })
+  resizeObservers.at(-1)?.resize(800, 360)
+  await flushPromises()
+  await flushVueChartUpdates()
+  const setProps = wrapper.setProps.bind(wrapper)
+  wrapper.setProps = async (props) => {
+    await setProps(props)
+    await flushVueChartUpdates()
+  }
+  const find = wrapper.find.bind(wrapper)
+  wrapper.find = ((...args: Parameters<typeof find>) =>
+    withChartTrigger(find(...args))) as typeof wrapper.find
+  const findAll = wrapper.findAll.bind(wrapper)
+  wrapper.findAll = ((...args: Parameters<typeof findAll>) =>
+    findAll(...args).map(withChartTrigger)) as typeof wrapper.findAll
+  return wrapper
+}
+
+/** Independent pre-adapter oracle; never compare the native engine to its own Vue wrapper. */
+export async function mountLegacySizedChart(data: WaveformData, extraProps = {}) {
+  const wrapper = mount(LegacyWaveformChart, { props: { data, ...extraProps } })
   resizeObservers.at(-1)?.resize(800, 360)
   await flushPromises()
   return wrapper

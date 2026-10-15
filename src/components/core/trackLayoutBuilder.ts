@@ -72,6 +72,8 @@ export interface BuildTrackLayoutsOptions {
   rendering: ResolvedWaveformRenderingOptions
   /** Latest sampling result for SVG lines only; source series remain complete for interaction. */
   linePointOverrides?: Readonly<Record<string, WaveformPoint[]>>
+  /** Sampling preparation needs domains and dimensions, without materializing SVG geometry. */
+  includeGeometry?: boolean
   hideSecondaryLabels: boolean
   yAxisLabelX: number
   yLabel?: string
@@ -79,6 +81,7 @@ export interface BuildTrackLayoutsOptions {
   showEmptyTracks: boolean
   useNonEmptyBottomTracks?: boolean
   compactYAxisLayout?: boolean
+  measureTextWidth?: (text: string) => number
   showAxisUnits?: boolean
   domainTimeUnit?: 's' | 'ms'
 }
@@ -251,27 +254,33 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         axis.seriesList.some((series) => series.id === trackSeries.id),
       )
       const seriesYScale = yAxis?.scale ?? yScale
-      const renderPoints = selectSeriesRenderSourcePoints(
-        trackSeries.source ?? pointSourceFromPoints(trackSeries.points),
-        domain,
-        cell.width,
-        options.rendering,
-        {
-          lineVisible: !isEmpty && trackSeries.lineType !== 'none',
-          linePointOverride: options.linePointOverrides?.[trackSeries.id],
-          pointVisible: trackSeries.pointType !== 'none',
-          errorBarVisible: trackSeries.errorBar.visible,
-          hasErrorPoints: trackSeries.hasErrorPoints,
-        },
-      )
+      const renderPoints =
+        options.includeGeometry === false
+          ? { linePoints: [], pointRenderPoints: [], errorBarRenderPoints: [] }
+          : selectSeriesRenderSourcePoints(
+              trackSeries.source ?? pointSourceFromPoints(trackSeries.points),
+              domain,
+              cell.width,
+              options.rendering,
+              {
+                lineVisible: !isEmpty && trackSeries.lineType !== 'none',
+                linePointOverride: options.linePointOverrides?.[trackSeries.id],
+                pointVisible: trackSeries.pointType !== 'none',
+                errorBarVisible: trackSeries.errorBar.visible,
+                hasErrorPoints: trackSeries.hasErrorPoints,
+              },
+            )
       return {
         series: trackSeries,
-        path: generateWaveformPath(
-          renderPoints.linePoints,
-          trackSeries.lineType,
-          xScale,
-          seriesYScale,
-        ),
+        path:
+          options.includeGeometry === false
+            ? null
+            : generateWaveformPath(
+                renderPoints.linePoints,
+                trackSeries.lineType,
+                xScale,
+                seriesYScale,
+              ),
         lineRenderPoints: renderPoints.linePoints,
         pointRenderPoints: renderPoints.pointRenderPoints,
         errorBarRenderPoints: renderPoints.errorBarRenderPoints,
@@ -324,7 +333,9 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
     labelTextStyle: options.yAxisPadding?.labelTextStyle,
     showUnits: options.showAxisUnits,
     compact: options.compactYAxisLayout,
-    measureTextWidth: options.compactYAxisLayout ? measureYAxisTextWidth : undefined,
+    measureTextWidth: options.compactYAxisLayout
+      ? (options.measureTextWidth ?? measureYAxisTextWidth)
+      : undefined,
   })
   return layouts
 }

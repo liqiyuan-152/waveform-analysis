@@ -33,8 +33,3 @@ export type {
 } from './data/types'
 
 export type { WaveformGridOptions as WaveformGridConfig } from './core/grid'
-
-// 可选：导出各系统的组件（供高级用户使用）
-export { WaveformTooltip } from './interaction'
-export { WaveformTrack } from './rendering'
-export { WaveformAnnotationLayer, WaveformAnnotationContextMenu } from './annotation'

@@ -1,12 +1,11 @@
-import { DOMWrapper, enableAutoUnmount, flushPromises, mount } from '@vue/test-utils'
+import { DOMWrapper, flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ColorPicker } from 'vue3-colorpicker'
 
-import WaveformAnnotationContextMenu from '@/components/annotation/WaveformAnnotationContextMenu.vue'
-import WaveformAnnotationEditor from '@/components/annotation/WaveformAnnotationEditor.vue'
-import WaveformAnnotationLayer from '@/components/annotation/WaveformAnnotationLayer.vue'
+import WaveformAnnotationContextMenu from '../../fixtures/legacy/components/annotation/WaveformAnnotationContextMenu.vue'
+import WaveformAnnotationEditor from '../../fixtures/legacy/components/annotation/WaveformAnnotationEditor.vue'
+import WaveformAnnotationLayer from '../../fixtures/legacy/components/annotation/WaveformAnnotationLayer.vue'
 
-enableAutoUnmount(afterEach)
 const mountEditor = (options: { props: Record<string, unknown> }) => {
   const wrapper = mount(WaveformAnnotationEditor, {
     props: options.props as never,

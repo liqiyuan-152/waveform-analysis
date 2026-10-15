@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 function geometry(track: { attributes: (name: string) => string | undefined }) {
   return {
@@ -86,7 +85,7 @@ describe('WaveformChart incomplete grid rows', () => {
     expect(filled.findAll('.waveform-chart__track').map(geometry)).toEqual(standardFirstPage)
 
     await filled.get('[aria-label="下一页"]').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     const secondPage = filled.findAll('.waveform-chart__track').map(geometry)
     expect(secondPage).toHaveLength(1)
     expect(secondPage[0]?.left).toBe(0)

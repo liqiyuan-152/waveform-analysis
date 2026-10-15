@@ -1,10 +1,9 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 import { type WaveformData } from '@/components/waveform'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('keeps independent multi-column zoom inside the active track domain', async () => {
@@ -31,7 +30,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[0]).toBeGreaterThanOrEqual(0)
@@ -49,14 +48,14 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(endpoints()[0]).toBe(initialEndpoints[0])
     expect(endpoints()[1]).toBe(initialEndpoints[1])
   })
 
   it('emits one zoom-end payload after a shared zoom gesture completes', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       const wrapper = await mountSizedChart({
         kind: 'points',
@@ -84,11 +83,11 @@ describe('WaveformChart', () => {
       flushAnimationFrames()
       // The wheel debounce is 200ms: it must not end early, then ends at the boundary.
       await vi.advanceTimersByTimeAsync(199)
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.emitted('zoom-end')).toBeUndefined()
 
       await vi.advanceTimersByTimeAsync(1)
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const endEvents = wrapper.emitted('zoom-end') ?? []
       expect(endEvents).toHaveLength(1)
@@ -125,10 +124,10 @@ describe('WaveformChart', () => {
     }
     dispatchPointer('pointerdown', width * 0.25, height / 2)
     dispatchPointer('pointermove', width * 0.75, height / 2 + 2)
-    await flushPromises()
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    await flushVueChartUpdates()
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
     dispatchPointer('pointerup', width * 0.75, height * 0.75)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const payload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as
       | {
@@ -145,7 +144,7 @@ describe('WaveformChart', () => {
     expect(payload?.end).toBeGreaterThan(payload?.start ?? Number.POSITIVE_INFINITY)
     expect(payload?.yStart).toBeDefined()
     expect(payload?.yEnd).toBeDefined()
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(false)
   })
 
   it('enables space-drag panning only when pannable is true and the pointer is inside', async () => {
@@ -160,7 +159,7 @@ describe('WaveformChart', () => {
     Object.defineProperty(disabledOverlay.element, 'getBoundingClientRect', {
       value: () => ({ left: 0, top: 0, width: disabledWidth, height: disabledHeight }),
     })
-    await disabled.trigger('pointerenter')
+    await disabled.get('.waveform-chart').trigger('pointerenter')
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }))
     const disabledDown = new MouseEvent('pointerdown', {
       button: 0,
@@ -177,8 +176,8 @@ describe('WaveformChart', () => {
     })
     Object.defineProperty(disabledMove, 'pointerId', { value: 31 })
     disabledOverlay.element.dispatchEvent(disabledMove)
-    await flushPromises()
-    expect(disabled.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    await flushVueChartUpdates()
+    expect(disabled.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
 
     const enabled = await mountSizedChart(data, { pannable: true })
     const enabledOverlay = enabled.get('.waveform-chart__overlay--independent')
@@ -209,10 +208,10 @@ describe('WaveformChart', () => {
     })
     Object.defineProperty(boxUp, 'pointerId', { value: 30 })
     enabledOverlay.element.dispatchEvent(boxUp)
-    await flushPromises()
+    await flushVueChartUpdates()
     const startBeforePan = enabled.get('.waveform-chart__axis-endpoint--start').text()
 
-    await enabled.trigger('pointerenter')
+    await enabled.get('.waveform-chart').trigger('pointerenter')
     const spaceDown = new KeyboardEvent('keydown', { code: 'Space', cancelable: true })
     window.dispatchEvent(spaceDown)
     const enabledDown = new MouseEvent('pointerdown', {
@@ -230,11 +229,11 @@ describe('WaveformChart', () => {
     })
     Object.defineProperty(enabledMove, 'pointerId', { value: 32 })
     enabledOverlay.element.dispatchEvent(enabledMove)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(spaceDown.defaultPrevented).toBe(true)
-    expect(enabled.classes()).toContain('waveform-chart--panning')
-    expect(enabled.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+    expect(enabled.get('.waveform-chart').classes()).toContain('waveform-chart--panning')
+    expect(enabled.find('.waveform-chart__zoom-selection').isVisible()).toBe(false)
     expect(enabled.get('.waveform-chart__axis-endpoint--start').text()).not.toBe(startBeforePan)
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
   })
@@ -263,7 +262,7 @@ describe('WaveformChart', () => {
         .map((tick) => tick.text())
     const initialLabels = yTickLabels()
 
-    await wrapper.trigger('pointerenter')
+    await wrapper.get('.waveform-chart').trigger('pointerenter')
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }))
     const down = new MouseEvent('pointerdown', {
       button: 0,
@@ -280,11 +279,11 @@ describe('WaveformChart', () => {
     })
     Object.defineProperty(move, 'pointerId', { value: 34 })
     overlay.element.dispatchEvent(move)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(yTickLabels()).toEqual(initialLabels)
     ;(wrapper.vm as unknown as { resetViewport: () => void }).resetViewport()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(yTickLabels()).toEqual(initialLabels)
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
   })
@@ -299,7 +298,7 @@ describe('WaveformChart', () => {
     }
     const active = await mountSizedChart(data, { pannable: true })
     const inactive = await mountSizedChart(data, { pannable: true })
-    await active.trigger('pointerenter')
+    await active.get('.waveform-chart').trigger('pointerenter')
 
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space', cancelable: true }))
 
@@ -324,9 +323,9 @@ describe('WaveformChart', () => {
     })
     Object.defineProperty(move, 'pointerId', { value: 33 })
     inactiveOverlay.element.dispatchEvent(move)
-    await flushPromises()
+    await flushVueChartUpdates()
 
-    expect(inactive.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    expect(inactive.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
     expect(inactive.classes()).not.toContain('waveform-chart--panning')
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
   })
@@ -357,7 +356,7 @@ describe('WaveformChart', () => {
     dispatchPointer('pointerdown', width / 2, height / 2)
     dispatchPointer('pointermove', width / 2 + 8, height / 2 + 8)
     dispatchPointer('pointerup', width / 2 + 8, height / 2 + 8)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const payload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as { start: number; end: number }
     expect(payload.end - payload.start).toBeGreaterThanOrEqual(0.25 - 1e-8)

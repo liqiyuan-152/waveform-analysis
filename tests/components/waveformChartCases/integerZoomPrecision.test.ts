@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { constrainZoomDomain } from '@/components/interaction/zoomConstraints'
 import { alignIntegerPanDomain } from '@/components/interaction/integerZoom'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('integer zoom precision and stable units', () => {
   it('respects fractional record boundaries and preserves fractional pan spans', () => {
@@ -37,20 +36,20 @@ describe('integer zoom precision and stable units', () => {
       )
       try {
         wrapper.vm.setViewportDomain([0.98, 1.02])
-        await flushPromises()
+        await flushVueChartUpdates()
         const endpoints = () =>
           wrapper.findAll('.waveform-chart__axis-endpoint').map((item) => item.text())
         expect(endpoints()).toEqual(['0.98', '1.02'])
         const count = wrapper.emitted('zoom-change')?.length
         await wrapper.setProps({ timeUnit: 'ms' })
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(endpoints()).toEqual(['980', '1020'])
         await wrapper.setProps({ data: { kind: 'points', points: [] } })
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(endpoints()).toEqual(['980', '1020'])
         expect(wrapper.emitted('zoom-change')?.length).toBe(count)
         await wrapper.setProps({ timeUnit: 's' })
-        await flushPromises()
+        await flushVueChartUpdates()
         expect(endpoints()).toEqual(['0.98', '1.02'])
       } finally {
         wrapper.unmount()
@@ -81,10 +80,10 @@ describe('integer zoom precision and stable units', () => {
       )
       try {
         wrapper.vm.setViewportDomain([1.28, 1.42])
-        await flushPromises()
+        await flushVueChartUpdates()
         const before = wrapper.vm.getControlState().targets[0].viewport.xDomain
         await wrapper.setProps({ timeUnit: 'ms' })
-        await flushPromises()
+        await flushVueChartUpdates()
         const after = wrapper.vm.getControlState().targets[0].viewport.xDomain
         after.forEach((value, index) => expect(value).toBeCloseTo(before[index], 12))
       } finally {

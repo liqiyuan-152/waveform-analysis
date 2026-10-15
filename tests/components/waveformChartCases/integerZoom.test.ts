@@ -1,4 +1,3 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { constrainZoomDomain } from '@/components/interaction/zoomConstraints'
@@ -8,7 +7,7 @@ import {
   integerZoomTicks,
 } from '@/components/interaction/integerZoom'
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const data = {
   kind: 'points' as const,
@@ -63,7 +62,7 @@ describe('integer zoom', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
     'snaps wheel in/out and end events in %s mode',
     async (displayMode) => {
-      vi.useFakeTimers()
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
       const wrapper = await mountSizedChart(data, {
         displayMode,
         integerZoom: true,
@@ -84,7 +83,7 @@ describe('integer zoom', () => {
             }),
           )
           flushAnimationFrames()
-          await flushPromises()
+          await flushVueChartUpdates()
           await vi.advanceTimersByTimeAsync(250)
         }
         await wheel(-800)
@@ -123,17 +122,17 @@ describe('integer zoom', () => {
       Object.defineProperty(event, 'pointerId', { value: 1 })
       overlay.element.dispatchEvent(event)
     }
-    await flushPromises()
+    await flushVueChartUpdates()
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[0]).toBeCloseTo(Math.floor(10 * 0.23456 * 1000) / 1000, 12)
     expect(domain[1]).toBeCloseTo(Math.ceil(10 * 0.67891 * 1000) / 1000, 12)
     wrapper.vm.setViewportDomain([0.1234, 0.5678])
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('123')
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('568')
     await wrapper.setProps({ maxZoomScale: null })
     wrapper.vm.setViewportDomain([1.001, 1.003])
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('1001')
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1003')
     expect(JSON.stringify(data)).toBe(original)
@@ -144,15 +143,15 @@ describe('integer zoom', () => {
     const wrapper = await mountSizedChart(data, { timeUnit: 's' })
     expect(wrapper.props('integerZoom')).toBe(false)
     wrapper.vm.setViewportDomain([1.23, 1.56])
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(Number(wrapper.get('.waveform-chart__axis-endpoint--start').text())).toBeCloseTo(1.23)
     await wrapper.setProps({ integerZoom: true })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--start').text()).toBe('0')
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('10')
     await wrapper.setProps({ integerZoom: false })
     wrapper.vm.setViewportDomain([1.23, 1.56])
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(Number(wrapper.get('.waveform-chart__axis-endpoint--start').text())).toBeCloseTo(1.23)
     wrapper.unmount()
   })

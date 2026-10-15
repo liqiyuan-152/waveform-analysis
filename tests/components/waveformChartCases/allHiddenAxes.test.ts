@@ -1,8 +1,11 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { resizeObservers } from '@tests/support/setup'
-import { mountSizedChart, visibilitySeries } from '@tests/support/waveformChart'
+import {
+  flushVueChartUpdates,
+  mountSizedChart,
+  visibilitySeries,
+} from '@tests/support/waveformChart'
 
 describe('all hidden series axes and grids', () => {
   for (const displayMode of ['independent', 'separated', 'compact'] as const) {
@@ -18,7 +21,7 @@ describe('all hidden series axes and grids', () => {
             grid: { rowCount: 1, columnCount: 1 },
           })
           resizeObservers.at(-1)?.resize(width, 360)
-          await flushPromises()
+          await flushVueChartUpdates()
           const ticks = () =>
             wrapper.findAll('.waveform-chart__axis .tick text').map((tick) => tick.text())
           const endpoints = () =>
@@ -34,7 +37,7 @@ describe('all hidden series axes and grids', () => {
           for (const item of wrapper.findAll('.waveform-chart__legend-item')) {
             await item.trigger('click')
           }
-          await flushPromises()
+          await flushVueChartUpdates()
 
           expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
           expect(originalTicks.length).toBeGreaterThan(0)
@@ -45,7 +48,7 @@ describe('all hidden series axes and grids', () => {
           expect(wrapper.findAll('.waveform-chart__overlay')).toHaveLength(0)
 
           await wrapper.findAll('.waveform-chart__legend-item')[0].trigger('click')
-          await flushPromises()
+          await flushVueChartUpdates()
           expect(wrapper.get('.waveform-chart__line').attributes('data-series-id')).toBe('low')
         },
       )

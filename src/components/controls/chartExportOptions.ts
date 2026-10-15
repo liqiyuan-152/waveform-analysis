@@ -1,4 +1,4 @@
-import type { ResolvedWaveformChartProps } from '../core/waveformChartTypes'
+import type { ResolvedWaveformChartProps } from '../../types/options'
 
 /** Presentation changes invalidate an in-flight image snapshot, without serializing input data. */
 export function chartExportOptions(props: ResolvedWaveformChartProps) {
@@ -25,6 +25,7 @@ export function chartExportOptions(props: ResolvedWaveformChartProps) {
     'yLabel',
     'timeUnit',
     'zeroLine',
+    'lineColor',
     'layoutPreset',
     'unitDisplayMode',
   ] as const satisfies readonly (keyof ResolvedWaveformChartProps)[]

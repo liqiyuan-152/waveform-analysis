@@ -1,8 +1,8 @@
-import { flushPromises, type VueWrapper } from '@vue/test-utils'
+import { type VueWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const regularPoints = Array.from({ length: 1_200 }, (_, index) => ({ x: index, y: index % 11 }))
 
@@ -40,7 +40,7 @@ async function dispatchWheel(
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
   }
 }
 
@@ -122,7 +122,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
     }
 
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
@@ -141,14 +141,14 @@ describe('WaveformChart point-aware zoom constraints', () => {
 
     for (let index = 0; index < 3; index += 1) {
       dispatchBox(overlay, width / 2 - 4, width / 2 + 4, height, index + 1)
-      await flushPromises()
+      await flushVueChartUpdates()
     }
 
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(visibleXCount(domain)).toBe(2)
     const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
     dispatchBox(overlay, width / 2 - 4, width / 2 + 4, height, 10)
-    await flushPromises()
+    await flushVueChartUpdates()
     const constrainedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount)
     expect(visibleXCount(constrainedDomain)).toBe(2)
@@ -191,7 +191,11 @@ describe('WaveformChart point-aware zoom constraints', () => {
       '.waveform-chart__overlay--independent',
     )
 
-    await dispatchWheel(overlay, width, height, -4_000, 64)
+    // Start near the compatibility boundary, then cross it with one wheel step. The earlier
+    // two-point case separately covers long wheel sequences down to the minimum point count.
+    wrapper.vm.setViewportDomain([580, 620])
+    await flushVueChartUpdates()
+    await dispatchWheel(overlay, width, height, -4_000)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain[1] - domain[0]).toBeLessThan(1_200 / 40)
   })
@@ -251,14 +255,14 @@ describe('WaveformChart point-aware zoom constraints', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       if ((wrapper.emitted('zoom-change')?.length ?? 0) === eventCount) break
       const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
       const windowPoints = sourcePoints.filter(
         (point) => point.x >= domain[0] && point.x <= domain[1],
       )
       await wrapper.setProps({ data: { kind: 'points', points: windowPoints } })
-      await flushPromises()
+      await flushVueChartUpdates()
     }
 
     const finalDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
@@ -306,7 +310,7 @@ describe('WaveformChart point-aware zoom constraints', () => {
 
     await dispatchWheel(overlay, width, height, -4_000, 64)
     await wrapper.setProps({ data: createData(100) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await dispatchWheel(overlay, width, height, 4_000, 64)
     const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(domain).toEqual([100, 120])

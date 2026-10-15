@@ -12,7 +12,8 @@ interface Box {
 function textBox(text: SVGTextElement): Box {
   const rect = text.getBoundingClientRect()
   if (rect.width && rect.height) return rect
-  const height = Number.parseFloat(getComputedStyle(text).fontSize) || 11
+  const height =
+    Number.parseFloat(text.ownerDocument.defaultView!.getComputedStyle(text).fontSize) || 11
   const width = (text.textContent?.length ?? 0) * height * 0.65
   let x = Number(text.getAttribute('x')) || 0
   let y = Number(text.getAttribute('y')) || 0
@@ -48,7 +49,9 @@ function hide(element: Element) {
 }
 
 function strokeWidth(element: Element): number {
-  return Number.parseFloat(getComputedStyle(element).strokeWidth) || 1
+  return (
+    Number.parseFloat(element.ownerDocument.defaultView!.getComputedStyle(element).strokeWidth) || 1
+  )
 }
 
 const pending = new WeakSet<SVGSVGElement>()

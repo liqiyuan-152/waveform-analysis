@@ -5,7 +5,7 @@ import { DEFAULT_WAVEFORM_RENDERING_OPTIONS } from '@/core'
 import type { WaveformData } from '@/types'
 import { buildTrackLayouts } from '@/components/core/trackLayoutBuilder'
 import type { DisplaySeries, DisplayTrack } from '@/components/core/types'
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../../fixtures/legacy/components/core/useWaveformData'
 
 function displaySeries(id: string, domain: [number, number]): DisplaySeries {
   return {

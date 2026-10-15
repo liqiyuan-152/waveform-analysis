@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { resizeObservers } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('compact channel name clearance', () => {
   it('reserves the longest labels and aligns screenshot-style channel names after resizing', async () => {
@@ -31,7 +30,7 @@ describe('compact channel name clearance', () => {
     try {
       const check = async (width: number) => {
         resizeObservers.at(-1)?.resize(width, 900)
-        await flushPromises()
+        await flushVueChartUpdates()
         const tracks = wrapper.findAll('.waveform-chart__track')
         const positions = tracks.map((track) =>
           Number(

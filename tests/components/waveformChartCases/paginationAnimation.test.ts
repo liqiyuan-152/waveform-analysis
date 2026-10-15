@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
+
 import { nextTick } from 'vue'
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
-import { globalAnimator } from '@/animation/core/Animator'
+import { observeNativePresentation } from '@tests/support/nativePresentation'
+let presentation: ReturnType<typeof observeNativePresentation>
 import type { WaveformAnnotation } from '@/index'
 
 let now = 0
@@ -19,13 +20,14 @@ async function chart(props = {}) {
   const wrapper = await mountSizedChart(gridSeries(3), {
     grid: { rowCount: 1, columnCount: 1 },
     animationAnnotation: { duration: 0 },
+    animationEnabled: true,
     rendering: { sampling: { mode: 'raw' } },
     annotations,
     ...props,
     animation: { duration: 0 },
   })
   wrappers.push(wrapper)
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
   await wrapper.setProps({ animation: { duration: 1000, easing: 'linear' }, ...props })
   return wrapper
@@ -35,11 +37,11 @@ async function frame(ms: number) {
   await vi.advanceTimersByTimeAsync(ms)
   flushAnimationFrames(now)
   await nextTick()
-  await flushPromises()
+  await flushVueChartUpdates()
 }
 async function page(wrapper: Awaited<ReturnType<typeof chart>>, direction = 'next') {
   await wrapper.get(`[aria-label="${direction === 'next' ? '下一页' : '上一页'}"]`).trigger('click')
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
 }
 const clip = (wrapper: Awaited<ReturnType<typeof chart>>) =>
@@ -47,13 +49,14 @@ const clip = (wrapper: Awaited<ReturnType<typeof chart>>) =>
 const drawingProgress = (wrapper: Awaited<ReturnType<typeof chart>>) => {
   const rect = clip(wrapper)
   if (!rect.exists()) return 1
-  const track = wrapper.findComponent({ name: 'WaveformSeriesLayer' }).props('track')
+  const track = presentation.track(wrapper.element)
   return Number(rect.attributes('width')) / track.width
 }
 const noteOpacity = (wrapper: Awaited<ReturnType<typeof chart>>) =>
   Number(wrapper.get('.waveform-annotation').attributes('opacity'))
 
 beforeEach(() => {
+  presentation = observeNativePresentation()
   now = 0
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   vi.spyOn(performance, 'now').mockImplementation(() => now)
@@ -61,7 +64,6 @@ beforeEach(() => {
 })
 afterEach(() => {
   wrappers.splice(0).forEach((wrapper) => wrapper.unmount())
-  globalAnimator.destroy()
   vi.restoreAllMocks()
   vi.useRealTimers()
 })
@@ -86,7 +88,7 @@ describe('pagination entrance replay', () => {
     await frame(250)
     expect(drawingProgress(wrapper)).toBe(1)
     expect(noteOpacity(wrapper)).toBe(1)
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
     expect(wrapper.emitted('page-change')).toEqual([[2, 3]])
   })
   it('clips points and error bars with unchanged path geometry', async () => {
@@ -146,7 +148,7 @@ describe('pagination entrance replay', () => {
       await page(wrapper)
       expect(drawingProgress(wrapper)).toBe(1)
       expect(noteOpacity(wrapper)).toBe(1)
-      expect(globalAnimator.getAnimationCount()).toBe(0)
+      expect(presentation.getAnimationCount()).toBe(0)
     },
   )
   it('uses the fixed 500ms pagination duration independently of updates', async () => {
@@ -170,7 +172,7 @@ describe('pagination entrance replay', () => {
     await frame(250)
     expect(clip(wrapper).exists()).toBe(false)
     await wrapper.setProps({ grid: { rowCount: 1, columnCount: 2 } })
-    await flushPromises()
+    await flushVueChartUpdates()
     await frame(500)
     expect(drawingProgress(wrapper)).toBeCloseTo(0.25)
     await frame(1500)
@@ -183,28 +185,28 @@ describe('pagination entrance replay', () => {
     await wrapper.get('[aria-label="下一页"]').trigger('pointermove')
     expect(drawingProgress(wrapper)).toBeCloseTo(0.2)
     wrapper
-      .get('svg')
+      .get('.waveform-chart__overlay')
       .element.dispatchEvent(
         new MouseEvent('pointermove', { bubbles: true, clientX: 120, clientY: 100 }),
       )
-    await nextTick()
+    await flushVueChartUpdates()
     expect(drawingProgress(wrapper)).toBe(1)
     expect(noteOpacity(wrapper)).toBe(1)
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it('commits on resize and automatic page reset without replaying', async () => {
     const wrapper = await chart()
     await page(wrapper)
     await frame(100)
     resizeObservers.at(-1)?.resize(600, 300)
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(drawingProgress(wrapper)).toBe(1)
     await wrapper.setProps({ data: gridSeries(1) })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(drawingProgress(wrapper)).toBe(1)
     expect(wrapper.get('.waveform-chart__line').attributes('data-series-id')).toBe('channel-0')
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it('finishes on entrance disable and does not restart when enabled again', async () => {
     const wrapper = await chart()
@@ -214,13 +216,12 @@ describe('pagination entrance replay', () => {
     expect(drawingProgress(wrapper)).toBe(1)
     await wrapper.setProps({ animation: { enabled: true } })
     expect(drawingProgress(wrapper)).toBe(1)
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it('pauses in the background and exports full geometry while another chart continues', async () => {
     const first = await chart(),
       second = await chart()
     await page(first)
-    await page(second)
     await frame(100)
     vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
     document.dispatchEvent(new Event('visibilitychange'))
@@ -230,12 +231,16 @@ describe('pagination entrance replay', () => {
     document.dispatchEvent(new Event('visibilitychange'))
     await frame(150)
     expect(drawingProgress(first)).toBeCloseTo(0.5)
-    expect((await first.vm.exportImage({ format: 'svg' })).type).toBe('image/svg+xml')
+    await page(second)
+    const exported = first.vm.exportImage({ format: 'svg' })
+    await frame(250)
+    await vi.advanceTimersByTimeAsync(16)
+    expect((await exported).type).toBe('image/svg+xml')
     expect(drawingProgress(first)).toBe(1)
     expect(drawingProgress(second)).toBeCloseTo(0.5)
     first.unmount()
     second.unmount()
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it('replays a normalized grid change after resetting to the final page, with stagger', async () => {
     const complete = vi.fn()
@@ -246,7 +251,7 @@ describe('pagination entrance replay', () => {
     await frame(1000)
     complete.mockClear()
     await wrapper.setProps({ grid: { rowCount: 1, columnCount: 2 } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       wrapper.findAll('.waveform-chart__line').map((p) => p.attributes('data-series-id')),
     ).toEqual(['channel-0', 'channel-1'])
@@ -277,7 +282,7 @@ describe('pagination entrance replay', () => {
       await frame(250)
       expect(drawingProgress(wrapper)).toBeCloseTo(0.5)
       await wrapper.setProps({ grid: { rowCount: 2, columnCount: 2 } })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.findAll('.waveform-track__series-item [clipPathUnits]')).toHaveLength(3)
       await frame(1200)
       expect(clip(wrapper).exists()).toBe(false)
@@ -331,7 +336,7 @@ describe('pagination entrance replay', () => {
     await page(wrapper)
     await page(wrapper)
     await wrapper.setProps({ grid: { rowCount: 1, columnCount: 2 } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       wrapper.findAll('.waveform-chart__line').map((p) => p.attributes('data-series-id')),
     ).toEqual(['channel-2'])

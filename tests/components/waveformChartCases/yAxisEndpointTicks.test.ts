@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVisibility'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
 describe('Y-axis endpoint tick strokes', () => {
@@ -46,7 +45,7 @@ describe('Y-axis endpoint tick strokes', () => {
         verify()
         await wrapper.setProps({ yDomain: [-20, 20] })
         resizeObservers.at(-1)?.resize(360, 260)
-        await flushPromises()
+        await flushVueChartUpdates()
         verify()
       } finally {
         wrapper.unmount()

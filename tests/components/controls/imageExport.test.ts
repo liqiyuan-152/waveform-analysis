@@ -1,9 +1,9 @@
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent, ref } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { useChartImageExport } from '@/components/controls/useChartImageExport'
-import { createChartSnapshot } from '@/components/controls/chartSnapshot'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { useChartImageExport } from '../../fixtures/legacy/components/controls/useChartImageExport'
+import { createChartSnapshot } from '../../fixtures/legacy/components/controls/chartSnapshot'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const originalURL = globalThis.URL
 const originalImage = globalThis.Image
@@ -189,7 +189,10 @@ describe('chart image export', () => {
     })
     await rejection
     finish()
-    expect((await w.vm.exportImage({ format: 'svg' })).type).toBe('image/svg+xml')
+    await flushVueChartUpdates()
+    const exported = w.vm.exportImage({ format: 'svg' })
+    await flushVueChartUpdates()
+    expect((await exported).type).toBe('image/svg+xml')
     w.unmount()
     Reflect.deleteProperty(document, 'fonts')
   })

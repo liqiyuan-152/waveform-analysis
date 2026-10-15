@@ -1,8 +1,8 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
-import { gridSeries } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries } from '@tests/support/waveformChart'
 
 describe('edge-compact frame and pagination bounds', () => {
   it('keeps the same height for 3 and 64 pages and long Time labels', async () => {
@@ -17,20 +17,26 @@ describe('edge-compact frame and pagination bounds', () => {
         xLabel: 'Time(ms)',
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
+    await flushVueChartUpdates()
     const compactHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
     expect(compactHeight).toBe(344)
     const timeBaseline = wrapper.get('.waveform-chart__x-label').attributes('y')
     await wrapper.setProps({ data: gridSeries(64) })
+    await flushVueChartUpdates()
     expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(compactHeight)
     expect(wrapper.get('.waveform-chart__x-label').attributes('y')).toBe(timeBaseline)
     await wrapper.setProps({
       data: gridSeries(2),
       xLabel: '很长的时间坐标轴标签（毫秒，完整显示）',
     })
+    await flushVueChartUpdates()
     expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(compactHeight)
     await wrapper.setProps({ cleanView: true })
-    expect(wrapper.find('.waveform-chart__pagination').exists()).toBe(false)
+    await flushVueChartUpdates()
+    expect(
+      wrapper.findAll('.waveform-chart__pagination').some((element) => element.isVisible()),
+    ).toBe(false)
     expect(Number(wrapper.get('.waveform-chart__svg').attributes('height'))).toBe(360)
   })
 
@@ -48,30 +54,37 @@ describe('edge-compact frame and pagination bounds', () => {
           title: withTitle ? { text: 'shot: #1001', textStyle: { fontSize: 18 } } : undefined,
         },
       })
+      await flushVueChartUpdates()
       for (const borderWidth of [0, 1, 2.5, 8, -1, Number.NaN]) {
         await wrapper.setProps({ frameStyle: { borderWidth } })
+        await flushVueChartUpdates()
         const frame = wrapper.get('.waveform-chart__plot-frame')
         const track = wrapper.get('.waveform-chart__track')
         const strokeWidth = Number(frame.attributes('stroke-width'))
         const expectedWidth = Number.isFinite(borderWidth) && borderWidth >= 0 ? borderWidth : 1
         expect(strokeWidth).toBe(expectedWidth)
-        const x = Number(frame.attributes('x'))
-        const y = Number(frame.attributes('y'))
+        const edges = frame.attributes('d')?.match(/^M([^,]+),([^H]+)H([^V]+)V([^H]+)H/)
+        expect(edges).not.toBeNull()
+        const [, left, top, right, bottom] = edges!
+        const x = Number(left),
+          y = Number(top)
         // The entire painted rectangle, including half a stroke on each side, fits the plot bounds.
         expect(x - strokeWidth / 2).toBeCloseTo(0)
         expect(y - strokeWidth / 2).toBeCloseTo(0)
-        expect(x + Number(frame.attributes('width')) + strokeWidth / 2).toBeCloseTo(
+        expect(Number(right) + strokeWidth / 2).toBeCloseTo(
           Number(track.attributes('data-track-width')),
         )
-        const paintedBottom = y + Number(frame.attributes('height')) + strokeWidth / 2
+        const paintedBottom = Number(bottom) + strokeWidth / 2
         expect(paintedBottom).toBeCloseTo(Number(track.attributes('data-track-height')))
         expect(
           Number(wrapper.get('.waveform-chart__svg').attributes('height')) - paintedBottom,
         ).toBeCloseTo(44)
-        expect(wrapper.attributes('data-plot-margin-top')).toBe('0')
-        expect(getComputedStyle(wrapper.element).overflow).toBe('hidden')
+        expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-top')).toBe('0')
+        expect(getComputedStyle(wrapper.get('.waveform-chart').element).overflow).toBe('hidden')
         if (withTitle) {
-          const titleArea = Number(wrapper.attributes('data-title-area-height'))
+          const titleArea = Number(
+            wrapper.get('.waveform-chart').attributes('data-title-area-height'),
+          )
           const visualHeight = Number.parseFloat(
             (wrapper.get('.waveform-chart__title-visual').element as HTMLElement).style.height,
           )
@@ -79,11 +92,13 @@ describe('edge-compact frame and pagination bounds', () => {
         }
       }
       await wrapper.setProps({ layoutPreset: 'default', frameStyle: { borderWidth: 2.5 } })
+      await flushVueChartUpdates()
       const frame = wrapper.get('.waveform-chart__plot-frame')
       expect(frame.attributes('x')).toBeUndefined()
       expect(frame.attributes('y')).toBeUndefined()
-      expect(frame.attributes('height')).toBe(
-        wrapper.get('.waveform-chart__track').attributes('data-track-height'),
+      const track = wrapper.get('.waveform-chart__track')
+      expect(frame.attributes('d')).toBe(
+        `M0,0H${track.attributes('data-track-width')}V${track.attributes('data-track-height')}H0Z`,
       )
     },
   )
@@ -102,12 +117,12 @@ describe('edge-compact frame and pagination bounds', () => {
           frameStyle: { borderWidth: 4, borderStyle, borderColor: '#123456' },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const frame = wrapper.get('.waveform-chart__plot-frame')
       expect(frame.attributes('stroke')).toBe('#123456')
       expect(frame.attributes('stroke-width')).toBe('4')
-      expect(frame.attributes('x')).toBe('2')
-      expect(frame.attributes('y')).toBe('2')
+      expect(frame.attributes('d')).toMatch(/^M2,2H/)
       expect(frame.attributes('stroke-dasharray')).toBe(
         borderStyle === 'solid' ? undefined : borderStyle === 'dashed' ? '6 4' : '1 3',
       )
@@ -129,8 +144,9 @@ describe('edge-compact frame and pagination bounds', () => {
           xLabel: 'Time(ms)',
         },
       })
-      await flushPromises()
-      const titleArea = Number(wrapper.attributes('data-title-area-height'))
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
+      const titleArea = Number(wrapper.get('.waveform-chart').attributes('data-title-area-height'))
       const svgHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const paginationStyle = getComputedStyle(wrapper.get('.waveform-chart__pagination').element)
       const itemHeight = Number.parseFloat(

@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const points = Array.from({ length: 1001 }, (_, index) => ({
   x: (index + 0.5) / 10000,
@@ -46,7 +45,7 @@ describe('customer Doppler zoom regression', () => {
           Object.defineProperty(event, 'pointerId', { value: index + 1 })
           overlay.element.dispatchEvent(event)
         }
-        await flushPromises()
+        await flushVueChartUpdates()
       }
       const domain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
       expect(domain[1] - domain[0]).toBeLessThan(0.001)
@@ -65,9 +64,9 @@ describe('customer Doppler zoom regression', () => {
           })),
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
       wrapper.vm.setViewportDomain(domain)
-      await flushPromises()
+      await flushVueChartUpdates()
       const count = wrapper.emitted('zoom-change')?.length ?? 0
       overlay.element.dispatchEvent(
         new WheelEvent('wheel', {
@@ -79,7 +78,7 @@ describe('customer Doppler zoom regression', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.emitted('zoom-change')?.length).toBeGreaterThan(count)
       const expanded = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
       expect(expanded[1] - expanded[0]).toBeGreaterThan(domain[1] - domain[0])

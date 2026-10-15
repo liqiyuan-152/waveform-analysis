@@ -6,8 +6,8 @@ import {
   selectRenderablePoints,
 } from '../src/core'
 import { resolveVisiblePointRange } from '../src/core/rendering'
-import { prepareWaveformSeries } from '../src/components/core/useWaveformData'
-import type { PreparedWaveformSeries } from '../src/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../tests/fixtures/legacy/components/core/useWaveformData'
+import type { PreparedWaveformSeries } from '../tests/fixtures/legacy/components/core/useWaveformData'
 import type { WaveformData, WaveformPoint } from '../src/types'
 
 export const BASELINE_POINT_COUNT = 100_000

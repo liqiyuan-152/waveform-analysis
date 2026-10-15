@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import type { WaveformData, WaveformPanEndPayload } from '@/index'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames } from '@tests/support/setup'
 
 const data = (start = 10): WaveformData => ({
@@ -17,7 +16,7 @@ describe('remote horizontal panning', () => {
     Object.defineProperty(overlay.element, 'getBoundingClientRect', {
       value: () => ({ left: 0, top: 0, width, height: 290 }),
     })
-    await wrapper.trigger('pointerenter')
+    await wrapper.get('.waveform-chart').trigger('pointerenter')
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
     for (const [type, x] of [
       ['pointerdown', width],
@@ -30,7 +29,7 @@ describe('remote horizontal panning', () => {
       overlay.element.dispatchEvent(event)
     }
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('zoom-change')).toBeDefined()
     expect(wrapper.emitted('pan-end')).toBeUndefined()
     wrapper.unmount()
@@ -46,7 +45,7 @@ describe('remote horizontal panning', () => {
         xDomainStrategy: { type: 'data' },
       })
       wrapper.vm.setViewportDomain([18, 20])
-      await flushPromises()
+      await flushVueChartUpdates()
       const overlay = wrapper.get('.waveform-chart__overlay')
       const width = Number(overlay.attributes('width'))
       const height = Number(overlay.attributes('height'))
@@ -55,7 +54,7 @@ describe('remote horizontal panning', () => {
       })
       const yBefore = wrapper.findAll('.waveform-chart__axis--y').map((axis) => axis.text())
       expect(yBefore.length).toBeGreaterThan(0)
-      await wrapper.trigger('pointerenter')
+      await wrapper.get('.waveform-chart').trigger('pointerenter')
       window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
       for (const [type, x, y] of [
         ['pointerdown', width, height / 2],
@@ -67,7 +66,7 @@ describe('remote horizontal panning', () => {
         overlay.element.dispatchEvent(event)
       }
       window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
-      await flushPromises()
+      await flushVueChartUpdates()
       const payload = wrapper.emitted('pan-end')?.[0]?.[0] as WaveformPanEndPayload
       expect(payload.start).toBeCloseTo(20)
       expect(payload.end).toBeCloseTo(22)
@@ -78,20 +77,20 @@ describe('remote horizontal panning', () => {
       )
       expect(wrapper.emitted('pan-end')).toHaveLength(1)
       await wrapper.setProps({ data: data(19) })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(parseFloat(wrapper.get('.waveform-chart__axis-endpoint--start').text())).toBeCloseTo(
         20,
       )
       expect(parseFloat(wrapper.get('.waveform-chart__axis-endpoint--end').text())).toBeCloseTo(22)
       // Even a sparse response must not shrink or reset the requested time window.
       await wrapper.setProps({ data: { kind: 'points', points: [{ x: 21, y: 5 }] } })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(parseFloat(wrapper.get('.waveform-chart__axis-endpoint--start').text())).toBeCloseTo(
         20,
       )
       expect(parseFloat(wrapper.get('.waveform-chart__axis-endpoint--end').text())).toBeCloseTo(22)
       await wrapper.setProps({ data: data(19) })
-      await flushPromises()
+      await flushVueChartUpdates()
       overlay.element.dispatchEvent(
         new WheelEvent('wheel', {
           deltaY: -200,
@@ -102,7 +101,7 @@ describe('remote horizontal panning', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       const zoomed = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
       expect(zoomed[0]).toBeGreaterThan(20)
       expect(zoomed[1]).toBeLessThan(22)
@@ -125,13 +124,13 @@ describe('remote horizontal panning', () => {
       xDomainStrategy: { type: 'data' },
     })
     wrapper.vm.setViewportDomain([testCase.start, testCase.end])
-    await flushPromises()
+    await flushVueChartUpdates()
     const overlay = wrapper.get('.waveform-chart__overlay')
     const width = Number(overlay.attributes('width'))
     Object.defineProperty(overlay.element, 'getBoundingClientRect', {
       value: () => ({ left: 0, top: 0, width, height: 290 }),
     })
-    await wrapper.trigger('pointerenter')
+    await wrapper.get('.waveform-chart').trigger('pointerenter')
     window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
     for (const [type, x] of [
       ['pointerdown', width * testCase.from],
@@ -142,7 +141,7 @@ describe('remote horizontal panning', () => {
       overlay.element.dispatchEvent(event)
     }
     window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
-    await flushPromises()
+    await flushVueChartUpdates()
     const [start, end] = testCase.expected
     expect(parseFloat(wrapper.get('.waveform-chart__axis-endpoint--start').text())).toBeCloseTo(
       start,

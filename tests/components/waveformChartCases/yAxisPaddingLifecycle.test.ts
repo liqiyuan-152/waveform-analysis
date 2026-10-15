@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
-import { mountSizedChart } from '@tests/support/waveformChart'
+
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames } from '@tests/support/setup'
 import type { WaveformData } from '@/types'
 
@@ -58,7 +58,7 @@ describe('Y padding lifecycle and axis grouping', () => {
     })
     expect(minima(w)).toEqual([-200])
     await w.setProps({ hiddenSeriesIds: ['b'] })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(minima(w)).toEqual([20])
     w.unmount()
   })
@@ -79,7 +79,7 @@ describe('Y padding lifecycle and axis grouping', () => {
       expect([ranges[0]![0], ranges[0]!.at(-1)]).toEqual([14, 86])
       expect([ranges[1]![0], ranges[1]!.at(-1)]).toEqual([-210, -90])
       await w.setProps({ hiddenSeriesIds: ['a'] })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(maxima(w)).toEqual([-100])
       expect(minima(w)).toEqual([-200])
       w.unmount()
@@ -109,7 +109,7 @@ describe('Y padding lifecycle and axis grouping', () => {
     })
     drag(overlay.element, width / 2, height / 2, height / 2 + 20)
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     const range = () =>
       w.findAll('.waveform-track__axis--y .tick').map((t) => t.attributes('data-tick-value'))
     const manual = range()
@@ -121,11 +121,11 @@ describe('Y padding lifecycle and axis grouping', () => {
     await w.setProps({
       axes: { y: { nice: false, upperPaddingRatio: 0.5, lowerPaddingRatio: 0.5 } },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(range()).toEqual(manual)
     expect(minima(w)).toEqual(minimumBefore)
     w.vm.fitToData()
-    await flushPromises()
+    await flushVueChartUpdates()
     const ticks = w
       .findAll('.waveform-track__axis--y .tick')
       .map((t) => Number(t.attributes('data-tick-value')))
@@ -157,7 +157,7 @@ describe('Y padding lifecycle and axis grouping', () => {
     )
     expect(maxima(w)).toEqual([120])
     await w.setProps({ axes: { y: { nice: false, lowerPaddingEnabled: true } } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(maxima(w)).toEqual([120])
     w.unmount()
   })

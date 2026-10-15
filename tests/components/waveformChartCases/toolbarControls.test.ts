@@ -1,6 +1,5 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 import type { WaveformChartHandle, WaveformData } from '@/index'
 import { resolveToolbar } from '@/components/controls/toolbarRegistry'
 
@@ -13,7 +12,7 @@ describe('toolbar and external commands', () => {
   it('preserves silent numeric methods and default UI', async () => {
     const w = await setup()
     const api: WaveformChartHandle = w.vm
-    expect(w.find('[role="toolbar"]').exists()).toBe(false)
+    expect(w.find('[role="toolbar"]').isVisible()).toBe(false)
     const result: void = api.setViewportDomain([2, 4], 0)
     expect(result).toBeUndefined()
     expect(api.getControlState().targets[0]?.viewport.xDomain[0]).toBeCloseTo(2)
@@ -68,7 +67,7 @@ describe('toolbar and external commands', () => {
     api.fitToData()
     api.setViewportDomain([0, 10], 0)
     expect(api.getControlState().targets[0]?.viewport.xDomain).toEqual([2, 8])
-    await flushPromises()
+    await flushVueChartUpdates()
     await w.get('[data-command="zoom-in"]').trigger('click')
     expect(w.emitted('zoom-intent')?.at(-1)?.[0]).toMatchObject({
       action: 'zoom-in',
@@ -116,7 +115,7 @@ describe('toolbar and external commands', () => {
     expect(w.findAll('.waveform-toolbar__group')).toHaveLength(1)
     expect(w.get('[data-command="pan"]').attributes('disabled')).toBeDefined()
     await w.setProps({ toolbar: { items: [] } })
-    expect(w.find('[role="toolbar"]').exists()).toBe(false)
+    expect(w.find('[role="toolbar"]').isVisible()).toBe(false)
     w.unmount()
   })
 })

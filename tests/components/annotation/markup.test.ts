@@ -13,8 +13,8 @@ import {
   layoutAnnotations,
   resolveAnnotationStyle,
   wrapAnnotationText,
-} from '@/components/annotation/markup'
-import type { AnnotationTrackLayout } from '@/components/annotation/types'
+} from '../../fixtures/legacy/components/annotation/markup'
+import type { AnnotationTrackLayout } from '../../fixtures/legacy/components/annotation/types'
 
 const createTrack = (
   index: number,

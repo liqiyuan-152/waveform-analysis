@@ -7,7 +7,7 @@ import {
   measureBaseline,
   summarizeMilliseconds,
 } from './wasmSamplingBaseline'
-import { prepareWaveformSeries } from '../src/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../tests/fixtures/legacy/components/core/useWaveformData'
 import { resolveWaveformRenderingOptions, selectRenderablePoints } from '../src/core'
 
 const output = document.querySelector<HTMLPreElement>('[data-baseline-output]')

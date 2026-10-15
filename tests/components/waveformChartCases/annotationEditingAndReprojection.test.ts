@@ -1,9 +1,9 @@
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { DOMWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 function getAnnotationEditor() {
   const editor = Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]'))
@@ -38,11 +38,11 @@ describe('WaveformChart', () => {
       clientY: 100,
     })
     await wrapper.get('.waveform-annotation-context-menu button').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     const editor = getAnnotationEditor()
     await editor.get('textarea[aria-label="标注文本"]').setValue('新文字')
     await editor.get('.waveform-modal__button--primary').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const updated = wrapper.emitted('update:annotations')?.at(-1)?.[0] as
       Array<{ text: string }> | undefined
@@ -95,18 +95,18 @@ describe('WaveformChart', () => {
     expect(wrapper.emitted('update:annotations')).toBeUndefined()
     dispatchPointer('pointermove', { clientX: 130, clientY: 120, pointerId: 1 })
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('update:annotations')).toBeUndefined()
     dispatchPointer('pointermove', { clientX: 140, clientY: 130, pointerId: 1 })
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('update:annotations')).toBeUndefined()
     const boxBeforeUp = {
       x: wrapper.get('.waveform-annotation__box').attributes('x'),
       y: wrapper.get('.waveform-annotation__box').attributes('y'),
     }
     dispatchPointer('pointerup', { clientX: 140, clientY: 130, pointerId: 1 })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-annotation__box').attributes('x')).toBe(boxBeforeUp.x)
     expect(wrapper.get('.waveform-annotation__box').attributes('y')).toBe(boxBeforeUp.y)
 
@@ -136,7 +136,7 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
 
     const annotation = wrapper.get('[data-annotation-id="dragged"]')
@@ -160,25 +160,25 @@ describe('WaveformChart', () => {
     }
 
     dispatchPointer('pointerdown', { button: 0, clientX: 100, clientY: 100, pointerId: 1 })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
     dispatchPointer('pointermove', { clientX: 130, clientY: 120, pointerId: 1 })
     dispatchPointer('pointerup', { clientX: 130, clientY: 120, pointerId: 1 })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
 
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: overlayWidth / 2, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
 
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
   })
 
@@ -200,11 +200,12 @@ describe('WaveformChart', () => {
       },
     )
 
-    expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
+    expect(wrapper.get('.waveform-chart').attributes('data-interaction-mode')).toBe('annotation')
     expect(wrapper.findAll('.waveform-annotation')).toHaveLength(1)
     expect(wrapper.find('.waveform-annotation-toolbar').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__overlay').classes()).toContain('is-annotating')
     await wrapper.setProps({ annotationsVisible: false })
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-annotation').exists()).toBe(false)
   })
 
@@ -245,12 +246,12 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-annotation__arrow').attributes('x2')).not.toBe(initialX)
 
     for (const displayMode of ['separated', 'compact'] as const) {
       await wrapper.setProps({ displayMode })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.find('[data-annotation-id="note"]').exists()).toBe(true)
     }
   })

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { resolveAnimationProps } from '@/components/animation/config'
+import { resolveAnimationProps } from '../fixtures/legacy/components/animation/config'
 import type { WaveformAnimationProps } from '@/index'
 
 describe('chart animation option resolution', () => {

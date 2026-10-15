@@ -1,0 +1,22 @@
+{
+  "observedAt": "2026-10-15T01:09:15.799Z",
+  "platform": "macOS",
+  "browser": "user-installed Chrome",
+  "method": "Browser trusted swatch click followed by native app Escape keys; read-only DOM and AX observations",
+  "checks": [
+    {
+      "dialogs": 1,
+      "focus": "标注边框色",
+      "overflow": "hidden",
+      "stage": "first-escape"
+    },
+    {
+      "dialogs": 0,
+      "focus": "浮层验收，打开标注菜单",
+      "overflowX": "hidden",
+      "overflowY": "scroll",
+      "stage": "second-escape"
+    }
+  ],
+  "limitation": "Native picker content is outside the captured main browser window; verified its dismissal through first/second Escape behavior."
+}

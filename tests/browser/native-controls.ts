@@ -1,8 +1,8 @@
 import { createApp, defineComponent, h, ref } from 'vue'
-import WaveformChart from '@/components/WaveformChart.vue'
-import WaveformAnnotationEditor from '@/components/annotation/WaveformAnnotationEditor.vue'
+import WaveformChart from '../support/LegacyWaveformChart.vue'
+import WaveformAnnotationEditor from '../fixtures/legacy/components/annotation/WaveformAnnotationEditor.vue'
 import type { WaveformAnnotation } from '@/types'
-import '@/components/WaveformChart.css'
+import '../fixtures/legacy/components/WaveformChart.css'
 
 if (new URLSearchParams(location.search).has('antd')) {
   await import('ant-design-vue/dist/antd.css')

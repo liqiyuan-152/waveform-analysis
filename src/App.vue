@@ -19,7 +19,7 @@ import {
   type WaveformZeroLineOptions,
 } from './components'
 import { normalizeWaveformSeries } from './core'
-import { createSimulatedWaveformData } from './data/simulatedWaveforms'
+import { createSimulatedWaveformData } from './demo/data/simulatedWaveforms'
 import DemoChartHost from './demo/DemoChartHost.vue'
 import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'

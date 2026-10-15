@@ -1,6 +1,5 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
 const names = Array.from(
@@ -24,10 +23,15 @@ const data = {
 
 describe('channel names in dense vertical grids', () => {
   for (const layoutPreset of ['default', 'edge-compact'] as const) {
-    it.each(['independent', 'separated', 'compact'] as const)(
-      `shows every long name in a 5 by 1 grid (${layoutPreset}, %s)`,
-      async (displayMode) => {
+    const cases = (['independent', 'separated', 'compact'] as const).flatMap((displayMode) =>
+      [800, 320].map((width) => ({ displayMode, width })),
+    )
+    it.each(cases)(
+      `shows every long name in a 5 by 1 grid (${layoutPreset}, $displayMode, $width px)`,
+      async ({ displayMode, width }) => {
         const wrapper = await mountSizedChart(data, {
+          width,
+          height: width === 800 ? 360 : 240,
           layoutPreset,
           displayMode,
           grid: { rowCount: 5, columnCount: 1 },
@@ -45,11 +49,6 @@ describe('channel names in dense vertical grids', () => {
           expect(
             wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text()),
           ).toEqual(names)
-          resizeObservers.at(-1)?.resize(320, 240)
-          await flushPromises()
-          expect(
-            wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text()),
-          ).toEqual(names)
           await wrapper.setProps({ cleanView: true })
           expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
         } finally {
@@ -58,4 +57,16 @@ describe('channel names in dense vertical grids', () => {
       },
     )
   }
+  it('retains every channel name while resizing a mounted five-track chart', async () => {
+    const wrapper = await mountSizedChart(data, {
+      grid: { rowCount: 5, columnCount: 1 },
+      unitDisplayMode: 'channel-label-or-legend',
+    })
+    const labels = () =>
+      wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text())
+    expect(labels()).toEqual(names)
+    resizeObservers.at(-1)?.resize(320, 240)
+    await flushVueChartUpdates()
+    expect(labels()).toEqual(names)
+  })
 })

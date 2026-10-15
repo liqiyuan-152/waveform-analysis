@@ -2,10 +2,20 @@ import type {
   WaveformControlState,
   WaveformToolbarItem,
   WaveformToolbarOptions,
+  WaveformControlAction,
+  WaveformControlTarget,
 } from '../../types/controls'
-import type { useChartCommands } from './useChartCommands'
+import type { WaveformInteractionMode } from '../../types/chart'
 
-type Commands = Pick<ReturnType<typeof useChartCommands>, 'execute' | 'setInteractionMode'>
+export interface ToolbarCommands {
+  execute: (
+    action: WaveformControlAction,
+    target?: WaveformControlTarget,
+    domain?: [number, number],
+    source?: 'api' | 'toolbar',
+  ) => unknown
+  setInteractionMode: (mode: WaveformInteractionMode) => unknown
+}
 interface ButtonDefinition {
   id: WaveformToolbarItem
   label: string
@@ -13,7 +23,7 @@ interface ButtonDefinition {
   group: 'mode' | 'viewport' | 'export'
   active: (state: WaveformControlState) => boolean
   enabled: (state: WaveformControlState, trackId?: string) => boolean
-  run: (commands: Commands, trackId?: string) => void
+  run: (commands: ToolbarCommands, trackId?: string) => void
 }
 const paths = {
   'zoom-box': 'M3 3h6M3 3v6M21 3h-6M21 3v6M3 21h6M3 21v-6M21 21h-6M21 21v-6',
@@ -63,7 +73,7 @@ export const toolbarRegistry = Object.fromEntries(
           action && trackId
             ? !!state.targets.find((t) => t.trackId === trackId)?.available[action]
             : state.available[id],
-        run: (commands: Commands, trackId?: string) => {
+        run: (commands: ToolbarCommands, trackId?: string) => {
           if (mode) commands.setInteractionMode(mode)
           else if (action)
             commands.execute(action, trackId ? { trackId } : {}, undefined, 'toolbar')

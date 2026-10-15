@@ -25,7 +25,7 @@ export function updateGrid(
   for (const tick of ticks) {
     let line = lines.get(tick)
     if (!line) {
-      line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+      line = group.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'line')
       line.setAttribute('data-grid-direction', direction)
       lines.set(tick, line)
     }

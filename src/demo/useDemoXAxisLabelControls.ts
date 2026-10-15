@@ -50,8 +50,9 @@ export function useDemoXAxisLabelControls() {
   const xAxisLabelFormatter = computed<WaveformXAxisLabelFormatter | undefined>(() => {
     if (!xAxisLabelFormatterEnabled.value) return undefined
     if (xAxisLabelFormat.value === 'datetime') {
-      return (value) =>
-        formatDemoTimestamp(value, xAxisLabelTimeZone.value, xAxisLabelShowMilliseconds.value)
+      const timeZone = xAxisLabelTimeZone.value
+      const showMilliseconds = xAxisLabelShowMilliseconds.value
+      return (value) => formatDemoTimestamp(value, timeZone, showMilliseconds)
     }
 
     const multiplier = Number.isFinite(xAxisLabelMultiplier.value) ? xAxisLabelMultiplier.value : 1

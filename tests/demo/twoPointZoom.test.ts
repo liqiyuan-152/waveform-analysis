@@ -1,4 +1,5 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import App from '@/App.vue'
@@ -16,6 +17,7 @@ describe('demo two-point zoom limit', () => {
     'stops at two real samples and allows zoom out ($displayMode/$containerWidth)',
     async ({ displayMode, containerWidth }) => {
       const wrapper = mount(App, {
+        attachTo: document.body,
         global: {
           provide: {
             [remoteWindowLoaderKey as symbol]: async () => ({ kind: 'points', points }),

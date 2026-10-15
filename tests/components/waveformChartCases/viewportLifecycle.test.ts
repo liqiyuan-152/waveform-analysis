@@ -1,8 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
-import WaveformChartView from '@/components/WaveformChartView.vue'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart viewport lifecycle', () => {
   it('cleans an active shared gesture when its track is removed', async () => {
@@ -34,21 +32,21 @@ describe('WaveformChart viewport lifecycle', () => {
     }
 
     dispatchPointer('pointerdown', 41, height * 0.75)
-    await flushPromises()
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    await flushVueChartUpdates()
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
 
     await wrapper.setProps({ data: gridSeries(1) })
-    await flushPromises()
+    await flushVueChartUpdates()
     dispatchPointer('pointerup', 41, height * 0.75)
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(releasePointerCapture).toHaveBeenCalledWith(41)
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(false)
 
     dispatchPointer('pointerdown', 42, height / 2)
     dispatchPointer('pointermove', 42, height / 2 + 20)
-    await flushPromises()
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    await flushVueChartUpdates()
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
   })
 
   it('cleans an active gesture when its overlay leaves the DOM', async () => {
@@ -85,27 +83,23 @@ describe('WaveformChart viewport lifecycle', () => {
     Object.defineProperty(down, 'pointerId', { value: 43 })
     overlay.element.dispatchEvent(down)
     await wrapper.setProps({ hiddenSeriesIds: ['series-0'] })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.find('.waveform-chart__overlay--shared').exists()).toBe(false)
-    const view = wrapper.findComponent(WaveformChartView)
-    const finishViewportDrag = (
-      view.vm as unknown as { finishViewportDrag: (event: PointerEvent) => void }
-    ).finishViewportDrag
     const up = new MouseEvent('pointerup', {
       clientX: width / 2,
       clientY: height / 2,
       bubbles: true,
     })
     Object.defineProperty(up, 'pointerId', { value: 43 })
-    finishViewportDrag(up as unknown as PointerEvent)
-    await flushPromises()
+    window.dispatchEvent(up)
+    await flushVueChartUpdates()
 
     expect(releasePointerCapture).toHaveBeenCalledWith(43)
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(false)
 
     await wrapper.setProps({ hiddenSeriesIds: [] })
-    await flushPromises()
+    await flushVueChartUpdates()
     const nextOverlay = wrapper.get('.waveform-chart__overlay--shared')
     Object.defineProperty(nextOverlay.element, 'getBoundingClientRect', {
       value: () => ({ left: 0, top: 0, width, height }),
@@ -125,8 +119,8 @@ describe('WaveformChart viewport lifecycle', () => {
     })
     Object.defineProperty(nextMove, 'pointerId', { value: 44 })
     nextOverlay.element.dispatchEvent(nextMove)
-    await flushPromises()
+    await flushVueChartUpdates()
 
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
   })
 })

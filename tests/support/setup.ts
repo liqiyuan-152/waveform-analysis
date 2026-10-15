@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, vi } from 'vitest'
+import { enableAutoUnmount } from '@vue/test-utils'
 import { globalAnimator } from '@/animation/core/Animator'
+
+// Native adapters own instance animators; unmount Vue fixtures to release their resources too.
+enableAutoUnmount(afterEach)
 
 interface ResizeObserverEntryMock {
   target: Element
@@ -14,6 +18,7 @@ let animationFrameId = 0
 
 export class ResizeObserverMock {
   private target?: Element
+  private measured?: { width: number; height: number }
 
   constructor(private readonly callback: ResizeCallback) {
     resizeObservers.push(this)
@@ -28,6 +33,36 @@ export class ResizeObserverMock {
 
   resize(width: number, height = 400) {
     if (!this.target) return
+    // The native observer reads its host instead of trusting an entry for another observed node.
+    // Model the notified dimensions in jsdom, which has no layout engine.
+    if (
+      !this.measured &&
+      this.target.getBoundingClientRect === Element.prototype.getBoundingClientRect
+    ) {
+      const measured = { width, height }
+      this.measured = measured
+      Object.defineProperty(this.target, 'getBoundingClientRect', {
+        configurable: true,
+        value: () => ({
+          ...measured,
+          left: 0,
+          top: 0,
+          right: measured.width,
+          bottom: measured.height,
+          x: 0,
+          y: 0,
+          toJSON() {},
+        }),
+      })
+    }
+    if (this.measured) Object.assign(this.measured, { width, height })
+    if (this.target.getClientRects === Element.prototype.getClientRects) {
+      const target = this.target
+      Object.defineProperty(target, 'getClientRects', {
+        configurable: true,
+        value: () => [target.getBoundingClientRect()],
+      })
+    }
     this.callback([
       {
         target: this.target,

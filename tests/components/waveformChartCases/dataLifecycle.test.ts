@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { type WaveformData } from '@/components/waveform'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('keeps other independent tracks unchanged when one data window is replaced', async () => {
@@ -44,7 +43,7 @@ describe('WaveformChart', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const nextEndpoints = wrapper
       .findAll('.waveform-chart__axis-endpoint--end')
@@ -65,11 +64,11 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
 
     firstData.points.push({ x: 2, y: 2 })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('1000')
 
     await wrapper.setProps({ data: { ...firstData, points: [...firstData.points] } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
@@ -98,7 +97,7 @@ describe('WaveformChart', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.find('[data-annotation-id="window-note"]').exists()).toBe(false)
     expect(annotations).toEqual([
@@ -114,7 +113,7 @@ describe('WaveformChart', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('[data-annotation-id="window-note"]').exists()).toBe(true)
   })
 
@@ -151,7 +150,9 @@ describe('WaveformChart', () => {
     expect(paths).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__svg')).toHaveLength(1)
     expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(2)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(2)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__overlay--independent')).toHaveLength(2)
     expect(paths[0].attributes('stroke')).toBe('#0960bd')
     expect(paths[1].attributes('stroke')).toBe('#ff7f0e')

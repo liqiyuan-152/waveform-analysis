@@ -1,0 +1,3314 @@
+{
+  "startedAt": "2026-10-14T20:02:02.583Z",
+  "node": "v22.23.2",
+  "scope": "真实鼠标 hover、端点、隐藏、显示开关、跨实例离开、长名称定位和 Vue/native 对照；触摸由单元测试覆盖",
+  "browsers": [
+    {
+      "name": "chromium",
+      "probes": [
+        {
+          "width": 1200,
+          "mode": "independent",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 134.390625,
+                    "right": 485.203125,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 350.8125,
+                    "height": 34.84375,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 134.390625,
+                    "right": 485.21875,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 350.828125,
+                    "height": 34.84375,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.90625,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 327.90625,
+                    "height": 34.84375,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.921875,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 327.921875,
+                    "height": 34.84375,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 760.453125,
+                    "right": 1107.609375,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 347.15625,
+                    "height": 34.84375,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 760.4375,
+                    "right": 1107.609375,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 347.171875,
+                    "height": 34.84375,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)"
+              ],
+              [
+                "(x:1,000 y:3)"
+              ]
+            ],
+            "clipped": {
+              "x": -4432,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 1200,
+          "mode": "separated",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 134.390625,
+                    "right": 485.203125,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 350.8125,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 134.390625,
+                    "right": 485.21875,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 350.828125,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.90625,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.90625,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.921875,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.921875,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 760.453125,
+                    "right": 1107.609375,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 347.15625,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 760.4375,
+                    "right": 1107.609375,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 347.171875,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -4432,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 1200,
+          "mode": "compact",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 147.6875,
+                    "right": 498.5,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 350.8125,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 147.6875,
+                    "right": 498.515625,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 350.828125,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 640,
+                    "right": 967.90625,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.90625,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 640,
+                    "right": 967.921875,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.921875,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 761.15625,
+                    "right": 1108.3125,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 347.15625,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 761.140625,
+                    "right": 1108.3125,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 347.171875,
+                    "height": 51.6875,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -4376,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "independent",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44.5,
+                    "bottom": 106.1875,
+                    "width": 342,
+                    "height": 61.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44.5,
+                    "bottom": 106.1875,
+                    "width": 342,
+                    "height": 61.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 327.90625,
+                    "height": 34.84375,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.921875,
+                    "top": 44.5,
+                    "bottom": 79.34375,
+                    "width": 327.921875,
+                    "height": 34.84375,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44.5,
+                    "bottom": 106.1875,
+                    "width": 342,
+                    "height": 61.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44.5,
+                    "bottom": 106.1875,
+                    "width": 342,
+                    "height": 61.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)"
+              ],
+              [
+                "(x:1,000 y:3)"
+              ]
+            ],
+            "clipped": {
+              "x": -1072,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "separated",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.90625,
+                    "height": 51.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.921875,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.921875,
+                    "height": 51.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -1072,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "compact",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.90625,
+                    "height": 51.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.921875,
+                    "top": 125,
+                    "bottom": 176.6875,
+                    "width": 327.921875,
+                    "height": 51.6875,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.53125,
+                    "width": 342,
+                    "height": 78.53125,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -1016,
+              "clip": true
+            }
+          }
+        }
+      ],
+      "errors": [],
+      "version": "141.0.7390.37",
+      "status": "passed"
+    },
+    {
+      "name": "firefox",
+      "probes": [
+        {
+          "width": 1200,
+          "mode": "independent",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8500061035156,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 350.8500061035156,
+                    "height": 34.850006103515625,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 133,
+                    "right": 483.8500061035156,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 350.8500061035156,
+                    "height": 34.850006103515625,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.933349609375,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 327.933349609375,
+                    "height": 34.850006103515625,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.933349609375,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 327.933349609375,
+                    "height": 34.850006103515625,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 759.816650390625,
+                    "right": 1107,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 347.183349609375,
+                    "height": 34.850006103515625,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 760.816650390625,
+                    "right": 1108,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 347.183349609375,
+                    "height": 34.850006103515625,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)"
+              ],
+              [
+                "(x:1,000 y:3)"
+              ]
+            ],
+            "clipped": {
+              "x": -4432,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 1200,
+          "mode": "separated",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8500061035156,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 350.8500061035156,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8500061035156,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 350.8500061035156,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 759.816650390625,
+                    "right": 1107,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 347.183349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 759.816650390625,
+                    "right": 1107,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 347.183349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -4432,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 1200,
+          "mode": "compact",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 147,
+                    "right": 497.8500061035156,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 350.8500061035156,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 147,
+                    "right": 497.8500061035156,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 350.8500061035156,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 640,
+                    "right": 967.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 640,
+                    "right": 967.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 760.816650390625,
+                    "right": 1108,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 347.183349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 760.816650390625,
+                    "right": 1108,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 347.183349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -4376,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "independent",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 105.69999694824219,
+                    "width": 342,
+                    "height": 61.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 105.69999694824219,
+                    "width": 342,
+                    "height": 61.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.933349609375,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 327.933349609375,
+                    "height": 34.850006103515625,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.933349609375,
+                    "top": 44,
+                    "bottom": 78.85000610351562,
+                    "width": 327.933349609375,
+                    "height": 34.850006103515625,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 105.69999694824219,
+                    "width": 342,
+                    "height": 61.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 105.69999694824219,
+                    "width": 342,
+                    "height": 61.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)"
+              ],
+              [
+                "(x:1,000 y:3)"
+              ]
+            ],
+            "clipped": {
+              "x": -1072,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "separated",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -1072,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "compact",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.933349609375,
+                    "top": 125,
+                    "bottom": 176.6999969482422,
+                    "width": 327.933349609375,
+                    "height": 51.69999694824219,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 203.5500030517578,
+                    "width": 342,
+                    "height": 78.55000305175781,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -1016,
+              "clip": true
+            }
+          }
+        }
+      ],
+      "errors": [],
+      "version": "142.0.1",
+      "status": "passed"
+    },
+    {
+      "name": "webkit",
+      "probes": [
+        {
+          "width": 1200,
+          "mode": "independent",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8125,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 350.8125,
+                    "height": 34,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8125,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 350.8125,
+                    "height": 34,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.90625,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 327.90625,
+                    "height": 34,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.90625,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 327.90625,
+                    "height": 34,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 759.84375,
+                    "right": 1107,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 347.15625,
+                    "height": 34,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 759.84375,
+                    "right": 1107,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 347.15625,
+                    "height": 34,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)"
+              ],
+              [
+                "(x:1,000 y:3)"
+              ]
+            ],
+            "clipped": {
+              "x": -4432,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 1200,
+          "mode": "separated",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8125,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 350.8125,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 134,
+                    "right": 484.8125,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 350.8125,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 633,
+                    "right": 960.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 759.84375,
+                    "right": 1107,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 347.15625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 759.84375,
+                    "right": 1107,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 347.15625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -4432,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 1200,
+          "mode": "compact",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 147,
+                    "right": 497.8125,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 350.8125,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 147,
+                    "right": 497.8125,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 350.8125,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 640,
+                    "right": 967.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 640,
+                    "right": 967.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 760.84375,
+                    "right": 1108,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 347.15625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 760.84375,
+                    "right": 1108,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 347.15625,
+                    "height": 50,
+                    "containerWidth": 1200,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -4376,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "independent",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 104,
+                    "width": 342,
+                    "height": 60,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 104,
+                    "width": 342,
+                    "height": 60,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 327.90625,
+                    "height": 34,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:0 y:2)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 44,
+                    "bottom": 78,
+                    "width": 327.90625,
+                    "height": 34,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 104,
+                    "width": 342,
+                    "height": 60,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)"
+                  ],
+                  "crosshairs": 1,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 44,
+                    "bottom": 104,
+                    "width": 342,
+                    "height": 60,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)"
+              ],
+              [
+                "(x:1,000 y:3)"
+              ]
+            ],
+            "clipped": {
+              "x": -1072,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "separated",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -1072,
+              "clip": true
+            }
+          }
+        },
+        {
+          "width": 360,
+          "mode": "compact",
+          "groups": [
+            {
+              "ratio": 0.05,
+              "pair": [
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": -1,
+                    "y": 1
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:-1,000 y:1)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.5,
+              "pair": [
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 0,
+                    "y": 2
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:0 y:2)",
+                    "(x:0 y:10)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 336.90625,
+                    "top": 125,
+                    "bottom": 175,
+                    "width": 327.90625,
+                    "height": 50,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            },
+            {
+              "ratio": 0.95,
+              "pair": [
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                },
+                {
+                  "point": {
+                    "x": 1,
+                    "y": 3
+                  },
+                  "labels": [
+                    "炮 7： 完整通道-很长的显示名称-ENG8KJXAc(A)",
+                    "未配置炮号： 短通道"
+                  ],
+                  "values": [
+                    "(x:1,000 y:3)",
+                    "(x:1,000 y:20)"
+                  ],
+                  "crosshairs": 2,
+                  "placement": {
+                    "left": 9,
+                    "right": 351,
+                    "top": 125,
+                    "bottom": 201,
+                    "width": 342,
+                    "height": 76,
+                    "containerWidth": 360,
+                    "containerHeight": 320
+                  }
+                }
+              ]
+            }
+          ],
+          "remote": {
+            "values": [
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ],
+              [
+                "(x:1,000 y:3)",
+                "(x:1,000 y:20)"
+              ]
+            ],
+            "clipped": {
+              "x": -1016,
+              "clip": true
+            }
+          }
+        }
+      ],
+      "errors": [],
+      "version": "26.0",
+      "status": "passed"
+    }
+  ],
+  "finishedAt": "2026-10-14T20:02:33.947Z"
+}

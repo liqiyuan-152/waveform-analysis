@@ -1,10 +1,13 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames, pendingAnimationFrameCount } from '@tests/support/setup'
 import WaveformChart from '@/components/WaveformChart.vue'
+import { SvgChartRenderer } from '@/rendering/SvgChartRenderer'
+import { TrackView } from '@/view/TrackView'
+import { SeriesView } from '@/view/SeriesView'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('suppresses native context menus across the waveform component', async () => {
@@ -72,6 +75,7 @@ describe('WaveformChart', () => {
         height: -20,
       },
     })
+    await flushVueChartUpdates()
 
     expect(minimumWrapper.attributes('style')).toContain('width: 0px')
     expect(minimumWrapper.attributes('style')).toContain('height: 180px')
@@ -84,6 +88,7 @@ describe('WaveformChart', () => {
         height: Number.NaN,
       },
     })
+    await flushVueChartUpdates()
 
     expect(adaptiveWrapper.attributes('style')).toContain('width: 100%')
     expect(adaptiveWrapper.attributes('style')).toContain('height: 100%')
@@ -100,7 +105,8 @@ describe('WaveformChart', () => {
     )
     const overlayWidth = Number(wrapper.get('.waveform-chart__overlay').attributes('width'))
     await vi.waitFor(
-      () => {
+      async () => {
+        await flushVueChartUpdates()
         expect(wrapper.emitted('sampling-complete')?.length).toBeGreaterThan(0)
         const path = wrapper.get('.waveform-chart__line').attributes('d') ?? ''
         const renderedPointCount = path.match(/[ML]/g)?.length ?? 0
@@ -149,7 +155,7 @@ describe('WaveformChart', () => {
     const wrapper = await mountSizedChart({ kind: 'points', points: [{ x: 3, y: 8 }] })
 
     expect(wrapper.get('.waveform-chart__line').attributes('d')).toContain('M')
-    expect(wrapper.find('.waveform-chart__empty').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__empty').isVisible()).toBe(false)
   })
 
   it('shows an empty state for empty and invalid data', async () => {
@@ -180,11 +186,11 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 5 }])
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
     expect(wrapper.get('.waveform-tooltip__series-label').text()).toContain('未配置炮号：')
-    const crosshairLines = wrapper.findAll('.waveform-chart__crosshair line')
+    const crosshairLines = wrapper.findAll('.waveform-chart__crosshair')
     expect(crosshairLines).toHaveLength(1)
     expect(crosshairLines[0].attributes('x1')).toBe(crosshairLines[0].attributes('x2'))
     expect(crosshairLines[0].attributes('y1')).toBe('0')
@@ -215,22 +221,22 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
 
-    await wrapper.trigger('pointerleave')
+    await wrapper.get('.waveform-chart').trigger('pointerleave')
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__crosshair').exists()).toBe(false)
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
 
-    await wrapper.trigger('pointerenter')
+    await wrapper.get('.waveform-chart').trigger('pointerenter')
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
 
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: 0, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
   })
 
@@ -255,13 +261,13 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
     expect(wrapper.find('.waveform-chart__crosshair').exists()).toBe(false)
 
     await wrapper.setProps({ showTooltip: true })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
     expect(wrapper.find('.waveform-chart__crosshair').exists()).toBe(true)
   })
@@ -294,7 +300,7 @@ describe('WaveformChart', () => {
     expect(pendingAnimationFrameCount()).toBe(1)
     expect(wrapper.emitted('point-hover')?.length ?? 0).toBe(emittedBeforeMove)
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('point-hover')).toHaveLength(emittedBeforeMove + 1)
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 5 }])
 
@@ -306,7 +312,7 @@ describe('WaveformChart', () => {
     const emittedAfterLeave = wrapper.emitted('point-hover')?.length ?? 0
     expect(pendingAnimationFrameCount()).toBe(0)
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('point-hover')).toHaveLength(emittedAfterLeave)
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([null])
 
@@ -335,21 +341,19 @@ describe('WaveformChart', () => {
       value: () => ({ left: 0, top: 0, width: overlayWidth, height: 290 }),
     })
 
-    const track = wrapper.getComponent({ name: 'WaveformTrack' })
-    const seriesLayer = wrapper.getComponent({ name: 'WaveformSeriesLayer' })
-    const chartUpdate = vi.spyOn(wrapper.vm.$, 'update')
-    const trackUpdate = vi.spyOn(track.vm.$, 'update')
-    const seriesLayerUpdate = vi.spyOn(seriesLayer.vm.$, 'update')
+    const chartUpdate = vi.spyOn(SvgChartRenderer.prototype, 'render')
+    const trackUpdate = vi.spyOn(TrackView.prototype, 'render')
+    const seriesLayerUpdate = vi.spyOn(SeriesView.prototype, 'render')
     const pathBeforeHover = wrapper.get('.waveform-chart__line').element
 
     overlay.element.dispatchEvent(
       new MouseEvent('pointermove', { clientX: overlayWidth, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-tooltip__series-label').text()).toContain('未配置炮号：')
-    expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(1)
+    expect(wrapper.findAll('.waveform-chart__crosshair')).toHaveLength(1)
     expect(wrapper.get('.waveform-chart__line').element).toBe(pathBeforeHover)
     expect(chartUpdate).not.toHaveBeenCalled()
     expect(trackUpdate).not.toHaveBeenCalled()

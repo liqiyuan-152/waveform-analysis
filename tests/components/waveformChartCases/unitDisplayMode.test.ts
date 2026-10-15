@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import type { WaveformData, WaveformSeries, WaveformUnitDisplayMode } from '@/index'
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const mode: WaveformUnitDisplayMode = 'legend-single-series'
 const series = (id: string, trackId = id, unit?: string): WaveformSeries => ({
@@ -76,13 +75,13 @@ describe('WaveformChart unit placement', () => {
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('(V) 3')
     await wrapper.setProps({ unitDisplayMode: mode })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('3')
     expect(wrapper.get('.waveform-chart__axis--y').text()).not.toContain('(V)')
     await wrapper.setProps({ unitDisplayMode: 'axis' })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__legend').exists()).toBe(false)
     expect(wrapper.get('.waveform-chart__axis--y').text()).toContain('(V) 3')
   })
@@ -124,7 +123,7 @@ describe('WaveformChart unit placement', () => {
         new MouseEvent('pointermove', { clientX: width / 2, clientY: 100, bubbles: true }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.get('.waveform-chart__tooltip').text()).toContain('CH1(1001)(V)')
       expect(wrapper.get('.waveform-chart__tooltip').text()).toContain('CH2(1001)(A)')
       expect(input).toEqual(original)
@@ -140,7 +139,7 @@ describe('WaveformChart unit placement', () => {
     expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('CH1(1001)')
     expect(wrapper.get('.waveform-chart__axis--y').text()).not.toContain('(V)')
     await wrapper.get('[aria-label="下一页"]').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
     expect(wrapper.findAll('.waveform-legend__label').map((label) => label.text())).toEqual([
       'CH2(1001)',

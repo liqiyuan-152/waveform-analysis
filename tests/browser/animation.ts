@@ -1,6 +1,7 @@
 import { createApp, defineComponent, h, nextTick, shallowRef } from 'vue'
-import { WaveformChart, globalAnimator, type WaveformData, type WaveformChartHandle } from '@/index'
-import '@/components/WaveformChart.css'
+import { WaveformChart } from '@/vue'
+import { globalAnimator, type WaveformData, type WaveformChartHandle } from '@/index'
+import '../fixtures/legacy/components/WaveformChart.css'
 
 interface Scenario {
   width: number

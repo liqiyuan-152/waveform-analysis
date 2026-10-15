@@ -54,6 +54,7 @@ writeFileSync(
 runPnpm(['install', '--ignore-scripts', '--strict-peer-dependencies=false'], temporaryRoot)
 
 for (const relativePath of [
+  'THIRD_PARTY_NOTICES.md',
   'dist/index.js',
   'dist/index.cjs',
   'dist/style.css',

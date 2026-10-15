@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart track order', () => {
   const points = (offset: number) => ({
@@ -97,11 +96,11 @@ describe('WaveformChart track order', () => {
       new MouseEvent('pointermove', { clientX: 356, clientY: 150, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(3)
     expect(wrapper.get('.waveform-chart__tooltip').text()).not.toContain('frame-2')
-    expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__crosshair')).toHaveLength(2)
   })
 
   it('keeps incremental watermarks stable when empty ordered tracks are hidden', async () => {

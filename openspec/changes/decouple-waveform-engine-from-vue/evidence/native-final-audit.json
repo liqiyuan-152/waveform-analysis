@@ -1,0 +1,58 @@
+{
+  "verifiedAt": "2026-10-15T06:39:07.598Z",
+  "performance": {
+    "scenarios": 18,
+    "capped": 6,
+    "runsPerEngine": 10,
+    "viewportOperations": 100,
+    "status": "passed"
+  },
+  "coverage": {
+    "files": 204,
+    "tests": 1815
+  },
+  "resourceBrowsers": [
+    {
+      "name": "chromium",
+      "cycles": 30,
+      "status": "passed"
+    },
+    {
+      "name": "firefox",
+      "cycles": 30,
+      "status": "passed"
+    },
+    {
+      "name": "webkit",
+      "cycles": 30,
+      "status": "passed"
+    }
+  ],
+  "originalPublicSymbols": 134,
+  "entrySha256": {
+    "src/index.ts": "8ceb842de4be4bdf352a3f76dc9e7ffe1ac734b9954510f27f324cdfc0a15ee2",
+    "src/native.ts": "8df7792080b3604900937ade76be6ca92e41f0698ad68ff97c647e6255d9aa25",
+    "src/vue.ts": "84a6d2c0c6455dc732f8357cb6e552f8ecee96ec185964b0133aba3efb59089e"
+  },
+  "packageVersion": "0.1.77",
+  "proofs": [
+    "native-final-package.txt",
+    "native-final-native-consumer.txt",
+    "native-final-vue-consumer.txt",
+    "native-final-vue-minimum-consumer.txt",
+    "native-final-vue-browser.txt",
+    "native-final-examples-browser.txt",
+    "native-final-entry-tests.txt",
+    "native-final-pack-dry-run.txt",
+    "native-final-frozen-install.txt",
+    "native-final-length.txt",
+    "native-final-lint.txt",
+    "native-final-format.txt",
+    "native-final-boundary.txt",
+    "native-final-symbol-inventory.txt",
+    "native-final-licenses.txt",
+    "native-final-openspec.txt"
+  ],
+  "scope": "Full core performance/coverage before public barrel switch; final barrels verified through targeted tests, full build, strict package consumers, runtime identity and browsers.",
+  "generatedWasm": "Restored only the two build-generated tracked files after all builds and benchmarks; tested dist remains built from current Rust source."
+}

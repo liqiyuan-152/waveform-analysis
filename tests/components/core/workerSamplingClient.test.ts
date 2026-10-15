@@ -30,6 +30,69 @@ const register = {
 } as const
 
 describe('sampling Worker client lifecycle', () => {
+  it('rejects obsolete work and ignores late replies while reusing the Worker', async () => {
+    vi.stubGlobal('Worker', ControlledWorker)
+    const client = createWorkerSamplingClient()
+    const worker = ControlledWorker.instances[0]!
+    const pending = client.send(register)
+    const rejected = expect(pending).rejects.toThrow('invalidated')
+    client.reset?.()
+    await rejected
+    expect(worker.postMessage).toHaveBeenLastCalledWith({ type: 'dispose-all', requestId: 0 })
+    expect(worker.terminate).not.toHaveBeenCalled()
+    const fresh = client.send({ ...register, requestId: 2 })
+    worker.onmessage?.({
+      data: { type: 'dataset-response', requestId: 1, datasetId: 'd', revision: 1, status: 'ok' },
+    })
+    worker.onmessage?.({
+      data: { type: 'dataset-response', requestId: 2, datasetId: 'd', revision: 1, status: 'ok' },
+    })
+    await expect(fresh).resolves.toMatchObject({ requestId: 2 })
+    expect(ControlledWorker.instances).toHaveLength(1)
+    client.dispose()
+    client.reset?.()
+    expect(worker.terminate).toHaveBeenCalledOnce()
+  })
+
+  it('falls back with an empty dataset store when a Worker reset cannot be posted', async () => {
+    vi.stubGlobal('Worker', ControlledWorker)
+    const client = createWorkerSamplingClient()
+    const worker = ControlledWorker.instances[0]!
+    const registered = client.send(register)
+    worker.onmessage?.({
+      data: { type: 'dataset-response', requestId: 1, datasetId: 'd', revision: 1, status: 'ok' },
+    })
+    await registered
+    worker.postMessage.mockImplementation(() => {
+      throw new Error('reset transport failure')
+    })
+    client.reset?.()
+    expect(worker.terminate).toHaveBeenCalledOnce()
+    await expect(client.send({ ...register, requestId: 2 })).resolves.toMatchObject({
+      status: 'ok',
+      revision: 1,
+    })
+    client.dispose()
+  })
+
+  it('invalidates queued fallback registrations before accepting replacement data', async () => {
+    vi.stubGlobal('Worker', undefined)
+    const client = createWorkerSamplingClient()
+    const pending = client.send(register)
+    const rejected = expect(pending).rejects.toThrow('invalidated')
+    client.reset?.()
+    await rejected
+    await expect(client.send({ ...register, requestId: 2 })).resolves.toMatchObject({
+      status: 'ok',
+      revision: 1,
+    })
+    client.reset?.()
+    await expect(client.send({ ...register, requestId: 3 })).resolves.toMatchObject({
+      status: 'ok',
+      revision: 1,
+    })
+    client.dispose()
+  })
   it('rejects pending registration on disposal and cannot accept more work', async () => {
     vi.stubGlobal('Worker', ControlledWorker)
     const client = createWorkerSamplingClient()

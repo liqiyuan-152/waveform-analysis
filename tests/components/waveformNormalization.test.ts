@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../fixtures/legacy/components/core/useWaveformData'
 import { normalizeWaveformData, normalizeWaveformSeries } from '@/components/waveform'
 describe('normalizeWaveformData', () => {
   it('converts samples into time-based points', () => {

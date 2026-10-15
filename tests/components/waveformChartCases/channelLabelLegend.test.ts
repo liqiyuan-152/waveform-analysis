@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import type { WaveformData, WaveformSeries } from '@/index'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
 const series = (id: string, trackId = id, unit?: string): WaveformSeries => ({
@@ -34,7 +33,7 @@ describe('page channel labels and legend units', () => {
         options,
       )
       resizeObservers.at(-1)?.resize(width, 360)
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
       expect(wrapper.get('[data-legend-track-id="one"] .waveform-legend__label').text()).toBe(
         'SX2_7_01 (V)',
@@ -95,7 +94,7 @@ describe('page channel labels and legend units', () => {
         'bottom-left',
       )
       await mergedLegend.findAll('.waveform-chart__legend-item')[1].trigger('click')
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.find('[data-annotation-id="note"]').exists()).toBe(false)
       expect(
         wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
@@ -140,7 +139,7 @@ describe('page channel labels and legend units', () => {
     expect(wrapper.get('.waveform-chart__y-axis-label').text()).toBe('SX2_7_01(V)')
     expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(0)
     await wrapper.get('[aria-label="下一页"]').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
     expect(wrapper.findAll('.waveform-chart__legend-item')).toHaveLength(3)
     await wrapper.get('[aria-label="上一页"]').trigger('click')

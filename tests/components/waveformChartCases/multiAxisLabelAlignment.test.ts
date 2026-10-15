@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 
 describe('WaveformChart multi-axis labels', () => {
@@ -43,7 +42,7 @@ describe('WaveformChart multi-axis labels', () => {
         }
         assertAlignment()
         resizeObservers.at(-1)?.resize(520, 480)
-        await flushPromises()
+        await flushVueChartUpdates()
         assertAlignment()
       } finally {
         wrapper.unmount()

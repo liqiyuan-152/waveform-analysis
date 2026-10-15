@@ -1,0 +1,6 @@
+export { default as WaveformAnnotationLayer } from './WaveformAnnotationLayer.vue'
+export { default as WaveformAnnotationContextMenu } from './WaveformAnnotationContextMenu.vue'
+export * from './markup'
+export * from '@/components/annotation/serialization'
+export * from './types'
+export * from './useWaveformAnnotationInteraction'

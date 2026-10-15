@@ -1,0 +1,1989 @@
+{
+  "startedAt": "2026-10-15T06:25:05.790Z",
+  "node": "v22.23.2",
+  "mode": "development; React Strict Mode effect replay enabled",
+  "scope": "三种 DOM ref 消费者、受控状态、缩放、标注、导出、多实例和生命周期",
+  "results": [
+    {
+      "browser": "chromium",
+      "version": "141.0.7390.37",
+      "framework": "vanilla",
+      "errors": [],
+      "initial": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 4,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 5,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 112056
+          },
+          {
+            "format": "PNG",
+            "bytes": 188164
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 1,
+        "disposals": 1,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 3,
+          "disposals": 3,
+          "frames": 49,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "chromium",
+      "version": "141.0.7390.37",
+      "framework": "react",
+      "errors": [],
+      "initial": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 2,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 3,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 112056
+          },
+          {
+            "format": "PNG",
+            "bytes": 188164
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 2,
+        "disposals": 2,
+        "frames": 34,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 4,
+        "disposals": 3,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 6,
+          "disposals": 6,
+          "frames": 45,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "chromium",
+      "version": "141.0.7390.37",
+      "framework": "vue",
+      "errors": [],
+      "initial": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 4,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 5,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 112056
+          },
+          {
+            "format": "PNG",
+            "bytes": 188164
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 1,
+        "disposals": 1,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 37,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 3,
+          "disposals": 3,
+          "frames": 47,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "firefox",
+      "version": "142.0.1",
+      "framework": "vanilla",
+      "errors": [],
+      "initial": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 5,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 7,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 113718
+          },
+          {
+            "format": "PNG",
+            "bytes": 246946
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 1,
+        "disposals": 1,
+        "frames": 38,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 41,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 3,
+          "disposals": 3,
+          "frames": 51,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "firefox",
+      "version": "142.0.1",
+      "framework": "react",
+      "errors": [],
+      "initial": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 2,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 4,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 113718
+          },
+          {
+            "format": "PNG",
+            "bytes": 246946
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 2,
+        "disposals": 2,
+        "frames": 35,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 4,
+        "disposals": 3,
+        "frames": 37,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 6,
+          "disposals": 6,
+          "frames": 46,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "firefox",
+      "version": "142.0.1",
+      "framework": "vue",
+      "errors": [],
+      "initial": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 5,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 7,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 113718
+          },
+          {
+            "format": "PNG",
+            "bytes": 246946
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 1,
+        "disposals": 1,
+        "frames": 38,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 40,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 3,
+          "disposals": 3,
+          "frames": 49,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "webkit",
+      "version": "26.0",
+      "framework": "vanilla",
+      "errors": [],
+      "initial": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 2,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 5,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 121729
+          },
+          {
+            "format": "PNG",
+            "bytes": 180995
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 1,
+        "disposals": 1,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 3,
+          "disposals": 3,
+          "frames": 49,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "webkit",
+      "version": "26.0",
+      "framework": "react",
+      "errors": [],
+      "initial": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 2,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 4,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 121729
+          },
+          {
+            "format": "PNG",
+            "bytes": 180995
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 2,
+        "disposals": 2,
+        "frames": 35,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 4,
+        "disposals": 3,
+        "frames": 37,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 6,
+          "disposals": 6,
+          "frames": 46,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    },
+    {
+      "browser": "webkit",
+      "version": "26.0",
+      "framework": "vue",
+      "errors": [],
+      "initial": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 3,
+        "callbackVersion": 0,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    0,
+                    1
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          0,
+          1
+        ]
+      },
+      "updated": {
+        "creates": 1,
+        "disposals": 0,
+        "frames": 5,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "features": {
+        "zoom": true,
+        "controlledMode": true,
+        "controlledVisibility": true,
+        "annotations": true,
+        "exports": [
+          {
+            "format": "SVG",
+            "bytes": 121729
+          },
+          {
+            "format": "PNG",
+            "bytes": 180995
+          }
+        ]
+      },
+      "unmounted": {
+        "creates": 1,
+        "disposals": 1,
+        "frames": 36,
+        "callbackVersion": 1,
+        "registered": 0,
+        "roots": 0,
+        "charts": []
+      },
+      "remounted": {
+        "creates": 2,
+        "disposals": 1,
+        "frames": 38,
+        "callbackVersion": 1,
+        "registered": 1,
+        "roots": 1,
+        "charts": [
+          {
+            "mode": "zoom",
+            "independent": true,
+            "targets": [
+              {
+                "trackId": "shared",
+                "label": "通道 1",
+                "viewport": {
+                  "xDomain": [
+                    1,
+                    2
+                  ],
+                  "yDomains": {
+                    "a": [
+                      -1,
+                      1
+                    ],
+                    "b": [
+                      -1,
+                      1
+                    ]
+                  }
+                },
+                "available": {
+                  "zoom-in": true,
+                  "zoom-out": false,
+                  "reset": true,
+                  "fit": false,
+                  "set-domain": true
+                }
+              }
+            ],
+            "available": {
+              "zoom-box": true,
+              "pan": true,
+              "annotate": true,
+              "export": true,
+              "zoom-in": true,
+              "zoom-out": false,
+              "reset": true,
+              "fit": false
+            }
+          }
+        ],
+        "domain": [
+          1,
+          2
+        ]
+      },
+      "instances": {
+        "simultaneous": 2,
+        "isolated": true,
+        "disposedIndependently": true,
+        "pendingExportCancelled": true,
+        "lateDownloads": 0,
+        "empty": {
+          "creates": 3,
+          "disposals": 3,
+          "frames": 47,
+          "callbackVersion": 1,
+          "registered": 0,
+          "roots": 0,
+          "charts": []
+        },
+        "remounted": true
+      },
+      "status": "passed"
+    }
+  ],
+  "finishedAt": "2026-10-15T06:25:27.995Z"
+}

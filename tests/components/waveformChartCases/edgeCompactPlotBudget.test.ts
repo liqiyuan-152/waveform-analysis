@@ -1,8 +1,8 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
-import { gridSeries } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries } from '@tests/support/waveformChart'
 
 const props = {
   width: 800,
@@ -25,7 +25,8 @@ describe('edge-compact actual plot bounds', () => {
           grid: { rowCount: 2, columnCount: 2 },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const tracks = wrapper.findAll('.waveform-chart__track')
       const svgHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const plotBottom = (index: number) =>
@@ -40,6 +41,7 @@ describe('edge-compact actual plot bounds', () => {
         displayMode === 'independent' ? 44 : displayMode === 'separated' ? 16 : 0,
       )
       await wrapper.setProps({ plotMargin: { top: 0, bottom: 70 } })
+      await flushVueChartUpdates()
       expect(svgHeight - plotBottom(3)).toBeCloseTo(70)
     },
   )
@@ -53,11 +55,16 @@ describe('edge-compact actual plot bounds', () => {
         grid: { rowCount: 3, trackOrder: ['channel-0', 'empty-1', 'empty-2'] },
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
+    await flushVueChartUpdates()
     const tracks = wrapper.findAll('.waveform-chart__track')
     expect(tracks).toHaveLength(3)
-    expect(tracks[0].find('.waveform-chart__axis--x').exists()).toBe(true)
-    expect(tracks[2].find('.waveform-chart__axis--x').exists()).toBe(false)
+    expect(
+      tracks[0].findAll('.waveform-chart__axis--x').some((element) => element.isVisible()),
+    ).toBe(true)
+    expect(
+      tracks[2].findAll('.waveform-chart__axis--x').some((element) => element.isVisible()),
+    ).toBe(false)
     const bottom =
       Number(tracks[2].attributes('data-track-top')) +
       Number(tracks[2].attributes('data-track-height'))
@@ -85,7 +92,8 @@ describe('edge-compact actual plot bounds', () => {
         },
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
+    await flushVueChartUpdates()
     const tracks = wrapper.findAll('.waveform-chart__track')
     const last = tracks.at(-1)!
     const bottom =
@@ -111,7 +119,8 @@ describe('edge-compact actual plot bounds', () => {
           grid: { rowCount: 3, columnCount: 2, fillIncompleteLastRow: true },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const last = wrapper.findAll('.waveform-chart__track').at(-1)!
       const bottom =
         Number(last.attributes('data-track-top')) + Number(last.attributes('data-track-height'))
@@ -125,15 +134,20 @@ describe('edge-compact actual plot bounds', () => {
     const wrapper = mount(WaveformChart, {
       props: { ...props, data: gridSeries(1), grid: { rowCount: 1 }, cleanView: true },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
+    await flushVueChartUpdates()
     const bottomGap = () =>
       Number(wrapper.get('.waveform-chart__svg').attributes('height')) -
       Number(wrapper.get('.waveform-chart__track').attributes('data-track-height'))
     expect(bottomGap()).toBeCloseTo(74)
-    expect(wrapper.find('.waveform-chart__x-label').exists()).toBe(false)
+    expect(wrapper.findAll('.waveform-chart__x-label').some((element) => element.isVisible())).toBe(
+      false,
+    )
     await wrapper.setProps({ cleanView: false })
+    await flushVueChartUpdates()
     expect(bottomGap()).toBeCloseTo(44)
     await wrapper.setProps({ layoutPreset: 'default' })
+    await flushVueChartUpdates()
     expect(bottomGap()).toBeCloseTo(74)
   })
 
@@ -143,8 +157,9 @@ describe('edge-compact actual plot bounds', () => {
       const wrapper = mount(WaveformChart, {
         props: { ...props, width, data: gridSeries(2), grid: { rowCount: 1 } },
       })
-      await flushPromises()
-      const area = Number(wrapper.attributes('data-title-area-height'))
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
+      const area = Number(wrapper.get('.waveform-chart').attributes('data-title-area-height'))
       const svgHeight = Number(wrapper.get('.waveform-chart__svg').attributes('height'))
       const bottom = Number(wrapper.get('.waveform-chart__track').attributes('data-track-height'))
       expect(svgHeight).toBeCloseTo(500 - area - 16)
@@ -167,18 +182,19 @@ describe('edge-compact actual plot bounds', () => {
           grid: { rowCount: 1 },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
+      await flushVueChartUpdates()
       const texts = wrapper.findAll('.waveform-chart__axis--y .tick text')
       const highest = texts.at(-1)!
       expect(highest.text()).toBe('E+04 3')
       expect(highest.attributes('dominant-baseline')).toBe('central')
       expect(highest.attributes('dy')).toBe('0')
       expect(texts[0].attributes('dominant-baseline')).toBe('central')
-      expect(wrapper.attributes('data-plot-margin-top')).toBe('0')
+      expect(wrapper.get('.waveform-chart').attributes('data-plot-margin-top')).toBe('0')
       expect(wrapper.get('.waveform-chart__track').attributes('data-track-top')).toBe('0')
-      expect(getComputedStyle(wrapper.element).overflow).toBe('hidden')
+      expect(getComputedStyle(wrapper.get('.waveform-chart').element).overflow).toBe('hidden')
       await wrapper.setProps({ layoutPreset: 'default' })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(
         wrapper
           .findAll('.waveform-chart__axis--y .tick text')

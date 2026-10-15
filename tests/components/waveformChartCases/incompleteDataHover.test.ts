@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart incomplete data hover', () => {
   it.each(['separated', 'compact'] as const)(
@@ -51,10 +50,10 @@ describe('WaveformChart incomplete data hover', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const crosshairPositions = wrapper
-        .findAll('.waveform-chart__crosshair line')
+        .findAll('.waveform-chart__crosshair')
         .map((line) => Number(line.attributes('x1')))
       expect(crosshairPositions).toHaveLength(2)
       expect(crosshairPositions[0]).toBeCloseTo(overlayWidth / 4)
@@ -124,10 +123,10 @@ describe('WaveformChart incomplete data hover', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
 
       let crosshairPositions = wrapper
-        .findAll('.waveform-chart__crosshair line')
+        .findAll('.waveform-chart__crosshair')
         .map((line) => Number(line.attributes('x1')))
       expect(crosshairPositions).toHaveLength(2)
       expect(crosshairPositions[1]).toBeCloseTo(overlayWidth / 2)
@@ -142,10 +141,10 @@ describe('WaveformChart incomplete data hover', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
 
       crosshairPositions = wrapper
-        .findAll('.waveform-chart__crosshair line')
+        .findAll('.waveform-chart__crosshair')
         .map((line) => Number(line.attributes('x1')))
       expect(crosshairPositions[1]).toBeCloseTo((overlayWidth * 3) / 4)
       expect(wrapper.text()).toContain('最长曲线(x:1,000 y:20)')

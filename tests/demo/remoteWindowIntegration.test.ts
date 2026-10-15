@@ -1,4 +1,5 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
@@ -9,7 +10,7 @@ import { applyXDomainStrategy } from '@/components/core/xDomain'
 
 describe('remote demo integration', () => {
   it('commits wheel gestures while request state updates rerender the demo', async () => {
-    const wrapper = mount(App)
+    const wrapper = mount(App, { attachTo: document.body })
     await flushPromises()
     resizeObservers.at(-1)?.resize(1000, 800)
     await flushPromises()
@@ -49,6 +50,7 @@ describe('remote demo integration', () => {
       reject: (error: Error) => void
     }[] = []
     const wrapper = mount(App, {
+      attachTo: document.body,
       global: {
         provide: {
           [remoteWindowLoaderKey as symbol]: (request: RemoteWindowRequest, signal: AbortSignal) =>
@@ -67,11 +69,11 @@ describe('remote demo integration', () => {
     expect(chart.props('minVisiblePoints')).toBe(2)
     expect(chart.props('maxZoomScale')).toBe(null)
     expect(chart.props('minZoomSpan')).toBeGreaterThan(0)
-    expect(wrapper.get('[role="status"]').text()).toContain('正在加载')
+    expect(wrapper.get('.remote-window-status [role="status"]').text()).toContain('正在加载')
     const initial = chart.props('data')
     calls[0].resolve(initial)
     await flushPromises()
-    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+    expect(wrapper.find('.remote-window-status [role="status"]').exists()).toBe(false)
     const annotations = [{ id: 'note', seriesId: 'simulated-sine', x: 0, y: 1, text: 'keep' }]
     chart.vm.$emit('update:annotations', annotations)
     chart.vm.$emit('update:hidden-series-ids', ['simulated-harmonic'])

@@ -1,0 +1,157 @@
+{
+  "startedAt": "2026-10-14T16:15:17.470Z",
+  "commit": "247144ee3e88a7fceb6cb3382fb80eb5b274dd3e",
+  "node": "v22.23.2",
+  "browser": "141.0.7390.37",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M1"
+  },
+  "buildMode": "production",
+  "measurement": "setup/data generation excluded; stable SVG export barrier and two RAFs included",
+  "rawTotalPointCap": 100000,
+  "capReason": "Retain the existing default rawPointLimit-sized resource envelope for full SVG paths.",
+  "warmups": 3,
+  "runs": 10,
+  "scenarios": [
+    {
+      "width": 1200,
+      "height": 720,
+      "series": 1,
+      "pointsPerSeries": 10000,
+      "sampling": "raw",
+      "animationEnabled": false,
+      "runs": [
+        {
+          "mountMs": 30.700000002980232,
+          "updateMs": 33.3999999910593,
+          "paths": 1
+        },
+        {
+          "mountMs": 30,
+          "updateMs": 33.8999999910593,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.400000005960464,
+          "updateMs": 32.3999999910593,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.299999997019768,
+          "updateMs": 32.599999994039536,
+          "paths": 1
+        },
+        {
+          "mountMs": 29.5,
+          "updateMs": 34.5,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.200000002980232,
+          "updateMs": 32.599999994039536,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.400000005960464,
+          "updateMs": 32.69999998807907,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.5,
+          "updateMs": 32.6000000089407,
+          "paths": 1
+        },
+        {
+          "mountMs": 29.700000002980232,
+          "updateMs": 34.5,
+          "paths": 1
+        },
+        {
+          "mountMs": 30.799999997019768,
+          "updateMs": 33.5,
+          "paths": 1
+        }
+      ],
+      "mount": {
+        "median": 30.799999997019768,
+        "p95": 31.5
+      },
+      "update": {
+        "median": 32.69999998807907,
+        "p95": 34.5
+      }
+    },
+    {
+      "width": 1200,
+      "height": 720,
+      "series": 1,
+      "pointsPerSeries": 10000,
+      "sampling": "raw",
+      "animationEnabled": true,
+      "runs": [
+        {
+          "mountMs": 31.700000002980232,
+          "updateMs": 32.70000000298023,
+          "paths": 1
+        },
+        {
+          "mountMs": 29.799999997019768,
+          "updateMs": 33.20000000298023,
+          "paths": 1
+        },
+        {
+          "mountMs": 30.299999997019768,
+          "updateMs": 34.29999999701977,
+          "paths": 1
+        },
+        {
+          "mountMs": 30.200000002980232,
+          "updateMs": 33.79999999701977,
+          "paths": 1
+        },
+        {
+          "mountMs": 30.700000002980232,
+          "updateMs": 33.20000000298023,
+          "paths": 1
+        },
+        {
+          "mountMs": 29.5,
+          "updateMs": 34.599999994039536,
+          "paths": 1
+        },
+        {
+          "mountMs": 29.900000005960464,
+          "updateMs": 34.29999999701977,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.5,
+          "updateMs": 32.80000001192093,
+          "paths": 1
+        },
+        {
+          "mountMs": 31.099999994039536,
+          "updateMs": 32.79999999701977,
+          "paths": 1
+        },
+        {
+          "mountMs": 29.400000005960464,
+          "updateMs": 34.5,
+          "paths": 1
+        }
+      ],
+      "mount": {
+        "median": 30.200000002980232,
+        "p95": 31.700000002980232
+      },
+      "update": {
+        "median": 33.20000000298023,
+        "p95": 34.599999994039536
+      }
+    }
+  ],
+  "skipped": [],
+  "errors": []
+}

@@ -1,0 +1,11 @@
+
+> waveform-analysis@0.1.77 lint:all /Users/liqiyuan/WebstormProjects/waveform-analysis
+> pnpm lint:oxlint && pnpm lint
+
+
+> waveform-analysis@0.1.77 lint:oxlint /Users/liqiyuan/WebstormProjects/waveform-analysis
+> oxlint . --deny-warnings
+
+
+> waveform-analysis@0.1.77 lint /Users/liqiyuan/WebstormProjects/waveform-analysis
+> eslint . --max-warnings=0

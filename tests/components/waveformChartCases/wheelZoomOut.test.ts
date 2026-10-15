@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart wheel zoom out', () => {
   it('restores an independent initial domain after replacing data with a narrow window', async () => {
@@ -42,7 +41,7 @@ describe('WaveformChart wheel zoom out', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
     }
     const endpoints = () => ({
       start: wrapper.get('.waveform-chart__axis-endpoint--start').text(),
@@ -54,14 +53,14 @@ describe('WaveformChart wheel zoom out', () => {
     expect(endpoints()).not.toEqual({ start: '-5000', end: '5000' })
 
     await wrapper.setProps({ data: createData(-0.125, 0.125) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await dispatchWheel(4000)
 
     expect(endpoints()).toEqual({ start: '-5000', end: '5000' })
   })
 
   it('emits one zoom-end payload after zooming a shared viewport out', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       const wrapper = await mountSizedChart({
         kind: 'points',
@@ -89,7 +88,7 @@ describe('WaveformChart wheel zoom out', () => {
       dispatchWheel(-4000)
       flushAnimationFrames()
       await vi.advanceTimersByTimeAsync(200)
-      await flushPromises()
+      await flushVueChartUpdates()
       const zoomedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
       const zoomedSpan = zoomedDomain[1] - zoomedDomain[0]
 
@@ -97,7 +96,7 @@ describe('WaveformChart wheel zoom out', () => {
       flushAnimationFrames()
       expect(wrapper.emitted('zoom-end')).toHaveLength(1)
       await vi.advanceTimersByTimeAsync(200)
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const zoomedOutPayload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as {
         start: number

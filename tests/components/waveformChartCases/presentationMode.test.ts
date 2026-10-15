@@ -1,8 +1,7 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import type { WaveformData, WaveformDisplayMode } from '@/components/data/types'
 
 function annotationEditorExists() {
@@ -97,7 +96,7 @@ describe('WaveformChart presentation mode', () => {
     const overlay = wrapper.get('.waveform-chart__overlay--independent')
     const { width, height } = setOverlayBounds(overlay)
 
-    expect(wrapper.attributes('data-presentation-mode')).toBe('false')
+    expect(wrapper.get('.waveform-chart').attributes('data-presentation-mode')).toBe('false')
     expect(overlay.classes()).toContain('is-zoomable')
 
     overlay.element.dispatchEvent(
@@ -108,7 +107,7 @@ describe('WaveformChart presentation mode', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
     expect(wrapper.emitted('point-hover')?.length).toBeGreaterThan(0)
@@ -127,7 +126,7 @@ describe('WaveformChart presentation mode', () => {
       const overlay = wrapper.get('.waveform-chart__overlay')
       const { width, height } = setOverlayBounds(overlay)
 
-      expect(wrapper.attributes('data-presentation-mode')).toBe('true')
+      expect(wrapper.get('.waveform-chart').attributes('data-presentation-mode')).toBe('true')
       expect(overlay.classes()).not.toContain('is-zoomable')
       expect(overlay.classes()).not.toContain('is-annotating')
 
@@ -188,7 +187,7 @@ describe('WaveformChart presentation mode', () => {
         pointerId: 42,
       })
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
 
       expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
       expect(wrapper.find('.waveform-annotation-editor').exists()).toBe(false)
@@ -209,11 +208,11 @@ describe('WaveformChart presentation mode', () => {
     })
 
     await wrapper.findAll('.waveform-chart__legend-item')[1]!.trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('update:hidden-series-ids')?.at(-1)).toEqual([['high']])
 
     await wrapper.get('[aria-label="下一页"]').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.emitted('page-change')?.at(-1)).toEqual([2, 2])
   })
 
@@ -234,7 +233,7 @@ describe('WaveformChart presentation mode', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     const zoomedEndpoint = wrapper.get('.waveform-chart__axis-endpoint--end').text()
 
     dispatchPointer(overlay.element, 'pointerdown', {
@@ -248,18 +247,18 @@ describe('WaveformChart presentation mode', () => {
       clientY: height / 2,
       pointerId: 41,
     })
-    await flushPromises()
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(true)
+    await flushVueChartUpdates()
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(true)
 
     await wrapper.setProps({ presentationMode: true })
-    await flushPromises()
+    await flushVueChartUpdates()
 
-    expect(wrapper.find('.waveform-chart__zoom-selection').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__zoom-selection').isVisible()).toBe(false)
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe(zoomedEndpoint)
 
     const zoomEventCount = wrapper.emitted('zoom-change')?.length ?? 0
     await wrapper.setProps({ presentationMode: false })
-    await flushPromises()
+    await flushVueChartUpdates()
     overlay.element.dispatchEvent(
       new WheelEvent('wheel', {
         deltaY: 200,
@@ -270,7 +269,7 @@ describe('WaveformChart presentation mode', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-change')?.length).toBeGreaterThan(zoomEventCount)
   })
@@ -291,7 +290,7 @@ describe('WaveformChart presentation mode', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
 
     overlay.element.dispatchEvent(
@@ -302,11 +301,11 @@ describe('WaveformChart presentation mode', () => {
         cancelable: true,
       }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(annotationEditorExists()).toBe(true)
 
     await wrapper.setProps({ presentationMode: true })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(false)
     expect(annotationEditorExists()).toBe(false)
@@ -321,7 +320,7 @@ describe('WaveformChart presentation mode', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__tooltip').exists()).toBe(true)
   })
 })

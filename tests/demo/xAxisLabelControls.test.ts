@@ -1,4 +1,5 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { InputNumber, Select } from 'ant-design-vue'
 import { describe, expect, it } from 'vitest'
 
@@ -16,7 +17,7 @@ describe('X-axis label demo controls', () => {
   })
 
   it('configures numeric and timestamp labels from the sidebar', async () => {
-    const wrapper = mount(App)
+    const wrapper = mount(App, { attachTo: document.body })
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
     resizeObservers.at(-1)?.resize(800, 800)

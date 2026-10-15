@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import { useAnimationFrameThrottle } from '@/components/utils/useAnimationFrameThrottle'
+import { useAnimationFrameThrottle } from '../../fixtures/legacy/components/utils/useAnimationFrameThrottle'
 
 describe('useAnimationFrameThrottle', () => {
   it('schedules callback on next animation frame', () => {

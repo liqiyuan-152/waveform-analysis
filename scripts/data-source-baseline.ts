@@ -1,4 +1,4 @@
-import { prepareWaveformSeries } from '../src/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../tests/fixtures/legacy/components/core/useWaveformData'
 import { createWorkerSamplingClient } from '../src/components/core/workerSamplingClient'
 import type { SingleWaveformData, WaveformData } from '../src/types'
 

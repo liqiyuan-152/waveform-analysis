@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { flushPromises } from '@vue/test-utils'
-import { mountSizedChart } from '@tests/support/waveformChart'
+
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
 import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVisibility'
 import type { WaveformData } from '@/types'
@@ -30,7 +30,7 @@ describe('Y-axis actual minimum ticks', () => {
       await w.setProps({
         axes: { y: { nice: false, lowerPaddingRatio: 0.1, upperPaddingRatio: 0.1 } },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(minima(w)).toEqual([20])
       expect(w.get('[data-maximum-tick]').attributes('data-tick-value')).toBe('80')
       await w.setProps({
@@ -44,7 +44,7 @@ describe('Y-axis actual minimum ticks', () => {
           },
         },
       })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(minima(w)).toEqual([])
       expect(
         w
@@ -114,10 +114,10 @@ describe('Y-axis actual minimum ticks', () => {
     )
     expect(minima(w)).toEqual([-120])
     await w.setProps({ data })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(minima(w)).toEqual([20])
     resizeObservers.at(-1)?.resize(360, 300)
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(minima(w)).toEqual([20])
     expect(w.findAll('.waveform-track__axis--y .tick')[0].attributes('data-tick-value')).toBe('14')
     w.unmount()

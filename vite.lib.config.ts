@@ -3,7 +3,7 @@ import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
 
-const peerDependencies = ['vue', 'd3', 'vue3-colorpicker']
+const peerDependencies = ['vue', 'd3']
 
 export default defineConfig({
   plugins: [vue()],
@@ -19,10 +19,14 @@ export default defineConfig({
     minify: 'terser',
     terserOptions: { compress: { passes: 3 } },
     lib: {
-      entry: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+      entry: {
+        index: fileURLToPath(new URL('./src/index.ts', import.meta.url)),
+        native: fileURLToPath(new URL('./src/native.ts', import.meta.url)),
+        vue: fileURLToPath(new URL('./src/vue.ts', import.meta.url)),
+      },
       name: 'WaveformAnalysis',
       formats: ['es', 'cjs'],
-      fileName: (format) => (format === 'es' ? 'index.js' : 'index.cjs'),
+      fileName: (format, entryName) => `${entryName}.${format === 'es' ? 'js' : 'cjs'}`,
       cssFileName: 'style',
     },
     rolldownOptions: {

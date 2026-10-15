@@ -1,4 +1,5 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import App from '@/App.vue'
@@ -9,7 +10,7 @@ describe('demo initial X-axis range', () => {
   it.each(['independent', 'separated', 'compact'] as const)(
     'extends initial and reset bounds without rounding zoomed viewports in %s mode',
     async (displayMode) => {
-      const wrapper = mount(App)
+      const wrapper = mount(App, { attachTo: document.body })
       try {
         await flushPromises()
         if (displayMode !== 'independent') {
@@ -50,5 +51,7 @@ describe('demo initial X-axis range', () => {
         wrapper.unmount()
       }
     },
+    // Whole-demo integration normalizes real dense records before zoom/reset assertions.
+    10_000,
   )
 })

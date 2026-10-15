@@ -1,0 +1,36 @@
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 1536 modules transformed.
+
+(!) outDir /var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce is not inside project root and will not be emptied.
+Use --emptyOutDir to override.
+
+rendering chunks...
+computing gzip size...
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/tests/browser/native-migration-baseline.html      0.37 kB │ gzip:   0.23 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/assets/waveform_sampling_wasm_bg-CRvgnxY9.wasm   60.23 kB │ gzip:  22.54 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/assets/workerRuntime-DKdxQyA4.js                 61.46 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/assets/nativeWorkerRuntime-USrfs04Q.js           61.46 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/assets/native-migration-baseline-B9O9EmT5.css    66.46 kB │ gzip:  12.44 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/assets/index.es-D_M3_lBA.js                     146.01 kB │ gzip:  48.72 kB
+../../../../var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-native-performance-59IBce/assets/native-migration-baseline-gJWg8kDT.js    499.90 kB │ gzip: 159.65 kB
+
+✓ built in 1.17s
+Measured 1 × 10000, raw, animation=false; regressions=0
+Measured 1 × 10000, raw, animation=true; regressions=0
+Measured 1 × 10000, auto, animation=false; regressions=0
+Measured 1 × 10000, auto, animation=true; regressions=0
+Measured 1 × 100000, raw, animation=false; regressions=0
+Measured 1 × 100000, raw, animation=true; regressions=0
+Measured 1 × 100000, auto, animation=false; regressions=0
+Measured 1 × 100000, auto, animation=true; regressions=0
+Measured 1 × 1000000, auto, animation=false; regressions=0
+Measured 1 × 1000000, auto, animation=true; regressions=0
+Measured 8 × 10000, raw, animation=false; regressions=0
+Measured 8 × 10000, raw, animation=true; regressions=0
+Measured 8 × 10000, auto, animation=false; regressions=0
+Measured 8 × 10000, auto, animation=true; regressions=0
+Measured 8 × 100000, auto, animation=false; regressions=0
+Measured 8 × 100000, auto, animation=true; regressions=0
+Measured 8 × 1000000, auto, animation=false; regressions=0
+Measured 8 × 1000000, auto, animation=true; regressions=0
+Performance passed: /Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/evidence/native-performance.json

@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { resizeObservers } from '@tests/support/setup'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart Y-axis layout', () => {
   it('reserves the longest tick label including the top unit across resizes', async () => {
@@ -40,7 +39,7 @@ describe('WaveformChart Y-axis layout', () => {
       }
       assertTitlePosition()
       resizeObservers.at(-1)?.resize(375, 280)
-      await flushPromises()
+      await flushVueChartUpdates()
       assertTitlePosition()
     } finally {
       wrapper.unmount()
@@ -80,10 +79,10 @@ describe('WaveformChart Y-axis layout', () => {
         }
         assertLabelAlignment()
         resizeObservers.at(-1)?.resize(520, 280)
-        await flushPromises()
+        await flushVueChartUpdates()
         assertLabelAlignment()
         await wrapper.setProps({ cleanView: true, yDomain: [-40, 160] })
-        await flushPromises()
+        await flushVueChartUpdates()
         const track = wrapper.get('.waveform-chart__track')
         const bottom = track.get('.waveform-chart__axis--y .tick text')
         expect(bottom.text()).toBe('-40')
@@ -179,19 +178,19 @@ describe('WaveformChart Y-axis layout', () => {
     )
     const firstTrack = wrapper.get('.waveform-chart__track')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('108')
     expect(firstTrack.attributes('data-y-axis-label-x')).toBe('-94')
     expect(firstTrack.findAll('.waveform-chart__axis--y .tick text').at(-1)?.text()).toBe(
       '(V) -0.3434',
     )
 
     resizeObservers.at(-1)?.resize(520, 280)
-    await flushPromises()
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
+    await flushVueChartUpdates()
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('108')
     expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
 
     await wrapper.get('[aria-label="下一页"]').trigger('click')
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('108')
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('108')
     expect(wrapper.get('.waveform-chart__track').attributes('data-y-axis-label-x')).toBe('-94')
     expect(wrapper.get('.waveform-chart__axis--y').findAll('.tick text').at(-1)?.text()).toBe(
       '(V) -1.3434',
@@ -223,7 +222,7 @@ describe('WaveformChart Y-axis layout', () => {
     )
     const tracks = wrapper.findAll('.waveform-chart__track')
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('101')
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('101')
     expect(tracks[1]?.attributes('data-y-axis-label-x')).toBe('-87')
     const labels = tracks[1]!.findAll('.waveform-chart__axis--y .tick text')
     expect(labels.at(-1)?.text()).toBe('100')

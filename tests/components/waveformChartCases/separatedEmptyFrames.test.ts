@@ -23,17 +23,40 @@ describe('separated empty frames', () => {
       }
       expect(empty.find('.waveform-chart__line').exists()).toBe(false)
       expect(empty.find('.waveform-chart__axis--y').exists()).toBe(false)
-      expect(tracks[7].find('.waveform-chart__axis--x').exists()).toBe(true)
-      expect(tracks[8].find('.waveform-chart__axis--x').exists()).toBe(true)
+      expect(
+        tracks[7].findAll('.waveform-chart__axis--x').some((element) => element.isVisible()),
+      ).toBe(true)
+      expect(
+        tracks[8].findAll('.waveform-chart__axis--x').some((element) => element.isVisible()),
+      ).toBe(true)
       expect(Number(empty.attributes('data-track-top'))).toBeGreaterThan(
         Number(tracks[7].attributes('data-track-top')) +
           Number(tracks[7].attributes('data-track-height')),
       )
       await wrapper.setProps({ cleanView: true })
-      expect(empty.find('.waveform-chart__grid').exists()).toBe(false)
-      expect(empty.find('.waveform-chart__watermark').exists()).toBe(false)
+      expect(empty.findAll('.waveform-chart__grid').some((element) => element.isVisible())).toBe(
+        false,
+      )
+      expect(
+        empty.findAll('.waveform-chart__watermark').some((element) => element.isVisible()),
+      ).toBe(false)
       await wrapper.setProps({ cleanView: false, frameNumber: undefined })
-      expect(empty.find('.waveform-chart__watermark').exists()).toBe(false)
+      expect(
+        empty.findAll('.waveform-chart__watermark').some((element) => element.isVisible()),
+      ).toBe(false)
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it.each([800, 320])('removes trailing placeholders and empty data at %s px', async (width) => {
+    const wrapper = await mountSizedChart(gridSeries(9), {
+      width,
+      displayMode: 'separated',
+      grid: { rowCount: 5, columnCount: 2 },
+    })
+    try {
+      expect(wrapper.findAll('.waveform-chart__plot-frame')).toHaveLength(10)
       await wrapper.setProps({ grid: { rowCount: 5, columnCount: 2, fillIncompleteLastRow: true } })
       expect(wrapper.findAll('.waveform-chart__plot-frame')).toHaveLength(9)
       expect(wrapper.find('.waveform-chart__track--empty').exists()).toBe(false)

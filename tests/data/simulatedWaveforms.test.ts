@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { createSimulatedWaveformData } from '@/data/simulatedWaveforms'
+import { createSimulatedWaveformData } from '@/demo/data/simulatedWaveforms'
 
 describe('simulated waveform data', () => {
   it('creates deterministic, finite ten-track data with a three-series second frame', () => {

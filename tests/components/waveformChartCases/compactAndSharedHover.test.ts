@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 import { updateMaximumTickVisibility } from '@/components/rendering/yAxisTickVisibility'
 
 describe('WaveformChart', () => {
@@ -101,7 +100,7 @@ describe('WaveformChart', () => {
       )
       for (const displayMode of ['separated', 'independent', 'compact'] as const) {
         await wrapper.setProps({ displayMode })
-        await flushPromises()
+        await flushVueChartUpdates()
         wrapper.findAll('.waveform-chart__axis--y').forEach((axis, index) => {
           expect(axis.findAll('.tick text').at(-1)!.attributes('display')).toBe(
             displayMode === 'compact' && index >= 2 ? 'none' : undefined,
@@ -278,14 +277,14 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const tooltip = wrapper.get('.waveform-chart__tooltip')
     expect(tooltip.text()).toContain('未配置炮号： BT2_2M')
     expect(tooltip.text()).toContain('(x:1,000 y:2)')
     expect(tooltip.text()).toContain('未配置炮号： BT1_2M')
     expect(tooltip.text()).toContain('(x:1,000 y:4)')
-    const crosshairLines = wrapper.findAll('.waveform-chart__crosshair line')
+    const crosshairLines = wrapper.findAll('.waveform-chart__crosshair')
     expect(crosshairLines).toHaveLength(2)
     crosshairLines.forEach((line) => {
       expect(line.attributes('x1')).toBe(line.attributes('x2'))
@@ -306,9 +305,9 @@ describe('WaveformChart', () => {
       new MouseEvent('pointermove', { clientX: 700, clientY: 120, bubbles: true }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
-    expect(wrapper.findAll('.waveform-chart__crosshair line')).toHaveLength(2)
+    expect(wrapper.findAll('.waveform-chart__crosshair')).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(2)
     expect(wrapper.emitted('point-hover')?.at(-1)).toEqual([{ x: 1, y: 1 }])
   })
@@ -348,7 +347,9 @@ describe('WaveformChart', () => {
     const secondTop = Number(tracks[1].attributes('data-track-top'))
 
     expect(wrapper.findAll('.waveform-chart__svg')).toHaveLength(1)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(1)
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(2)
     expect(wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text())).toEqual([
       'A',
@@ -392,8 +393,10 @@ describe('WaveformChart', () => {
     const firstHeight = Number(tracks[0].attributes('data-track-height'))
     const secondTop = Number(tracks[1].attributes('data-track-top'))
 
-    expect(wrapper.attributes('data-display-mode')).toBe('compact')
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(wrapper.get('.waveform-chart').attributes('data-display-mode')).toBe('compact')
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(1)
     expect(wrapper.findAll('.waveform-chart__y-axis-label').map((label) => label.text())).toEqual([
       'A',
       'B',

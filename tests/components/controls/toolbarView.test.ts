@@ -1,9 +1,11 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { mountSizedChart, gridSeries } from '@tests/support/waveformChart'
+import {
+  mountSizedChart,
+  gridSeries,
+  flushVueChartUpdates as flushPromises,
+} from '@tests/support/waveformChart'
 import { resizeObservers } from '@tests/support/setup'
-import type { WaveformChartController } from '@/components/core/useWaveformChartController'
-import WaveformChartView from '@/components/WaveformChartView.vue'
+import { getInstanceByDom } from '@/chart/init'
 
 describe('toolbar view interaction', () => {
   it('preserves narrow-container grouping and keyboard menu escape', async () => {
@@ -20,7 +22,7 @@ describe('toolbar view interaction', () => {
     await w.get('[data-command="export"]').trigger('click')
     expect(w.find('[aria-label="图片格式"]').exists()).toBe(true)
     await w.get('[role="toolbar"]').trigger('keydown', { key: 'Escape' })
-    expect(w.find('[aria-label="图片格式"]').exists()).toBe(false)
+    expect(w.get('[aria-label="图片格式"]').isVisible()).toBe(false)
     expect(w.get('[aria-label="图表工具"]').attributes('aria-expanded')).toBe('false')
     await w.get('[aria-label="操作图框"]').setValue('channel-1')
     await w.setProps({ grid: { rowCount: 1, columnCount: 1 } })
@@ -29,9 +31,7 @@ describe('toolbar view interaction', () => {
   })
   it('reports export errors and then downloads with cleanup', async () => {
     const w = await mountSizedChart(gridSeries(1), { toolbar: true })
-    const controller = w
-      .getComponent(WaveformChartView)
-      .props('controller') as WaveformChartController
+    const controller = getInstanceByDom(w.element as HTMLElement)!
     const generate = vi
       .spyOn(controller, 'exportImage')
       .mockRejectedValueOnce(new Error('导出测试失败'))

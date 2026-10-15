@@ -1,10 +1,9 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 import { type WaveformData } from '@/components/waveform'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('resolves a separate scientific multiplier for every Y axis', async () => {
@@ -99,7 +98,7 @@ describe('WaveformChart', () => {
     const singleAxisY = wrapper.get('.waveform-annotation__arrow').attributes('y2')
 
     await wrapper.setProps({ overlayMode: 'multi-axis' })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-annotation__arrow').attributes('y2')).not.toBe(singleAxisY)
 
@@ -278,9 +277,11 @@ describe('WaveformChart', () => {
       '1',
       '2',
     ])
-    expect(wrapper.find('.waveform-pagination').exists()).toBe(false)
+    expect(wrapper.find('.waveform-pagination').isVisible()).toBe(false)
 
-    const firstTrackOverlay = tracks[0].get('.waveform-chart__overlay')
+    const firstTrackOverlay = wrapper.get(
+      '.waveform-chart__overlay[data-independent-overlay-index="0"]',
+    )
     const overlayWidth = Number(firstTrackOverlay.attributes('width'))
     const overlayHeight = Number(firstTrackOverlay.attributes('height'))
     Object.defineProperty(firstTrackOverlay.element, 'getBoundingClientRect', {
@@ -294,7 +295,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const tooltipSeries = wrapper.findAll('.waveform-chart__tooltip-series')
     expect(tooltipSeries).toHaveLength(3)
@@ -391,6 +392,6 @@ describe('WaveformChart', () => {
       'waveform-legend__panel--horizontal',
     )
 
-    expect(wrapper.attributes('data-chart-left-margin')).toBe('48')
+    expect(wrapper.get('.waveform-chart').attributes('data-chart-left-margin')).toBe('48')
   })
 })

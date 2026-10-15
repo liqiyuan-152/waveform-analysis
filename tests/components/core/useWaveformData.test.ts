@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../../fixtures/legacy/components/core/useWaveformData'
 
 describe('prepareWaveformSeries compact inputs', () => {
   it('keeps dense typed samples as numeric columns until individual points are requested', () => {

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../fixtures/legacy/components/core/useWaveformData'
 import { selectSeriesRenderSourcePoints, resolveWaveformRenderingOptions } from '@/core/rendering'
 
 it('selects equivalent geometry directly from compact sources without duplicating endpoint indexes', () => {

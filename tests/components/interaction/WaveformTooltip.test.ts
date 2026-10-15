@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { resizeObservers } from '@tests/support/setup'
 
-import WaveformTooltip from '@/components/interaction/WaveformTooltip.vue'
+import WaveformTooltip from '../../fixtures/legacy/components/interaction/WaveformTooltip.vue'
 
 describe('WaveformTooltip', () => {
   const point = { x: 1, y: 12 }

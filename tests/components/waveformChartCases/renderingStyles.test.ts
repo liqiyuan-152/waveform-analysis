@@ -1,10 +1,9 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 import { type WaveformData } from '@/components/waveform'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('places start, middle, and end step transitions at the expected X positions', async () => {
@@ -114,11 +113,11 @@ describe('WaveformChart', () => {
       ],
     })
 
-    expect(wrapper.find('.waveform-chart__line[data-series-id="triangle-errors"]').exists()).toBe(
-      false,
-    )
+    expect(
+      wrapper.get('.waveform-chart__line[data-series-id="triangle-errors"]').attributes('display'),
+    ).toBe('none')
     const stepLine = wrapper.get('.waveform-chart__line[data-series-id="step-errors"]')
-    expect(getComputedStyle(stepLine.element).strokeWidth).toBe('1')
+    expect(Number.parseFloat(getComputedStyle(stepLine.element).strokeWidth)).toBe(1)
     expect(stepLine.attributes('data-line-type')).toBe('step-after')
     expect(stepLine.attributes('data-line-style')).toBe('dash-dot')
     expect(stepLine.attributes('stroke-dasharray')).toBe('8 5 1.5 5')
@@ -130,24 +129,28 @@ describe('WaveformChart', () => {
     expect(stepLine.attributes('d')).toMatch(/^M[\d.-]+,([\d.-]+)L[\d.-]+,\1L/)
     expect(
       wrapper
-        .get('.waveform-chart__points[data-series-id="triangle-errors"]')
+        .get('.waveform-chart__point[data-series-id="triangle-errors"]')
         .attributes('data-point-type'),
     ).toBe('triangle')
-    expect(wrapper.findAll('.waveform-chart__point')).toHaveLength(2)
     expect(
       wrapper
-        .get('.waveform-chart__points[data-series-id="triangle-errors"] .waveform-chart__point')
-        .attributes('d'),
+        .findAll('.waveform-chart__point')
+        .filter((path) => path.attributes('display') !== 'none'),
+    ).toHaveLength(2)
+    expect(
+      wrapper.get('.waveform-chart__point[data-series-id="triangle-errors"]').attributes('d'),
     ).toMatch(/M.*M/)
-    expect(wrapper.findAll('.waveform-chart__error-bar')).toHaveLength(3)
     expect(
       wrapper
-        .get('.waveform-chart__error-bars[data-series-id="step-errors"] .waveform-chart__error-bar')
-        .attributes('stroke'),
+        .findAll('.waveform-chart__error-bar')
+        .filter((path) => path.attributes('display') !== 'none'),
+    ).toHaveLength(3)
+    expect(
+      wrapper.get('.waveform-chart__error-bar[data-series-id="step-errors"]').attributes('stroke'),
     ).toBe('#222222')
     const errorsOnlySeries = wrapper.get('.waveform-chart__series[data-series-id="errors-only"]')
-    expect(errorsOnlySeries.find('.waveform-chart__line').exists()).toBe(false)
-    expect(errorsOnlySeries.find('.waveform-chart__point').exists()).toBe(false)
+    expect(errorsOnlySeries.get('.waveform-chart__line').attributes('display')).toBe('none')
+    expect(errorsOnlySeries.get('.waveform-chart__point').attributes('display')).toBe('none')
     expect(errorsOnlySeries.find('.waveform-chart__error-bar').exists()).toBe(true)
 
     const swatches = wrapper.findAll('.waveform-legend__swatch')
@@ -170,11 +173,15 @@ describe('WaveformChart', () => {
     )
     expect(swatches[2]?.attributes('data-error-bar-visible')).toBe('true')
     expect(swatches[3]?.attributes('data-error-bar-visible')).toBe('true')
-    expect(swatches[0]!.findAll('path').map((path) => path.classes())).toEqual([
-      ['waveform-legend__error-bar'],
-      ['waveform-legend__point'],
-    ])
-    const stepSwatchPaths = swatches[2]!.findAll('path')
+    expect(
+      swatches[0]!
+        .findAll('path')
+        .filter((path) => path.attributes('display') !== 'none')
+        .map((path) => path.classes()),
+    ).toEqual([['waveform-legend__error-bar'], ['waveform-legend__point']])
+    const stepSwatchPaths = swatches[2]!
+      .findAll('path')
+      .filter((path) => path.attributes('display') !== 'none')
     expect(stepSwatchPaths.map((path) => path.classes())).toEqual([
       ['waveform-legend__line'],
       ['waveform-legend__error-bar'],
@@ -192,9 +199,12 @@ describe('WaveformChart', () => {
       'stroke-linecap': 'butt',
     })
     expect(stepSwatchPaths[2]?.attributes('transform')).toBe('translate(13 8)')
-    expect(swatches[3]!.findAll('path').map((path) => path.classes())).toEqual([
-      ['waveform-legend__error-bar'],
-    ])
+    expect(
+      swatches[3]!
+        .findAll('path')
+        .filter((path) => path.attributes('display') !== 'none')
+        .map((path) => path.classes()),
+    ).toEqual([['waveform-legend__error-bar']])
 
     const renderedSeriesNodes = wrapper
       .findAll('.waveform-chart__line, .waveform-chart__point, .waveform-chart__error-bar')
@@ -213,7 +223,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       wrapper
         .findAll('.waveform-chart__line, .waveform-chart__point, .waveform-chart__error-bar')
@@ -241,7 +251,7 @@ describe('WaveformChart', () => {
     }
     const wrapper = await mountSizedChart(data, { overlayMode: 'multi-axis' })
 
-    expect(wrapper.attributes('data-overlay-mode')).toBe('multi-axis')
+    expect(wrapper.get('.waveform-chart').attributes('data-overlay-mode')).toBe('multi-axis')
     expect(
       wrapper
         .findAll('.waveform-chart__axis--y')

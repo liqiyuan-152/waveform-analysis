@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeAmplitudeLimit, applyAmplitudeLimits } from '@/components/core/amplitudeLimits'
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../../fixtures/legacy/components/core/useWaveformData'
 import {
   axisTextMetrics,
   buildYAxisSlots,

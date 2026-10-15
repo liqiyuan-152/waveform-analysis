@@ -1,13 +1,16 @@
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
+import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { InputNumber } from 'ant-design-vue'
 import { describe, expect, it } from 'vitest'
 
 import App from '@/App.vue'
 import { WaveformChart } from '@/components'
+import { resizeObservers } from '@tests/support/setup'
 
 describe('plot margin demo controls', { timeout: 20_000 }, () => {
   it('updates the chart top and bottom margins from the sidebar', async () => {
-    const wrapper = mount(App)
+    const wrapper = mount(App, { attachTo: document.body })
+    resizeObservers.at(-1)?.resize(800, 800)
     await flushPromises()
     const chart = wrapper.getComponent(WaveformChart)
     const controls = wrapper.get('.plot-margin-controls').findAllComponents(InputNumber)

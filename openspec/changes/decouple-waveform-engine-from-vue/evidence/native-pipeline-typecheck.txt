@@ -1,0 +1,9 @@
+
+> waveform-analysis@0.1.77 typecheck /Users/liqiyuan/WebstormProjects/waveform-analysis
+> pnpm prepare:wasm && vue-tsc -b
+
+
+> waveform-analysis@0.1.77 prepare:wasm /Users/liqiyuan/WebstormProjects/waveform-analysis
+> node scripts/prepare-wasm.mjs
+
+WASM preparation verified; reusing current artifacts.

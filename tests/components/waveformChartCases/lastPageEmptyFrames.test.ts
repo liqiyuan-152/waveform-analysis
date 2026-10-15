@@ -38,7 +38,9 @@ describe('last page empty frames', () => {
         }
         await wrapper.setProps({ cleanView: true })
         expect(wrapper.findAll('.waveform-chart__plot-frame')).toHaveLength(4)
-        expect(wrapper.find('.waveform-chart__watermark').exists()).toBe(false)
+        expect(
+          wrapper.findAll('.waveform-chart__watermark').some((element) => element.isVisible()),
+        ).toBe(false)
         await wrapper.setProps({
           cleanView: false,
           grid: { rowCount: 2, columnCount: 2, fillIncompleteLastRow: true },

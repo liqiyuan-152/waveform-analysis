@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('does not zoom a track when its visible sample count is below the configured minimum', async () => {
@@ -33,7 +32,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-change')).toBeUndefined()
     expect(wrapper.emitted('zoom-end')).toBeUndefined()
@@ -75,7 +74,7 @@ describe('WaveformChart', () => {
     )
     window.dispatchEvent(createDragEvent('mouseup', { bubbles: true }))
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-change')).toBeUndefined()
     expect(wrapper.emitted('zoom-end')).toBeUndefined()
@@ -117,14 +116,14 @@ describe('WaveformChart', () => {
     )
     window.dispatchEvent(createDragEvent('mouseup', { bubbles: true }))
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-change')).toBeUndefined()
     expect(wrapper.emitted('zoom-end')).toBeUndefined()
   })
 
   it('includes track and series IDs in independent zoom-end payloads', async () => {
-    vi.useFakeTimers()
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     try {
       const wrapper = await mountSizedChart(gridSeries(2), {
         displayMode: 'independent',
@@ -147,7 +146,7 @@ describe('WaveformChart', () => {
       )
       flushAnimationFrames()
       await vi.advanceTimersByTimeAsync(200)
-      await flushPromises()
+      await flushVueChartUpdates()
 
       const payload = wrapper.emitted('zoom-end')?.at(-1)?.[0] as
         { trackIndex: number; seriesIds: string[] } | undefined
@@ -184,7 +183,7 @@ describe('WaveformChart', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
     }
 
     for (let step = 0; step < 4; step += 1) await zoomAtCenter()
@@ -200,7 +199,7 @@ describe('WaveformChart', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     await zoomAtCenter()
 
     const secondDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
@@ -234,7 +233,7 @@ describe('WaveformChart', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
     }
 
     await dispatchWheel(-4000)
@@ -250,7 +249,7 @@ describe('WaveformChart', () => {
         ],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     const preservedDomain = wrapper.emitted('zoom-change')?.at(-1)?.[0] as [number, number]
     expect(preservedDomain[1] - preservedDomain[0]).toBeCloseTo(50)
 
@@ -290,7 +289,7 @@ describe('WaveformChart', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
     }
 
     await dispatchWheel(-4000)
@@ -298,7 +297,7 @@ describe('WaveformChart', () => {
     expect(zoomedDomain[1] - zoomedDomain[0]).toBeCloseTo(1)
 
     await wrapper.setProps({ minVisiblePoints: 10 })
-    await flushPromises()
+    await flushVueChartUpdates()
     const eventCount = wrapper.emitted('zoom-change')?.length ?? 0
     await dispatchWheel(-1000)
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(eventCount)

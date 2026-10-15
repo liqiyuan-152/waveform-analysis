@@ -5,7 +5,7 @@ import {
   buildYAxisSlots,
   axisTextMetrics,
 } from '@/components/core/layout'
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../../fixtures/legacy/components/core/useWaveformData'
 import type { DisplaySeries, DisplayTrack } from '@/components/core/types'
 import { labelsOverlap, linesOverlap } from '@/components/rendering/yAxisTickVisibility'
 

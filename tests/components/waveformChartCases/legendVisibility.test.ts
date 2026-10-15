@@ -1,11 +1,15 @@
-import { flushPromises } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { flushAnimationFrames } from '@tests/support/setup'
 import { type WaveformData } from '@/components/waveform'
-import WaveformChartView from '@/components/WaveformChartView.vue'
+import { AnnotationDraftController } from '@/annotation/AnnotationDraftController'
 
-import { gridSeries, mountSizedChart, visibilitySeries } from '@tests/support/waveformChart'
+import {
+  flushVueChartUpdates,
+  gridSeries,
+  mountSizedChart,
+  visibilitySeries,
+} from '@tests/support/waveformChart'
 
 function annotationEditorExists() {
   return Boolean(
@@ -182,7 +186,7 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(3)
     expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
     const annotationLayer = wrapper.get('.waveform-annotation-layer').element
-    const legendLayer = wrapper.get('.waveform-chart__legend-layer').element
+    const legendLayer = wrapper.get('.waveform-chart__legends').element
     expect(
       annotationLayer.compareDocumentPosition(legendLayer) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
@@ -190,7 +194,7 @@ describe('WaveformChart', () => {
     expect(highLegendItem.attributes('aria-pressed')).toBe('true')
 
     await highLegendItem.trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
@@ -220,12 +224,12 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.findAll('.waveform-chart__tooltip-series')).toHaveLength(2)
     expect(wrapper.get('.waveform-chart__tooltip-series').text()).toContain('低量程')
 
     await wrapper.findAll('.waveform-chart__legend-item')[1].trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(3)
     expect(wrapper.find('[data-annotation-id="high-note"]').exists()).toBe(true)
     expect(wrapper.emitted('series-visibility-change')?.at(-1)).toEqual([
@@ -252,7 +256,7 @@ describe('WaveformChart', () => {
     ).toEqual(['low', 'mid'])
 
     await wrapper.setProps({ hiddenSeriesIds: ['low'] })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['high', 'mid'])
@@ -271,7 +275,7 @@ describe('WaveformChart', () => {
       series: [...(original.kind === 'series' ? original.series : [])].reverse(),
     }
     await wrapper.setProps({ data: reversed })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['mid', 'low'])
@@ -282,9 +286,9 @@ describe('WaveformChart', () => {
         series: original.kind === 'series' ? [original.series[0]!] : [],
       },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
     await wrapper.setProps({ data: original })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(3)
   })
 
@@ -297,7 +301,9 @@ describe('WaveformChart', () => {
     })
 
     expect(wrapper.findAll('.waveform-chart__line')).toHaveLength(0)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(1)
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(3)
     expect(wrapper.get('.waveform-chart__axis--x').findAll('.tick text').length).toBeGreaterThan(0)
     wrapper.findAll('.waveform-chart__axis--y').forEach((axis) => {
@@ -310,16 +316,19 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-track__no-visible-series').text()).toBe('暂无可见曲线')
 
     await wrapper.findAll('.waveform-chart__legend-item')[0].trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       wrapper.findAll('.waveform-chart__line').map((line) => line.attributes('data-series-id')),
     ).toEqual(['low'])
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(1)
     expect(wrapper.findAll('.waveform-chart__axis--y')).toHaveLength(1)
     expect(wrapper.findAll('.waveform-chart__overlay--independent')).toHaveLength(1)
   })
 
   it('closes an annotation editor when its series is hidden from the legend', async () => {
+    const create = vi.spyOn(AnnotationDraftController.prototype, 'create')
     const wrapper = await mountSizedChart(visibilitySeries(), {
       grid: { rowCount: 1, columnCount: 1 },
       legend: { interactive: true },
@@ -339,13 +348,11 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(annotationEditorExists()).toBe(true)
 
-    const controller = wrapper.getComponent(WaveformChartView).props('controller') as unknown as {
-      annotationInteraction: { editorDraft: { value: { annotation: { seriesId: string } } | null } }
-    }
-    const draftSeriesId = controller.annotationInteraction.editorDraft.value?.annotation.seriesId
+    expect(create).toHaveBeenCalledOnce()
+    const draftSeriesId = create.mock.calls[0][0].seriesId
     const item = wrapper
       .findAll('.waveform-chart__legend-item')
       .find((legendItem) =>
@@ -353,7 +360,7 @@ describe('WaveformChart', () => {
       )
     expect(item).toBeDefined()
     await item!.trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(annotationEditorExists()).toBe(false)
   })
 
@@ -364,7 +371,9 @@ describe('WaveformChart', () => {
     })
 
     expect(wrapper.findAll('.waveform-chart__track')).toHaveLength(4)
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(4)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(4)
     expect(wrapper.findAll('.waveform-chart__overlay--independent')).toHaveLength(4)
     const tracks = wrapper.findAll('.waveform-chart__track')
     const firstTop = Number(tracks[0].attributes('data-track-top'))

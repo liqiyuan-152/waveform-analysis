@@ -2,9 +2,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { paginationItems } from '@/components/controls/pagination'
 import { stepNumberInput } from '@/components/controls/numberInput'
-import { mountModal } from '@/components/controls/modalLifecycle'
-import WaveformPagination from '@/components/controls/WaveformPagination.vue'
-import WaveformNumberInput from '@/components/controls/WaveformNumberInput.vue'
+import { mountModal } from '../../fixtures/legacy/components/controls/modalLifecycle'
+import WaveformPagination from '../../fixtures/legacy/components/controls/WaveformPagination.vue'
+import WaveformNumberInput from '../../fixtures/legacy/components/controls/WaveformNumberInput.vue'
 
 describe('native waveform pagination', () => {
   it.each([

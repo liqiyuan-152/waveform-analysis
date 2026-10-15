@@ -10,17 +10,23 @@ describe('compact shared frame boundaries', () => {
       frameStyle: { borderWidth: 2, borderStyle: 'dashed', backgroundColor: 'white' },
     })
     const frames = wrapper.findAll('.waveform-chart__plot-frame')
-    const width = frames[0].attributes('width')
-    const height = frames[0].attributes('height')
+    const track = wrapper.get('.waveform-chart__track')
+    const width = track.attributes('data-track-width')
+    const height = track.attributes('data-track-height')
     expect(frames[0].element.tagName.toLowerCase()).toBe('path')
     expect(frames[0].attributes('d')).toBe(`M0,${height}V0H${width}V${height}`)
-    expect(frames[1].element.tagName.toLowerCase()).toBe('rect')
+    expect(frames[1].attributes('d')).toBe(`M0,0H${width}V${height}H0Z`)
     for (const frame of frames) {
       expect(frame.attributes('stroke-width')).toBe('2')
       expect(frame.attributes('stroke-dasharray')).toBe('6 4')
     }
     await wrapper.setProps({ displayMode: 'separated' })
-    expect(wrapper.findAll('rect.waveform-chart__plot-frame')).toHaveLength(2)
+    for (const frame of wrapper.findAll('.waveform-chart__plot-frame')) {
+      const track = frame.element.closest('.waveform-chart__track')!
+      expect(frame.attributes('d')).toBe(
+        `M0,0H${track.getAttribute('data-track-width')}V${track.getAttribute('data-track-height')}H0Z`,
+      )
+    }
     wrapper.unmount()
   })
 

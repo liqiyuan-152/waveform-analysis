@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { flushPromises, mount } from '@vue/test-utils'
+import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
 import WaveformChart from '@/components/WaveformChart.vue'
-import { globalAnimator } from '@/animation/core/Animator'
+import { observeNativePresentation } from '@tests/support/nativePresentation'
+let presentation: ReturnType<typeof observeNativePresentation>
 import { generateWaveformPath } from '@/components/animation/geometry'
-import type { TrackLayout } from '@/components/core/types'
 import type { WaveformData, WaveformAnnotation } from '@/index'
 
 function data(y = 10, xs = [0, 1]): WaveformData {
@@ -26,10 +26,11 @@ let now = 0
 const wrappers: Awaited<ReturnType<typeof mountSizedChart>>[] = []
 async function chart(input = data(), props = {}) {
   const wrapper = await mountSizedChart(input, {
+    animationEnabled: true,
     rendering: { sampling: { mode: 'raw' } },
     ...props,
   })
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
   wrappers.push(wrapper)
   return wrapper
@@ -39,12 +40,13 @@ async function frame(ms: number) {
   await vi.advanceTimersByTimeAsync(ms)
   flushAnimationFrames(now)
   await nextTick()
-  await flushPromises()
+  await flushVueChartUpdates()
 }
 function clip(wrapper: Awaited<ReturnType<typeof chart>>) {
   return wrapper.find('.waveform-track__series-item [clipPathUnits] rect')
 }
 beforeEach(() => {
+  presentation = observeNativePresentation()
   now = 0
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
   vi.spyOn(performance, 'now').mockImplementation(() => now)
@@ -52,7 +54,6 @@ beforeEach(() => {
 })
 afterEach(() => {
   wrappers.splice(0).forEach((wrapper) => wrapper.unmount())
-  globalAnimator.destroy()
   vi.restoreAllMocks()
   vi.useRealTimers()
 })
@@ -64,14 +65,12 @@ describe('chart animation composition', () => {
       animationUpdate: { duration: 1000, easing: 'linear' },
     })
     await wrapper.setProps({ data: data(20, [0, 0.5, 1]) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     let previous: string[] = []
     for (const milliseconds of [250, 500]) {
       await frame(milliseconds)
-      const track = wrapper
-        .findComponent({ name: 'WaveformSeriesLayer' })
-        .props('track') as TrackLayout
+      const track = presentation.track(wrapper.element)
       const rendered = wrapper
         .findAll('.waveform-chart__line')
         .map((path) => path.attributes('d') ?? '')
@@ -121,16 +120,17 @@ describe('chart animation composition', () => {
       yDomain: [-5, 25],
     })
     await wrapper.setProps({ data: input(20, 4) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     await frame(500)
-    const path = wrapper.findComponent({ name: 'WaveformSeriesLayer' }).props('track')
-      .seriesPaths[0]
+    const path = presentation.track(wrapper.element).seriesPaths[0]
     for (const points of [
       path.lineRenderPoints,
       path.pointRenderPoints,
       path.errorBarRenderPoints,
     ]) {
+      expect(points).toBeDefined()
+      if (!points) throw new Error('Missing animated geometry')
       expect(points[1]).toMatchObject({ x: 1, y: 15, lowerError: 3, upperError: 3 })
       expect(
         points.every(
@@ -155,20 +155,21 @@ describe('chart animation composition', () => {
       animationAnnotation: { duration: 400, easing: 'linear', onComplete: done, onAbort: aborted },
     })
     await wrapper.setProps({ annotations: [annotation] })
+    await flushVueChartUpdates()
     await frame(100)
     const opacity = () => Number(wrapper.find('.waveform-annotation').attributes('opacity'))
     expect(opacity()).toBeCloseTo(0.25)
     await wrapper.setProps({ data: data(20) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(opacity()).toBeCloseTo(0.25)
     await frame(300)
     expect(opacity()).toBe(1)
     expect(done).toHaveBeenCalledTimes(1)
     expect(aborted).not.toHaveBeenCalled()
-    expect(globalAnimator.getAnimationCount()).toBeGreaterThan(0)
+    expect(presentation.getAnimationCount()).toBeGreaterThan(0)
     await frame(700)
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it('releases a waiting annotation when a data update cancels its series enter', async () => {
     const wrapper = await chart(data(), {
@@ -180,7 +181,7 @@ describe('chart animation composition', () => {
     await frame(100)
     expect(Number(wrapper.find('.waveform-annotation').attributes('opacity'))).toBe(0)
     await wrapper.setProps({ data: data(20) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     await frame(300)
     expect(Number(wrapper.find('.waveform-annotation').attributes('opacity'))).toBe(1)
@@ -188,7 +189,7 @@ describe('chart animation composition', () => {
   })
   it('advances the enter clip without rebuilding unchanged geometry or axes', async () => {
     const wrapper = await chart(data(), { animation: { duration: 1000, easing: 'linear' } })
-    const track = () => wrapper.findComponent({ name: 'WaveformTrackAxes' }).props('track')
+    const track = () => presentation.track(wrapper.element)
     const initial = track()
     const width = Number(clip(wrapper).attributes('width'))
     await frame(300)
@@ -235,7 +236,7 @@ describe('chart animation composition', () => {
     const old = wrapper.find('.waveform-chart__line').attributes('d')
     const oldY = Number(wrapper.find('.waveform-annotation__arrow').attributes('y2'))
     await wrapper.setProps({ data: updated })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(wrapper.find('.waveform-chart__line').attributes('d')).toBe(old)
     await frame(500)
@@ -260,10 +261,12 @@ describe('chart animation composition', () => {
     const path = () => wrapper.find('.waveform-chart__line').attributes('d')
     const start = path()
     await wrapper.setProps({ annotations: [annotation] })
+    await flushVueChartUpdates()
     await wrapper.setProps({ annotations: [] })
+    await flushVueChartUpdates()
     expect(path()).toBe(start)
     await wrapper.setProps({ data: data(20) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(path()).toBe(start)
     await frame(500)
@@ -272,7 +275,7 @@ describe('chart animation composition', () => {
     await frame(500)
     expect(path()).not.toBe(middle)
     expect(initial).toEqual(data())
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it('crossfades whole series and releases previous geometry on a third update', async () => {
     const wrapper = await chart(data(), {
@@ -280,7 +283,7 @@ describe('chart animation composition', () => {
       animationUpdate: { duration: 1000, easing: 'linear' },
     })
     await wrapper.setProps({ data: data(20, [0, 0.5, 1]) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     await frame(400)
     expect(wrapper.findAll('.waveform-track__series-item')).toHaveLength(2)
@@ -290,7 +293,7 @@ describe('chart animation composition', () => {
         .map((item) => Number(item.attributes('opacity'))),
     ).toEqual([0.6, 0.4])
     await wrapper.setProps({ data: data(30, [0, 0.25, 0.5, 1]) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(wrapper.findAll('.waveform-track__series-item')).toHaveLength(1)
   })
@@ -298,21 +301,21 @@ describe('chart animation composition', () => {
     const wrapper = await chart({ kind: 'points', points: [] })
     expect(clip(wrapper).exists()).toBe(false)
     await wrapper.setProps({ data: data() })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(clip(wrapper).exists()).toBe(true)
     await wrapper.setProps({ data: { kind: 'points', points: [] } })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(wrapper.find('.waveform-chart__line').exists()).toBe(false)
   })
   it('finishes latest state before pointer queries and external commands', async () => {
     const wrapper = await chart()
     await frame(400)
-    await wrapper.find('.waveform-chart').trigger('pointermove')
+    await wrapper.get('.waveform-chart__overlay').trigger('pointermove')
     expect(clip(wrapper).exists()).toBe(false)
     await wrapper.setProps({ data: data(20) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     const chartHandle = wrapper.vm as unknown as { fitToData(): unknown }
     chartHandle.fitToData()
@@ -327,10 +330,11 @@ describe('chart animation composition', () => {
     })
     expect(Number(wrapper.find('.waveform-annotation').attributes('opacity'))).toBe(0)
     await wrapper.setProps({ animationAnnotation: { enabled: false } })
+    await flushVueChartUpdates()
     expect(Number(wrapper.find('.waveform-annotation').attributes('opacity'))).toBe(1)
     expect(clip(wrapper).exists()).toBe(true)
     await wrapper.setProps({ animation: { enabled: false } })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(clip(wrapper).exists()).toBe(false)
   })
@@ -342,39 +346,44 @@ describe('chart animation composition', () => {
     })
     await frame(1000)
     await wrapper.setProps({ annotations: [] })
+    await flushVueChartUpdates()
     await frame(400)
     expect(wrapper.find('.waveform-annotation').attributes('data-leaving')).toBe('true')
     expect(Number(wrapper.find('.waveform-annotation').attributes('opacity'))).toBeCloseTo(0.6)
     await wrapper.setProps({ annotations: [annotation] })
+    await flushVueChartUpdates()
     await frame(500)
     expect(wrapper.findAll('.waveform-annotation')).toHaveLength(1)
-    expect(wrapper.find('.waveform-annotation').attributes('data-leaving')).toBeUndefined()
+    expect(wrapper.find('.waveform-annotation').attributes('data-leaving')).toBe('false')
     expect(Number(wrapper.find('.waveform-annotation').attributes('opacity'))).toBeCloseTo(0.8)
     expect(wrapper.emitted('update:annotations')).toBeUndefined()
   })
   it('statically commits resize, hidden state and global disable without replaying', async () => {
     const wrapper = await chart()
     await wrapper.setProps({ animationEnabled: false })
+    await flushVueChartUpdates()
     expect(clip(wrapper).exists()).toBe(false)
     await wrapper.setProps({ animationEnabled: true })
+    await flushVueChartUpdates()
     expect(clip(wrapper).exists()).toBe(false)
     await wrapper.setProps({ data: data(20) })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     await wrapper.setProps({ width: 600 })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
     expect(clip(wrapper).exists()).toBe(false)
     expect(wrapper.findAll('.waveform-track__series-item')).toHaveLength(1)
     await wrapper.setProps({ hiddenSeriesIds: ['a'] })
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-chart__line').exists()).toBe(false)
   })
   it('applies category config before data updates in the same batch', async () => {
     const wrapper = await chart(data(), { animation: { duration: 0 } })
     await wrapper.setProps({ data: data(20), animationUpdate: { enabled: false } })
-    await flushPromises()
+    await flushVueChartUpdates()
     await nextTick()
-    expect(globalAnimator.getAnimationCount()).toBe(0)
+    expect(presentation.getAnimationCount()).toBe(0)
   })
   it.each([50000, 199999, 200000, 200001])(
     'counts full compact data at threshold %s before first display',
@@ -385,6 +394,7 @@ describe('chart animation composition', () => {
         sampleRate: 1000,
       }
       const wrapper = await chart(input, {
+        animationEnabled: true,
         rendering: { sampling: { mode: 'raw' } },
       })
       expect(clip(wrapper).exists()).toBe(count < 200000)
@@ -421,10 +431,10 @@ it('reacts to reduced-motion changes and removes its media and visibility listen
   const wrapper = await chart()
   expect(clip(wrapper).exists()).toBe(true)
   changed({ matches: true } as MediaQueryListEvent)
-  await nextTick()
+  await flushVueChartUpdates()
   expect(clip(wrapper).exists()).toBe(false)
   changed({ matches: false } as MediaQueryListEvent)
-  await nextTick()
+  await flushVueChartUpdates()
   expect(clip(wrapper).exists()).toBe(false)
   wrapper.unmount()
   expect(remove).toHaveBeenCalledWith('change', changed)
@@ -444,7 +454,10 @@ it('pauses background enter without counting hidden time and finishes independen
   await frame(300)
   expect(Number(clip(wrapper).attributes('width'))).toBeCloseTo(width * 2.5)
   const second = await chart()
-  const blob = await wrapper.vm.exportImage({ format: 'svg' })
+  const exported = wrapper.vm.exportImage({ format: 'svg' })
+  await frame(500)
+  await vi.advanceTimersByTimeAsync(16)
+  const blob = await exported
   expect(blob.type).toBe('image/svg+xml')
   expect(clip(wrapper).exists()).toBe(false)
   expect(clip(second).exists()).toBe(true)
@@ -471,26 +484,29 @@ it('counts hidden and non-current-page series against the global threshold', asy
     hiddenSeriesIds: ['b'],
   })
   expect(clip(wrapper).exists()).toBe(false)
-  expect(globalAnimator.getAnimationCount()).toBe(0)
+  expect(presentation.getAnimationCount()).toBe(0)
 })
 
-it('starts initial enter after the first measured content size rather than the outer prop size', async () => {
+it('starts initial enter when a hidden host first becomes measurable', async () => {
   const wrapper = mount(WaveformChart, {
+    attachTo: document.body,
     props: {
       data: data(),
       width: 800,
       height: 360,
+      animationEnabled: true,
       rendering: { sampling: { mode: 'raw' } },
       animation: { duration: 1000, easing: 'linear' },
     },
   })
+  await flushVueChartUpdates()
   wrappers.push(wrapper)
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
-  expect(Number(clip(wrapper).attributes('width'))).toBe(0)
-  expect(globalAnimator.getAnimationCount()).toBe(0)
+  expect(clip(wrapper).exists()).toBe(false)
+  expect(presentation.getAnimationCount()).toBe(0)
   resizeObservers.at(-1)?.resize(798, 358)
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
   expect(clip(wrapper).exists()).toBe(true)
   await frame(500)
@@ -499,8 +515,9 @@ it('starts initial enter after the first measured content size rather than the o
 
 it('enters only a newly added series while keeping its clip during a shared track update', async () => {
   const initial = data() as Extract<WaveformData, { kind: 'series' }>
+  initial.series[0].trackId = 'shared'
   const wrapper = await chart(initial, {
-    displayMode: 'overlay',
+    displayMode: 'separated',
     animation: { duration: 1000, easing: 'linear' },
     animationUpdate: { duration: 1000, easing: 'linear' },
   })
@@ -512,6 +529,7 @@ it('enters only a newly added series while keeping its clip during a shared trac
         initial.series[0],
         {
           id: 'b',
+          trackId: 'shared',
           name: 'B',
           data: {
             kind: 'points',
@@ -524,7 +542,7 @@ it('enters only a newly added series while keeping its clip during a shared trac
       ],
     },
   })
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
   expect(wrapper.find('[data-series-id="a"] [clipPathUnits]').exists()).toBe(false)
   expect(wrapper.find('[data-series-id="b"] [clipPathUnits]').exists()).toBe(true)
@@ -542,11 +560,14 @@ it('clears hidden annotation exit snapshots immediately without ending series en
   })
   await frame(1000)
   await wrapper.setProps({ annotations: [] })
+  await flushVueChartUpdates()
   await frame(200)
   expect(wrapper.find('.waveform-annotation').exists()).toBe(true)
   await wrapper.setProps({ annotationsVisible: false })
+  await flushVueChartUpdates()
   expect(wrapper.find('.waveform-annotation').exists()).toBe(false)
   await wrapper.setProps({ annotationsVisible: true, annotations: [annotation] })
+  await flushVueChartUpdates()
   expect(wrapper.find('.waveform-annotation').exists()).toBe(true)
 })
 
@@ -562,7 +583,7 @@ it('hides an annotation when the latest series has no full-data anchor', async (
       series: [{ id: 'a', name: 'A', data: { kind: 'points', points: [] } }],
     },
   })
-  await flushPromises()
+  await flushVueChartUpdates()
   await nextTick()
   expect(wrapper.find('.waveform-annotation').exists()).toBe(false)
   expect(wrapper.emitted('update:annotations')).toBeUndefined()

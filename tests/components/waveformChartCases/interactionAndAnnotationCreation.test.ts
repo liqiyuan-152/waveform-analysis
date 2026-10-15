@@ -1,9 +1,9 @@
-import { DOMWrapper, flushPromises } from '@vue/test-utils'
+import { DOMWrapper } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { flushAnimationFrames, pendingAnimationFrameCount } from '@tests/support/setup'
 
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 function getAnnotationEditor() {
   const editor = Array.from(document.body.querySelectorAll<HTMLElement>('[role="dialog"]'))
@@ -32,6 +32,7 @@ describe('WaveformChart', () => {
 
       for (const mode of ['zoom', 'pan', 'none', 'annotation'] as const) {
         await wrapper.setProps({ interactionMode: mode })
+        await flushVueChartUpdates()
         await overlay.trigger('contextmenu', { button: 2, clientX: 356, clientY: 145 })
         expect(editorExists()).toBe(false)
         await overlay.trigger('click', { button: 2, clientX: 356, clientY: 145 })
@@ -44,15 +45,17 @@ describe('WaveformChart', () => {
         }
       }
       await wrapper.setProps({ annotationsVisible: false })
+      await flushVueChartUpdates()
       await overlay.trigger('click', { button: 0, clientX: 356, clientY: 145 })
       expect(editorExists()).toBe(false)
       await wrapper.setProps({ annotationsVisible: true })
+      await flushVueChartUpdates()
       await overlay.trigger('click', { button: 0, clientX: 356, clientY: 145 })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(editorExists()).toBe(true)
       expect(wrapper.emitted('annotation-create')).toBeUndefined()
       await getAnnotationEditor().get('.waveform-modal__close').trigger('click')
-      await flushPromises()
+      await flushVueChartUpdates()
       wrapper.unmount()
     },
   )
@@ -101,15 +104,17 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(endpoints()[0]).not.toBe(initialEndpoints[0])
     expect(endpoints()[1]).toBe(initialEndpoints[1])
 
     await wrapper.setProps({ displayMode: 'separated' })
-    await flushPromises()
+    await flushVueChartUpdates()
 
-    expect(wrapper.findAll('.waveform-chart__axis--x')).toHaveLength(1)
+    expect(
+      wrapper.findAll('.waveform-chart__axis--x').filter((axis) => axis.isVisible()),
+    ).toHaveLength(1)
     expect(wrapper.get('.waveform-chart__axis-endpoint--end').text()).toBe('2000')
   })
 
@@ -129,7 +134,7 @@ describe('WaveformChart', () => {
     expect(wrapper.get('.waveform-chart__overlay').classes()).toContain('is-zoomable')
 
     await wrapper.setProps({ zoomable: false, lineColor: '#00aa00' })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.get('.waveform-chart__line').attributes('stroke')).toBe('#00aa00')
     expect(wrapper.get('.waveform-chart__overlay').classes()).not.toContain('is-zoomable')
@@ -169,12 +174,12 @@ describe('WaveformChart', () => {
     expect(pendingAnimationFrameCount()).toBe(1)
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(initialZoomEventCount)
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(initialZoomEventCount + 1)
 
     await wrapper.setProps({ zoomable: false })
-    await flushPromises()
+    await flushVueChartUpdates()
     const zoomEventCount = wrapper.emitted('zoom-change')?.length ?? 0
     overlay.element.dispatchEvent(
       new WheelEvent('wheel', {
@@ -186,7 +191,7 @@ describe('WaveformChart', () => {
       }),
     )
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(wrapper.emitted('zoom-change')?.length ?? 0).toBe(zoomEventCount)
     expect(overlay.classes()).not.toContain('is-zoomable')
@@ -212,7 +217,7 @@ describe('WaveformChart', () => {
     const endpoint = path.match(/L([\d.-]+),([\d.-]+)$/)
     expect(endpoint).not.toBeNull()
 
-    expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
+    expect(wrapper.get('.waveform-chart').attributes('data-interaction-mode')).toBe('annotation')
     overlay.element.dispatchEvent(
       new MouseEvent('click', {
         clientX: Number(endpoint?.[1]),
@@ -221,19 +226,19 @@ describe('WaveformChart', () => {
         cancelable: true,
       }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const editor = getAnnotationEditor()
     await editor.get('textarea[aria-label="标注文本"]').setValue('峰值点')
     await editor.get('.waveform-modal__button--primary').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
 
     const annotations = wrapper.emitted('update:annotations')?.at(-1)?.[0] as
       Array<{ seriesId: string; x: number; y: number; text: string }> | undefined
     expect(annotations).toHaveLength(1)
     expect(annotations?.[0]).toMatchObject({ seriesId: 'series-0', x: 1, y: 5, text: '峰值点' })
     expect(wrapper.emitted('annotation-create')).toHaveLength(1)
-    expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
+    expect(wrapper.get('.waveform-chart').attributes('data-interaction-mode')).toBe('annotation')
   })
 
   it('creates annotations anywhere in the plot after selecting the toolbar annotation mode', async () => {
@@ -254,7 +259,7 @@ describe('WaveformChart', () => {
     })
 
     await wrapper.get('[data-command="annotate"]').trigger('click')
-    expect(wrapper.attributes('data-interaction-mode')).toBe('annotation')
+    expect(wrapper.get('.waveform-chart').attributes('data-interaction-mode')).toBe('annotation')
     overlay.element.dispatchEvent(
       new MouseEvent('click', {
         clientX: overlayWidth / 2,
@@ -262,7 +267,7 @@ describe('WaveformChart', () => {
         bubbles: true,
       }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
     const editor = getAnnotationEditor()
     expect(editor.attributes('role')).toBe('dialog')
     expect(editor.find('.waveform-annotation-editor__content').exists()).toBe(true)
@@ -275,7 +280,7 @@ describe('WaveformChart', () => {
     expect(textareaContextMenu.defaultPrevented).toBe(false)
     await textarea.setValue('左键标注')
     await editor.get('.waveform-modal__button--primary').trigger('click')
-    await flushPromises()
+    await flushVueChartUpdates()
 
     // Annotation snaps to nearest sample point (x=1, y=5)
     expect(wrapper.emitted('update:annotations')?.at(-1)?.[0]).toMatchObject([
@@ -284,6 +289,7 @@ describe('WaveformChart', () => {
     await wrapper.setProps({
       annotations: [{ id: 'left-click', seriesId: 'series-0', x: 1, y: 5, text: '左键标注' }],
     })
+    await flushVueChartUpdates()
     expect(wrapper.find('.waveform-annotation__vertical-line').exists()).toBe(false)
     expect(wrapper.find('.waveform-annotation__anchor').exists()).toBe(false)
     expect(wrapper.get('.waveform-annotation__arrow').attributes('x2')).not.toBe(
@@ -331,7 +337,7 @@ describe('WaveformChart', () => {
     overlays[0].element.dispatchEvent(
       new MouseEvent('click', { clientX: 356, clientY: 30, bubbles: true }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       getAnnotationEditor()
         .get('select[aria-label="选择标注波形"]')
@@ -343,7 +349,7 @@ describe('WaveformChart', () => {
     overlays[0].element.dispatchEvent(
       new MouseEvent('click', { clientX: 356, clientY: 230, bubbles: true }),
     )
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(
       getAnnotationEditor()
         .get('select[aria-label="选择标注波形"]')

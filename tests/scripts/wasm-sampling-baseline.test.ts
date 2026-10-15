@@ -10,7 +10,7 @@ import {
   measureBaseline,
   summarizeMilliseconds,
 } from '../../scripts/wasmSamplingBaseline'
-import { prepareWaveformSeries } from '@/components/core/useWaveformData'
+import { prepareWaveformSeries } from '../fixtures/legacy/components/core/useWaveformData'
 import { resolveWaveformRenderingOptions, selectRenderablePoints } from '@/core'
 import { resolveVisiblePointRange } from '@/core/rendering'
 

@@ -1,4 +1,3 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import {
   hasMinimumVisibleXValues,
@@ -6,7 +5,7 @@ import {
   resolveWaveformRenderingOptions,
 } from '@/core/rendering'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const points = [2134.377, 2134.378, 2134.379].map((time, y) => ({ x: time / 1000, y }))
 const viewport: [number, number] = [2134.3773 / 1000, 2134.3793 / 1000]
@@ -63,9 +62,9 @@ describe('zoom with two visible samples and an outside line neighbor', () => {
       )
       try {
         resizeObservers.at(-1)?.resize(width, 600)
-        await flushPromises()
+        await flushVueChartUpdates()
         w.vm.setViewportDomain(viewport)
-        await flushPromises()
+        await flushVueChartUpdates()
         const overlay = w.get('.waveform-chart__overlay')
         const plotWidth = Number(overlay.attributes('width'))
         const height = Number(overlay.attributes('height'))
@@ -84,13 +83,13 @@ describe('zoom with two visible samples and an outside line neighbor', () => {
             }),
           )
           flushAnimationFrames()
-          await flushPromises()
+          await flushVueChartUpdates()
         }
         const zoom = async () => {
           if (gesture === 'wheel') await wheel(-1)
           else if (gesture === 'button') {
             w.vm.zoomIn()
-            await flushPromises()
+            await flushVueChartUpdates()
           } else {
             for (const [type, ratio] of [
               ['pointerdown', 0.2],
@@ -105,7 +104,7 @@ describe('zoom with two visible samples and an outside line neighbor', () => {
               Object.defineProperty(event, 'pointerId', { value: 81 })
               overlay.element.dispatchEvent(event)
             }
-            await flushPromises()
+            await flushVueChartUpdates()
           }
         }
         expect(visibleCount(domain())).toBe(2)

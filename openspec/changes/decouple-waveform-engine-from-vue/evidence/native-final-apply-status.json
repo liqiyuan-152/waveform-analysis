@@ -1,0 +1,321 @@
+{
+  "changeName": "decouple-waveform-engine-from-vue",
+  "changeDir": "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue",
+  "schemaName": "spec-driven",
+  "contextFiles": {
+    "proposal": [
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/proposal.md"
+    ],
+    "specs": [
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/specs/waveform-framework-consumption/spec.md",
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/specs/waveform-native-behavior-parity/spec.md",
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/specs/waveform-native-instance-api/spec.md",
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/specs/waveform-native-lifecycle/spec.md"
+    ],
+    "design": [
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/design.md"
+    ],
+    "tasks": [
+      "/Users/liqiyuan/WebstormProjects/waveform-analysis/openspec/changes/decouple-waveform-engine-from-vue/tasks.md"
+    ]
+  },
+  "progress": {
+    "total": 57,
+    "complete": 57,
+    "remaining": 0
+  },
+  "tasks": [
+    {
+      "id": "1",
+      "description": "1.1 记录当前入口、默认配置、props/emits、handle 重载和序列化契约，完善 compatibility.md 的原生 API/Vue 兼容矩阵和全部 symbol 清单，逐项关联源码和测试，检查 props 与继承动画字段无遗漏。",
+      "done": true
+    },
+    {
+      "id": "2",
+      "description": "1.2 记录工具栏、动画、采样、原生控件前序变更及工作区基线，交付迁移依赖表，确认不覆盖已有提案和无关改动。",
+      "done": true
+    },
+    {
+      "id": "3",
+      "description": "1.3 建立桌面与约 360px 图表行为/视觉基线和 acceptance.md 定义的数据规模/测量次数/回退阈值基线，保存截图、操作结果、运行环境与测量脚本，不声明未经运行的基线。",
+      "done": true
+    },
+    {
+      "id": "4",
+      "description": "1.4 定义公共 options、instance、events、action 联合及完成事件类型，补类型用例覆盖完整事件参数元组（特别 annotation-update/page-change）、initOptions、off 重载、同步错误码、dispatchAction 判别联合、trackId/旧索引和错误输入；禁止 any 泄漏。",
+      "done": true
+    },
+    {
+      "id": "5",
+      "description": "2.1 分离 prepareWaveformSeries 与 Vue watcher，解除算法、公共类型、序列化和格式化对 Vue barrel 的间接依赖；运行归一化及序列化相关测试。",
+      "done": true
+    },
+    {
+      "id": "6",
+      "description": "2.2 将 src/data 的模拟数据移到 demo/示例专属位置，建立目标业务目录与依赖边界检查；验证 demo 数据导入和检查脚本，不批量移动未迁移模块。",
+      "done": true
+    },
+    {
+      "id": "7",
+      "description": "2.3 提前将 Vue peer 设为 optional、router/旧色选依赖移到开发范围，过渡旧 Vue 入口打包色选及非 Vue 传递实现且保持 Vue external，核对许可证；隔离安装核查依赖树，并验证显式安装 Vue 的旧入口正常。",
+      "done": true
+    },
+    {
+      "id": "8",
+      "description": "2.4 新增 native 独立 ESM/CJS 构建及声明入口，先导出已抽出的算法/类型，保留原根入口；隔离项目验证无 Vue 导入、无浏览器模块加载及 skipLibCheck:false 声明检查，不宣称实例 API 已完成。",
+      "done": true
+    },
+    {
+      "id": "9",
+      "description": "2.5 新增独立 native/style.css，过渡保留旧 style.css 完整样式；验证两入口构建不互相清空 dist，样式无反向框架引用，绘制验证留到 4.4。",
+      "done": true
+    },
+    {
+      "id": "10",
+      "description": "3.1 实现 WaveformChart 门面、init 和 DOM 实例注册，测试无效/跨窗口 DOM、重复初始化不更新配置、创建失败回收、工厂唯一构造、销毁注销与重新创建；将实例接入 native 入口。",
+      "done": true
+    },
+    {
+      "id": "11",
+      "description": "3.2 实现 OptionManager 的顶层替换、嵌套默认值、undefined/空数组规则及输入保护，测试配置更新、冻结输入、非法 data 和混合非法字段原子拒绝；保留原数据容错，并验证 code/field 错误。",
+      "done": true
+    },
+    {
+      "id": "12",
+      "description": "3.3 建立 ChartModel、ViewportModel、SeriesVisibilityModel、PresentationModel 的状态归属，测试逐字段 undefined、受控解除恢复内部值、defaultHiddenSeriesIds 仅初始化及快照隔离；配置/视口/分页模块最终重入验证放到第 7 阶段。",
+      "done": true
+    },
+    {
+      "id": "13",
+      "description": "3.4 实现类型化 ChartEventEmitter，测试参数元组、重复订阅去重、off 重载、异常隔离、派发快照和派发中销毁停止通知及旧取消句柄不误取消新注册；使用基础事件验证回调内重入。",
+      "done": true
+    },
+    {
+      "id": "14",
+      "description": "3.5 实现 ChartResources、dispose/isDisposed 和销毁后调用约定，测试幂等清理、宿主节点保留、单步清理失败继续释放、错误报告、取消订阅安全和已销毁错误。",
+      "done": true
+    },
+    {
+      "id": "15",
+      "description": "4.1 实现 ChartUpdateScheduler 的脏标记、阶段顺序、同帧合并和 rendered/finished/revision 协议，使用可控帧调度验证同步计算快照、连续更新、无变化更新及回调重入；动画/采样稳定集成放到 6/9 阶段。",
+      "done": true
+    },
+    {
+      "id": "16",
+      "description": "4.2 实现 WaveformDataManager 和全量 WaveformQueryService，复用归一化/点源，测试引用更新、同引用样式更新、typed 数据及最近点/范围查询。",
+      "done": true
+    },
+    {
+      "id": "17",
+      "description": "4.3 提取基础域和布局到 ChartLayoutEngine/TrackLayoutBuilder，测试空图、无效数据、固定域、容器尺寸和秒坐标语义。",
+      "done": true
+    },
+    {
+      "id": "18",
+      "description": "4.4 实现 SvgChartRenderer 与基础 TrackView/SeriesView/AxisView，测试稳定 ID 更新、SVG 引用唯一、空图与多实例，不整棵重建 SVG。",
+      "done": true
+    },
+    {
+      "id": "19",
+      "description": "4.5 接入 ResizeObserver 和手动 resize，测试 initOptions.autoResize、缺少 Observer 降级、width/height/自动尺寸优先级、隐藏恢复、宿主样式保护与观察循环。",
+      "done": true
+    },
+    {
+      "id": "20",
+      "description": "4.6 建立 vanilla、Vue DOM ref 和 React DOM ref 最小示例，验证初始化、数据引用更新、rendered 基础事件、尺寸与卸载；React 验证 Strict Mode 和最新回调，不依赖第 7 阶段业务事件。",
+      "done": true
+    },
+    {
+      "id": "21",
+      "description": "5.1 迁移独立/共享轨道布局，运行 layoutAndDomains 和 trackOrder 回归并对照原图表。",
+      "done": true
+    },
+    {
+      "id": "22",
+      "description": "5.2 迁移多轴叠加及固定 Y 域/振幅限制优先级，运行 multiAxisAndPagination、amplitudeLimits 和相关回归；本项依赖基础轨道布局，先于刻度/视图集成完成。",
+      "done": true
+    },
+    {
+      "id": "23",
+      "description": "5.3 迁移刻度、科学计数、时间单位、自定义 formatter 和轴标签测量，测试端点/刻度一致性及显示单位不改变原始坐标。",
+      "done": true
+    },
+    {
+      "id": "24",
+      "description": "5.4 实现 GridView、TitleView、LegendView、ZeroLineView 和点/误差条几何，测试显隐、样式、完整误差域及标题图例、frameNumber/frameNumbers/frameStyle 水印边框、unitDisplayMode/layoutPreset；对照兼容矩阵验证。",
+      "done": true
+    },
+    {
+      "id": "25",
+      "description": "5.5 迁移网格、分页与 clean/presentation mode，测试页码越界修正、系列重排、隐藏状态和小容器布局。",
+      "done": true
+    },
+    {
+      "id": "26",
+      "description": "6.1 将现有采样会话、Worker client 和最新任务调度迁移为职责独立的类，复用底层协议，运行缓存、队列和资源回收回归。",
+      "done": true
+    },
+    {
+      "id": "27",
+      "description": "6.2 接入 JS/WASM/Worker 采样策略与诊断，测试回退、异常、数据/视口/尺寸版本乱序和销毁后返回结果。",
+      "done": true
+    },
+    {
+      "id": "28",
+      "description": "6.3 验证采样仅影响显示几何，全量数据继续服务域、hover、tooltip、标注与误差范围；先以未绘制极值/最近点构造算法查询回归，hover/标注集成依赖第 7/8 阶段再验收。",
+      "done": true
+    },
+    {
+      "id": "29",
+      "description": "6.4 接入现有动画 controller/core/presets，迁移 Vue 展示状态编排，先测试入场、数据更新、分页、禁用、取消、多实例隔离和 finished 语义；标注动画集成留到第 8 阶段，不能在本项提前声明完成。",
+      "done": true
+    },
+    {
+      "id": "30",
+      "description": "6.5 用相同数据和测量方法复测密集波形数据更新和动画，按 acceptance.md 的 20%/5ms 时间阈值记录差异并修复；100 次视口操作和 30 次销毁循环待 7/8/9 完成后在 11.2 综合测量。",
+      "done": true
+    },
+    {
+      "id": "31",
+      "description": "7.1 实现 ChartCommandDispatcher 与 action 联合，复用缩放/fit/reset/set-domain 约束；先测试 dispatchAction/便捷 API、非法目标、旧数字重载及 setOption→命令→查询使用新数据；工具栏集成在第 8 阶段验证。",
+      "done": true
+    },
+    {
+      "id": "32",
+      "description": "7.2 迁移 InteractionManager 和缩放/平移模式，测试滚轮、框选、Space 临时平移、整数缩放、最小点数/跨度和模式禁用条件。",
+      "done": true
+    },
+    {
+      "id": "33",
+      "description": "7.3 迁移远程边界、视口恢复和手势取消，测试 fit 后继续手势、快速替换数据、分页/模式变更及销毁时无跳变或重复事件。",
+      "done": true
+    },
+    {
+      "id": "34",
+      "description": "7.4 实现 HoverController、HoverView 与原生 tooltip，测试全量最近点、交叉线、定位、触摸/鼠标行为及隐藏系列。",
+      "done": true
+    },
+    {
+      "id": "35",
+      "description": "7.5 保留受控 interactionMode 和显隐变更请求，测试宿主未回传不提前生效、默认隐藏项及稳定 ID 重排。",
+      "done": true
+    },
+    {
+      "id": "36",
+      "description": "7.6 逐项验证 intent/change/end/reset/control-state 事件协议、commandId/source、无变化和回调内更新，确保原有相关事件回归通过。",
+      "done": true
+    },
+    {
+      "id": "37",
+      "description": "8.1 实现 AnnotationModel/Controller/View 并迁移布局和序列化，测试 CRUD、拖拽偏移、重投影、隐藏系列和消费者输入不变。",
+      "done": true
+    },
+    {
+      "id": "38",
+      "description": "8.2 实现原生 AnnotationEditor 的文本、时间、保存取消，测试原有限制、时间校验、完整数据吸附和受控替换数组。",
+      "done": true
+    },
+    {
+      "id": "39",
+      "description": "8.3 接入原生颜色/透明度控件和标注动画，验证精确颜色/alpha、键盘操作、焦点及出现/消失动画，记录与旧色选控件的允许视觉差异。",
+      "done": true
+    },
+    {
+      "id": "40",
+      "description": "8.4 迁移 dialog/浮层生命周期、焦点限制/恢复、Esc 层级和滚动锁，测试键盘操作、多实例并行弹窗和卸载清理。",
+      "done": true
+    },
+    {
+      "id": "41",
+      "description": "8.5 实现 ToolbarView/PaginationView 并复用命令和控件逻辑，测试顺序、分组、禁用、受控高亮、触屏/键盘可达及小容器布局。",
+      "done": true
+    },
+    {
+      "id": "42",
+      "description": "9.1 实现 ChartExporter 的有效版本捕获、稳定等待、并发及取消，测试采样/动画期间更新、超时、尺寸变化和销毁。",
+      "done": true
+    },
+    {
+      "id": "43",
+      "description": "9.2 实现自包含 SvgExporter，测试中文标题、轴、图例、标注、样式与当前页/可见性，排除操作层及框架专属样式引用。",
+      "done": true
+    },
+    {
+      "id": "44",
+      "description": "9.3 实现 PngExporter 的 scale/background、Blob 和既有错误码，测试解码、非法参数、零尺寸、编码失败及临时 URL/节点清理。",
+      "done": true
+    },
+    {
+      "id": "45",
+      "description": "9.4 接入工具栏下载与错误反馈，浏览器验证 SVG 独立打开、PNG 解码及失败后控件恢复，不让实例 API 自动下载。",
+      "done": true
+    },
+    {
+      "id": "46",
+      "description": "10.1 将现有 Vue 组件改为薄适配并建立 /vue 入口，保留 props/defaults/handle；测试字段移除传 undefined、data 引用不变时不重复归一化和生命周期清理。",
+      "done": true
+    },
+    {
+      "id": "47",
+      "description": "10.2 按参数元组原样转发全部 Vue emits，检查回调更新和 controlled 行为；运行全部既有 chart cases 及兼容矩阵，记录差异并修复。",
+      "done": true
+    },
+    {
+      "id": "48",
+      "description": "10.3 完善 React、Vue 和 vanilla 示例的受控状态、缩放、标注、导出、尺寸与卸载，验证最新回调、React Strict Mode 和多实例。",
+      "done": true
+    },
+    {
+      "id": "49",
+      "description": "10.4 对照兼容表补 README 的 DOM ref 用法、事件映射、setOption 替换规则、销毁及 SSR 导入说明；通过类型检查验证示例代码。",
+      "done": true
+    },
+    {
+      "id": "50",
+      "description": "10.5 复核 2.3 已调整的依赖和锁文件，移除过渡旧色选实现及其 CSS，合并最终共享样式；检查独立安装依赖树、Vue peer 下限与当前版本消费。",
+      "done": true
+    },
+    {
+      "id": "51",
+      "description": "10.6 完善 package exports、声明生成、CSS/WASM/Worker 资产与消费者验证脚本，验证无框架 ESM/CJS/声明、Vue 入口消费和跨入口实例/函数身份；native 必须重导出根原生实现而非生成重复注册表。",
+      "done": true
+    },
+    {
+      "id": "52",
+      "description": "10.7 在本阶段适配、事件兼容、示例、文档、依赖及产物验证全部通过且满足 acceptance.md 预切换门槛后切换最终根入口，保留 /native 别名与 /vue 入口；记录 Vue import 的破坏性变化、适当版本策略和回退基线，不自动发布。",
+      "done": true
+    },
+    {
+      "id": "53",
+      "description": "11.1 在真实浏览器对原生实例及三种示例验证桌面和约 360px 容器，按 acceptance.md 覆盖 Chromium/Firefox/WebKit、全部功能、键盘、视觉和快速数据更新，保存截图/操作记录，缺失环境不得标通过。",
+      "done": true
+    },
+    {
+      "id": "54",
+      "description": "11.2 综合验证多实例销毁、Observer/Worker/rAF/浮层清理、异步乱序和导出失败；按 acceptance.md 复测全部性能/内存场景及阈值，记录可复现的资源与生命周期结果。",
+      "done": true
+    },
+    {
+      "id": "55",
+      "description": "11.3 使用 Node 22 和 pnpm 10.32.1 运行 frozen install、typecheck、check:file-length、lint:all、test:coverage、build、test:package、pack --dry-run；满足原有覆盖率和 450 行限制，记录实际结果。",
+      "done": true
+    },
+    {
+      "id": "56",
+      "description": "11.4 检查目标依赖方向及无 Vue 原生运行时/声明/CSS 边界，消除长期双份业务实现，复核所有兼容表项目有证据。",
+      "done": true
+    },
+    {
+      "id": "57",
+      "description": "11.5 更新实施与验收记录，未完成任务保持未勾选，运行 OpenSpec 严格校验并复核 scoped diff；不自动提交、推送、打标签、发布或归档。",
+      "done": true
+    }
+  ],
+  "state": "all_done",
+  "instruction": "All tasks are complete! This change is ready to be archived.\nConsider running tests and reviewing the changes before archiving.",
+  "context": "Language: zh-CN\nAll artifacts must be written in zh-CN.\nKeep OpenSpec structural headings and SHALL/MUST keywords in English.\n",
+  "root": {
+    "path": "/Users/liqiyuan/WebstormProjects/waveform-analysis",
+    "source": "nearest"
+  }
+}

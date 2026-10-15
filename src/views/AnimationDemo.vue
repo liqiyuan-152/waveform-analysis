@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { WaveformChart } from '@/index'
+import { WaveformChart } from '@/vue'
 import type {
   AnnotationAnimationType,
   LineDrawingDirection,

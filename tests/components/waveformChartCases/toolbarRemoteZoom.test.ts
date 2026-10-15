@@ -1,6 +1,5 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 
 const data = {
   kind: 'points' as const,
@@ -19,7 +18,7 @@ describe('toolbar integration with remote and integer viewports', () => {
         xDomainStrategy: { type: 'data' },
       })
       try {
-        await flushPromises()
+        await flushVueChartUpdates()
         await w.get('[data-command="zoom-out"]').trigger('click')
         const domain = () => w.vm.getControlState().targets[0]!.viewport.xDomain
         expect(domain()[0]).toBeCloseTo(-1)
@@ -52,7 +51,7 @@ describe('toolbar integration with remote and integer viewports', () => {
       const result = w.vm.setViewportDomain([2.2, 4.1], {})
       expect(result.targets[0]?.after?.xDomain).toEqual([2, 5])
       expect(w.emitted('zoom-end')?.at(-1)?.[0]).toMatchObject({ start: 2, end: 5 })
-      await flushPromises()
+      await flushVueChartUpdates()
       await w.get('[data-command="zoom-out"]').trigger('click')
       expect(w.vm.getControlState().targets[0]?.viewport.xDomain).toEqual([0, 7])
     } finally {

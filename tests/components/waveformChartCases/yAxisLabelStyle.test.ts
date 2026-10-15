@@ -21,7 +21,8 @@ describe('Y-axis name text style', () => {
     async (layoutPreset) => {
       const wrapper = await mountSizedChart(data, { layoutPreset })
       const name = () => wrapper.get('.waveform-chart__y-axis-label')
-      const margin = () => Number(wrapper.attributes('data-chart-left-margin'))
+      const margin = () =>
+        Number(wrapper.get('.waveform-chart').attributes('data-chart-left-margin'))
       const initialMargin = margin()
       const initialX = name().attributes('transform')
       const ticks = wrapper

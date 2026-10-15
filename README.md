@@ -1,7 +1,7 @@
 # Waveform Analysis
 
-基于 Vue 3、TypeScript 和 D3 的响应式 SVG 波形图组件。适合展示单通道、多通道和大规模采样
-数据，内置缩放、tooltip、图例、误差棒、标注、分页和多 Y 轴叠加。
+基于 TypeScript 和 D3 的框架无关 SVG 波形引擎，提供 Vue 3 薄适配和 React/vanilla DOM ref 示例。
+适合展示单通道、多通道和大规模采样数据，内置缩放、tooltip、图例、误差棒、标注、分页和多 Y 轴叠加。
 
 组件使用不可变数据模型：替换 `data` 引用后会重新计算数据域和视口；大数据会按当前可见范围
 和屏幕像素自动保峰降采样，而 tooltip、最近点查询和标注仍使用完整原始数据。
@@ -12,7 +12,7 @@
 
 ## 特性
 
-- Vue 3 Composition API + TypeScript，支持按需导入 `WaveformChart`
+- 框架无关 DOM 实例 API；Vue 3 可通过 `/vue` 按需导入 `WaveformChart`
 - 采样值、显式坐标点和多系列数据模型
 - `independent`、`separated`、`compact` 三种布局模式
 - 曲线、阶梯线、点符号和对称/非对称误差棒
@@ -28,29 +28,132 @@
 
 ## 安装
 
-组件库仅将 Vue 作为 peer dependency；D3 和 vue3-colorpicker 由组件包直接依赖。
+Vue 是可选 peer dependency；只有 `/vue` 组件入口需要业务项目显式安装 Vue。
+D3 是运行时依赖；router 和旧色选包仅作为开发依赖，图表使用原生颜色/透明度控件。
+发布包随附 [第三方许可证通知](THIRD_PARTY_NOTICES.md)，包含外部依赖清单及 WASM 绑定通知。
 分页、标注弹窗与时间输入使用组件自有控件，无需安装 Ant Design Vue 或加载 antd.css。
-安装组件时请确保业务项目同时提供兼容版本的 peer dependency：
+原生实例无需安装 Vue 或 React；使用 Vue 组件时另行提供兼容 Vue：
 
 ```bash
-pnpm add waveform-analysis vue
+pnpm add waveform-analysis
+# Vue 组件消费者
+pnpm add vue
 ```
+
+### 原生实例与 Vue 适配
+
+`waveform-analysis` 提供 `init(dom, options?, initOptions?)`、
+`getInstanceByDom(dom)` 和 `dispose(domOrInstance)`。传入真实 HTMLElement，
+React 使用 `ref.current`，Vue 使用 DOM `ref.value`；原生入口和
+`waveform-analysis/style.css` 的导入与声明无需安装 Vue 或 React。
+`/native` 是根入口的兼容别名，共享全部函数与 DOM 实例注册表；两条样式路径内容相同。
+目前已接入基础 SVG、尺寸、配置、命令、采样、轨道动画、滚轮/框选/平移手势、远程视口恢复、
+hover/交叉线/tooltip、受控标注绘制/标签拖拽/菜单删除、标注编辑器的文本/时间/系列选择、
+原生颜色/透明度控件、标注动画、工具栏/分页和自包含 SVG/PNG 导出。
+Vue 组件是原生实例的薄适配，从 `waveform-analysis/vue` 导入。根入口不再导出 Vue
+`WaveformChart`，原有纯工具与类型保持可用。旧 Vue 项目将组件 import 改为 `/vue`，props、
+事件参数和组件 ref handle 保持兼容。
+
+本分支包含尚未发布的破坏性导入迁移；下一次发布建议使用 `0.2.0-rc.1` 验证后发布 `0.2.0`。
+`0.1.77` 保留为回退基线，实施变更不会自动修改版本、打标签或发布。
+
+```ts
+import { WaveformChart } from 'waveform-analysis/vue'
+import 'waveform-analysis/style.css'
+```
+
+Vue 薄适配保留原 props、事件参数和组件 ref handle。挂载时创建原生实例，卸载时销毁；
+替换 `data` 引用刷新数据，其他配置变化不重复归一化。受控配置由父组件回传，移除可选 prop
+会将对应原生 option 恢复为默认或内部状态。嵌套配置支持 Vue 响应式更新，数据仍遵循不可变契约。
+
+```ts
+import { init } from 'waveform-analysis'
+import 'waveform-analysis/style.css'
+
+const chart = init(
+  containerElement,
+  {
+    data: { kind: 'samples', values: [0, 1, 0], sampleRate: 1000 },
+  },
+  { autoResize: true },
+)
+const cancel = chart.on('rendered', ({ revision }) => console.log(revision))
+chart.setOption({ data: nextData }) // 替换数据引用
+cancel()
+chart.dispose() // 宿主卸载时调用
+```
+
+同一 DOM 重复 `init` 返回原实例且忽略第二次配置；更新请调用 `setOption`。
+该方法按顶层部分更新，嵌套对象和数组整体替换，未传字段保留；可选字段传
+`undefined` 恢复默认或解除受控，`data: undefined` 无效。`annotations` 缺省为 `[]`，
+始终由宿主持久化；显隐和交互模式解除受控后恢复内部状态。X 坐标和事件值始终为秒。
+DOM 更新可合并到下一帧，后续命令和 `getControlState()` 同步采用新数据。
+非法配置以 `invalid-option` 和 `field` 拒绝整次更新；typed 输入只接受 Float32/Float64，
+显式 X 列须为 Float64。无效数值点、采样率及列长度不匹配仍按既有归一化规则容错。
+`finished` 等待当前采样、测量、有限轨道/标注动画和补绘完成，每个业务版本至多一次。
+原生悬停始终查询完整归一化点源；`point-hover` 返回秒坐标的最近点快照，离开时返回 `null`。
+`showTooltip: false` 隐藏 tooltip 和交叉线，保留悬停事件；`presentationMode` 同时停用悬停。
+悬停更新不创建新的业务 revision 或 `finished` 周期，正在进行的轨道动画会先稳定到目标几何。
+`control-state-change` 在微任务中合并同步更新，仅当有效模式、目标视口或命令能力快照变化时
+通知；未回传的受控请求不触发它。初始化快照请同步调用 `getControlState()`。
+原生标注拖拽只发出 `update:annotations` 替换数组，不触发 `annotation-update`；
+宿主通过 `setOption({ annotations })` 回传后提交，未回传时仅保留临时拖拽预览。
+菜单删除先发替换数组，再发 `annotation-delete` 快照，未回传时原标注继续显示。
+编辑器支持最多 40 个 UTF-16 字符，保存时去除文本首尾空白；修改时间失焦或保存时
+吸附当前完整数据中的最近样本，时间输入按 `timeUnit` 显示，事件坐标仍为秒。
+保存前重新校验当前数据范围，取消不发替换数组；Ctrl/⌘+Enter 保存，Esc 取消。
+原生颜色区提供浏览器色板、精确颜色文本和 0–1 透明度输入。颜色文本支持 hex（含 alpha）、
+rgb/rgba、hsl/hsla（逗号语法）与 CSS 命名色；alpha 为 0 时全透明、为 1 时不透明。
+未编辑的原值保持字符串，非法颜色或透明度禁止保存。
+原生控件布局与旧色选弹层不同。宿主回传标注后出现/消失动画才生效，离场快照不接受编辑或拖拽；
+`animationAnnotation` 保留既有预设，`finished` 等待最后一帧绘制或离场节点删除。
+标注标签支持 Enter、Space 或 Shift+F10 打开菜单，方向键/Home/End 导航，Esc 关闭并恢复焦点。
+原生工具栏沿用 `toolbar` 的按钮顺序、分组、位置和 hover/always 配置，约 360px 容器可展开；
+按当前页轨道选择操作目标，切换页或共享布局后清空失效选择。工具栏命令事件携带
+`source: 'toolbar'`，模式按钮高亮使用实际受控状态；分页保留 `page-change(page, pageCount)`。
+原生 `exportImage({ format: 'png', scale: 2, backgroundColor: '#fff' })` 返回 `Promise<Blob>`，
+实例 API 不自动下载；工具栏提供 SVG/PNG 下载和失败反馈。PNG scale 默认 1，范围为 `(0, 4]`；
+SVG 仅允许 scale 为 1。快照包含当前页标题、轴、图例和标注，保留隐藏系列的图例状态，
+排除工具栏、分页按钮、悬停与手势操作层，无需宿主 CSS 即可独立打开。
+导出等待当前采样、字体、测量及有限动画，最长 5 秒；等待或编码期间配置、视口和尺寸改变
+会以 `export-stale` 拒绝，销毁返回 `export-cancelled`，并发请求返回 `export-busy`。
+超时返回 `export-timeout`，非法参数与不可用尺寸分别返回 `export-invalid-options`、
+`export-unavailable`，解码或编码失败返回 `export-render-failed`；失败后可重新请求。
+`dispatchAction` 接受 `zoom-in`、`zoom-out`、`fit`、`reset`、`set-domain`、`set-mode`。
+非法动作类型或模式抛出带 `field` 的 `invalid-option`；无效目标和范围分别返回
+`invalid-target`、`invalid-domain`。旧数字索引重载仍返回 void 且不派发命令事件。
+
+原生模块支持无 `window/document` 的环境导入，初始化在客户端取得 DOM 后执行。
+SSR 只导入类型、算法或入口；Vue DOM ref 在 `onMounted`、React DOM ref 在 effect
+取得 HTMLElement 后调用 `init`，不要在模块顶层或服务端 render 中初始化实例。
+缺少 ResizeObserver 时调用 `resize()`；关闭自动监听可传 `{ autoResize: false }`。
+`dispose()` 幂等且只释放实例资源，销毁后修改、查询和订阅会抛 `instance-disposed`，
+取消订阅仍安全，导出以 `export-cancelled` 拒绝。
+
+可运行的 [React 示例](examples/react/WaveformDemo.tsx)、
+[Vue DOM ref 示例](examples/vue/WaveformDemo.vue) 与
+[原生 DOM 示例](examples/vanilla/VanillaWaveformDemo.ts) 均从 `/native` 导入，
+演示宿主保存受控状态、回传标注替换数组、缩放、导出和卸载。启动方式见
+[示例说明](examples/README.md)。React Strict Mode 会执行初始化→清理→再初始化，
+每次 effect 都必须返回取消订阅及 `dispose()` 的清理函数；稳定订阅通过 ref 读取最新回调。
+同一模块格式的多个入口共享 DOM 注册表；不要混用同一包的 ESM/CJS 或重复安装副本来管理同一 DOM。
 
 ### 运行时版本要求
 
 组件库当前使用或支持以下运行时版本：
 
-| 依赖             | 支持版本      |
-| ---------------- | ------------- |
-| Vue              | `>=3.2.33 <4` |
-| D3               | `>=7.9.0 <8`  |
-| vue3-colorpicker | `>=2.3.0 <3`  |
+| 依赖 | 支持版本      |
+| ---- | ------------- |
+| Vue  | `>=3.2.33 <4` |
+| D3   | `>=7.9.0 <8`  |
 
-其中 Vue 的版本范围是公开的 peer dependency 约束；D3 和 vue3-colorpicker
-随组件包安装。
+其中 Vue 的版本范围是公开的可选 peer dependency 约束；使用 Vue 组件时显式安装 Vue，
+D3 随组件包安装。适配入口已在隔离消费者验证 Vue 3.5.40 + TypeScript 6.0.3，
+以及 Vue 3.2.33 + TypeScript 4.7.4，均使用严格声明检查。Vue 3.2.33 自身的声明
+不兼容 TypeScript 6；旧 Vue 项目应使用匹配的 TypeScript 版本。
 
-仓库 demo 仍使用 Ant Design Vue，它仅作为开发依赖。当前图表和颜色选择器仍依赖 Vue；
-新增控件的计算和弹窗生命周期使用普通 TypeScript，为后续原生图表核心与可选 Vue 包装预留边界。
+仓库 demo 仍使用 Ant Design Vue，它仅作为开发依赖。图表核心与颜色控件使用普通 TypeScript；
+Vue 组件仅负责 props、事件和生命周期适配。
 标注弹窗使用浏览器原生 `<dialog>`，需要支持 `showModal()` 的现代浏览器。
 
 ## 最小示例
@@ -58,7 +161,8 @@ pnpm add waveform-analysis vue
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { WaveformChart, type WaveformData } from 'waveform-analysis'
+import { WaveformChart } from 'waveform-analysis/vue'
+import type { WaveformData } from 'waveform-analysis'
 import 'waveform-analysis/style.css'
 
 const data = ref<WaveformData>({
@@ -85,7 +189,8 @@ const data = ref<WaveformData>({
 ```
 
 父容器需要有明确高度；未指定 `width` 或 `height` 时，组件会填充父容器，并保持最小高度
-`180px`。`WaveformChart` 的正式入口为 `src/index.ts`，样式入口为 `waveform-analysis/style.css`。
+`180px`。Vue `WaveformChart` 从 `waveform-analysis/vue` 导入，对应源码入口 `src/vue.ts`；
+样式入口为 `waveform-analysis/style.css`。
 
 ## 动画
 
@@ -413,7 +518,7 @@ const chartData: WaveformData = {
 
 ```vue
 <script setup lang="ts">
-import { WaveformChart } from 'waveform-analysis'
+import { WaveformChart } from 'waveform-analysis/vue'
 import 'waveform-analysis/style.css'
 </script>
 
@@ -553,8 +658,8 @@ Demo 的 `panXDomain` 同样使用扩展后的记录范围，避免尺寸变化�
 ```vue
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef } from 'vue'
-import { WaveformChart } from '@/index'
-import { createSimulatedWaveformData } from '@/data/simulatedWaveforms'
+import { WaveformChart } from '@/vue'
+import { createSimulatedWaveformData } from '@/demo/data/simulatedWaveforms'
 import { createMockWindowLoader } from '@/demo/remoteWaveformLoader'
 import { useRemoteWaveformWindow } from '@/demo/useRemoteWaveformWindow'
 import { applyXDomainStrategy } from '@/components/core/xDomain'
@@ -1312,10 +1417,10 @@ import { ref } from 'vue'
 import {
   parseWaveformAnnotations,
   serializeWaveformAnnotations,
-  WaveformChart,
   type WaveformAnnotation,
   type WaveformInteractionMode,
 } from 'waveform-analysis'
+import { WaveformChart } from 'waveform-analysis/vue'
 import 'waveform-analysis/style.css'
 
 const annotations = ref<WaveformAnnotation[]>([])
@@ -1375,6 +1480,16 @@ X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为
 | `update:interactionMode`                                        | 受控模式更新请求，由宿主回传后生效                        |
 | `interaction-mode-change`                                       | 实际模式改变后通知                                        |
 | `control-state-change`                                          | 合并通知控制状态快照，不作为加载入口                      |
+| `update:annotations`                                            | 完整替换数组，宿主回传 `annotations` 后生效               |
+| `update:hidden-series-ids`                                      | 完整替换数组，宿主回传 `hiddenSeriesIds` 后生效           |
+| `rendered` / `finished`                                         | `{ revision }`；本帧绘制完成 / 当前版本稳定完成           |
+
+原生实例使用 `chart.on(name, handler)`，Vue 包装使用 `@name="handler"`，事件名称与参数
+顺序相同；例如 `chart.on('annotation-update', (annotation, previous) => …)` 对应
+`@annotation-update="(annotation, previous) => …"`，`page-change` 两个参数依次为页码和总页数。
+原生订阅返回取消函数，也可用 `off(name, handler)` 或 `off(name)`；Vue 包装通过
+emits 转发到最新监听器。`update:interactionMode` 在 Vue 模板中可写
+`@update:interaction-mode` 或 `v-model:interaction-mode`。显示单位不改变事件中的秒坐标。
 
 `annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
 `interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
@@ -1409,17 +1524,24 @@ Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的�
 库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署
 仍需允许库的模块 Worker，并允许浏览器编译 WebAssembly；若策略禁止 `data:` Worker/WASM 资源
 或 WebAssembly 编译，`auto` 可回退到 JavaScript，而强制 `wasm` 会按配置报告失败。当前自动化
-与浏览器烟测覆盖 Chromium；Firefox、Safari、严格 CSP、离线和子路径部署应按
+与浏览器回归覆盖 Chromium、Firefox 和 WebKit；实际 Safari、严格 CSP、离线和子路径部署应按
 [`docs/performance-guide.md`](docs/performance-guide.md) 的发布清单验证。
 
 ## 项目结构
 
-- `src/index.ts`：组件库公开入口和工具函数导出
-- `src/components/WaveformChart.vue`：公共组件边界，连接图表控制器与视图
-- `src/components/WaveformChartView.vue`：图表视图、交互宿主和渲染层编排
-- `src/components/core/useWaveformChartController.ts`：布局、状态和交互控制器编排
-- `src/components/{core,data,rendering,interaction,annotation}`：数据、布局、渲染和交互模块
-- `src/App.vue`：综合可交互 demo，`src/data` 中提供示例波形数据
+- `src/index.ts`：框架无关公开入口；`src/native.ts` 仅重导出根入口，`src/vue.ts` 提供 Vue 适配
+- `src/chart/`：实例门面、初始化注册、事件、调度和资源生命周期
+- `src/model/`、`src/data/`、`src/layout/`：配置与受控状态、全量数据查询、域与轨道布局
+- `src/rendering/`、`src/view/`：SVG 渲染器及稳定 ID 对应的视图对象
+- `src/interaction/`、`src/annotation/`：手势、hover、受控标注与编辑
+- `src/controls/`、`src/export/`：原生工具栏、浮层、分页和 SVG/PNG 导出
+- `src/sampling/`、`src/animation/`：采样会话/Worker 策略和动画编排
+- `src/core/`、`src/types/`、`src/utils/`：共享算法、公开类型和纯辅助函数
+- `src/adapters/vue/`：Vue 薄适配；`src/components/WaveformChart.vue` 保留源码兼容转发
+- `src/components/{core,data,rendering,annotation}`：仍复用的框架无关算法与兼容类型路径
+- `src/styles/`：共享原生样式，根与 `/native/style.css` 产物保持一致
+- `examples/{vanilla,react,vue}/`：DOM ref 消费示例；`tests/fixtures/legacy/`：独立旧版对照夹具
+- `src/App.vue`：综合可交互 demo，`src/demo/data` 中提供示例波形数据
 - `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 与
   `src/views/WasmSamplingDemo.vue` 为专用示例
 - `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 是提交到 Git 的
@@ -1454,7 +1576,7 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 `pnpm format:check` 只读检查 Prettier 格式，`pnpm format` 保持原有的写入行为。
 
 `pnpm build` 同时生成 `dist/` 组件库产物和 `dist-demo/` 演示应用。正式公开入口为
-`src/index.ts`，样式入口为 `src/styles.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
+`src/index.ts`，共享样式入口为 `src/styles/native.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
 
 ### 通道名称与交互图例
 
@@ -1494,7 +1616,7 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'
-import { WaveformChart } from 'waveform-analysis'
+import { WaveformChart } from 'waveform-analysis/vue'
 import type { WaveformChartHandle, WaveformData, WaveformInteractionMode } from 'waveform-analysis'
 
 const chart = ref<WaveformChartHandle>()

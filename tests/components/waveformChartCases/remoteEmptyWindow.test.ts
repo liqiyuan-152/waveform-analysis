@@ -1,7 +1,6 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import type { WaveformData } from '@/types'
-import { mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart } from '@tests/support/waveformChart'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
 
 const data = (count: number): WaveformData => ({
@@ -36,11 +35,11 @@ describe('empty remote windows', () => {
         hiddenSeriesIds: ['b'],
       })
       wrapper.vm.setViewportDomain([12, 14])
-      await flushPromises()
+      await flushVueChartUpdates()
       const before = wrapper.vm.getControlState().targets[0].viewport.xDomain
       const emittedBefore = wrapper.emitted('zoom-change')?.length
       resizeObservers.at(-1)?.resize(320, 600)
-      await flushPromises()
+      await flushVueChartUpdates()
       wrapper.vm
         .getControlState()
         .targets[0].viewport.xDomain.forEach((value, index) =>
@@ -48,7 +47,7 @@ describe('empty remote windows', () => {
         )
       for (const count of [0, 1, 3, 0]) {
         await wrapper.setProps({ data: data(count) })
-        await flushPromises()
+        await flushVueChartUpdates()
         wrapper.vm
           .getControlState()
           .targets[0].viewport.xDomain.forEach((value, index) =>
@@ -60,7 +59,7 @@ describe('empty remote windows', () => {
         expect(wrapper.find('.waveform-chart__overlay').exists()).toBe(true)
       }
       await wrapper.setProps({ timeUnit: 'ms' })
-      await flushPromises()
+      await flushVueChartUpdates()
       wrapper.vm
         .getControlState()
         .targets[0].viewport.xDomain.forEach((value, index) =>
@@ -82,10 +81,10 @@ describe('empty remote windows', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       const zoomed = wrapper.vm.getControlState().targets[0].viewport.xDomain
       expect(zoomed[1] - zoomed[0]).toBeLessThan(2)
-      await wrapper.trigger('pointerenter')
+      await wrapper.get('.waveform-chart').trigger('pointerenter')
       window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
       for (const [type, x] of [
         ['pointerdown', width * 0.8],
@@ -101,7 +100,7 @@ describe('empty remote windows', () => {
         overlay.element.dispatchEvent(event)
       }
       window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Space' }))
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(wrapper.emitted('pan-end')).toHaveLength(1)
       wrapper.unmount()
     },
@@ -121,7 +120,7 @@ describe('empty remote windows', () => {
       remote.vm.getControlState().targets.some((target) => target.trackId === 'series-0'),
     ).toBe(true)
     remote.vm.setViewportDomain([12, 14])
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(remote.vm.getControlState().targets[0].viewport.xDomain[0]).toBeCloseTo(12)
     remote.unmount()
   })

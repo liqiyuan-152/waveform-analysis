@@ -1,9 +1,8 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
 import { type WaveformData } from '@/components/waveform'
 
-import { gridSeries, mountSizedChart } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, gridSeries, mountSizedChart } from '@tests/support/waveformChart'
 
 describe('WaveformChart', () => {
   it('keeps clip path ids unique across chart instances', async () => {
@@ -196,7 +195,7 @@ describe('WaveformChart', () => {
     expect(yAxis.classes()).not.toContain('waveform-track__axis--line-hidden')
 
     await wrapper.setProps({ axes: { x: { lineVisible: false } } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(xAxis.classes()).toContain('waveform-track__axis--line-hidden')
     expect(yAxis.classes()).not.toContain('waveform-track__axis--line-hidden')
     expect(xAxis.get('path.domain').attributes('display')).toBe('none')
@@ -217,7 +216,7 @@ describe('WaveformChart', () => {
       },
       frameStyle: { borderColor: '#dc2626', borderWidth: 2 },
     })
-    await flushPromises()
+    await flushVueChartUpdates()
 
     expect(xAxis.classes()).toContain('waveform-track__axis--line-hidden')
     expect(yAxis.classes()).toContain('waveform-track__axis--line-hidden')
@@ -239,7 +238,7 @@ describe('WaveformChart', () => {
     })
 
     await wrapper.setProps({ axes: { x: { lineVisible: true }, y: { lineVisible: true } } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(xAxis.get('path.domain').attributes('display')).toBeUndefined()
     expect(yAxis.get('path.domain').attributes('display')).toBeUndefined()
   })
@@ -326,7 +325,7 @@ describe('WaveformChart', () => {
     expect(wrapper.findAll('.waveform-chart__series')).toHaveLength(2)
     expect(wrapper.find('.waveform-chart__overlay--independent').exists()).toBe(true)
     expect(wrapper.get('.waveform-chart__title-area').attributes('aria-hidden')).toBe('true')
-    expect(wrapper.find('.waveform-chart__title-visual').exists()).toBe(false)
+    expect(wrapper.find('.waveform-chart__title-visual').isVisible()).toBe(false)
     const xAxis = wrapper.get('.waveform-chart__axis--x')
     const yAxes = wrapper.findAll('.waveform-chart__axis--y')
     expect(yAxes).toHaveLength(2)
@@ -342,20 +341,33 @@ describe('WaveformChart', () => {
     expect(wrapper.find('.waveform-chart__axis-exponent--x').exists()).toBe(false)
     expect(yAxes.some((axis) => axis.text().includes('E+04'))).toBe(true)
     expect(wrapper.find('.waveform-chart__axis-exponent--y').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__grid').exists()).toBe(false)
+    expect(wrapper.findAll('.waveform-chart__grid').some((element) => element.isVisible())).toBe(
+      false,
+    )
     expect(wrapper.get('.waveform-chart__plot-frame').attributes()).toMatchObject({
       stroke: '#dc2626',
       'stroke-width': '2',
       'stroke-dasharray': '6 4',
     })
-    expect(wrapper.find('.waveform-chart__plot-background').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__watermark').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__legend-layer').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__label').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__y-axis-label').exists()).toBe(false)
-    expect(wrapper.find('.waveform-chart__zero-line').exists()).toBe(false)
-    expect(wrapper.find('.waveform-annotation-layer').exists()).toBe(false)
-    expect(wrapper.find('.waveform-pagination').exists()).toBe(false)
+    expect(
+      wrapper.findAll('.waveform-chart__plot-background').some((element) => element.isVisible()),
+    ).toBe(false)
+    expect(
+      wrapper.findAll('.waveform-chart__watermark').some((element) => element.isVisible()),
+    ).toBe(false)
+    for (const selector of [
+      '.waveform-chart__legend',
+      '.waveform-chart__label',
+      '.waveform-chart__y-axis-label',
+      '.waveform-chart__zero-line',
+      '.waveform-annotation',
+      '.waveform-pagination',
+    ]) {
+      expect(
+        wrapper.findAll(selector).some((element) => element.isVisible()),
+        selector,
+      ).toBe(false)
+    }
   })
 
   it('preserves every track geometry in a multi-column clean view', async () => {

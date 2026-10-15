@@ -1,0 +1,11 @@
+@import './base.css';
+@import '../components/rendering/WaveformTrack.css';
+@import '../components/controls/WaveformPagination.css';
+@import '../components/controls/WaveformNumberInput.css';
+@import '../components/controls/WaveformModal.css';
+@import './annotation.css';
+@import './colorInput.css';
+@import './annotationLayer.css';
+@import './legend.css';
+@import './tooltip.css';
+@import './toolbar.css';

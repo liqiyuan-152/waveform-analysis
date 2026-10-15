@@ -1,0 +1,34 @@
+.waveform-color-input {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+.waveform-color-input input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 5px;
+  color: #344054;
+  font: inherit;
+  border: 1px solid #cfd5df;
+  border-radius: 5px;
+  background: #fff;
+}
+.waveform-color-input input[type='color'] {
+  height: 34px;
+  padding: 2px;
+  cursor: pointer;
+}
+.waveform-color-input input:focus-visible {
+  border-color: #1677ff;
+  outline: 3px solid rgb(22 119 255 / 14%);
+}
+.waveform-color-input input[aria-invalid='true'] {
+  border-color: #d92d20;
+}
+.waveform-color-input small {
+  color: #d92d20;
+}
+.waveform-color-input [hidden] {
+  display: none;
+}

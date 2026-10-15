@@ -1,6 +1,5 @@
-import { flushPromises } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
-import { mountSizedChart, gridSeries } from '@tests/support/waveformChart'
+import { flushVueChartUpdates, mountSizedChart, gridSeries } from '@tests/support/waveformChart'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
 import { normalizeWaveformSeries, type WaveformData, type WaveformAmplitudeLimit } from '@/index'
 
@@ -28,7 +27,7 @@ async function finishDataAnimation() {
   const clock = vi.spyOn(performance, 'now').mockReturnValue(performance.now() + 1000)
   try {
     flushAnimationFrames()
-    await flushPromises()
+    await flushVueChartUpdates()
   } finally {
     clock.mockRestore()
   }
@@ -66,10 +65,10 @@ async function drag(w: Chart, vertical = false) {
     })
     Object.defineProperty(event, 'pointerId', { value: 9 })
     overlay.element.dispatchEvent(event)
-    await flushPromises()
+    await flushVueChartUpdates()
   }
   flushAnimationFrames()
-  await flushPromises()
+  await flushVueChartUpdates()
 }
 
 describe('WaveformChart amplitude limits', () => {
@@ -85,11 +84,11 @@ describe('WaveformChart amplitude limits', () => {
       { lower: NaN, upper: Infinity },
     ]) {
       await w.setProps({ amplitudeLimits: { a: limit } })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(domains(w)).toEqual([[-100, 100]])
     }
     await w.setProps({ amplitudeLimits: { a: { lower: -Infinity, upper: 0 } } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(domains(w)).toEqual([[-200, 0]])
     w.unmount()
   })
@@ -126,10 +125,10 @@ describe('WaveformChart amplitude limits', () => {
         }),
       )
       flushAnimationFrames()
-      await flushPromises()
+      await flushVueChartUpdates()
       check()
       await w.setProps({ interactionMode: 'pan' })
-      await flushPromises()
+      await flushVueChartUpdates()
       await drag(w, true)
       await drag(w)
       expect(w.emitted('pan-end')?.length).toBeGreaterThan(0)
@@ -141,17 +140,17 @@ describe('WaveformChart amplitude limits', () => {
         () => w.vm.fitToData(),
       ]) {
         command()
-        await flushPromises()
+        await flushVueChartUpdates()
         check()
       }
       await w.setProps({ data: data(500, 1000) })
-      await flushPromises()
+      await flushVueChartUpdates()
       await finishDataAnimation()
       check()
       expect(w.get('.waveform-chart__line').attributes('d')).toMatch(/^M[^,]+,-/)
       expect(w.find('[clip-path]').exists()).toBe(true)
       resizeObservers.at(-1)?.resize(260, 180)
-      await flushPromises()
+      await flushVueChartUpdates()
       check()
       expect(source).toEqual(original)
       expect(normalizeWaveformSeries(source)[0]!.points.map((p) => p.y)).toEqual([-200, 0, 200])
@@ -191,19 +190,19 @@ describe('WaveformChart amplitude limits', () => {
         ],
       })
       await w.setProps({ data: twoPoints(20, 80) })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(domains(w)).toEqual([first])
       await drag(w, true)
       expect(domains(w)).toEqual([first])
       await w.setProps({ data: twoPoints(100, 150) })
-      await flushPromises()
+      await flushVueChartUpdates()
       await finishDataAnimation()
       expect(domains(w)).toEqual([updated])
       w.vm.resetViewport()
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(domains(w)).toEqual([updated])
       await w.setProps({ amplitudeLimits: {} })
-      await flushPromises()
+      await flushVueChartUpdates()
       expect(domains(w)).toEqual([[95, 155]])
       w.unmount()
     },
@@ -221,12 +220,12 @@ describe('WaveformChart amplitude limits', () => {
     await w.get('[aria-label="下一页"]').trigger('click')
     expect(domains(w)).toEqual([[0, 10]])
     await w.setProps({ amplitudeLimits: { 'channel-1': { lower: -10, upper: 20 } } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(domains(w)).toEqual([[-10, 20]])
     const reordered = gridSeries(2)
     if (reordered.kind === 'series') reordered.series.reverse()
     await w.setProps({ data: reordered })
-    await flushPromises()
+    await flushVueChartUpdates()
     await w.get('[aria-label="上一页"]').trigger('click')
     expect(domains(w)).toEqual([[-10, 20]])
     w.unmount()
@@ -246,16 +245,16 @@ describe('WaveformChart amplitude limits', () => {
     })
     expect(domains(w)).toEqual([[-100, 200]])
     await w.setProps({ overlayMode: 'multi-axis' })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(domains(w)).toEqual([
       [-73, 86],
       [-100, 200],
     ])
     await w.setProps({ hiddenSeriesIds: ['channel-1'], overlayMode: 'single-axis' })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(domains(w)).toEqual([[-73, 86]])
     await w.setProps({ hiddenSeriesIds: ['channel-0', 'channel-1'] })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(domains(w)).toEqual([[-100, 200]])
     w.unmount()
   })
@@ -279,7 +278,7 @@ describe('WaveformChart amplitude limits', () => {
     )
     expect(domains(w)).toEqual([])
     await w.setProps({ data: { kind: 'series', series: [] } })
-    await flushPromises()
+    await flushVueChartUpdates()
     expect(w.find('.waveform-chart').exists()).toBe(true)
     expect(domains(w).every((d) => d.every(Number.isFinite))).toBe(true)
     w.unmount()

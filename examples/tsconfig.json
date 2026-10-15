@@ -1,0 +1,9 @@
+{
+  "extends": "../tsconfig.app.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "skipLibCheck": false,
+    "types": ["vite/client"]
+  },
+  "include": ["./**/*.ts", "./**/*.tsx", "./**/*.vue"]
+}
