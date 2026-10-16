@@ -1,0 +1,280 @@
+
+ RUN  v4.1.10 E:/WebstormProjects/waveform-analysis
+      Coverage enabled with v8
+
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  18:03:06
+   Duration  74.29s (transform 2.46s, setup 1.14s, import 6.35s, tests 63.97s, environment 1.63s)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |    32.5 |    25.69 |   31.87 |   34.82 |
+ src/adapters/vue  |   82.07 |    69.01 |      80 |   87.95 |
+  ...artAdapter.ts |   75.92 |    53.57 |   66.66 |   81.81 | ...09,121,127-131
+  ...formChart.vue |     100 |       50 |     100 |     100 | 40-41
+  ...onSnapshot.ts |   83.33 |    82.05 |     100 |   92.85 | 32,38
+ src/animation     |   42.23 |    29.37 |   39.39 |   46.97 |
+  ...tAnimation.ts |   72.16 |    52.72 |   62.06 |    76.4 | ...73,175,177,184
+  ...Controller.ts |   23.37 |    18.85 |   21.62 |   26.19 | ...94-297,308-311
+ ...animation/core |   12.14 |     6.95 |   10.28 |   13.54 |
+  Animator.ts      |   28.26 |    22.58 |   19.44 |   31.57 | ...50-151,169-194
+  easing.ts        |   16.66 |        0 |       0 |      20 | 69-73
+  errors.ts        |       0 |        0 |       0 |       0 | 4-22
+  handle.ts        |       0 |        0 |       0 |       0 | 11-31
+  ...ertyGroups.ts |    2.77 |        0 |       0 |    3.27 | 32-141
+  task.ts          |       0 |        0 |       0 |       0 | 9-151
+  validation.ts    |    7.36 |     8.33 |      20 |    8.86 | 33-145,171
+  values.ts        |   14.28 |        0 |       0 |      20 | 4-15,19,21,23-37
+ ...n/presentation |   38.87 |    21.85 |      41 |   41.83 |
+  ...esentation.ts |   14.63 |        0 |   23.52 |   17.39 | ...25,130,144-158
+  ...esentation.ts |   21.73 |     4.87 |   36.36 |   20.93 | ...6,51-56,62-113
+  ...esentation.ts |   41.29 |    29.69 |   37.25 |   45.67 | ...28-339,354-395
+  config.ts        |      48 |    27.77 |   33.33 |      50 | ...19,24-28,66-76
+  context.ts       |   69.23 |        0 |      70 |   66.66 | 56-62
+  geometry.ts      |   33.33 |       30 |      20 |   35.93 | ...06,117,137-146
+  pathBuffer.ts    |   97.05 |       75 |      90 |   96.77 | 35
+  ...esentation.ts |   38.46 |    18.18 |   53.84 |   42.22 | 47-52,78-134,152
+ ...mation/presets |    2.15 |        0 |       0 |     2.4 |
+  annotation.ts    |       0 |        0 |       0 |       0 | 20-65
+  lineDrawing.ts   |       0 |        0 |       0 |       0 | 15-46
+  shared.ts        |      10 |        0 |       0 |   11.11 | 17,22-57
+  transitions.ts   |       0 |        0 |       0 |       0 | 17-74
+ src/annotation    |   11.86 |     3.43 |   11.57 |   13.43 |
+  ...ontextMenu.ts |   11.68 |     4.54 |   33.33 |   11.94 | 13-73,79-91
+  ...Controller.ts |      20 |    11.64 |   15.09 |   23.83 | ...91-291,303-324
+  ...Controller.ts |   13.72 |        0 |    12.5 |   16.66 | 22-117
+  ...Controller.ts |   28.03 |     6.25 |   28.57 |   32.22 | ...29-142,151-153
+  ...tionEditor.ts |     0.5 |        0 |       0 |    0.56 | 47-289
+  ...ationModel.ts |    6.97 |        0 |    7.69 |    8.82 | 6,18-72
+  ...tyleEditor.ts |       0 |      100 |       0 |       0 | 11-48
+  ...tationView.ts |   17.85 |        0 |   33.33 |   18.98 | ...30-132,135-195
+  ...tionLayout.ts |    4.28 |        0 |    9.09 |    4.54 | 24-204,216-260
+  ...tionTracks.ts |       0 |        0 |       0 |       0 | 6-11
+  markup.ts        |   11.47 |        0 |       0 |   13.33 | 33-260
+  serialization.ts |    1.61 |        0 |       0 |    1.92 | 9-126
+ src/chart         |   73.67 |    61.83 |   70.24 |    77.9 |
+  ...entEmitter.ts |   76.47 |    47.05 |   85.71 |   85.18 | 17,33-34,46
+  ...tResources.ts |   82.35 |       60 |     100 |   92.85 | 20
+  ...zeObserver.ts |   94.73 |    73.68 |   85.71 |   97.22 | 25
+  ...eScheduler.ts |   77.64 |    69.69 |   66.66 |   85.07 | 43,108,114-133
+  WaveformChart.ts |   71.12 |    49.09 |   69.04 |   72.95 | ...11,424,433-437
+  ...ChartError.ts |       0 |      100 |       0 |       0 | 8-11
+  init.ts          |   57.89 |    66.66 |      60 |   66.66 | 19,28,35-40
+  ...ChartError.ts |       0 |        0 |       0 |       0 | 3-4
+ ...nents/controls |   58.62 |    53.33 |   81.25 |   60.86 |
+  numberInput.ts   |       0 |        0 |       0 |       0 | 2-5
+  pagination.ts    |   22.72 |     7.14 |      75 |   14.28 | 14-27
+  ...arRegistry.ts |   89.65 |     75.6 |   88.88 |    92.3 | 75,109
+ ...omponents/core |    62.7 |    45.73 |   58.69 |   65.94 |
+  ...tudeLimits.ts |   46.15 |    30.55 |      50 |      50 | 10-11,35-43
+  grid.ts          |   90.66 |    58.82 |      80 |   92.42 | 70-74,79
+  layout.ts        |   35.41 |       20 |   34.21 |   37.12 | ...90-192,221-433
+  niceScale.ts     |   54.71 |    44.11 |     100 |   61.36 | ...-77,87,107-112
+  pagination.ts    |       0 |        0 |       0 |       0 | 3
+  title.ts         |   16.66 |        0 |       0 |   16.66 | 27-81
+  ...outBuilder.ts |   95.08 |    63.88 |     100 |   98.18 | 303
+  ...Pagination.ts |   72.22 |    38.46 |   83.33 |   84.61 | 18-19
+  xAxisTicks.ts    |   68.08 |    76.74 |      75 |   83.78 | 45-51
+  xDomain.ts       |   57.89 |    45.83 |      50 |    62.5 | 10-11,30,42-48
+  ...sConstants.ts |   46.15 |        0 |       0 |      60 | 9-12
+  ...LabelStyle.ts |     100 |       40 |     100 |     100 | 5
+  ...outMetrics.ts |       0 |        0 |       0 |       0 | 27-99
+  yAxisPadding.ts  |   90.62 |    61.29 |     100 |     100 | 7-18,27-28,30-72
+  ...paceBudget.ts |   94.11 |       80 |    87.5 |   96.87 | 56
+  ...ableLayout.ts |     100 |    81.25 |     100 |     100 | 23-26,47
+  yAxisTicks.ts    |   45.45 |    31.25 |   33.33 |      40 | 18-26,34,40
+  ...itleLayout.ts |       0 |        0 |       0 |       0 | 15-42
+  yDomain.ts       |      40 |    33.33 |    37.5 |      40 | 16,39-48
+ ...ts/interaction |   64.38 |    56.59 |   59.61 |    68.5 |
+  integerZoom.ts   |   71.05 |    61.76 |   84.61 |   76.66 | 27,57,78-82
+  ...terCapture.ts |       0 |      100 |       0 |       0 | 5-6
+  ...teViewport.ts |   57.14 |       52 |   71.42 |   65.21 | 14-19,34-35
+  ...ctionState.ts |       0 |        0 |       0 |       0 | 33-88
+  ...onstraints.ts |      85 |    69.51 |   91.66 |   91.35 | 173-180
+  ...entPayload.ts |    4.54 |        0 |      10 |    5.26 | 12-81
+ ...ents/rendering |   77.98 |    70.89 |   77.35 |   82.53 |
+  channelLabel.ts  |       0 |        0 |       0 |       0 | 3-4
+  compactFrame.ts  |   81.48 |    77.27 |   66.66 |   95.23 | 28
+  seriesStyle.ts   |   25.58 |    19.23 |   22.22 |   26.31 | 26-27,37-82,93-99
+  updateAxis.ts    |   95.23 |    93.75 |     100 |     100 | 54
+  ...Visibility.ts |   97.05 |    81.57 |     100 |   96.66 | 13
+  ...Visibility.ts |   84.48 |    73.25 |    87.5 |   91.75 | 60-64,118-119,150
+ src/controls      |   15.29 |    20.14 |   25.85 |   15.84 |
+  ...Dispatcher.ts |   81.25 |    73.45 |   95.23 |   84.92 | ...97,217-226,236
+  ...Controller.ts |      52 |    47.36 |   66.66 |      60 | 17-21,37,40-41
+  ColorChannels.ts |       0 |        0 |       0 |       0 | 10-137
+  ...rInputView.ts |    0.64 |        0 |       0 |    0.68 | 20-232
+  ColorPanel.ts    |       0 |        0 |       0 |       0 | 13-141
+  ...teObserver.ts |   95.65 |      100 |     100 |      95 | 34
+  ...Controller.ts |     1.4 |        0 |       0 |    1.65 | 16-80,91-221
+  ModalMotion.ts   |       0 |        0 |       0 |       0 | 5-97
+  ...rInputHold.ts |       0 |        0 |       0 |       0 | 6-97
+  ...rInputView.ts |       0 |        0 |       0 |       0 | 22-162
+  ...Controller.ts |     1.4 |        0 |       0 |    1.56 | 9-184
+  SelectView.ts    |       0 |        0 |       0 |       0 | 16-226
+  ...Controller.ts |   22.58 |        0 |   66.66 |      25 | 16-40
+  ...Controller.ts |   93.93 |     62.5 |      80 |     100 | 30-59
+  colorValue.ts    |       0 |        0 |       0 |       0 | 4-56
+  ...hartAction.ts |      60 |    64.28 |      50 |      75 | 7,19
+ src/core          |   18.66 |    18.02 |   26.14 |   21.08 |
+  ...ointSource.ts |       0 |        0 |       0 |       0 | 5-67
+  data.ts          |   42.55 |    32.71 |   38.88 |      50 | ...22,238-239,255
+  lineBoundary.ts  |    87.5 |       70 |     100 |    87.5 | 6
+  ...formSeries.ts |     100 |    55.55 |     100 |     100 | 45-55
+  rendering.ts     |   14.17 |    14.28 |    9.52 |   15.59 | ...85,296-306,347
+  ...ingOptions.ts |     100 |    67.44 |     100 |     100 | 64,74,84,94-149
+  ...Strategies.ts |     2.4 |        0 |       0 |    2.81 | 24,31-33,37-138
+  ...enceValues.ts |       0 |        0 |       0 |       0 | 10-168
+  wasmSampling.ts  |    1.61 |        0 |       0 |    1.81 | 81-229
+  ...ointSource.ts |   24.67 |     8.69 |   34.04 |   26.56 | ...44,357,367-414
+ ...workerSampling |   47.68 |    39.57 |   57.44 |   51.33 |
+  ...iptBackend.ts |      50 |      100 |       0 |      50 | 8
+  ...resolution.ts |   57.14 |    56.41 |   86.36 |   62.06 | ...90-212,246-274
+  ...Boundaries.ts |   41.17 |    46.66 |     100 |   43.75 | 21-31
+  protocol.ts      |      20 |        0 |       0 |      25 | 200-207
+  repository.ts    |   47.11 |    30.52 |   47.61 |      48 | ...40,281,334-376
+  ...oryDataset.ts |   34.11 |    21.25 |   43.47 |   35.71 | ...13-175,206,224
+  ...orySupport.ts |   45.97 |    43.82 |   52.94 |   53.42 | ...21-149,163-166
+  samplingCache.ts |      50 |       44 |   71.42 |   52.94 | ...59,67-68,73-86
+ src/data          |   43.58 |    36.66 |      40 |   51.72 |
+  ...ataManager.ts |   84.21 |    78.57 |   71.42 |    87.5 | 16,30
+  ...eryService.ts |       5 |        0 |    12.5 |    7.69 | 9-26
+ src/export        |    4.12 |        0 |    8.57 |    4.52 |
+  ChartExporter.ts |    9.89 |        0 |      25 |   11.11 | 25-134
+  PngExporter.ts   |       0 |        0 |       0 |       0 | 5-82
+  SvgExporter.ts   |    6.66 |        0 |       0 |    7.14 | 19-52
+  ...ndExporter.ts |       0 |        0 |       0 |       0 | 6-62
+  ...leExporter.ts |       0 |        0 |       0 |       0 | 5-93
+  ...xportError.ts |       0 |      100 |       0 |       0 | 4-13
+  ...shotStyles.ts |    5.55 |        0 |       0 |    5.88 | 29-59
+ src/interaction   |   45.23 |    29.45 |   47.89 |   50.38 |
+  ...Controller.ts |   37.62 |    14.81 |   21.05 |   44.18 | 34-116,157
+  ...ionContext.ts |   78.26 |       64 |   83.33 |   78.26 | 70-78
+  ...ionManager.ts |   64.17 |       42 |   54.05 |   69.81 | ...44-246,254-271
+  ...Controller.ts |    11.6 |     4.12 |   21.42 |   13.54 | 30-192
+  ...rtRestorer.ts |   36.36 |    38.63 |   44.44 |    37.5 | 60-89,101-127
+  ...Controller.ts |   62.62 |    52.77 |   70.58 |   74.35 | ...12-118,136-138
+  hoverQuery.ts    |       0 |        0 |       0 |       0 | 6-26
+ src/layout        |   98.16 |    64.66 |   96.15 |      99 |
+  ...youtEngine.ts |     100 |     50.9 |     100 |     100 | 28-103
+  ...youtEngine.ts |   98.52 |    72.15 |   94.44 |   98.38 | 105
+  ...xtMeasurer.ts |      90 |       75 |     100 |     100 | 11-18
+ src/model         |   53.48 |    51.89 |   68.57 |   66.66 |
+  ChartModel.ts    |      85 |    57.14 |      75 |     100 | 19-37
+  ...ationModel.ts |   44.44 |       65 |      80 |      50 | 15-16,34-38
+  ...ilityModel.ts |   16.66 |    42.85 |      40 |   22.22 | 14-23
+  ViewportModel.ts |   43.47 |       25 |    62.5 |      50 | 7,38-53
+  ...ateOptions.ts |   48.23 |    52.98 |   57.14 |   65.57 | ...18,129,131,140
+ src/rendering     |    82.4 |    57.42 |   70.83 |   84.48 |
+  ...rtRenderer.ts |   80.76 |    51.78 |   63.15 |   81.81 | ...86-188,195-200
+  SvgDom.ts        |   88.23 |    81.81 |     100 |     100 | 20-30
+  ...ionOptions.ts |     100 |    58.82 |     100 |     100 | 8-10,25,30-34
+ ...ering/geometry |      40 |      100 |   33.33 |      40 |
+  ...esGeometry.ts |      40 |      100 |   33.33 |      40 | 9,17-21
+ src/sampling      |   71.26 |    55.91 |   76.08 |   78.83 |
+  ...kScheduler.ts |   81.08 |       72 |   77.77 |   87.87 | 48-50,87
+  ...ingSession.ts |   76.19 |    63.15 |     100 |      80 | 9-10,38
+  ...Controller.ts |   77.38 |    57.55 |   83.33 |   84.57 | ...29,338,351-361
+  ...ingSession.ts |    87.5 |    64.28 |   57.14 |   91.89 | 11-12,60
+  ...lingClient.ts |   43.26 |     42.3 |      50 |   50.58 | ...39,154-177,195
+  ...ingTargets.ts |   85.36 |       50 |   91.66 |   96.96 | 26
+ src/utils         |   42.66 |    41.76 |      50 |   45.78 |
+  domain.ts        |   92.59 |    78.94 |     100 |   95.45 | 12
+  formatters.ts    |   63.09 |     50.6 |   44.44 |   72.22 | ...21,137,178-244
+  geometry.ts      |       0 |        0 |       0 |       0 | 27-49
+  ...cPrecision.ts |      80 |    72.72 |     100 |     100 | 11-13
+  sampling.ts      |       0 |        0 |       0 |       0 | 27-229
+  xAxisNumber.ts   |   77.77 |       75 |     100 |     100 | 5,9
+ src/view          |   67.55 |    48.82 |   76.47 |   68.96 |
+  AxisView.ts      |   93.81 |    80.51 |     100 |   95.65 | 105-106,132-133
+  GridView.ts      |     100 |       80 |     100 |     100 | 37-46
+  HoverView.ts     |   34.28 |    29.41 |     100 |   34.28 | 32-59,70-73
+  LegendView.ts    |       0 |        0 |       0 |       0 | 27-177
+  ...nationView.ts |   82.25 |    75.51 |   83.33 |   82.14 | 37-39,73-74,79-83
+  SeriesView.ts    |   71.79 |    60.71 |     100 |   71.79 | 92-103
+  TitleView.ts     |   81.81 |    27.77 |     100 |   83.01 | ...99-105,121-122
+  ToolbarView.ts   |   76.51 |    58.46 |   66.66 |   80.45 | ...24-127,154-155
+  TooltipView.ts   |   30.76 |     9.52 |   57.14 |   32.65 | 28-67
+  TrackView.ts     |   95.58 |       60 |     100 |   96.92 | 124-125
+  ZeroLineView.ts  |   86.95 |    77.77 |     100 |    90.9 | 49-50
+  ...pPlacement.ts |       0 |        0 |       0 |       0 | 7-11
+ ...acy/components |       0 |        0 |       0 |       0 |
+  ...ChartView.vue |       0 |        0 |       0 |       0 | 13-309
+ ...ents/animation |       0 |        0 |       0 |       0 |
+  ...ortVersion.ts |       0 |      100 |       0 |       0 | 4
+  ...Animations.ts |       0 |        0 |       0 |       0 | 14-133
+ ...nts/annotation |    1.19 |        0 |       0 |     1.4 |
+  ...ntextMenu.vue |       0 |        0 |       0 |       0 | 9-27
+  ...ionEditor.vue |    4.81 |        0 |       0 |     5.4 | ...04,222,237-281
+  ...tionLayer.vue |       0 |        0 |       0 |       0 | 15-308
+  ...nteraction.ts |       0 |        0 |       0 |       0 | 12-57
+  ...nnotations.ts |    0.55 |        0 |       0 |    0.68 | 54-374
+ ...nents/controls |    1.86 |        0 |       0 |    2.22 |
+  ...formModal.vue |    23.8 |        0 |       0 |   26.31 | 5-29,45,51-58
+  ...mberInput.vue |    7.14 |        0 |       0 |    7.14 | 5-31,35-38
+  ...agination.vue |       0 |        0 |       0 |       0 | 5-55
+  ...rmToolbar.vue |       0 |        0 |       0 |       0 | 5-130
+  chartSnapshot.ts |       0 |      100 |       0 |       0 | 13
+  ...lLifecycle.ts |       0 |      100 |       0 |       0 | 5-7
+  ...rtCommands.ts |    0.65 |        0 |       0 |    0.83 | 43-293
+  ...mageExport.ts |       0 |        0 |       0 |       0 | 10-158
+  ...ontrolMode.ts |       0 |        0 |       0 |       0 | 10-32
+ ...omponents/core |       0 |        0 |       0 |       0 |
+  ...abelLayout.ts |       0 |        0 |       0 |       0 | 10-22
+  ...Controller.ts |       0 |        0 |       0 |       0 | 52-450
+  ...tLifecycle.ts |       0 |        0 |       0 |       0 | 102-308
+  ...veformData.ts |       0 |        0 |       0 |       0 | 12-22
+  ...formLayout.ts |       0 |        0 |       0 |       0 | 62-346
+  ...asurements.ts |       0 |        0 |       0 |       0 | 31-65
+  ...esentation.ts |       0 |        0 |       0 |       0 | 35-193
+  ...erSampling.ts |       0 |      100 |       0 |       0 | 24-49
+  ...ortRestore.ts |       0 |        0 |       0 |       0 | 39-106
+  ...AxisLayout.ts |       0 |      100 |       0 |       0 | 19-41
+ ...ts/interaction |    0.37 |        0 |       0 |    0.43 |
+  ...HoverHost.vue |       0 |        0 |       0 |       0 | 7-21
+  ...rmTooltip.vue |       8 |        0 |       0 |    9.09 | 33-79
+  ...tionTarget.ts |       0 |        0 |       0 |       0 | 2
+  ...ckViewport.ts |       0 |        0 |       0 |       0 | 14-40
+  ...eformHover.ts |       0 |        0 |       0 |       0 | 51-187
+  ...rmViewport.ts |       0 |        0 |       0 |       0 | 68-337
+  ...veformZoom.ts |       0 |        0 |       0 |       0 | 58-266
+  ...portDomain.ts |       0 |        0 |       0 |       0 | 28-66
+  viewportPan.ts   |       0 |        0 |       0 |       0 | 23-81
+ ...ents/rendering |    3.92 |        0 |       0 |    4.25 |
+  ...overLayer.vue |       0 |        0 |       0 |       0 | 6-33
+  ...ormLegend.vue |       0 |        0 |       0 |       0 | 26-86
+  ...riesLayer.vue |       0 |        0 |       0 |       0 | 8-32
+  ...formTrack.vue |       0 |        0 |       0 |       0 | 50-157
+  ...TrackAxes.vue |       0 |        0 |       0 |       0 | 31-273
+  ...kBackdrop.vue |    37.5 |        0 |       0 |    37.5 | 18-33
+  ...ZeroLines.vue |       0 |        0 |       0 |       0 | 5-31
+ ...mponents/utils |       0 |        0 |       0 |       0 |
+  assignElement.ts |       0 |        0 |       0 |       0 | 6
+  ...meThrottle.ts |       0 |        0 |       0 |       0 | 6-55
+ ...s/legacy/utils |      25 |        0 |       0 |      25 |
+  waveformId.ts    |      25 |        0 |       0 |      25 | 7-9
+ tests/support     |    67.3 |       50 |      50 |   67.34 |
+  ...formChart.vue |       0 |        0 |       0 |       0 | 11-56
+  waveformChart.ts |   76.08 |       60 |   53.84 |   76.74 | 15,33,36,64-88
+ wasm/pkg          |    4.65 |        0 |       0 |     4.7 |
+  ...pling_wasm.js |    4.65 |        0 |       0 |     4.7 | ...70-276,283-370
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 32.5% ( 3864/11886 )
+Branches     : 25.69% ( 2229/8676 )
+Functions    : 31.87% ( 816/2560 )
+Lines        : 34.82% ( 3595/10322 )
+================================================================================
+ERROR: Coverage for lines (34.82%) does not meet global threshold (80%)
+ERROR: Coverage for functions (31.87%) does not meet global threshold (80%)
+ERROR: Coverage for statements (32.5%) does not meet global threshold (80%)
+ERROR: Coverage for branches (25.69%) does not meet global threshold (75%)
+ERROR: Coverage for lines (13.54%) does not meet "src/animation/core/**" threshold (90%)
+ERROR: Coverage for functions (10.28%) does not meet "src/animation/core/**" threshold (90%)
+ERROR: Coverage for statements (12.14%) does not meet "src/animation/core/**" threshold (90%)
+ERROR: Coverage for branches (6.95%) does not meet "src/animation/core/**" threshold (80%)
