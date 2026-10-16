@@ -683,11 +683,11 @@ Demo 的 `panXDomain` 同样使用扩展后的记录范围，避免尺寸变化�
 ```vue
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef } from 'vue'
-import { WaveformChart } from '@/vue'
+import { WaveformChart } from 'waveform-analysis/vue'
 import { createSimulatedWaveformData } from '@/demo/data/simulatedWaveforms'
 import { createMockWindowLoader } from '@/demo/remoteWaveformLoader'
 import { useRemoteWaveformWindow } from '@/demo/useRemoteWaveformWindow'
-import { applyXDomainStrategy } from '@/components/core/xDomain'
+import { alignDemoDomain } from '@/demo/alignDemoDomain'
 
 const chart = ref<{ resetViewport: (trackIndex?: number) => void }>()
 const record = shallowRef(createSimulatedWaveformData())
@@ -709,7 +709,7 @@ const {
   loadWindow: createMockWindowLoader(() => record.value, { delayMs: 80 }),
   resetViewport: (index) => chart.value?.resetViewport(index),
 })
-const panXDomain = computed(() => applyXDomainStrategy(recordDomain.value, xDomainStrategy, true))
+const panXDomain = computed(() => alignDemoDomain(recordDomain.value))
 onMounted(() => void resetWaveformViewport())
 </script>
 
@@ -1601,19 +1601,20 @@ Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的�
 - `src/components/{core,data,rendering,annotation}`：仍复用的框架无关算法与兼容类型路径
 - `src/styles/`：共享原生样式，根与 `/native/style.css` 产物保持一致
 - `examples/{vanilla,react,vue}/`：DOM ref 消费示例；`tests/fixtures/legacy/`：独立旧版对照夹具
-- `src/App.vue`：综合可交互 demo，`src/demo/data` 中提供示例波形数据
-- `src/router.ts`：Demo 路由；`src/views/FixedYDomainDemo.vue` 与
-  `src/views/WasmSamplingDemo.vue` 为专用示例
+- `demo-app/`：private workspace 演示应用，只通过库的公开包入口消费组件
+- `demo-app/src/App.vue`：综合可交互 demo，`demo-app/src/demo/data` 提供示例波形数据
+- `demo-app/src/router.ts`、`demo-app/src/views/`：Demo 路由与固定振幅、动画、WASM 专用示例
+- `demo-app/tests/`：demo 测试；`tests/`：库测试与历史对照夹具
 - `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 是提交到 Git 的
   WASM 绑定与二进制产物，`wasm/target` 是本地 Rust 构建缓存，不提交到 Git
 
 ## 本地开发
 
-开发环境要求 Node.js 22、pnpm 10.32.1、Rust 1.95（含 `wasm32-unknown-unknown` target）和 wasm-pack
-0.14.0：
+日常开发环境要求 Node.js 22、pnpm 10.32.1；启动直接使用仓库已有的 `wasm/pkg` 产物，
+不需要安装或校验 Rust 工具链：
 
 ```bash
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
@@ -1635,7 +1636,14 @@ pnpm build
 ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 会依次运行两者。
 `pnpm format:check` 只读检查 Prettier 格式，`pnpm format` 保持原有的写入行为。
 
-`pnpm build` 同时生成 `dist/` 组件库产物和 `dist-demo/` 演示应用。正式公开入口为
+根目录 `pnpm dev` 使用现有 WASM 产物构建库和声明，再启动库构建/声明监听与 demo 服务；
+修改库 TS、Vue 或 CSS 后会更新 demo 消费的包产物，Ctrl-C 停止服务与监听进程。
+demo 的 Ant Design、颜色选择器和路由依赖由 private `demo-app` 声明；库运行时依赖保持独立。
+根 `typecheck` 覆盖库、测试、构建配置和 demo。首次运行测试也会先准备公开包入口。
+
+`pnpm build` 同时生成 `dist/` 组件库产物和根 `dist-demo/` 演示应用。
+`pnpm build:demo` 可独立准备库后构建 demo，`pnpm preview` 预览根 `dist-demo/`。
+正式公开入口为
 `src/index.ts`，共享样式入口为 `src/styles/native.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
 
 ### 通道名称与交互图例
@@ -1655,11 +1663,14 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 
 ### WASM 构建准备与源文件长度
 
-开发命令 `typecheck`、`test`、`test:coverage`、`build` 和打包的 `prepack` 自动校验并准备 WASM。
-准备记录位于忽略的 `node_modules/.cache/waveform/wasm.json`，同时校验 Rust 输入、工具版本及生成文件摘要；
-源码、工具链或产物变化时自动重建。同一输入的连续检查及嵌套打包复用有效产物。
-`pnpm prepare:wasm` 可提前准备，`pnpm build:wasm` 强制重建；不需要在每次测试前手动构建。
-`src/` 文本文件上限为 450 物理行（包含注释和空行），ESLint 与独立长度检查保持一致。
+`dev`、`typecheck`、`test`、`test:coverage`、`build` 和 `prepack` 使用已有的 `wasm/pkg`，
+不调用 Rust 工具链。修改 Rust 源码或缺失 WASM 产物时，显式执行 `pnpm build:wasm` 重新打包，
+再运行这些命令；仅修改 Rust 源码不会自动更新演示中的 WASM。
+Rust/WASM 打包需要 Rust 1.95（含 `wasm32-unknown-unknown` target）和 wasm-pack 0.14.0。
+`pnpm build:wasm` 强制重建；`pnpm prepare:wasm` 则按源码、工具版本和产物摘要校验缓存，
+仅在缓存失效时重建。准备记录位于忽略的 `node_modules/.cache/waveform/wasm.json`。
+`src/` 和 `demo-app/src/` 文本文件上限为 450 物理行（包含注释和空行），
+ESLint 与独立长度检查保持一致。
 
 采样的 `maxPointCount` 是视口内主体点数的目标；为了保持线性和阶梯线在视口边缘连续，
 绘图输出还可能包含左右各一个相邻原始点（最多额外 2 点）。`visiblePointCount` 只统计

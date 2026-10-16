@@ -10,12 +10,16 @@ export async function verifyPackageNativeControls(url) {
   mkdirSync(evidence, { recursive: true })
   const browser = await chromium.launch()
   try {
-    const page = await browser.newPage({ viewport: { width: 1100, height: 850 } })
+    const page = await browser.newPage({ viewport: { width: 1200, height: 850 } })
     const errors = []
     page.on('pageerror', (error) => errors.push(error.message))
     await page.goto(url)
     await page.locator('.waveform-pagination').waitFor()
     assert.equal(await page.evaluate(() => window.packageControls.nativeEntryIdentity), true)
+    assert.deepEqual(await page.evaluate(() => window.packageControls.verifyWasm()), [0, 1, 2, 3])
+    const worker = await page.evaluate(() => window.packageControls.verifyWorkerWasm())
+    assert.equal(worker.backend, 'wasm')
+    assert.ok(worker.points > 0 && worker.points < 2000)
     await page.getByRole('button', { name: '下一页', exact: true }).click()
     await page.waitForFunction(
       () => document.querySelector('[aria-current="page"]')?.textContent === '2',
@@ -59,8 +63,8 @@ export async function verifyPackageNativeControls(url) {
     assert.equal(await page.getByRole('button', { name: '保存标注' }).isDisabled(), true)
     await page.screenshot({ path: `${evidence}/packed-consumer-desktop.png` })
     await page.keyboard.press('Escape')
-    await page.setViewportSize({ width: 390, height: 844 })
-    await page.evaluate(() => window.packageControls.resize(342))
+    await page.setViewportSize({ width: 360, height: 844 })
+    await page.evaluate(() => window.packageControls.resize(312))
     await page.locator('.waveform-annotation__box').click({ button: 'right' })
     await page.getByRole('menuitem', { name: '编辑标注', exact: true }).click()
     await page.getByRole('button', { name: '标注边框色', exact: true }).waitFor()

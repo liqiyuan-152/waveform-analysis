@@ -1,4 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
+import { copyFile, mkdir } from 'node:fs/promises'
+import { resolve } from 'node:path'
 
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vite'
@@ -6,7 +8,20 @@ import { defineConfig } from 'vite'
 const peerDependencies = ['vue', 'd3']
 
 export default defineConfig({
-  plugins: [vue()],
+  // Worker assets must remain relative when the library is consumed from another workspace.
+  base: './',
+  plugins: [
+    vue(),
+    {
+      name: 'waveform-native-styles',
+      async writeBundle(output, bundle) {
+        if (!('style.css' in bundle)) return
+        const directory = output.dir ?? 'dist'
+        await mkdir(resolve(directory, 'native'), { recursive: true })
+        await copyFile(resolve(directory, 'style.css'), resolve(directory, 'native/style.css'))
+      },
+    },
+  ],
   assetsInclude: ['**/*.wasm'],
   resolve: {
     alias: {

@@ -1,6 +1,6 @@
 import ts from 'typescript'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, resolve, sep } from 'node:path'
 
 const seen = new Set()
 const violations = []
@@ -35,7 +35,10 @@ function visit(file) {
     const base = dependency.startsWith('@/')
       ? resolve('src', dependency.slice(2))
       : resolve(dirname(file), dependency)
-    if (!base.startsWith(`${resolve('src')}/`) && !base.startsWith(`${resolve('wasm/pkg')}/`))
+    if (
+      !base.startsWith(`${resolve('src')}${sep}`) &&
+      !base.startsWith(`${resolve('wasm/pkg')}${sep}`)
+    )
       violations.push(`${file}: dependency outside production source: ${dependency}`)
     const target = [
       base,

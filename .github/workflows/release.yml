@@ -63,6 +63,7 @@ jobs:
           echo "package_version=$package_version" >> "$GITHUB_ENV"
 
       - run: pnpm install --frozen-lockfile
+      - run: pnpm prepare:wasm
       - run: pnpm typecheck
       - run: pnpm check:file-length
       - run: pnpm lint:oxlint

@@ -1,0 +1,118 @@
+{
+  "url": "http://127.0.0.1:5287",
+  "checkout": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-workspace-6AOjyI\\clean checkout",
+  "startedAt": "2026-10-16T08:28:55.886Z",
+  "routes": [
+    {
+      "route": "/",
+      "width": 1200,
+      "interactions": [
+        "zoom",
+        "pan",
+        "reset",
+        "annotation",
+        "SVG export"
+      ],
+      "passed": true
+    },
+    {
+      "route": "/",
+      "width": 1200,
+      "screenshot": "workspace-main-1200.png",
+      "passed": true
+    },
+    {
+      "route": "/fixed-y-domain",
+      "width": 1200,
+      "screenshot": "workspace-fixed-y-domain-1200.png",
+      "passed": true
+    },
+    {
+      "route": "/animation",
+      "width": 1200,
+      "screenshot": "workspace-animation-1200.png",
+      "passed": true
+    },
+    {
+      "route": "/wasm-sampling",
+      "width": 1200,
+      "screenshot": "workspace-wasm-sampling-1200.png",
+      "passed": true
+    },
+    {
+      "route": "/",
+      "width": 360,
+      "interactions": [
+        "zoom",
+        "pan",
+        "reset",
+        "annotation",
+        "SVG export"
+      ],
+      "passed": true
+    },
+    {
+      "route": "/",
+      "width": 360,
+      "screenshot": "workspace-main-360.png",
+      "passed": true
+    },
+    {
+      "route": "/fixed-y-domain",
+      "width": 360,
+      "screenshot": "workspace-fixed-y-domain-360.png",
+      "passed": true
+    },
+    {
+      "route": "/animation",
+      "width": 360,
+      "screenshot": "workspace-animation-360.png",
+      "passed": true
+    },
+    {
+      "route": "/wasm-sampling",
+      "width": 360,
+      "screenshot": "workspace-wasm-sampling-360.png",
+      "passed": true
+    }
+  ],
+  "hmr": [
+    {
+      "name": "demo TypeScript",
+      "passed": true,
+      "withoutManualReload": true,
+      "automaticNavigations": 0
+    },
+    {
+      "name": "demo Vue",
+      "passed": true,
+      "withoutManualReload": true,
+      "automaticNavigations": 0
+    },
+    {
+      "name": "library Vue",
+      "passed": true,
+      "withoutManualReload": true,
+      "automaticNavigations": 0
+    },
+    {
+      "name": "library CSS and native copy",
+      "passed": true,
+      "withoutManualReload": true,
+      "automaticNavigations": 0
+    },
+    {
+      "name": "library declarations",
+      "passed": true,
+      "withoutManualReload": true,
+      "automaticNavigations": 0
+    }
+  ],
+  "workers": [
+    "http://127.0.0.1:5287/@fs/C:/Users/lqy15/AppData/Local/Temp/waveform-workspace-6AOjyI/clean%20checkout/dist/assets/nativeWorkerRuntime-BjPsdiUh.js",
+    "http://127.0.0.1:5287/@fs/C:/Users/lqy15/AppData/Local/Temp/waveform-workspace-6AOjyI/clean%20checkout/dist/assets/nativeWorkerRuntime-BjPsdiUh.js"
+  ],
+  "pageErrors": [],
+  "passed": true,
+  "finishedAt": "2026-10-16T08:29:54.374Z"
+}

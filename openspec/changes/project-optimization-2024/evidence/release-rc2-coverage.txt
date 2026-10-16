@@ -1,0 +1,54 @@
+
+> waveform-analysis@0.2.0-rc.2 test:coverage C:\Users\lqy15\AppData\Local\Temp\waveform-workspace-6AOjyI\clean checkout
+> pnpm prepare:demo && vitest run --coverage "--maxWorkers=2"
+
+
+> waveform-analysis@0.2.0-rc.2 prepare:demo C:\Users\lqy15\AppData\Local\Temp\waveform-workspace-6AOjyI\clean checkout
+> pnpm build:lib && pnpm build:types
+
+
+> waveform-analysis@0.2.0-rc.2 build:lib C:\Users\lqy15\AppData\Local\Temp\waveform-workspace-6AOjyI\clean checkout
+> vite build --config vite.lib.config.ts
+
+vite v8.1.5 building client environment for production...
+[2K
+transforming...✓ 185 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/nativeWorkerRuntime-Dzwn-7l4.js  155.10 kB
+dist/assets/workerRuntime-CdNn4TcB.js        155.36 kB
+dist/style.css                                32.59 kB │ gzip:  6.06 kB
+dist/index.js                                  1.15 kB │ gzip:  0.57 kB
+dist/native.js                                 1.15 kB │ gzip:  0.57 kB
+dist/vue.js                                    5.44 kB │ gzip:  2.05 kB
+dist/src-DYdJHVvt.js                          80.49 kB │ gzip: 33.94 kB
+dist/init-BfiRR-cx.js                        296.23 kB │ gzip: 86.28 kB
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - vite:terser (45%)
+  - vite:worker-import-meta-url (38%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[2K
+transforming...✓ 185 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/nativeWorkerRuntime-Dzwn-7l4.js  155.10 kB
+dist/assets/workerRuntime-CdNn4TcB.js        155.36 kB
+dist/style.css                                32.59 kB │ gzip:  6.06 kB
+dist/index.cjs                                 1.84 kB │ gzip:  0.60 kB
+dist/native.cjs                                1.84 kB │ gzip:  0.60 kB
+dist/vue.cjs                                   5.48 kB │ gzip:  2.05 kB
+dist/src-N_tGqEaW.cjs                         81.28 kB │ gzip: 34.07 kB
+dist/init-8mBSr46T.cjs                       297.48 kB │ gzip: 86.44 kB
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `vite:terser`. See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+✓ built in 9.78s
+> waveform-analysis@0.2.0-rc.2 build:types C:\Users\lqy15\AppData\Local\Temp\waveform-workspace-6AOjyI\clean checkout
+> node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json && node scripts/prepare-package-types.mjs
+
+
+ RUN  v4.1.10 C:/Users/lqy15/AppData/Local/Temp/waveform-workspace-6AOjyI/clean checkout
+      Coverage enabled with v8
+

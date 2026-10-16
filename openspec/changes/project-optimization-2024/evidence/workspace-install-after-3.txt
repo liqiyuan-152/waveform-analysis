@@ -1,0 +1,91 @@
+Scope: all 3 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +385
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 385, reused 0, downloaded 0, added 0
+Progress: resolved 385, reused 0, downloaded 22, added 2
+Progress: resolved 385, reused 0, downloaded 54, added 7
+Progress: resolved 385, reused 0, downloaded 71, added 11
+Progress: resolved 385, reused 0, downloaded 111, added 15
+Progress: resolved 385, reused 0, downloaded 140, added 21
+Progress: resolved 385, reused 0, downloaded 159, added 25
+Progress: resolved 385, reused 0, downloaded 174, added 28
+Progress: resolved 385, reused 0, downloaded 204, added 33
+Progress: resolved 385, reused 0, downloaded 225, added 33
+Progress: resolved 385, reused 0, downloaded 244, added 37
+Progress: resolved 385, reused 0, downloaded 254, added 40
+Progress: resolved 385, reused 0, downloaded 267, added 41
+Progress: resolved 385, reused 0, downloaded 300, added 46
+Progress: resolved 385, reused 0, downloaded 312, added 49
+Progress: resolved 385, reused 0, downloaded 318, added 49
+Progress: resolved 385, reused 0, downloaded 323, added 52
+Progress: resolved 385, reused 0, downloaded 330, added 53
+Progress: resolved 385, reused 0, downloaded 334, added 53
+Progress: resolved 385, reused 0, downloaded 336, added 53
+Progress: resolved 385, reused 0, downloaded 339, added 53
+Progress: resolved 385, reused 0, downloaded 345, added 53
+Progress: resolved 385, reused 0, downloaded 350, added 54
+Progress: resolved 385, reused 0, downloaded 353, added 56
+Progress: resolved 385, reused 0, downloaded 355, added 57
+Progress: resolved 385, reused 0, downloaded 360, added 57
+Progress: resolved 385, reused 0, downloaded 366, added 57
+Progress: resolved 385, reused 0, downloaded 373, added 58
+Progress: resolved 385, reused 0, downloaded 375, added 68
+Progress: resolved 385, reused 0, downloaded 376, added 83
+Progress: resolved 385, reused 0, downloaded 376, added 101
+Progress: resolved 385, reused 0, downloaded 378, added 128
+Progress: resolved 385, reused 0, downloaded 380, added 157
+Progress: resolved 385, reused 0, downloaded 380, added 180
+Progress: resolved 385, reused 0, downloaded 380, added 214
+Progress: resolved 385, reused 0, downloaded 380, added 248
+Progress: resolved 385, reused 0, downloaded 380, added 273
+Progress: resolved 385, reused 0, downloaded 380, added 302
+Progress: resolved 385, reused 0, downloaded 380, added 321
+Progress: resolved 385, reused 0, downloaded 380, added 328
+Progress: resolved 385, reused 0, downloaded 381, added 340
+Progress: resolved 385, reused 0, downloaded 381, added 362
+Progress: resolved 385, reused 0, downloaded 381, added 370
+Progress: resolved 385, reused 0, downloaded 381, added 373
+Progress: resolved 385, reused 0, downloaded 381, added 375
+Progress: resolved 385, reused 0, downloaded 381, added 380
+Progress: resolved 385, reused 0, downloaded 381, added 381
+Progress: resolved 385, reused 0, downloaded 382, added 381
+Progress: resolved 385, reused 0, downloaded 383, added 381
+Progress: resolved 385, reused 0, downloaded 384, added 381
+Progress: resolved 385, reused 0, downloaded 385, added 381
+Progress: resolved 385, reused 0, downloaded 385, added 382
+Progress: resolved 385, reused 0, downloaded 385, added 383
+Progress: resolved 385, reused 0, downloaded 385, added 385, done
+
+dependencies:
++ @types/d3 7.4.3
++ d3 7.9.0
+
+devDependencies:
++ @eslint/js 10.0.1
++ @types/node 26.1.1
++ @types/react 19.2.0
++ @types/react-dom 19.2.0
++ @vitejs/plugin-vue 6.0.8
++ @vitest/coverage-v8 4.1.10
++ @vue/test-utils 2.4.11
++ eslint 10.7.0
++ eslint-config-prettier 10.1.8
++ eslint-plugin-vue 10.9.2
++ globals 17.7.0
++ jsdom 29.1.1
++ oxlint 1.77.0
++ playwright 1.56.1
++ prettier 3.9.5
++ react 19.2.0
++ react-dom 19.2.0
++ terser 5.51.2
++ typescript 6.0.3
++ typescript-eslint 8.64.0
++ vite 8.1.5
++ vitest 4.1.10
++ vue 3.5.40
++ vue-tsc 3.3.7
+
+Done in 1m 20s using pnpm v10.32.1

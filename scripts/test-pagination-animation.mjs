@@ -146,7 +146,7 @@ try {
         const resources = await page.evaluate(() => globalThis.animationBenchmark.unmount())
         assert.equal(resources.tasks, 0)
         assert.equal(resources.elements, 0)
-        await page.goto('http://localhost:5179/#/animation')
+        await page.goto('http://localhost:5179/demo-app/index.html#/animation')
         await page.getByRole('heading', { name: '波形动画', exact: true }).waitFor()
         await settle(page)
         await page.getByRole('button', { name: '增删标注', exact: true }).click()

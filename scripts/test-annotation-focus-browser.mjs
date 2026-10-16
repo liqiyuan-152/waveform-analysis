@@ -11,7 +11,7 @@ await build({
   build: {
     outDir,
     rolldownOptions: {
-      input: [resolve('tests/browser/native-floating.html'), resolve('index.html')],
+      input: [resolve('tests/browser/native-floating.html'), resolve('demo-app/index.html')],
     },
   },
 })

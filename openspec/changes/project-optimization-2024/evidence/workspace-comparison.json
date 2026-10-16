@@ -1,0 +1,253 @@
+{
+  "installations": [
+    {
+      "scope": "workspace",
+      "cache": "cold",
+      "beforeMs": 78225.0289,
+      "afterMs": 80167.62280000001,
+      "beforeBytes": 263753369,
+      "afterBytes": 263756829
+    },
+    {
+      "scope": "workspace",
+      "cache": "hot",
+      "beforeMs": 16066.117999999988,
+      "afterMs": 17207.96789999999,
+      "beforeBytes": 263751117,
+      "afterBytes": 263754575
+    },
+    {
+      "scope": "library-dev",
+      "cache": "cold",
+      "beforeMs": 69645.54189999998,
+      "afterMs": 24961.012999999977,
+      "beforeBytes": 263757875,
+      "afterBytes": 184208617
+    },
+    {
+      "scope": "library-dev",
+      "cache": "hot",
+      "beforeMs": 14955.45199999999,
+      "afterMs": 6412.053400000033,
+      "beforeBytes": 263755623,
+      "afterBytes": 184206507
+    },
+    {
+      "scope": "runtime",
+      "cache": "cold",
+      "beforeMs": 4234.459499999997,
+      "afterMs": 4463.244499999972,
+      "beforeBytes": 5306731,
+      "afterBytes": 5307851
+    },
+    {
+      "scope": "runtime",
+      "cache": "hot",
+      "beforeMs": 1477.4133000000147,
+      "afterMs": 1489.8383999999496,
+      "beforeBytes": 5306243,
+      "afterBytes": 5307361
+    }
+  ],
+  "builds": {
+    "before": [
+      13684.0169,
+      10235.4796,
+      8360.826800000003
+    ],
+    "after": [
+      39710.7735,
+      37232.22150000001,
+      36448.773600000015
+    ]
+  },
+  "artifacts": {
+    "before": {
+      "entries": {
+        "index.js": {
+          "files": [
+            ".\\dist\\index.js",
+            ".\\dist\\init-BfOBYmVT.js",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-DUMh7yv2.js"
+          ],
+          "gzipBytes": 226844
+        },
+        "index.cjs": {
+          "files": [
+            ".\\dist\\index.cjs",
+            ".\\dist\\init-CCBjU88f.cjs",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-b4C2Jfa_.cjs"
+          ],
+          "gzipBytes": 227035
+        },
+        "native.js": {
+          "files": [
+            ".\\dist\\native.js",
+            ".\\dist\\init-BfOBYmVT.js",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-DUMh7yv2.js"
+          ],
+          "gzipBytes": 226844
+        },
+        "native.cjs": {
+          "files": [
+            ".\\dist\\native.cjs",
+            ".\\dist\\init-CCBjU88f.cjs",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-b4C2Jfa_.cjs"
+          ],
+          "gzipBytes": 227035
+        },
+        "vue.js": {
+          "files": [
+            ".\\dist\\vue.js",
+            ".\\dist\\init-BfOBYmVT.js",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js"
+          ],
+          "gzipBytes": 194690
+        },
+        "vue.cjs": {
+          "files": [
+            ".\\dist\\vue.cjs",
+            ".\\dist\\init-CCBjU88f.cjs",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js"
+          ],
+          "gzipBytes": 194729
+        }
+      },
+      "allJsGzipBytes": 352043,
+      "byExtension": {
+        "css": 65196,
+        "wasm": 0,
+        "d.ts": 226023
+      },
+      "inlineWasm": [
+        {
+          "sha256": "4dedddac1757c2ce5dde2c6130d7241a91c773fdb2975dc9dc3d2ce7e8cbfe43",
+          "decodedBytes": 55331,
+          "files": [
+            "dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            "dist\\assets\\workerRuntime-D5d10VWU.js",
+            "dist\\src-b4C2Jfa_.cjs",
+            "dist\\src-DUMh7yv2.js"
+          ]
+        }
+      ],
+      "dist": {
+        "path": "dist",
+        "files": 211,
+        "logicalBytes": 1373709,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    "after": {
+      "entries": {
+        "index.js": {
+          "files": [
+            ".\\dist\\index.js",
+            ".\\dist\\init-BeIoYfU-.js",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-DQqIyooW.js"
+          ],
+          "gzipBytes": 226849
+        },
+        "index.cjs": {
+          "files": [
+            ".\\dist\\index.cjs",
+            ".\\dist\\init-73s6rnQS.cjs",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-_y91SCRv.cjs"
+          ],
+          "gzipBytes": 227162
+        },
+        "native.js": {
+          "files": [
+            ".\\dist\\native.js",
+            ".\\dist\\init-BeIoYfU-.js",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-DQqIyooW.js"
+          ],
+          "gzipBytes": 226849
+        },
+        "native.cjs": {
+          "files": [
+            ".\\dist\\native.cjs",
+            ".\\dist\\init-73s6rnQS.cjs",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js",
+            ".\\dist\\src-_y91SCRv.cjs"
+          ],
+          "gzipBytes": 227162
+        },
+        "vue.js": {
+          "files": [
+            ".\\dist\\vue.js",
+            ".\\dist\\init-BeIoYfU-.js",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js"
+          ],
+          "gzipBytes": 194697
+        },
+        "vue.cjs": {
+          "files": [
+            ".\\dist\\vue.cjs",
+            ".\\dist\\init-73s6rnQS.cjs",
+            ".\\dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            ".\\dist\\assets\\workerRuntime-D5d10VWU.js"
+          ],
+          "gzipBytes": 194855
+        }
+      },
+      "allJsGzipBytes": 352172,
+      "byExtension": {
+        "css": 65196,
+        "wasm": 0,
+        "d.ts": 226023
+      },
+      "inlineWasm": [
+        {
+          "sha256": "4dedddac1757c2ce5dde2c6130d7241a91c773fdb2975dc9dc3d2ce7e8cbfe43",
+          "decodedBytes": 55331,
+          "files": [
+            "dist\\assets\\nativeWorkerRuntime-BjPsdiUh.js",
+            "dist\\assets\\workerRuntime-D5d10VWU.js",
+            "dist\\src-DQqIyooW.js",
+            "dist\\src-_y91SCRv.cjs"
+          ]
+        }
+      ],
+      "dist": {
+        "path": "dist",
+        "files": 211,
+        "logicalBytes": 1374287,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    }
+  },
+  "tarball": {
+    "before": [
+      {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-CFu61H\\waveform-analysis-0.2.0-rc.1.tgz",
+        "bytes": 694969
+      }
+    ],
+    "after": [
+      {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-b2bJx8\\waveform-analysis-0.2.0-rc.1.tgz",
+        "bytes": 662697
+      }
+    ]
+  },
+  "caveat": "Both sets overlap other work; after initially under memory pressure. Observations, not causal speed estimates."
+}

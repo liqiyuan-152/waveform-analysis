@@ -157,7 +157,7 @@ try {
   }
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 })
-    await page.goto('http://localhost:5198/')
+    await page.goto('http://localhost:5198/demo-app/index.html')
     await page.waitForSelector('.waveform-chart__line[d]:not([display="none"])')
     await page.waitForTimeout(500)
     const axes = await page.locator('.waveform-track__axis--y').count()

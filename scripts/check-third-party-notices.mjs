@@ -88,7 +88,12 @@ const expected = await format(`${lines.join('\n').trim()}\n`, {
   filepath: destination,
 })
 if (process.argv.includes('--write')) writeFileSync(destination, expected)
-else assert.equal(readFileSync(destination, 'utf8'), expected, 'Regenerate third-party notices')
+else
+  assert.equal(
+    readFileSync(destination, 'utf8').replaceAll('\r\n', '\n'),
+    expected.replaceAll('\r\n', '\n'),
+    'Regenerate third-party notices',
+  )
 console.log(
   `Third-party notices verified: ${external.length} npm packages; ${crates.length} Rust crates`,
 )

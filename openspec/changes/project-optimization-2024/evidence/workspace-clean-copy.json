@@ -1,0 +1,8 @@
+{
+  "root": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-workspace-6AOjyI\\clean checkout",
+  "head": "4bd09b90eb0571bc45eaf5ecc9a38d55b548bc0c",
+  "createdAt": "2026-10-16T07:57:28.345Z",
+  "dist": false,
+  "distDemo": false,
+  "method": "Local clone of baseline HEAD, overlay current tracked and intended new files; remove deleted tracked files; no node_modules or build outputs copied"
+}

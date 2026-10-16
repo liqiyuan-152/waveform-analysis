@@ -1,0 +1,505 @@
+{
+  "label": "baseline-install",
+  "date": "2026-10-16T07:17:38.385Z",
+  "node": "v22.22.2",
+  "machine": {
+    "platform": "win32",
+    "release": "10.0.26300",
+    "cpu": "AMD Ryzen 7 5800H with Radeon Graphics         "
+  },
+  "temporary": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3",
+  "lockSha256": "65bdca772f1393cecd8957a444ba710c359bff71320af2c3bca655850fc0a27a",
+  "commands": [
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-cold",
+      "exitCode": 0,
+      "ms": 60898.0833,
+      "log": "baseline-install-1.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-hot",
+      "exitCode": 0,
+      "ms": 13296.565499999997,
+      "log": "baseline-install-2.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-cold",
+      "exitCode": 0,
+      "ms": 78759.76980000001,
+      "log": "baseline-install-3.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-hot",
+      "exitCode": 0,
+      "ms": 16066.117999999988,
+      "log": "baseline-install-4.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-cold",
+      "exitCode": 0,
+      "ms": 78225.0289,
+      "log": "baseline-install-5.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-hot",
+      "exitCode": 0,
+      "ms": 18753.073399999994,
+      "log": "baseline-install-6.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-cold",
+      "exitCode": 0,
+      "ms": 9823.59229999996,
+      "log": "baseline-install-7.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-hot",
+      "exitCode": 0,
+      "ms": 1769.3930999999866,
+      "log": "baseline-install-8.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-cold",
+      "exitCode": 0,
+      "ms": 4234.459499999997,
+      "log": "baseline-install-9.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-hot",
+      "exitCode": 0,
+      "ms": 1477.4133000000147,
+      "log": "baseline-install-10.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-cold",
+      "exitCode": 0,
+      "ms": 3465.728800000041,
+      "log": "baseline-install-11.txt"
+    },
+    {
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-hot",
+      "exitCode": 0,
+      "ms": 1352.7840000000433,
+      "log": "baseline-install-12.txt"
+    }
+  ],
+  "installations": [
+    {
+      "scope": "workspace",
+      "repetition": 1,
+      "cache": "cold",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-cold",
+      "exitCode": 0,
+      "ms": 60898.0833,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-cold\\node_modules",
+        "files": 30723,
+        "logicalBytes": 263753369,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "workspace",
+      "repetition": 1,
+      "cache": "hot",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-hot",
+      "exitCode": 0,
+      "ms": 13296.565499999997,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-1-hot\\node_modules",
+        "files": 30723,
+        "logicalBytes": 263751117,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "workspace",
+      "repetition": 2,
+      "cache": "cold",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-cold",
+      "exitCode": 0,
+      "ms": 78759.76980000001,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-cold\\node_modules",
+        "files": 30723,
+        "logicalBytes": 263753369,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "workspace",
+      "repetition": 2,
+      "cache": "hot",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-hot",
+      "exitCode": 0,
+      "ms": 16066.117999999988,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-2-hot\\node_modules",
+        "files": 30723,
+        "logicalBytes": 263751117,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "workspace",
+      "repetition": 3,
+      "cache": "cold",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-cold",
+      "exitCode": 0,
+      "ms": 78225.0289,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-cold\\node_modules",
+        "files": 30723,
+        "logicalBytes": 263753369,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "workspace",
+      "repetition": 3,
+      "cache": "hot",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-store",
+        "--reporter=append-only"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-hot",
+      "exitCode": 0,
+      "ms": 18753.073399999994,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\workspace-3-hot\\node_modules",
+        "files": 30723,
+        "logicalBytes": 263751117,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "runtime",
+      "repetition": 1,
+      "cache": "cold",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-cold",
+      "exitCode": 0,
+      "ms": 9823.59229999996,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-cold\\node_modules",
+        "files": 1132,
+        "logicalBytes": 5306731,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "runtime",
+      "repetition": 1,
+      "cache": "hot",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-hot",
+      "exitCode": 0,
+      "ms": 1769.3930999999866,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-1-hot\\node_modules",
+        "files": 1132,
+        "logicalBytes": 5306243,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "runtime",
+      "repetition": 2,
+      "cache": "cold",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-cold",
+      "exitCode": 0,
+      "ms": 4234.459499999997,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-cold\\node_modules",
+        "files": 1132,
+        "logicalBytes": 5306731,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "runtime",
+      "repetition": 2,
+      "cache": "hot",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-hot",
+      "exitCode": 0,
+      "ms": 1477.4133000000147,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-2-hot\\node_modules",
+        "files": 1132,
+        "logicalBytes": 5306243,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "runtime",
+      "repetition": 3,
+      "cache": "cold",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-cold",
+      "exitCode": 0,
+      "ms": 3465.728800000041,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-cold\\node_modules",
+        "files": 1132,
+        "logicalBytes": 5306731,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    },
+    {
+      "scope": "runtime",
+      "repetition": 3,
+      "cache": "hot",
+      "args": [
+        "install",
+        "--frozen-lockfile",
+        "--ignore-scripts",
+        "--store-dir",
+        "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-store",
+        "--reporter=append-only",
+        "--prod",
+        "--filter",
+        "waveform-analysis"
+      ],
+      "cwd": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-hot",
+      "exitCode": 0,
+      "ms": 1352.7840000000433,
+      "disk": {
+        "path": "C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-measure-YTZ6W3\\runtime-3-hot\\node_modules",
+        "files": 1132,
+        "logicalBytes": 5306243,
+        "symlinks": "not followed; logical bytes, not allocated size"
+      }
+    }
+  ],
+  "builds": [],
+  "disk": [
+    {
+      "path": "node_modules",
+      "files": 31699,
+      "logicalBytes": 312874448,
+      "symlinks": "not followed; logical bytes, not allocated size"
+    },
+    {
+      "path": "dist",
+      "files": 211,
+      "logicalBytes": 1399469,
+      "symlinks": "not followed; logical bytes, not allocated size"
+    },
+    {
+      "path": "dist-demo",
+      "files": 16,
+      "logicalBytes": 1747599,
+      "symlinks": "not followed; logical bytes, not allocated size"
+    }
+  ]
+}

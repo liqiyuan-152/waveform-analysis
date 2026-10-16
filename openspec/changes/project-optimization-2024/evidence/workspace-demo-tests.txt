@@ -1,0 +1,170 @@
+
+> waveform-analysis@0.2.0-rc.1 test E:\WebstormProjects\waveform-analysis
+> pnpm prepare:demo && vitest run "demo-app/tests" "--maxWorkers=1"
+
+
+> waveform-analysis@0.2.0-rc.1 prepare:demo E:\WebstormProjects\waveform-analysis
+> pnpm prepare:wasm && pnpm build:lib && pnpm build:types
+
+
+> waveform-analysis@0.2.0-rc.1 prepare:wasm E:\WebstormProjects\waveform-analysis
+> node scripts/prepare-wasm.mjs
+
+WASM preparation verified; reusing current artifacts.
+
+> waveform-analysis@0.2.0-rc.1 build:lib E:\WebstormProjects\waveform-analysis
+> vite build --config vite.lib.config.ts
+
+vite v8.1.5 building client environment for production...
+[2K
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `vite:terser`. See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+transforming...✓ 185 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/nativeWorkerRuntime-BjPsdiUh.js  155.15 kB
+dist/assets/workerRuntime-D5d10VWU.js        155.40 kB
+dist/style.css                                32.59 kB │ gzip:  6.06 kB
+dist/index.js                                  1.15 kB │ gzip:  0.57 kB
+dist/native.js                                 1.15 kB │ gzip:  0.57 kB
+dist/vue.js                                    5.44 kB │ gzip:  2.05 kB
+dist/src-DUMh7yv2.js                          80.54 kB │ gzip: 34.00 kB
+dist/init-BfOBYmVT.js                        296.17 kB │ gzip: 86.27 kB
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - vite:worker-import-meta-url (50%)
+  - vite:terser (35%)
+  - vite:vue (9%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+[2K
+transforming...✓ 185 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/assets/nativeWorkerRuntime-BjPsdiUh.js  155.15 kB
+dist/assets/workerRuntime-D5d10VWU.js        155.40 kB
+dist/style.css                                32.59 kB │ gzip:  6.06 kB
+dist/index.cjs                                 1.84 kB │ gzip:  0.60 kB
+dist/native.cjs                                1.84 kB │ gzip:  0.60 kB
+dist/vue.cjs                                   5.48 kB │ gzip:  2.05 kB
+dist/src-b4C2Jfa_.cjs                         81.32 kB │ gzip: 34.13 kB
+dist/init-CCBjU88f.cjs                       296.97 kB │ gzip: 86.31 kB
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugin `vite:terser`. See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+✓ built in 16.33s
+> waveform-analysis@0.2.0-rc.1 build:types E:\WebstormProjects\waveform-analysis
+> node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json && node scripts/prepare-package-types.mjs
+
+
+ RUN  v4.1.10 E:/WebstormProjects/waveform-analysis
+
+ ❯ demo-app/tests/App.test.ts (15 tests | 2 failed) 34618ms
+     × keeps the primary simulated signal in the first frame 750ms
+     × keeps the simulated channels across the paginated frames 680ms
+ ❯ demo-app/tests/demo/remoteWindowIntegration.test.ts (2 tests | 1 failed) 2122ms
+     × commits wheel gestures while request state updates rerender the demo 1748ms
+ ❯ demo-app/tests/demo/xAxisLabelControls.test.ts (2 tests | 1 failed) 2054ms
+     × configures numeric and timestamp labels from the sidebar 2049ms
+ ❯ demo-app/tests/demo/twoPointZoom.test.ts (6 tests | 6 failed) 3024ms
+     × stops at two real samples and allows zoom out ('independent'/320) 924ms
+     × stops at two real samples and allows zoom out ('independent'/800) 488ms
+     × stops at two real samples and allows zoom out ('separated'/320) 461ms
+     × stops at two real samples and allows zoom out ('separated'/800) 416ms
+     × stops at two real samples and allows zoom out ('compact'/320) 379ms
+     × stops at two real samples and allows zoom out ('compact'/800) 355ms
+ ❯ demo-app/tests/demo/xAxisInitialRange.test.ts (3 tests | 3 failed) 3103ms
+     × extends initial and reset bounds without rounding zoomed viewports in independent mode 1716ms
+     × extends initial and reset bounds without rounding zoomed viewports in separated mode 1006ms
+     × extends initial and reset bounds without rounding zoomed viewports in compact mode 379ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 13 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  demo-app/tests/App.test.ts > App workspace layout > keeps the primary simulated signal in the first frame
+TypeError: wrapper.getComponent(...).vm.resetViewport is not a function
+ ❯ demo-app/tests/App.test.ts:314:44
+    312|     resizeChart(800, 800)
+    313|     await flushPromises()
+    314|     wrapper.getComponent(WaveformChart).vm.resetViewport()
+       |                                            ^
+    315|     await flushPromises()
+    316|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/13]⎯
+
+ FAIL  demo-app/tests/App.test.ts > App workspace layout > keeps the simulated channels across the paginated frames
+TypeError: wrapper.getComponent(...).vm.resetViewport is not a function
+ ❯ demo-app/tests/App.test.ts:350:44
+    348|     resizeChart(800, 800)
+    349|     await flushPromises()
+    350|     wrapper.getComponent(WaveformChart).vm.resetViewport()
+       |                                            ^
+    351|     await flushPromises()
+    352|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/13]⎯
+
+ FAIL  demo-app/tests/demo/remoteWindowIntegration.test.ts > remote demo integration > commits wheel gestures while request state updates rerender the demo
+TypeError: chart.vm.getControlState is not a function
+ ❯ demo-app/tests/demo/remoteWindowIntegration.test.ts:26:29
+     24|       value: () => ({ left: 0, top: 0, width, height }),
+     25|     })
+     26|     const before = chart.vm.getControlState().targets[0].viewport.xDom…
+       |                             ^
+     27|     overlay.element.dispatchEvent(
+     28|       new WheelEvent('wheel', {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/13]⎯
+
+ FAIL  demo-app/tests/demo/twoPointZoom.test.ts > demo two-point zoom limit > stops at two real samples and allows zoom out ('independent'/320)
+ FAIL  demo-app/tests/demo/twoPointZoom.test.ts > demo two-point zoom limit > stops at two real samples and allows zoom out ('independent'/800)
+ FAIL  demo-app/tests/demo/twoPointZoom.test.ts > demo two-point zoom limit > stops at two real samples and allows zoom out ('separated'/320)
+ FAIL  demo-app/tests/demo/twoPointZoom.test.ts > demo two-point zoom limit > stops at two real samples and allows zoom out ('separated'/800)
+ FAIL  demo-app/tests/demo/twoPointZoom.test.ts > demo two-point zoom limit > stops at two real samples and allows zoom out ('compact'/320)
+ FAIL  demo-app/tests/demo/twoPointZoom.test.ts > demo two-point zoom limit > stops at two real samples and allows zoom out ('compact'/800)
+TypeError: chart.vm.setViewportDomain is not a function
+ ❯ demo-app/tests/demo/twoPointZoom.test.ts:37:18
+     35|         await flushPromises()
+     36|         const chart = wrapper.getComponent(WaveformChart)
+     37|         chart.vm.setViewportDomain([-0.1, 0.1])
+       |                  ^
+     38|         await flushPromises()
+     39|         const overlay = chart.get('.waveform-chart__overlay')
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/13]⎯
+
+ FAIL  demo-app/tests/demo/xAxisInitialRange.test.ts > demo initial X-axis range > extends initial and reset bounds without rounding zoomed viewports in independent mode
+ FAIL  demo-app/tests/demo/xAxisInitialRange.test.ts > demo initial X-axis range > extends initial and reset bounds without rounding zoomed viewports in separated mode
+ FAIL  demo-app/tests/demo/xAxisInitialRange.test.ts > demo initial X-axis range > extends initial and reset bounds without rounding zoomed viewports in compact mode
+TypeError: chart.vm.getControlState is not a function
+ ❯ domains demo-app/tests/demo/xAxisInitialRange.test.ts:28:20
+     26|         expect(chart.props('panXDomain')).toEqual([-5, 6])
+     27|         const domains = () =>
+     28|           chart.vm.getControlState().targets.map((target) => target.vi…
+       |                    ^
+     29|         const assertInitialDomain = () => {
+     30|           expect(domains().length).toBeGreaterThan(0)
+ ❯ assertInitialDomain demo-app/tests/demo/xAxisInitialRange.test.ts:30:18
+ ❯ demo-app/tests/demo/xAxisInitialRange.test.ts:36:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/13]⎯
+
+ FAIL  demo-app/tests/demo/xAxisLabelControls.test.ts > X-axis label demo controls > configures numeric and timestamp labels from the sidebar
+TypeError: chart.vm.resetViewport is not a function
+ ❯ demo-app/tests/demo/xAxisLabelControls.test.ts:25:14
+     23|     resizeChart(800, 800)
+     24|     await flushPromises()
+     25|     chart.vm.resetViewport()
+       |              ^
+     26|     await flushPromises()
+     27|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/13]⎯
+
+
+ Test Files  5 failed | 12 passed (17)
+      Tests  13 failed | 51 passed (64)
+   Start at  15:54:32
+   Duration  160.92s (transform 3.59s, setup 7.85s, import 59.71s, tests 51.85s, environment 37.07s)
+
+ ELIFECYCLE  Test failed. See above for more details.

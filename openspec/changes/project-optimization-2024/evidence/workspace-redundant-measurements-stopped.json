@@ -1,0 +1,4 @@
+{
+  "ProcessId": 7728,
+  "CommandLine": "\"D:\\nodejs\\node.exe\" scripts/measure-workspace.mjs library-install-after C:/Users/lqy15/.codex/tmp/waveform-release-tools/pnpm-js/node_modules/pnpm/bin/pnpm.cjs --install-only --scope=library-dev"
+}

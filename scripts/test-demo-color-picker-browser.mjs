@@ -6,7 +6,10 @@ import { createServer } from 'vite'
 
 const evidence = '/tmp/waveform-demo-color-picker'
 await mkdir(evidence, { recursive: true })
-const server = await createServer({ server: { port: 5210, strictPort: true } })
+const server = await createServer({
+  configFile: 'demo-app/vite.config.ts',
+  server: { port: 5210, strictPort: true },
+})
 await server.listen()
 try {
   for (const [name, driver] of Object.entries({ chromium, firefox, webkit })) {

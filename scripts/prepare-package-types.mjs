@@ -14,7 +14,7 @@ for (const fileName of ['waveform_sampling_wasm.d.ts', 'waveform_sampling_wasm_b
 }
 
 const contents = readFileSync(wasmDeclaration, 'utf8')
-if (!contents.includes(wasmImport)) {
+if (!contents.includes(wasmImport) && !contents.includes(packagedWasmImport)) {
   throw new Error(`Expected ${wasmDeclaration} to reference ${wasmImport}.`)
 }
 writeFileSync(wasmDeclaration, contents.replaceAll(wasmImport, packagedWasmImport))

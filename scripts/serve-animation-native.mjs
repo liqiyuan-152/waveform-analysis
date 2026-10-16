@@ -42,7 +42,7 @@ if (buildMode === 'development') {
       outDir,
       rolldownOptions: {
         input: {
-          demo: resolve('index.html'),
+          demo: resolve('demo-app/index.html'),
           native: resolve('tests/browser/animation-native.html'),
         },
       },

@@ -133,7 +133,7 @@ try {
     [360, 700],
   ]) {
     const page = await browser.newPage({ viewport: { width, height } })
-    await page.goto('http://localhost:5177/#/animation')
+    await page.goto('http://localhost:5177/demo-app/index.html#/animation')
     await page.getByRole('heading', { name: '波形动画', exact: true }).waitFor()
     await page.getByRole('button', { name: '增删标注', exact: true }).click()
     await page.waitForSelector('.waveform-annotation')

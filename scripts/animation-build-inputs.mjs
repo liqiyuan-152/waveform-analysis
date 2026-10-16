@@ -5,9 +5,13 @@ import { readFileSync } from 'node:fs'
 /** Identify the production inputs, including tracked and newly implemented source files. */
 export function animationBuildInputs() {
   const files = [
-    ...execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', 'src'], {
-      encoding: 'utf8',
-    })
+    ...execFileSync(
+      'git',
+      ['ls-files', '--cached', '--others', '--exclude-standard', 'src', 'demo-app'],
+      {
+        encoding: 'utf8',
+      },
+    )
       .trim()
       .split('\n'),
     'vite.config.ts',

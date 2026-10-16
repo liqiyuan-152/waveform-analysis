@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Rust/WASM artifacts for release
+        run: pnpm prepare:wasm
+
       - name: Validate release version
         shell: bash
         run: |

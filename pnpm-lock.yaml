@@ -36,9 +36,6 @@ importers:
       '@vue/test-utils':
         specifier: 2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.40)(@vue/server-renderer@3.5.40)(vue@3.5.40(typescript@6.0.3))
-      ant-design-vue:
-        specifier: 3.2.20
-        version: 3.2.20(vue@3.5.40(typescript@6.0.3))
       eslint:
         specifier: 10.7.0
         version: 10.7.0
@@ -87,12 +84,76 @@ importers:
       vue:
         specifier: 3.5.40
         version: 3.5.40(typescript@6.0.3)
-      vue-router:
-        specifier: ^4.6.4
-        version: 4.6.4(vue@3.5.40(typescript@6.0.3))
       vue-tsc:
         specifier: 3.3.7
         version: 3.3.7(typescript@6.0.3)
+
+  demo-app:
+    dependencies:
+      ant-design-vue:
+        specifier: 3.2.20
+        version: 3.2.20(vue@3.5.40(typescript@6.0.3))
+      d3:
+        specifier: ^7.9.0
+        version: 7.9.0
+      vue:
+        specifier: 3.5.40
+        version: 3.5.40(typescript@6.0.3)
+      vue-router:
+        specifier: ^4.6.4
+        version: 4.6.4(vue@3.5.40(typescript@6.0.3))
+      vue3-colorpicker:
+        specifier: ^2.3.0
+        version: 2.3.0(@aesoper/normal-utils@0.1.5)(@popperjs/core@2.11.8)(@vueuse/core@10.11.1(vue@3.5.40(typescript@6.0.3)))(gradient-parser@1.2.0)(lodash-es@4.18.1)(tinycolor2@1.6.0)(vue-types@4.2.1(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
+      waveform-analysis:
+        specifier: workspace:*
+        version: link:..
+    devDependencies:
+      '@types/d3':
+        specifier: 7.4.3
+        version: 7.4.3
+      '@types/node':
+        specifier: 26.1.1
+        version: 26.1.1
+      '@vitejs/plugin-vue':
+        specifier: 6.0.8
+        version: 6.0.8(vite@8.1.5(@types/node@26.1.1)(terser@5.51.2))(vue@3.5.40(typescript@6.0.3))
+      '@vue/test-utils':
+        specifier: 2.4.11
+        version: 2.4.11(@vue/compiler-dom@3.5.40)(@vue/server-renderer@3.5.40)(vue@3.5.40(typescript@6.0.3))
+      typescript:
+        specifier: ~6.0.0
+        version: 6.0.3
+      vite:
+        specifier: 8.1.5
+        version: 8.1.5(@types/node@26.1.1)(terser@5.51.2)
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(vite@8.1.5(@types/node@26.1.1)(terser@5.51.2))
+      vue-tsc:
+        specifier: 3.3.7
+        version: 3.3.7(typescript@6.0.3)
+
+  tests:
+    devDependencies:
+      '@types/d3':
+        specifier: 7.4.3
+        version: 7.4.3
+      '@vue/test-utils':
+        specifier: 2.4.11
+        version: 2.4.11(@vue/compiler-dom@3.5.40)(@vue/server-renderer@3.5.40)(vue@3.5.40(typescript@6.0.3))
+      ant-design-vue:
+        specifier: 3.2.20
+        version: 3.2.20(vue@3.5.40(typescript@6.0.3))
+      d3:
+        specifier: ^7.9.0
+        version: 7.9.0
+      vitest:
+        specifier: 4.1.10
+        version: 4.1.10(@types/node@26.1.1)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(vite@8.1.5(@types/node@26.1.1)(terser@5.51.2))
+      vue:
+        specifier: 3.5.40
+        version: 3.5.40(typescript@6.0.3)
       vue3-colorpicker:
         specifier: ^2.3.0
         version: 2.3.0(@aesoper/normal-utils@0.1.5)(@popperjs/core@2.11.8)(@vueuse/core@10.11.1(vue@3.5.40(typescript@6.0.3)))(gradient-parser@1.2.0)(lodash-es@4.18.1)(tinycolor2@1.6.0)(vue-types@4.2.1(vue@3.5.40(typescript@6.0.3)))(vue@3.5.40(typescript@6.0.3))
@@ -101,6 +162,7 @@ packages:
 
   '@aesoper/normal-utils@0.1.5':
     resolution: {integrity: sha512-LFF/6y6h5mfwhnJaWqqxuC8zzDaHCG62kMRkd8xhDtq62TQj9dM17A9DhE87W7DhiARJsHLgcina/9P4eNCN1w==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   '@ant-design/colors@6.0.0':
     resolution: {integrity: sha512-qAZRvPzfdWHtfameEGP2Qvuf838NhergR35o+EuVyB5XvSA98xod5r4utvi4TJ3ywmevm290g9nsCG5MryrdWQ==}
@@ -1276,6 +1338,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globals@17.7.0:
@@ -1950,6 +2013,7 @@ packages:
 
   vue3-colorpicker@2.3.0:
     resolution: {integrity: sha512-e3lLmBcy7mkRrNQVeUny1DjOd6E11L8H5ok5Bx4MdXmrG+RzyacRF7KkhrEWmRYPhKAsaoUrWsFkmpPAaYnE5A==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     peerDependencies:
       '@aesoper/normal-utils': ^0.1.5
       '@popperjs/core': ^2.11.8

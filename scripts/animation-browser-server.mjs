@@ -16,7 +16,7 @@ export async function animationBrowserServer(port) {
       outDir,
       rolldownOptions: {
         input: {
-          demo: resolve('index.html'),
+          demo: resolve('demo-app/index.html'),
           benchmark: resolve('tests/browser/animation.html'),
         },
       },

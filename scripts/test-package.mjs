@@ -12,6 +12,7 @@ import { basename, join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { build, preview } from 'vite'
 import { verifyPackageNativeControls } from './verify-package-native-controls.mjs'
+import { packageManagerInvocation } from './package-manager.mjs'
 
 const pnpmCli = process.env.npm_execpath
 if (!pnpmCli || !basename(pnpmCli).startsWith('pnpm')) {
@@ -19,7 +20,8 @@ if (!pnpmCli || !basename(pnpmCli).startsWith('pnpm')) {
 }
 
 function runPnpm(args, cwd = process.cwd()) {
-  const result = spawnSync(process.execPath, [pnpmCli, ...args], {
+  const invocation = packageManagerInvocation(pnpmCli, args)
+  const result = spawnSync(invocation.command, invocation.args, {
     cwd,
     encoding: 'utf8',
     stdio: 'inherit',
@@ -154,7 +156,16 @@ writeFileSync(
   join(consumerRoot, 'animation.ts'),
   readFileSync(new URL('./package-animation-consumer.ts', import.meta.url)),
 )
+writeFileSync(
+  join(consumerRoot, 'entries.ts'),
+  readFileSync(new URL('./package-entry-consumer.ts', import.meta.url)),
+)
+writeFileSync(
+  join(consumerRoot, 'entries.mjs'),
+  readFileSync(new URL('./package-entry-runtime.mjs', import.meta.url)),
+)
 runPnpm(['exec', 'tsc', '--project', 'tsconfig.json'], temporaryRoot)
+runPnpm(['exec', 'node', 'consumer/entries.mjs'], temporaryRoot)
 
 writeFileSync(
   join(consumerRoot, 'esm.mjs'),

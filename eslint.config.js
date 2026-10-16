@@ -19,7 +19,7 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   ...vue.configs['flat/essential'],
   {
-    files: ['src/**/*.{ts,vue}'],
+    files: ['src/**/*.{ts,vue}', 'demo-app/src/**/*.{ts,vue}'],
     languageOptions: {
       globals: globals.browser,
     },

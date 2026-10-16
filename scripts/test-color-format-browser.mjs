@@ -15,7 +15,7 @@ try {
         const page = await browser.newPage({ viewport: { width, height: 900 } })
         for (const context of ['component', 'demo']) {
           await page.goto(
-            `http://localhost:5208/${context === 'component' ? 'tests/browser/native-color-reference.html' : ''}`,
+            `http://localhost:5208/${context === 'component' ? 'tests/browser/native-color-reference.html' : 'demo-app/index.html'}`,
           )
           if (context === 'component') {
             await page.getByRole('button', { name: '颜色', exact: true }).click()

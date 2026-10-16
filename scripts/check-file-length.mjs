@@ -32,7 +32,9 @@ export function findFileLengthViolations(sourceRoot, limit = maximumLines) {
 }
 
 function run() {
-  const violations = findFileLengthViolations(resolve('src'))
+  const violations = ['src', 'demo-app/src'].flatMap((root) =>
+    findFileLengthViolations(resolve(root)),
+  )
   if (!violations.length) return
   console.error('Files exceed the source file length limit:')
   violations.forEach(({ path, lineCount, limit }) => {

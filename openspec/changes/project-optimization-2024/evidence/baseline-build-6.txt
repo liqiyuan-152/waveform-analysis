@@ -1,0 +1,4 @@
+
+> waveform-analysis@0.2.0-rc.1 build:types E:\WebstormProjects\waveform-analysis
+> node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json && node scripts/prepare-package-types.mjs
+

@@ -1,0 +1,86 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +385
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 385, reused 0, downloaded 0, added 0
+Progress: resolved 385, reused 0, downloaded 43, added 11
+Progress: resolved 385, reused 0, downloaded 70, added 18
+Progress: resolved 385, reused 0, downloaded 114, added 23
+Progress: resolved 385, reused 0, downloaded 157, added 34
+Progress: resolved 385, reused 0, downloaded 180, added 41
+Progress: resolved 385, reused 0, downloaded 207, added 46
+Progress: resolved 385, reused 0, downloaded 242, added 50
+Progress: resolved 385, reused 0, downloaded 256, added 54
+Progress: resolved 385, reused 0, downloaded 284, added 57
+Progress: resolved 385, reused 0, downloaded 300, added 62
+Progress: resolved 385, reused 0, downloaded 314, added 64
+Progress: resolved 385, reused 0, downloaded 320, added 64
+Progress: resolved 385, reused 0, downloaded 322, added 66
+Progress: resolved 385, reused 0, downloaded 332, added 68
+Progress: resolved 385, reused 0, downloaded 337, added 68
+Progress: resolved 385, reused 0, downloaded 343, added 68
+Progress: resolved 385, reused 0, downloaded 349, added 68
+Progress: resolved 385, reused 0, downloaded 355, added 71
+Progress: resolved 385, reused 0, downloaded 357, added 72
+Progress: resolved 385, reused 0, downloaded 365, added 72
+Progress: resolved 385, reused 0, downloaded 372, added 74
+Progress: resolved 385, reused 0, downloaded 374, added 90
+Progress: resolved 385, reused 0, downloaded 375, added 122
+Progress: resolved 385, reused 0, downloaded 376, added 153
+Progress: resolved 385, reused 0, downloaded 378, added 177
+Progress: resolved 385, reused 0, downloaded 379, added 198
+Progress: resolved 385, reused 0, downloaded 379, added 223
+Progress: resolved 385, reused 0, downloaded 380, added 253
+Progress: resolved 385, reused 0, downloaded 380, added 272
+Progress: resolved 385, reused 0, downloaded 380, added 302
+Progress: resolved 385, reused 0, downloaded 381, added 328
+Progress: resolved 385, reused 0, downloaded 381, added 348
+Progress: resolved 385, reused 0, downloaded 381, added 366
+Progress: resolved 385, reused 0, downloaded 381, added 374
+Progress: resolved 385, reused 0, downloaded 381, added 378
+Progress: resolved 385, reused 0, downloaded 381, added 379
+Progress: resolved 385, reused 0, downloaded 381, added 381
+Progress: resolved 385, reused 0, downloaded 382, added 381
+Progress: resolved 385, reused 0, downloaded 383, added 381
+Progress: resolved 385, reused 0, downloaded 384, added 381
+Progress: resolved 385, reused 0, downloaded 384, added 382
+Progress: resolved 385, reused 0, downloaded 385, added 382
+Progress: resolved 385, reused 0, downloaded 385, added 383
+Progress: resolved 385, reused 0, downloaded 385, added 384
+Progress: resolved 385, reused 0, downloaded 385, added 385
+Progress: resolved 385, reused 0, downloaded 385, added 385, done
+
+dependencies:
++ @types/d3 7.4.3
++ d3 7.9.0
+
+devDependencies:
++ @eslint/js 10.0.1
++ @types/node 26.1.1
++ @types/react 19.2.0
++ @types/react-dom 19.2.0
++ @vitejs/plugin-vue 6.0.8
++ @vitest/coverage-v8 4.1.10
++ @vue/test-utils 2.4.11
++ ant-design-vue 3.2.20
++ eslint 10.7.0
++ eslint-config-prettier 10.1.8
++ eslint-plugin-vue 10.9.2
++ globals 17.7.0
++ jsdom 29.1.1
++ oxlint 1.77.0
++ playwright 1.56.1
++ prettier 3.9.5
++ react 19.2.0
++ react-dom 19.2.0
++ terser 5.51.2
++ typescript 6.0.3
++ typescript-eslint 8.64.0
++ vite 8.1.5
++ vitest 4.1.10
++ vue 3.5.40
++ vue-router 4.6.4
++ vue-tsc 3.3.7
++ vue3-colorpicker 2.3.0
+
+Done in 1m 0.8s using pnpm v10.32.1

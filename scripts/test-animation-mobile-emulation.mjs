@@ -40,7 +40,7 @@ try {
       if (!png.size || svg.svg.includes('waveform-animation-'))
         throw new Error('Incomplete mobile export')
       await page.screenshot({ path: new URL(`${name}-component.png`, evidence).pathname })
-      await page.goto('http://localhost:5182/#/animation')
+      await page.goto('http://localhost:5182/demo-app/index.html#/animation')
       await page.getByRole('heading', { name: '波形动画', exact: true }).waitFor()
       await page.getByRole('button', { name: '增删标注', exact: true }).tap()
       await page.waitForSelector('.waveform-annotation', { timeout: 10000 })

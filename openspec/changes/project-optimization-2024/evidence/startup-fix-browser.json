@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-16T09:15:25.727Z",
+  "routes": [
+    {
+      "route": "/",
+      "width": 1200,
+      "passed": true
+    },
+    {
+      "route": "/fixed-y-domain",
+      "width": 1200,
+      "passed": true
+    },
+    {
+      "route": "/animation",
+      "width": 1200,
+      "passed": true
+    },
+    {
+      "route": "/wasm-sampling",
+      "width": 1200,
+      "passed": true
+    },
+    {
+      "route": "/",
+      "width": 360,
+      "passed": true
+    },
+    {
+      "route": "/fixed-y-domain",
+      "width": 360,
+      "passed": true
+    },
+    {
+      "route": "/animation",
+      "width": 360,
+      "passed": true
+    },
+    {
+      "route": "/wasm-sampling",
+      "width": 360,
+      "passed": true
+    }
+  ],
+  "pageErrors": [],
+  "wasm": "existing user artifact, ten real WASM backends"
+}

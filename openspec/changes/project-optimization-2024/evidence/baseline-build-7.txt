@@ -1,0 +1,32 @@
+
+> waveform-analysis@0.2.0-rc.1 build:demo E:\WebstormProjects\waveform-analysis
+> vite build
+
+vite v8.1.5 building client environment for production...
+[2Ktransforming...✓ 2311 modules transformed.
+rendering chunks...
+computing gzip size...
+dist-demo/index.html                                        0.96 kB │ gzip:   0.43 kB
+dist-demo/assets/waveform_sampling_wasm_bg-DDY9BqVc.wasm   55.33 kB │ gzip:  22.43 kB
+dist-demo/assets/workerRuntime-vCDLzYwu.js                 61.46 kB
+dist-demo/assets/nativeWorkerRuntime-CCCj3YfH.js           61.46 kB
+dist-demo/assets/AnimationDemo-BaYduH4C.css                 0.39 kB │ gzip:   0.21 kB
+dist-demo/assets/WaveformChart-BxxzM8wt.css                32.58 kB │ gzip:   6.05 kB
+dist-demo/assets/index-Ct8yxdS7.css                       581.20 kB │ gzip:  74.31 kB
+dist-demo/assets/_plugin-vue_export-helper-BDNMzG2s.js      0.08 kB │ gzip:   0.09 kB
+dist-demo/assets/rolldown-runtime-Bh1tDfsg.js               0.56 kB │ gzip:   0.36 kB
+dist-demo/assets/AnimationDemo-CGp2TsQ4.js                  3.33 kB │ gzip:   1.54 kB
+dist-demo/assets/FixedYDomainDemo-JnE_5mW0.js               3.75 kB │ gzip:   1.62 kB
+dist-demo/assets/WasmSamplingDemo-C1ZpOG1V.js               5.31 kB │ gzip:   2.39 kB
+dist-demo/assets/input-number-JXn7CWES.js                 111.49 kB │ gzip:  36.62 kB
+dist-demo/assets/switch-CtinYjfJ.js                       130.32 kB │ gzip:  41.62 kB
+dist-demo/assets/index-TFBTdFbi.js                        260.66 kB │ gzip:  88.42 kB
+dist-demo/assets/WaveformChart-DCaDbFHn.js                433.82 kB │ gzip: 137.52 kB
+
+[33m[PLUGIN_TIMINGS] [0mYour build spent significant time in plugins. Here is a breakdown:
+  - vite:vue (36%)
+  - vite:css-post (24%)
+  - vite:css (16%)
+See https://rolldown.rs/reference/InputOptions.checks#plugintimings for more details.
+
+✓ built in 4.74s

@@ -1,0 +1,51 @@
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +385
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 385, reused 319, downloaded 0, added 0
+Progress: resolved 385, reused 385, downloaded 0, added 54
+Progress: resolved 385, reused 385, downloaded 0, added 149
+Progress: resolved 385, reused 385, downloaded 0, added 244
+Progress: resolved 385, reused 385, downloaded 0, added 308
+Progress: resolved 385, reused 385, downloaded 0, added 346
+Progress: resolved 385, reused 385, downloaded 0, added 381
+Progress: resolved 385, reused 385, downloaded 0, added 382
+Progress: resolved 385, reused 385, downloaded 0, added 383
+Progress: resolved 385, reused 385, downloaded 0, added 384
+Progress: resolved 385, reused 385, downloaded 0, added 385
+Progress: resolved 385, reused 385, downloaded 0, added 385, done
+
+dependencies:
++ @types/d3 7.4.3
++ d3 7.9.0
+
+devDependencies:
++ @eslint/js 10.0.1
++ @types/node 26.1.1
++ @types/react 19.2.0
++ @types/react-dom 19.2.0
++ @vitejs/plugin-vue 6.0.8
++ @vitest/coverage-v8 4.1.10
++ @vue/test-utils 2.4.11
++ ant-design-vue 3.2.20
++ eslint 10.7.0
++ eslint-config-prettier 10.1.8
++ eslint-plugin-vue 10.9.2
++ globals 17.7.0
++ jsdom 29.1.1
++ oxlint 1.77.0
++ playwright 1.56.1
++ prettier 3.9.5
++ react 19.2.0
++ react-dom 19.2.0
++ terser 5.51.2
++ typescript 6.0.3
++ typescript-eslint 8.64.0
++ vite 8.1.5
++ vitest 4.1.10
++ vue 3.5.40
++ vue-router 4.6.4
++ vue-tsc 3.3.7
++ vue3-colorpicker 2.3.0
+
+Done in 18.6s using pnpm v10.32.1

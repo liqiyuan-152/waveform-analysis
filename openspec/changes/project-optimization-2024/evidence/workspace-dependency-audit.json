@@ -1,0 +1,216 @@
+{
+  "passed": true,
+  "runtimeDependencies": {
+    "@types/d3": "7.4.3",
+    "d3": "^7.9.0"
+  },
+  "peers": {
+    "vue": ">=3.2.33 <4"
+  },
+  "demoPrivate": true,
+  "testsPrivate": true,
+  "ui": [
+    {
+      "name": "ant-design-vue",
+      "root": false,
+      "demo": true
+    },
+    {
+      "name": "vue3-colorpicker",
+      "root": false,
+      "demo": true
+    },
+    {
+      "name": "vue-router",
+      "root": false,
+      "demo": true
+    }
+  ],
+  "imports": [
+    {
+      "file": "App.vue",
+      "specifier": "vue"
+    },
+    {
+      "file": "App.vue",
+      "specifier": "vue3-colorpicker/style.css"
+    },
+    {
+      "file": "App.vue",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "App.vue",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "App.vue",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "main.ts",
+      "specifier": "vue"
+    },
+    {
+      "file": "main.ts",
+      "specifier": "ant-design-vue/dist/antd.css"
+    },
+    {
+      "file": "main.ts",
+      "specifier": "waveform-analysis/style.css"
+    },
+    {
+      "file": "router.ts",
+      "specifier": "vue-router"
+    },
+    {
+      "file": "demo\\alignDemoDomain.ts",
+      "specifier": "d3"
+    },
+    {
+      "file": "demo\\DemoChartHost.vue",
+      "specifier": "vue"
+    },
+    {
+      "file": "demo\\DemoChartHost.vue",
+      "specifier": "waveform-analysis/vue"
+    },
+    {
+      "file": "demo\\DemoControlPanel.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "demo\\DemoGridFrameControls.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "demo\\DemoGridFrameControls.vue",
+      "specifier": "vue3-colorpicker"
+    },
+    {
+      "file": "demo\\DemoTitleLegendControls.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "demo\\DemoTitleLegendControls.vue",
+      "specifier": "vue3-colorpicker"
+    },
+    {
+      "file": "demo\\DemoToolbarControls.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "demo\\DemoViewControls.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "demo\\DemoYAxisPaddingControls.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "demo\\embedBridge.ts",
+      "specifier": "vue-router"
+    },
+    {
+      "file": "demo\\normalizeDemoSeries.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\remoteWaveformLoader.ts",
+      "specifier": "vue"
+    },
+    {
+      "file": "demo\\remoteWaveformLoader.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\remoteWaveformLoader.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\toolbarOptions.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\types.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\types.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\types.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\useDemoXAxisLabelControls.ts",
+      "specifier": "vue"
+    },
+    {
+      "file": "demo\\useDemoXAxisLabelControls.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\useRemoteWaveformWindow.ts",
+      "specifier": "vue"
+    },
+    {
+      "file": "demo\\useRemoteWaveformWindow.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "views\\AnimationDemo.vue",
+      "specifier": "vue"
+    },
+    {
+      "file": "views\\AnimationDemo.vue",
+      "specifier": "waveform-analysis/vue"
+    },
+    {
+      "file": "views\\AnimationDemo.vue",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "views\\FixedYDomainDemo.vue",
+      "specifier": "vue"
+    },
+    {
+      "file": "views\\FixedYDomainDemo.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "views\\FixedYDomainDemo.vue",
+      "specifier": "waveform-analysis/vue"
+    },
+    {
+      "file": "views\\FixedYDomainDemo.vue",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "views\\WasmSamplingDemo.vue",
+      "specifier": "vue"
+    },
+    {
+      "file": "views\\WasmSamplingDemo.vue",
+      "specifier": "ant-design-vue"
+    },
+    {
+      "file": "views\\WasmSamplingDemo.vue",
+      "specifier": "waveform-analysis/vue"
+    },
+    {
+      "file": "views\\WasmSamplingDemo.vue",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "views\\wasmSamplingDemoSampling.ts",
+      "specifier": "waveform-analysis"
+    },
+    {
+      "file": "demo\\data\\simulatedWaveforms.ts",
+      "specifier": "waveform-analysis"
+    }
+  ],
+  "lockSha256": "b5996c429b5166242850d2ebb1f153bf81b2f9c31c10d3bf47aab52d84457c7f"
+}

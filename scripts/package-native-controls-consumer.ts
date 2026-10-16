@@ -6,6 +6,8 @@ import {
   dispose,
   type WaveformAnnotation,
   type WaveformData,
+  initializeWasmSampling,
+  sampleWaveformWasm,
 } from 'waveform-analysis'
 import {
   init as nativeInit,
@@ -79,6 +81,50 @@ app.mount('#chart')
 Object.assign(window, {
   packageControls: {
     nativeEntryIdentity,
+    verifyWasm: async () => {
+      await initializeWasmSampling()
+      const result = await sampleWaveformWasm({
+        x: new Float64Array([0, 1, 2, 3]),
+        y: new Float64Array([1, 9, -7, 2]),
+        strategy: 'none',
+        targetPointCount: 4,
+      })
+      return result.kind === 'source-indexes' ? [...result.sourceIndexes] : []
+    },
+    verifyWorkerWasm: async () => {
+      const host = document.createElement('div')
+      document.body.append(host)
+      const chart = init(
+        host,
+        { width: 400, height: 220, animationEnabled: false },
+        { autoResize: false },
+      )
+      let timer: ReturnType<typeof setTimeout> | undefined
+      try {
+        return await new Promise((resolve, reject) => {
+          timer = setTimeout(() => reject(new Error('Packed WASM Worker did not complete.')), 15000)
+          chart.on('sampling-error', (error) => reject(new Error(error.message)))
+          chart.on('sampling-complete', (diagnostic) => {
+            if (diagnostic.backend === 'wasm')
+              resolve({ backend: diagnostic.backend, points: diagnostic.renderedPointCount })
+          })
+          chart.setOption({
+            data: {
+              kind: 'typed-samples',
+              values: Float32Array.from({ length: 2000 }, (_, i) => Math.sin(i)),
+              sampleRate: 100,
+            },
+            rendering: {
+              sampling: { mode: 'wasm', strategy: 'peak', autoThreshold: 2, maxPointCount: 32 },
+            },
+          })
+        })
+      } finally {
+        clearTimeout(timer)
+        chart.dispose()
+        host.remove()
+      }
+    },
     events,
     annotations: () => annotations.value,
     resize: (value: number) => {

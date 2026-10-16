@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 E:/WebstormProjects/waveform-analysis
+      Coverage enabled with v8
+
+ ❯ tests/components/waveformChartCases/integerZoomStall.test.ts (7 tests | 2 failed) 67772ms
+     × continues toolbar and wheel zoom from 1988–1991 ms in independent mode 21970ms
+     × continues toolbar and wheel zoom from 1988–1991 ms in separated mode 20282ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/components/waveformChartCases/integerZoomStall.test.ts > integer zoom rounding does not disable dense viewports > continues toolbar and wheel zoom from 1988–1991 ms in independent mode
+ FAIL  tests/components/waveformChartCases/integerZoomStall.test.ts > integer zoom rounding does not disable dense viewports > continues toolbar and wheel zoom from 1988–1991 ms in separated mode
+Error: Test timed out in 20000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/components/waveformChartCases/integerZoomStall.test.ts:22:60
+     20|
+     21| describe('integer zoom rounding does not disable dense viewports', { t…
+     22|   it.each(['independent', 'separated', 'compact'] as const)(
+       |                                                            ^
+     23|     'continues toolbar and wheel zoom from 1988–1991 ms in %s mode',
+     24|     async (displayMode) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 5 passed (7)
+   Start at  16:59:47
+   Duration  73.19s (transform 1.83s, setup 528ms, import 2.49s, tests 67.77s, environment 1.05s)
+

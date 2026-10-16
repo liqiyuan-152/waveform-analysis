@@ -1,0 +1,13 @@
+{
+  "restoredAt": "2026-10-16T09:03:58.167Z",
+  "originalWasmSha256": "d4f4984c072d7a65df53cce39845c72074abe85d4f6481d84ae702ece367a400",
+  "originalBytes": 60161,
+  "testedBuildWasmSha256": "4dedddac1757c2ce5dde2c6130d7241a91c773fdb2975dc9dc3d2ce7e8cbfe43",
+  "restored": true,
+  "unrelatedPreserved": [
+    ".kiro",
+    "openspec/changes/remove-antd-from-waveform-library",
+    "workspace allowBuilds"
+  ],
+  "note": "Tests used freshly generated WASM. Original user binary restored afterwards; no further WASM preparation run."
+}

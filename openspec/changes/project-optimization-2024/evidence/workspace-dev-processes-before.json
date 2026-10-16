@@ -1,0 +1,5 @@
+{
+  "ProcessId": 29508,
+  "ParentProcessId": 33996,
+  "CommandLine": "D:\\nodejs\\node.exe \"C:\\Users\\lqy15\\AppData\\Local\\Temp\\waveform-workspace-6AOjyI\\clean checkout\\node_modules\\.pnpm\\vue-tsc@3.3.7_typescript@6.0.3\\node_modules\\vue-tsc\\bin\\vue-tsc.js\" -p tsconfig.lib.json --watch --preserveWatchOutput"
+}
