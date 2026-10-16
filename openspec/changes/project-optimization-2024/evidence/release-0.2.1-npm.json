@@ -1,0 +1,20 @@
+{
+  "version": "0.2.1",
+  "dist": {
+    "shasum": "153894e7382fe85b0aaeb629ba880ca905ec2850",
+    "tarball": "https://registry.npmjs.org/waveform-analysis/-/waveform-analysis-0.2.1.tgz",
+    "fileCount": 441,
+    "integrity": "sha512-z0b4s2bhNWS0hKScwoNWCbYwEa6gwQwG+ZCJTF7b5ax2pDjWpq9/SVWfgzEC9ed+HBOcEcPZ4zXI8EcPKDRnOA==",
+    "signatures": [
+      {
+        "sig": "MEYCIQDTXAuYyM12H03KXZA55AqOg19ZCd3TxNZVdiPh/N4mHwIhALFBdWCnV6+KJ6i1nP/wW07WS5HWhVgJ1Ym6s5wOJzsE",
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+      },
+      {
+        "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+        "sig": "MEYCIQD9M+0fWpmHnMzrbqH7erTyAPQpIYYvmbdx5RVMWdMXqAIhAJD2YRblhib2cF76K3xMOXqWLNm3PPfziGFWUruvdCfN"
+      }
+    ],
+    "unpackedSize": 2353263
+  }
+}

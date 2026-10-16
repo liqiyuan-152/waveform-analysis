@@ -28,3 +28,23 @@ integerZoomStall 的 independent/separated 两例在 20 秒超时，未创建标
 函数总数从 168 恢复为直接源码的 84，混合运行源码测试与 demo 测试后仍为 84。
 三文件七例定向测试全部通过（24.21 秒），定向命令仍因全局覆盖率不足退出 1，待完整 CI 验收。
 对应记录：release-0.2.1-ci-second.txt、release-0.2.1-sourcemap-build.txt、release-0.2.1-sourcemap-targeted.txt。
+
+## 最终结果
+
+- 发布提交：`3deeabd2037a4779909ed9ff36451f5b50514b1e`，附注标签 `v0.2.1` 已推送。
+- [发布前 CI 38887058544](https://github.com/liqiyuan-152/waveform-analysis/actions/runs/38887058544) 全部通过。
+  227 个文件、2074 个测试通过；行 93.01%、语句 90.22%、函数 90.52%、分支 84.74%。
+  frozen install、WASM、lint、类型、文件长度、完整构建与独立包消费者检查均通过。
+  原始结构化结果见 release-0.2.1-ci-success.json。标签触发的 CI 38888439677 也通过。
+- [GitHub Release](https://github.com/liqiyuan-152/waveform-analysis/releases/tag/v0.2.1) 于
+  2026-10-16 18:59（Asia/Shanghai）发布，包含 tarball 与 SHA256 文件，非预发布。
+- npm 实际查询确认 `version=0.2.1`、`latest=0.2.1`，`next` 保持 `0.2.0-rc.1`。
+  npm tarball SHA1 为 `153894e7382fe85b0aaeb629ba880ca905ec2850`，与发布日志一致；
+  元数据见 release-0.2.1-npm.json。
+- [Release 工作流 38888439585](https://github.com/liqiyuan-152/waveform-analysis/actions/runs/38888439585)
+  的 release job 全部成功；deploy-demo job 发出了 Dokploy 请求，但版本核验等待 16 分 51 秒后失败。
+  演示站 version.txt 仍返回 `eae9230aedc044346c7ba112be0d977675dc7d1d`，未确认部署新版本。
+  工作流结果及错误见 release-0.2.1-result.json、release-0.2.1-deploy-failure.txt。
+  GitHub 日志不包含 Dokploy 构建输出，不能据此确定构建或部署失败的具体原因。
+- 工作区原有 WASM SHA256 仍为 `d4f4984c072d7a65df53cce39845c72074abe85d4f6481d84ae702ece367a400`；
+  .kiro 与 remove-antd-from-waveform-library 目录保留，未纳入发布提交。
