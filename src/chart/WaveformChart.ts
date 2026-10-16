@@ -37,27 +37,10 @@ import { ViewportRestorer } from '../interaction/ViewportRestorer'
 import { ControlStateObserver } from '../controls/ControlStateObserver'
 import { AnnotationController } from '../annotation/AnnotationController'
 import { ToolbarView } from '../view/ToolbarView'
+import { changedOptionKeys, samplingIndependentOptions } from './optionEffects'
+import { refreshLayoutColors } from '../rendering/refreshLayoutColors'
 
 let samplingInstanceSequence = 0
-const samplingIndependentOptions = new Set([
-  'lineColor',
-  'frameNumber',
-  'frameNumbers',
-  'frameStyle',
-  'annotations',
-  'annotationsVisible',
-  'legend',
-  'animationEnabled',
-  'animation',
-  'animationUpdate',
-  'animationAnnotation',
-  'animationThreshold',
-  'showTooltip',
-  'toolbar',
-  'presentationMode',
-  'interactionMode',
-])
-
 /** Internal facade. The public entry exposes only the registered init factory. */
 export class WaveformChart implements WaveformChartInstance {
   private readonly resources = new ChartResources()
@@ -147,7 +130,11 @@ export class WaveformChart implements WaveformChartInstance {
           },
           sampling: () => this.prepareSampling(),
           view: () => {
-            const layout = this.animation.render(this.ensureLayout())
+            const layout = refreshLayoutColors(
+              this.animation.render(this.ensureLayout()),
+              this.model.data.series,
+              this.model.options.value.lineColor,
+            )
             if (this.disposed) return false
             const rendered = this.renderer.render(
               layout,
@@ -307,20 +294,26 @@ export class WaveformChart implements WaveformChartInstance {
   setOption(options: WaveformChartOptionUpdate) {
     this.assertAlive()
     const oldMode = this.model.presentation.mode(this.model.options.value)
-    const previousSeries = this.model.data.series
     const previousOptions = this.model.options.value
     const previousLayout = this.ensureLayout(false)
     const captured = this.viewportRestorer.capture((track) => this.interaction.pendingDomain(track))
     const result = this.model.setOption(options)
     if (!result.changed) return
-    if (Object.keys(options).every((key) => key === 'showTooltip')) {
+    const keys = changedOptionKeys(previousOptions, this.model.options.value)
+    if (keys.every((key) => key === 'lineColor') || keys.every((key) => key === 'showTooltip')) {
+      if (previousOptions.lineColor !== this.model.options.value.lineColor && this.snapshot)
+        refreshLayoutColors(
+          this.snapshot,
+          this.model.data.series,
+          this.model.options.value.lineColor,
+        )
       this.exporter.invalidate()
       this.scheduler.invalidate('view')
       return
     }
     this.annotations.cancel()
-    if (previousSeries !== this.model.data.series) this.sampling.resetData()
     if (result.dataChanged) {
+      this.sampling.prepareReplacement(this.model.data.series)
       this.viewportRestorer.restore(captured, previousOptions)
       this.interaction.rebindData(previousOptions)
     } else {

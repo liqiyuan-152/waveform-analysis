@@ -95,6 +95,7 @@ export class RenderSamplingController {
   invalidatePending() {
     if (this.disposed) return
     this.samplingScheduler.cancelPending()
+    this.session.client?.cancelSampling?.()
     this.session.timers.clearTimeout(this.session.autoModeSettleTimer)
     this.session.timers.clearTimeout(this.session.diagnosticsTimer)
     this.session.autoModeSettleTimer = undefined
@@ -108,17 +109,32 @@ export class RenderSamplingController {
     if (this.disposed) return
     this.invalidatePending()
     this.session.invalidate()
+    this.session.datasets.clear()
     this.overrides = {}
     this.targets = []
     this.input = undefined
   }
 
+  prepareReplacement(series: readonly PreparedWaveformSeries[]) {
+    if (!this.input) return
+    const previous = new Map(this.input.series.map((entry) => [entry.id, entry.source]))
+    if (!series.some((entry) => previous.get(entry.id) === entry.source)) this.resetData()
+  }
+
   update(input: SamplingInput) {
     if (this.disposed) return
     if (this.input?.series !== input.series) {
-      if (this.input) this.session.invalidate()
+      if (this.input) this.invalidatePending()
+      const previous = new Map(this.input?.series.map((series) => [series.id, series.source]))
+      this.session.reconcileData(this.instanceId, input.series)
       this.epoch += 1
-      this.overrides = {}
+      this.overrides = Object.fromEntries(
+        input.series
+          .filter(
+            (series) => previous.get(series.id) === series.source && this.overrides[series.id],
+          )
+          .map((series) => [series.id, this.overrides[series.id]!]),
+      )
     }
     this.input = input
     this.targets = buildSamplingTargets(
@@ -126,6 +142,7 @@ export class RenderSamplingController {
       input.tracks,
       input.rendering,
       this.revisions,
+      this.session.datasets.ids,
     )
     const signature = samplingSignature(this.targets, this.epoch)
     if (signature === this.signature) return
@@ -205,6 +222,7 @@ export class RenderSamplingController {
         })
         if (
           !this.samplingScheduler.isCurrent(token) ||
+          this.session.datasets.ids.get(target.series.id) !== target.request.datasetId ||
           !isDatasetResponse(response) ||
           (response.status !== 'ok' && response.status !== 'stale-revision')
         ) {

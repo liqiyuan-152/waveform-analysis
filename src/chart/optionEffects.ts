@@ -1,0 +1,83 @@
+import type { WaveformChartProps, ResolvedWaveformChartProps } from '../types/options'
+
+type Effect = 'layout' | 'geometry' | 'style' | 'interaction' | 'sampling' | 'animation'
+
+/** Conservative dependency union. New public options must make an explicit decision here. */
+export const optionEffects = {
+  data: ['layout', 'geometry', 'sampling', 'interaction', 'animation'],
+  width: ['layout', 'geometry', 'sampling', 'interaction'],
+  height: ['layout', 'geometry', 'sampling', 'interaction'],
+  displayMode: ['layout', 'geometry', 'sampling', 'interaction'],
+  overlayMode: ['layout', 'geometry', 'sampling', 'interaction'],
+  unitDisplayMode: ['layout', 'geometry', 'sampling'],
+  layoutPreset: ['layout', 'geometry', 'sampling'],
+  xLabel: ['layout', 'geometry', 'sampling'],
+  yLabel: ['layout', 'geometry', 'sampling'],
+  lineColor: ['style'],
+  showTooltip: ['interaction'],
+  zoomable: ['interaction', 'layout', 'sampling'],
+  integerZoom: ['interaction', 'layout', 'sampling'],
+  pannable: ['interaction', 'layout', 'sampling'],
+  panXDomain: ['interaction', 'layout', 'geometry', 'sampling'],
+  minZoomSpan: ['interaction', 'layout', 'sampling'],
+  minVisiblePoints: ['interaction', 'layout', 'sampling'],
+  maxZoomScale: ['interaction', 'layout', 'sampling'],
+  initialXDomain: ['interaction', 'layout', 'geometry', 'sampling'],
+  initialXDomains: ['interaction', 'layout', 'geometry', 'sampling'],
+  xDomainStrategy: ['interaction', 'layout', 'geometry', 'sampling'],
+  amplitudeLimits: ['interaction', 'layout', 'geometry', 'sampling'],
+  yDomain: ['interaction', 'layout', 'geometry', 'sampling'],
+  yDomains: ['interaction', 'layout', 'geometry', 'sampling'],
+  timeUnit: ['layout', 'geometry', 'sampling'],
+  frameNumber: ['style'],
+  frameNumbers: ['style'],
+  frameStyle: ['style'],
+  axes: ['layout', 'geometry', 'sampling'],
+  annotations: ['style', 'interaction', 'animation'],
+  annotationsVisible: ['style', 'interaction', 'animation'],
+  interactionMode: ['style', 'interaction'],
+  grid: ['layout', 'geometry', 'sampling', 'interaction', 'animation'],
+  rendering: ['layout', 'geometry', 'sampling'],
+  plotMargin: ['layout', 'geometry', 'sampling'],
+  title: ['layout', 'geometry', 'sampling'],
+  legend: ['layout', 'style', 'interaction'],
+  hiddenSeriesIds: ['layout', 'geometry', 'sampling', 'interaction'],
+  defaultHiddenSeriesIds: ['layout', 'geometry', 'sampling', 'interaction'],
+  cleanView: ['layout', 'geometry', 'sampling', 'interaction'],
+  presentationMode: ['style', 'interaction'],
+  zeroLine: ['layout', 'style', 'sampling'],
+  toolbar: ['style', 'interaction'],
+  animationEnabled: ['animation'],
+  animation: ['animation'],
+  animationUpdate: ['animation'],
+  animationAnnotation: ['animation'],
+  animationThreshold: ['animation'],
+} as const satisfies Record<keyof WaveformChartProps, readonly Effect[]>
+
+export function changedOptionKeys(
+  before: ResolvedWaveformChartProps,
+  after: ResolvedWaveformChartProps,
+) {
+  return (Object.keys(optionEffects) as Array<keyof WaveformChartProps>).filter(
+    (key) => before[key] !== after[key],
+  )
+}
+
+export const samplingIndependentOptions = new Set([
+  'lineColor',
+  'frameNumber',
+  'frameNumbers',
+  'frameStyle',
+  'annotations',
+  'annotationsVisible',
+  'legend',
+  'animationEnabled',
+  'animation',
+  'animationUpdate',
+  'animationAnnotation',
+  'animationThreshold',
+  'showTooltip',
+  'toolbar',
+  'presentationMode',
+  'interactionMode',
+])

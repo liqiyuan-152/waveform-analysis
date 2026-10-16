@@ -216,9 +216,11 @@ function normalizedSeriesOptions(
 export function normalizeWaveformSeriesSources(
   data: WaveformData,
   retainEmpty = false,
+  sourceFor = (_id: string, input: SingleWaveformData) =>
+    createWaveformPointSource(input, normalizeWaveformData),
 ): NormalizedWaveformSourceSeries[] {
   if (data.kind !== 'series') {
-    const source = createWaveformPointSource(data, normalizeWaveformData)
+    const source = sourceFor('series-0', data)
     return source.length || retainEmpty
       ? [
           {
@@ -239,7 +241,7 @@ export function normalizeWaveformSeriesSources(
       suffix += 1
     }
     usedIds.add(uniqueId)
-    const source = createWaveformPointSource(series.data, normalizeWaveformData)
+    const source = sourceFor(uniqueId, series.data)
     return source.length || retainEmpty
       ? [{ ...normalizedSeriesOptions(uniqueId, series), source }]
       : []

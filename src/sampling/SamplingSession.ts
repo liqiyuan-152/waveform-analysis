@@ -1,3 +1,5 @@
+import { SamplingDatasetRegistry } from './SamplingDatasetRegistry'
+import type { PreparedWaveformSeries } from '../core/preparedWaveformSeries'
 import { LatestTaskScheduler } from './LatestTaskScheduler'
 import { WorkerSamplingClient, type SamplingClient } from './WorkerSamplingClient'
 import type { WorkerSamplingDiagnostics } from '../core/workerSampling'
@@ -15,6 +17,7 @@ const defaultTimers: SamplingTimers = {
 /** Owns transport, timers and per-generation sampling decisions for one chart. */
 export class SamplingSession {
   readonly scheduler = new LatestTaskScheduler()
+  readonly datasets = new SamplingDatasetRegistry()
   readonly revisions = new Map<string, number>()
   readonly backendBySeries = new Map<string, WorkerSamplingDiagnostics['backend']>()
   readonly selectedModeBySeries = new Map<string, 'raw' | 'sampled'>()
@@ -37,6 +40,25 @@ export class SamplingSession {
   getClient() {
     if (this.disposed) throw new Error('Sampling session was disposed.')
     return (this.client ??= this.createClient())
+  }
+
+  reconcileData(instanceId: string, series: readonly PreparedWaveformSeries[]) {
+    const retired = this.datasets.reconcile(instanceId, series)
+    if (!retired.length) return
+    if (this.client && !this.client.invalidateDatasets) {
+      this.invalidate()
+      return
+    }
+    this.client?.invalidateDatasets?.(new Set(retired.map((entry) => entry.datasetId)))
+    for (const { seriesId, datasetId } of retired) {
+      this.revisions.delete(datasetId)
+      this.backendBySeries.delete(seriesId)
+      this.selectedModeBySeries.delete(seriesId)
+      this.pendingDiagnostics.delete(seriesId)
+    }
+    this.emittedErrors.clear()
+    // A complete replacement has no previous sampling decision to stabilize.
+    if (!this.selectedModeBySeries.size) this.hasInitialSamplingRun = false
   }
 
   invalidate() {
@@ -69,5 +91,6 @@ export class SamplingSession {
     this.disposed = true
     this.invalidate()
     this.scheduler.dispose()
+    this.datasets.clear()
   }
 }

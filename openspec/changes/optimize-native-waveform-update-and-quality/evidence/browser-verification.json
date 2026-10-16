@@ -1,0 +1,110 @@
+{
+  "browser": "141.0.7390.37",
+  "cases": [
+    {
+      "vue": false,
+      "width": 1280,
+      "animationCompletions": 2,
+      "recovery": true,
+      "pagination": true,
+      "keyboard": "Tab/Shift+Tab/Enter/Space",
+      "focusRetained": true,
+      "controlledVisibility": true,
+      "wheel": true,
+      "panWithColor": true,
+      "box": true,
+      "annotationDraft": true,
+      "svg": true,
+      "png": true,
+      "accessibility": "- group \"波形折线图\":\n  - text: 2000 4000 6000 8000 -1 0 1 2\n  - button \"浏览器标注，打开标注菜单\": 浏览器标注\n  - list:\n    - listitem:\n      - button \"隐藏曲线 通道 A\" [pressed]: 通道 A\n    - listitem:\n      - button \"隐藏曲线 通道 B\" [pressed]: 通道 B\n  - text: 时间（ms）",
+      "screenshot": "native-1280.png"
+    },
+    {
+      "vue": false,
+      "width": 360,
+      "animationCompletions": 2,
+      "recovery": true,
+      "pagination": true,
+      "keyboard": "Tab/Shift+Tab/Enter/Space",
+      "focusRetained": true,
+      "controlledVisibility": true,
+      "wheel": true,
+      "panWithColor": true,
+      "box": true,
+      "annotationDraft": true,
+      "svg": true,
+      "png": true,
+      "accessibility": "- group \"波形折线图\":\n  - text: 2000 4000 6000 8000 -1 0 1 2\n  - button \"浏览器标注，打开标注菜单\": 浏览器标注\n  - list:\n    - listitem:\n      - button \"隐藏曲线 通道 A\" [pressed]: 通道 A\n    - listitem:\n      - button \"隐藏曲线 通道 B\" [pressed]: 通道 B\n  - text: 时间（ms）",
+      "screenshot": "native-360.png"
+    },
+    {
+      "vue": true,
+      "width": 1280,
+      "animationCompletions": 2,
+      "recovery": true,
+      "pagination": true,
+      "keyboard": "Tab/Shift+Tab/Enter/Space",
+      "focusRetained": true,
+      "controlledVisibility": true,
+      "wheel": true,
+      "panWithColor": true,
+      "box": true,
+      "annotationDraft": true,
+      "svg": true,
+      "png": true,
+      "accessibility": "- group \"波形折线图\":\n  - text: 2000 4000 6000 8000 -1 0 1 2\n  - button \"浏览器标注，打开标注菜单\": 浏览器标注\n  - list:\n    - listitem:\n      - button \"隐藏曲线 通道 A\" [pressed]: 通道 A\n    - listitem:\n      - button \"隐藏曲线 通道 B\" [pressed]: 通道 B\n  - text: 时间（ms）",
+      "screenshot": "vue-1280.png"
+    },
+    {
+      "vue": true,
+      "width": 360,
+      "animationCompletions": 2,
+      "recovery": true,
+      "pagination": true,
+      "keyboard": "Tab/Shift+Tab/Enter/Space",
+      "focusRetained": true,
+      "controlledVisibility": true,
+      "wheel": true,
+      "panWithColor": true,
+      "box": true,
+      "annotationDraft": true,
+      "svg": true,
+      "png": true,
+      "accessibility": "- group \"波形折线图\":\n  - text: 2000 4000 6000 8000 -1 0 1 2\n  - button \"浏览器标注，打开标注菜单\": 浏览器标注\n  - list:\n    - listitem:\n      - button \"隐藏曲线 通道 A\" [pressed]: 通道 A\n    - listitem:\n      - button \"隐藏曲线 通道 B\" [pressed]: 通道 B\n  - text: 时间（ms）",
+      "screenshot": "vue-360.png"
+    },
+    {
+      "demo": "/",
+      "width": 1280,
+      "screenshot": "demo-workspace-1280.png"
+    },
+    {
+      "demo": "/animation",
+      "width": 1280,
+      "screenshot": "demo-animation-1280.png"
+    },
+    {
+      "demo": "/wasm-sampling",
+      "width": 1280,
+      "screenshot": "demo-wasm-sampling-1280.png"
+    },
+    {
+      "demo": "/",
+      "width": 360,
+      "screenshot": "demo-workspace-360.png"
+    },
+    {
+      "demo": "/animation",
+      "width": 360,
+      "screenshot": "demo-animation-360.png"
+    },
+    {
+      "demo": "/wasm-sampling",
+      "width": 360,
+      "screenshot": "demo-wasm-sampling-360.png"
+    }
+  ],
+  "errors": [],
+  "assistiveTechnology": "真实屏幕阅读器未验证；仅检查 Chromium 可访问性树及真实键盘输入。",
+  "otherBrowsers": "Firefox / Safari / Edge / 移动浏览器未验证。"
+}

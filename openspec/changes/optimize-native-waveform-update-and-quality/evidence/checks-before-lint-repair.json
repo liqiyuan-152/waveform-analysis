@@ -1,0 +1,29 @@
+{
+  "snapshot": "/var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-quality-clean-2o999xed",
+  "results": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "exitCode": 0,
+      "seconds": 3.55,
+      "log": "final-install.log"
+    },
+    {
+      "command": "pnpm typecheck",
+      "exitCode": 0,
+      "seconds": 13.88,
+      "log": "final-typecheck.log"
+    },
+    {
+      "command": "pnpm check:file-length",
+      "exitCode": 0,
+      "seconds": 0.26,
+      "log": "final-check-file-length.log"
+    },
+    {
+      "command": "pnpm lint:all",
+      "exitCode": 1,
+      "seconds": 9.47,
+      "log": "final-lint-all.log"
+    }
+  ]
+}

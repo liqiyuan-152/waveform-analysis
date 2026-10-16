@@ -28,6 +28,12 @@ jobs:
         run: pnpm check:file-length
       - name: Type check
         run: pnpm typecheck
+      - name: Verify native boundary, licenses and examples
+        run: |
+          set -eu
+          pnpm check:native-boundary
+          pnpm check:licenses
+          pnpm typecheck:examples
       - name: Test
         run: pnpm test:coverage --maxWorkers=2
       - name: Build package and Demo

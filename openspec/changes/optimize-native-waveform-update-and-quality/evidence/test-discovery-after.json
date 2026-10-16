@@ -1,0 +1,910 @@
+[
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/data.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/rendering.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/renderingSource.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/renderingStrategies.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/samplingReference.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/wasmSampling.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/data/WaveformDataManager.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/model/ChartModel.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/scripts/animation-gzip-report.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/scripts/animation-memory-attribution.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/scripts/check-file-length.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/scripts/package-manager.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/scripts/prepare-wasm.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/scripts/wasm-sampling-baseline.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/utils/domain.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/utils/formatters.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/utils/sampling.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/utils/xAxisPrecision.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/multiresolution.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/protocol.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/repository.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/repositoryCache.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/repositorySampling.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/repositoryTypedDataset.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/repositoryWasmDataset.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/core/workerSampling/viewportBoundaries.test.ts",
+    "projectName": "algorithms"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/App.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/componentConfig.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/easing.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/engine.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/geometry.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/handleLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/nativePaginationPresentation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/nativeWaveformPresentation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/paginationPresentation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/pathCoordinateEncoding.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/presetsController.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/publicTypes.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/roundedPathReuse.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/schedulerSupport.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/animation/validation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/ChartEventEmitter.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/ChartUpdateScheduler.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnimation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnimationWindow.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnnotationAnimation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnnotationController.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnnotationEditor.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnnotationModel.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeAnnotations.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeCommandParity.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeCommandProtocol.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeCommands.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeControlStateEvents.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeControlledState.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeGestures.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeHover.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeInstance.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeInteractionWindow.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeMainSync.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeOptionAtomicity.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativePagination.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeSampling.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeToolbar.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/chart/nativeViewportLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/updateAxis.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/updateGrid.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformLegendGeometry.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformNormalization.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/yAxisTickVisibility.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/AnnotationContextMenu.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/ColorInputView.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/ColorPanel.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/ModalController.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/ModalMotion.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/NumberInputView.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/SelectView.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/controls/ToolbarDownloadController.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/interaction/ViewportRestorer.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/layout/ChartLayoutEngine.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/layout/YAxisTextMeasurer.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/layout/nativeVueParity.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/model/OptionManager.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/sampling/RenderSamplingController.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/sampling/SamplingSession.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/sampling/workerPrewarm.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/types/nativeContract.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/export/ChartExporter.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/export/ChartExporterLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/export/PngExporter.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/export/SvgExporter.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/view/nativeAnimationPresentation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/view/nativeVisualLayers.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/views/FixedYDomainDemo.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/views/WasmSamplingDemo.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/views/wasmSamplingDemoSampling.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/data/simulatedWaveforms.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/colorPickerControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/embedBridge.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/integerZoomControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/normalizeDemoSeries.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/plotMarginControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/remoteWaveformWindow.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/remoteWindowIntegration.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/remoteWindowMerge.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/twoPointZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/xAxisInitialRange.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/xAxisLabelControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/demo-app/tests/demo/yAxisPaddingControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/adapters/vue/VueChartAdapter.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/adapters/vue/WaveformChart.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/annotation/components.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/annotation/markup.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/annotation/serialization.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/amplitudeLimits.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/constants.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/emptySeriesDomains.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/exactYAxisPadding.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/fixedYDomainLayout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/grid.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/latestTaskScheduler.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/layout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/niceScale.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/niceScaleDecimal.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/pagination.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/title.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/useWaveformData.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/useWaveformRenderSampling.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/workerSamplingClient.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/xAxisTicks.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/xDomain.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yAxisNice.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yAxisPadding.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yAxisSlotLayout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yAxisSpaceBudget.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yAxisTextWidth.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yAxisTitleLayout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/core/yDomain.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/interaction/WaveformTooltip.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/interaction/viewportInteractionState.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/rendering/xAxisTickVisibility.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/utils/useAnimationFrameThrottle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/controls/imageExport.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/controls/nativeControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/controls/toolbarConfiguration.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/controls/toolbarView.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/allHiddenAxes.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/amplitudeLimits.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/animationIntegration.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/annotationEditingAndReprojection.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/axisRenderLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/channelLabelLegend.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/compactAndSharedHover.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/compactChannelClearance.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/compactFrames.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/compactSharedBorders.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/dataAndHoverPerformance.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/dataLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/denseChannelNames.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/edgeCompactFrameStroke.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/edgeCompactLayout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/edgeCompactPlotBudget.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/edgeCompactYAxisSpace.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/emptyWindowFrames.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/exactYAxisPadding.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/extremaTicksVisibility.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/fixedYAxisNameGap.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/fractionalIntegerZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/frameGridAndFormatting.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/gridFill.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/incompleteDataHover.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/integerZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/integerZoomPrecision.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/integerZoomStall.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/interactionAndAnnotationCreation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/lastPageEmptyFrames.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/layoutAndDomains.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/legendVisibility.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/multiAxisAndPagination.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/multiAxisLabelAlignment.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/narrowMultiAxisScroll.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/paginationAnimation.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/paginationSampling.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/plotLabelCenter.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/presentationAndAxes.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/presentationMode.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/remoteEmptyWindow.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/remotePan.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/remoteZoomConstraints.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/renderingStyles.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/rightScientificAxis.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/samplingBoundaries.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/samplingLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/scientificAxisBoundary.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/scientificChannelLabel.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/separatedEmptyFrames.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/sharedZoomHeadroom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/sizingAndTitles.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/stableYAxisLayout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/threePointRemoteZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/toolbarControls.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/toolbarLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/toolbarRemoteZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/trackOrder.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/twoVisiblePointZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/unitDisplayMode.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/viewportBoxAndPan.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/viewportConstraintsAndReset.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/viewportLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/viewportReset.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/wheelStepZoom.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/wheelZoomOut.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/workerSamplingIntegration.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/xAxisTicks.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/xDomainStrategy.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisBoundaryMaximum.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisEndpointTicks.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisLabelStyle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisLayout.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisMaximumCap.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisMinimumTicks.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisPadding.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/yAxisPaddingLifecycle.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/zeroLineRules.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/zoomCustomerRegression.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/zoomIntentAndDataRebind.test.ts",
+    "projectName": "dom"
+  },
+  {
+    "file": "/Users/liqiyuan/WebstormProjects/waveform-analysis/tests/components/waveformChartCases/zoomPointConstraints.test.ts",
+    "projectName": "dom"
+  }
+]

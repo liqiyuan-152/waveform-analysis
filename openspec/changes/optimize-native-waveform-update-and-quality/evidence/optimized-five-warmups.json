@@ -1,0 +1,2447 @@
+{
+  "label": "optimized-five-warmups",
+  "commit": "e674424653df185e3d8556d05af2d0f0765b10ca",
+  "sourceSha256": "ce434f70ffbd6cc3916e43c20c85a639785fd1edc2d624f31eeb378f9987f4c0",
+  "node": "v22.23.2",
+  "browser": "141.0.7390.37",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M1"
+  },
+  "buildMode": "production",
+  "warmups": 5,
+  "runs": 5,
+  "scenarios": [
+    {
+      "series": 1,
+      "points": 100000,
+      "input": "typed",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 37.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 32.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 2.5,
+            "stableMs": 16.199999999254942,
+            "registrations": 1,
+            "layouts": 6
+          },
+          "all-channels": {
+            "synchronousMs": 3.399999998509884,
+            "stableMs": 18.100000001490116,
+            "registrations": 1,
+            "layouts": 6
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 33.70000000298023
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 35.79999999701977,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 2.100000001490116,
+            "stableMs": 15.300000000745058,
+            "registrations": 1,
+            "layouts": 6
+          },
+          "all-channels": {
+            "synchronousMs": 2,
+            "stableMs": 16.699999999254942,
+            "registrations": 1,
+            "layouts": 6
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 34.400000002235174
+          },
+          "color": {
+            "synchronousMs": 0.09999999776482582,
+            "stableMs": 33.79999999701977,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 2.600000001490116,
+            "stableMs": 17.400000002235174,
+            "registrations": 1,
+            "layouts": 6
+          },
+          "all-channels": {
+            "synchronousMs": 3.199999999254942,
+            "stableMs": 16.5,
+            "registrations": 1,
+            "layouts": 6
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 34.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 35.30000000074506,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 2.199999999254942,
+            "stableMs": 17,
+            "registrations": 1,
+            "layouts": 6
+          },
+          "all-channels": {
+            "synchronousMs": 3,
+            "stableMs": 14.399999998509884,
+            "registrations": 1,
+            "layouts": 6
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 35.5
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 34.899999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 2.900000002235174,
+            "stableMs": 16.100000001490116,
+            "registrations": 1,
+            "layouts": 6
+          },
+          "all-channels": {
+            "synchronousMs": 3.199999999254942,
+            "stableMs": 15.100000001490116,
+            "registrations": 1,
+            "layouts": 6
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 3911836,
+          "totalSize": 8962048,
+          "embedderHeapUsedSize": 6867328,
+          "backingStorageSize": 7867578
+        },
+        {
+          "usedSize": 4288504,
+          "totalSize": 6602752,
+          "embedderHeapUsedSize": 6769464,
+          "backingStorageSize": 7867574
+        },
+        {
+          "usedSize": 3856504,
+          "totalSize": 9224192,
+          "embedderHeapUsedSize": 2308032,
+          "backingStorageSize": 7562091
+        },
+        {
+          "usedSize": 4121956,
+          "totalSize": 7389184,
+          "embedderHeapUsedSize": 6822672,
+          "backingStorageSize": 7867574
+        },
+        {
+          "usedSize": 4617216,
+          "totalSize": 9224192,
+          "embedderHeapUsedSize": 2572920,
+          "backingStorageSize": 5105607
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 34.69999999925494,
+            "p95": 37.69999999925494,
+            "min": 33.70000000298023,
+            "max": 37.69999999925494
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.10000000149011612,
+            "p95": 0.19999999925494194,
+            "min": 0.09999999776482582,
+            "max": 0.19999999925494194
+          },
+          "stableMs": {
+            "median": 34.899999998509884,
+            "p95": 35.79999999701977,
+            "min": 32.5,
+            "max": 35.79999999701977
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 2.5,
+            "p95": 2.900000002235174,
+            "min": 2.100000001490116,
+            "max": 2.900000002235174
+          },
+          "stableMs": {
+            "median": 16.199999999254942,
+            "p95": 17.400000002235174,
+            "min": 15.300000000745058,
+            "max": 17.400000002235174
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 6,
+            "p95": 6,
+            "min": 6,
+            "max": 6
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 3.199999999254942,
+            "p95": 3.399999998509884,
+            "min": 2,
+            "max": 3.399999998509884
+          },
+          "stableMs": {
+            "median": 16.5,
+            "p95": 18.100000001490116,
+            "min": 14.399999998509884,
+            "max": 18.100000001490116
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 6,
+            "p95": 6,
+            "min": 6,
+            "max": 6
+          }
+        }
+      }
+    },
+    {
+      "series": 1,
+      "points": 100000,
+      "input": "objects",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 79.89999999850988
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 21.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.100000001490116,
+            "stableMs": 66.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 14.699999999254942,
+            "stableMs": 66.39999999850988,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 84.70000000298023
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 35.399999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.800000000745058,
+            "stableMs": 64.10000000149012,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 13.5,
+            "stableMs": 68.89999999850988,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 85.89999999850988
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 33.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.300000000745058,
+            "stableMs": 65.10000000149012,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 14.099999997764826,
+            "stableMs": 65.59999999776483,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 79.30000000074506
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 21.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 14.799999997019768,
+            "stableMs": 66.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 14,
+            "stableMs": 67.59999999776483,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 86.70000000298023
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 35.099999997764826,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.400000002235174,
+            "stableMs": 64.40000000223517,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 14.099999997764826,
+            "stableMs": 67.59999999776483,
+            "registrations": 1,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 35223484,
+          "totalSize": 69320704,
+          "embedderHeapUsedSize": 7103912,
+          "backingStorageSize": 1583287
+        },
+        {
+          "usedSize": 35753468,
+          "totalSize": 45170688,
+          "embedderHeapUsedSize": 7057032,
+          "backingStorageSize": 1583287
+        },
+        {
+          "usedSize": 36368832,
+          "totalSize": 45858816,
+          "embedderHeapUsedSize": 7076872,
+          "backingStorageSize": 1607863
+        },
+        {
+          "usedSize": 34912088,
+          "totalSize": 69320704,
+          "embedderHeapUsedSize": 7040648,
+          "backingStorageSize": 1615031
+        },
+        {
+          "usedSize": 35942704,
+          "totalSize": 45170688,
+          "embedderHeapUsedSize": 7088424,
+          "backingStorageSize": 1599671
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 84.70000000298023,
+            "p95": 86.70000000298023,
+            "min": 79.30000000074506,
+            "max": 86.70000000298023
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0,
+            "p95": 0.19999999925494194,
+            "min": 0,
+            "max": 0.19999999925494194
+          },
+          "stableMs": {
+            "median": 33.900000002235174,
+            "p95": 35.399999998509884,
+            "min": 21.5,
+            "max": 35.399999998509884
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 15.300000000745058,
+            "p95": 15.800000000745058,
+            "min": 14.799999997019768,
+            "max": 15.800000000745058
+          },
+          "stableMs": {
+            "median": 65.10000000149012,
+            "p95": 66.5,
+            "min": 64.10000000149012,
+            "max": 66.5
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 14.099999997764826,
+            "p95": 14.699999999254942,
+            "min": 13.5,
+            "max": 14.699999999254942
+          },
+          "stableMs": {
+            "median": 67.59999999776483,
+            "p95": 68.89999999850988,
+            "min": 65.59999999776483,
+            "max": 68.89999999850988
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "series": 1,
+      "points": 1000000,
+      "input": "typed",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 64.89999999850988
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 20.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 14.799999997019768,
+            "stableMs": 49.399999998509884,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 15.300000000745058,
+            "stableMs": 50.30000000074506,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 67.59999999776483
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 22.800000000745058,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.300000000745058,
+            "stableMs": 48.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 15.199999999254942,
+            "stableMs": 51.30000000074506,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 66.60000000149012
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 20.699999999254942,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 14.600000001490116,
+            "stableMs": 50,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 15.100000001490116,
+            "stableMs": 49.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 70.5
+          },
+          "color": {
+            "synchronousMs": 0.09999999776482582,
+            "stableMs": 16.799999997019768,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.800000000745058,
+            "stableMs": 50.30000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 15.099999997764826,
+            "stableMs": 50.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 72.30000000074506
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 16.399999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.200000002980232,
+            "stableMs": 50.100000001490116,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 15.199999999254942,
+            "stableMs": 66.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 3886360,
+          "totalSize": 9224192,
+          "embedderHeapUsedSize": 1243240,
+          "backingStorageSize": 57239704
+        },
+        {
+          "usedSize": 4272840,
+          "totalSize": 8962048,
+          "embedderHeapUsedSize": 2548592,
+          "backingStorageSize": 57250102
+        },
+        {
+          "usedSize": 4259488,
+          "totalSize": 8699904,
+          "embedderHeapUsedSize": 4128160,
+          "backingStorageSize": 49233728
+        },
+        {
+          "usedSize": 3893752,
+          "totalSize": 7127040,
+          "embedderHeapUsedSize": 1197456,
+          "backingStorageSize": 57195672
+        },
+        {
+          "usedSize": 3886784,
+          "totalSize": 6864896,
+          "embedderHeapUsedSize": 1274208,
+          "backingStorageSize": 57223320
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 67.59999999776483,
+            "p95": 72.30000000074506,
+            "min": 64.89999999850988,
+            "max": 72.30000000074506
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.09999999776482582,
+            "p95": 0.19999999925494194,
+            "min": 0,
+            "max": 0.19999999925494194
+          },
+          "stableMs": {
+            "median": 20.699999999254942,
+            "p95": 22.800000000745058,
+            "min": 16.399999998509884,
+            "max": 22.800000000745058
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 15.200000002980232,
+            "p95": 15.800000000745058,
+            "min": 14.600000001490116,
+            "max": 15.800000000745058
+          },
+          "stableMs": {
+            "median": 50,
+            "p95": 50.30000000074506,
+            "min": 48.5,
+            "max": 50.30000000074506
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 15.199999999254942,
+            "p95": 15.300000000745058,
+            "min": 15.099999997764826,
+            "max": 15.300000000745058
+          },
+          "stableMs": {
+            "median": 50.30000000074506,
+            "p95": 66.19999999925494,
+            "min": 49.19999999925494,
+            "max": 66.19999999925494
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "series": 1,
+      "points": 1000000,
+      "input": "objects",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 662.0999999977648
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 20.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 169.69999999925494,
+            "stableMs": 492,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 174,
+            "stableMs": 538.6000000014901,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 584.8000000007451
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 21.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 192.30000000074506,
+            "stableMs": 516.8000000007451,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 197.09999999776483,
+            "stableMs": 576.5,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 622.3000000007451
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 14.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 183.69999999925494,
+            "stableMs": 512.2999999970198,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 184.40000000223517,
+            "stableMs": 558.5,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 577.5999999977648
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 18.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 174.5,
+            "stableMs": 499.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 242.19999999925494,
+            "stableMs": 630.8999999985099,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 559.5
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 29.399999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 179.80000000074506,
+            "stableMs": 516.4000000022352,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 241.30000000074506,
+            "stableMs": 641.0999999977648,
+            "registrations": 1,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 329708596,
+          "totalSize": 377618432,
+          "embedderHeapUsedSize": 7136104,
+          "backingStorageSize": 1604007
+        },
+        {
+          "usedSize": 231275572,
+          "totalSize": 312295424,
+          "embedderHeapUsedSize": 2704872,
+          "backingStorageSize": 1196239
+        },
+        {
+          "usedSize": 334971140,
+          "totalSize": 376864768,
+          "embedderHeapUsedSize": 7175728,
+          "backingStorageSize": 1604007
+        },
+        {
+          "usedSize": 244866900,
+          "totalSize": 298139648,
+          "embedderHeapUsedSize": 2732392,
+          "backingStorageSize": 1196157
+        },
+        {
+          "usedSize": 243841740,
+          "totalSize": 317276160,
+          "embedderHeapUsedSize": 2657592,
+          "backingStorageSize": 1196242
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 584.8000000007451,
+            "p95": 662.0999999977648,
+            "min": 559.5,
+            "max": 662.0999999977648
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.10000000149011612,
+            "p95": 0.19999999925494194,
+            "min": 0,
+            "max": 0.19999999925494194
+          },
+          "stableMs": {
+            "median": 20.5,
+            "p95": 29.399999998509884,
+            "min": 14.900000002235174,
+            "max": 29.399999998509884
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 179.80000000074506,
+            "p95": 192.30000000074506,
+            "min": 169.69999999925494,
+            "max": 192.30000000074506
+          },
+          "stableMs": {
+            "median": 512.2999999970198,
+            "p95": 516.8000000007451,
+            "min": 492,
+            "max": 516.8000000007451
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 197.09999999776483,
+            "p95": 242.19999999925494,
+            "min": 174,
+            "max": 242.19999999925494
+          },
+          "stableMs": {
+            "median": 576.5,
+            "p95": 641.0999999977648,
+            "min": 538.6000000014901,
+            "max": 641.0999999977648
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "series": 8,
+      "points": 100000,
+      "input": "typed",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 100.30000000074506
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 38.19999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 1.8999999985098839,
+            "stableMs": 48.69999999925494,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 9.699999999254942,
+            "stableMs": 72.19999999925494,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 103.09999999776483
+          },
+          "color": {
+            "synchronousMs": 0.20000000298023224,
+            "stableMs": 47.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 1.6000000014901161,
+            "stableMs": 48,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 9.300000000745058,
+            "stableMs": 81.60000000149012,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 96.80000000074506
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 44.19999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 1.800000000745058,
+            "stableMs": 50.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 9.600000001490116,
+            "stableMs": 84.30000000074506,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 106
+          },
+          "color": {
+            "synchronousMs": 0.09999999776482582,
+            "stableMs": 45.399999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 1.9000000022351742,
+            "stableMs": 51.100000001490116,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 10,
+            "stableMs": 83.09999999776483,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 107.60000000149012
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 42,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 1.800000000745058,
+            "stableMs": 49.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 9.099999997764826,
+            "stableMs": 70.59999999776483,
+            "registrations": 8,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 7787084,
+          "totalSize": 16302080,
+          "embedderHeapUsedSize": 13348216,
+          "backingStorageSize": 35177229
+        },
+        {
+          "usedSize": 7590504,
+          "totalSize": 17350656,
+          "embedderHeapUsedSize": 13357200,
+          "backingStorageSize": 35081997
+        },
+        {
+          "usedSize": 7679264,
+          "totalSize": 15515648,
+          "embedderHeapUsedSize": 13362328,
+          "backingStorageSize": 35161869
+        },
+        {
+          "usedSize": 7539320,
+          "totalSize": 16826368,
+          "embedderHeapUsedSize": 12970648,
+          "backingStorageSize": 35177197
+        },
+        {
+          "usedSize": 7852960,
+          "totalSize": 16302080,
+          "embedderHeapUsedSize": 13261928,
+          "backingStorageSize": 35177229
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 103.09999999776483,
+            "p95": 107.60000000149012,
+            "min": 96.80000000074506,
+            "max": 107.60000000149012
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.09999999776482582,
+            "p95": 0.20000000298023224,
+            "min": 0,
+            "max": 0.20000000298023224
+          },
+          "stableMs": {
+            "median": 44.19999999925494,
+            "p95": 47.5,
+            "min": 38.19999999925494,
+            "max": 47.5
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 1.800000000745058,
+            "p95": 1.9000000022351742,
+            "min": 1.6000000014901161,
+            "max": 1.9000000022351742
+          },
+          "stableMs": {
+            "median": 49.19999999925494,
+            "p95": 51.100000001490116,
+            "min": 48,
+            "max": 51.100000001490116
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 9.600000001490116,
+            "p95": 10,
+            "min": 9.099999997764826,
+            "max": 10
+          },
+          "stableMs": {
+            "median": 81.60000000149012,
+            "p95": 84.30000000074506,
+            "min": 70.59999999776483,
+            "max": 84.30000000074506
+          },
+          "registrations": {
+            "median": 8,
+            "p95": 8,
+            "min": 8,
+            "max": 8
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "series": 8,
+      "points": 100000,
+      "input": "objects",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 507.80000000074506
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 44.100000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.5,
+            "stableMs": 83.69999999925494,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 104.5,
+            "stableMs": 345.5999999977648,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 489.8999999985099
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 39.80000000074506,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 18.099999997764826,
+            "stableMs": 87.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 100.39999999850988,
+            "stableMs": 365.8999999985099,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 496.29999999701977
+          },
+          "color": {
+            "synchronousMs": 0.20000000298023224,
+            "stableMs": 35.100000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 17.899999998509884,
+            "stableMs": 85.10000000149012,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 100.5,
+            "stableMs": 345.8999999985099,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 495.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 49.899999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.800000000745058,
+            "stableMs": 82.40000000223517,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.5,
+            "stableMs": 332.5999999977648,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 491.5
+          },
+          "color": {
+            "synchronousMs": 0.20000000298023224,
+            "stableMs": 34.400000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.699999999254942,
+            "stableMs": 81.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.09999999776483,
+            "stableMs": 335.30000000074506,
+            "registrations": 8,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 198766668,
+          "totalSize": 262373376,
+          "embedderHeapUsedSize": 45467976,
+          "backingStorageSize": 6614960
+        },
+        {
+          "usedSize": 199543684,
+          "totalSize": 262782976,
+          "embedderHeapUsedSize": 45397968,
+          "backingStorageSize": 6614960
+        },
+        {
+          "usedSize": 204767876,
+          "totalSize": 262422528,
+          "embedderHeapUsedSize": 45453264,
+          "backingStorageSize": 6868912
+        },
+        {
+          "usedSize": 199158736,
+          "totalSize": 263274496,
+          "embedderHeapUsedSize": 45479312,
+          "backingStorageSize": 6614960
+        },
+        {
+          "usedSize": 198809616,
+          "totalSize": 262225920,
+          "embedderHeapUsedSize": 45476944,
+          "backingStorageSize": 6614960
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 495.69999999925494,
+            "p95": 507.80000000074506,
+            "min": 489.8999999985099,
+            "max": 507.80000000074506
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.19999999925494194,
+            "p95": 0.20000000298023224,
+            "min": 0.10000000149011612,
+            "max": 0.20000000298023224
+          },
+          "stableMs": {
+            "median": 39.80000000074506,
+            "p95": 49.899999998509884,
+            "min": 34.400000002235174,
+            "max": 49.899999998509884
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 16.800000000745058,
+            "p95": 18.099999997764826,
+            "min": 16.5,
+            "max": 18.099999997764826
+          },
+          "stableMs": {
+            "median": 83.69999999925494,
+            "p95": 87.5,
+            "min": 81.5,
+            "max": 87.5
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 100.39999999850988,
+            "p95": 104.5,
+            "min": 99.09999999776483,
+            "max": 104.5
+          },
+          "stableMs": {
+            "median": 345.5999999977648,
+            "p95": 365.8999999985099,
+            "min": 332.5999999977648,
+            "max": 365.8999999985099
+          },
+          "registrations": {
+            "median": 8,
+            "p95": 8,
+            "min": 8,
+            "max": 8
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "series": 8,
+      "points": 1000000,
+      "input": "typed",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 416.19999999925494
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 42.30000000074506,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.600000001490116,
+            "stableMs": 86.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 113.69999999925494,
+            "stableMs": 323.19999999925494,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 392.30000000074506
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 49.100000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.099999997764826,
+            "stableMs": 83,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 113.30000000074506,
+            "stableMs": 328,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 387.9000000022352
+          },
+          "color": {
+            "synchronousMs": 0.09999999776482582,
+            "stableMs": 53.19999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 18,
+            "stableMs": 84.39999999850988,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 110.40000000223517,
+            "stableMs": 322.9000000022352,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 399.6000000014901
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 49,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 15.699999999254942,
+            "stableMs": 78.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 114.39999999850988,
+            "stableMs": 328.19999999925494,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 394.1000000014901
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 47.399999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 17.600000001490116,
+            "stableMs": 83.90000000223517,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 112.69999999925494,
+            "stableMs": 322.29999999701977,
+            "registrations": 8,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 8009556,
+          "totalSize": 15253504,
+          "embedderHeapUsedSize": 13299776,
+          "backingStorageSize": 323033828
+        },
+        {
+          "usedSize": 7944500,
+          "totalSize": 14729216,
+          "embedderHeapUsedSize": 13291656,
+          "backingStorageSize": 323033828
+        },
+        {
+          "usedSize": 7939780,
+          "totalSize": 14729216,
+          "embedderHeapUsedSize": 13143296,
+          "backingStorageSize": 323033828
+        },
+        {
+          "usedSize": 7927492,
+          "totalSize": 14467072,
+          "embedderHeapUsedSize": 13244888,
+          "backingStorageSize": 323033828
+        },
+        {
+          "usedSize": 7992364,
+          "totalSize": 14467072,
+          "embedderHeapUsedSize": 13117080,
+          "backingStorageSize": 323033828
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 394.1000000014901,
+            "p95": 416.19999999925494,
+            "min": 387.9000000022352,
+            "max": 416.19999999925494
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.19999999925494194,
+            "p95": 0.19999999925494194,
+            "min": 0.09999999776482582,
+            "max": 0.19999999925494194
+          },
+          "stableMs": {
+            "median": 49,
+            "p95": 53.19999999925494,
+            "min": 42.30000000074506,
+            "max": 53.19999999925494
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 16.600000001490116,
+            "p95": 18,
+            "min": 15.699999999254942,
+            "max": 18
+          },
+          "stableMs": {
+            "median": 83.90000000223517,
+            "p95": 86.80000000074506,
+            "min": 78.80000000074506,
+            "max": 86.80000000074506
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 113.30000000074506,
+            "p95": 114.39999999850988,
+            "min": 110.40000000223517,
+            "max": 114.39999999850988
+          },
+          "stableMs": {
+            "median": 323.19999999925494,
+            "p95": 328.19999999925494,
+            "min": 322.29999999701977,
+            "max": 328.19999999925494
+          },
+          "registrations": {
+            "median": 8,
+            "p95": 8,
+            "min": 8,
+            "max": 8
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    },
+    {
+      "series": 8,
+      "points": 1000000,
+      "input": "objects",
+      "runs": [
+        {
+          "coldStartup": {
+            "stableMs": 4668.900000002235
+          },
+          "color": {
+            "synchronousMs": 0.09999999776482582,
+            "stableMs": 43,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 217.89999999850988,
+            "stableMs": 582.8999999985099,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 2029.1000000014901,
+            "stableMs": 3893.400000002235,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 4664.199999999255
+          },
+          "color": {
+            "synchronousMs": 0.09999999776482582,
+            "stableMs": 43,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 222.30000000074506,
+            "stableMs": 597.6999999992549,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 2081,
+            "stableMs": 3971.39999999851,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 4532
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 37.600000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 217.60000000149012,
+            "stableMs": 590,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 2216.699999999255,
+            "stableMs": 4057.5,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 4538.800000000745
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 40.399999998509884,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 223.5,
+            "stableMs": 588.1000000014901,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 2067.699999999255,
+            "stableMs": 3993,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 4733.699999999255
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 42.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 281.5,
+            "stableMs": 669.3999999985099,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 2252.10000000149,
+            "stableMs": 4121.10000000149,
+            "registrations": 8,
+            "layouts": 7
+          }
+        }
+      ],
+      "heap": [
+        {
+          "usedSize": 1842130208,
+          "totalSize": 1889058816,
+          "embedderHeapUsedSize": 13764232,
+          "backingStorageSize": 3287751
+        },
+        {
+          "usedSize": 1834164832,
+          "totalSize": 1903280128,
+          "embedderHeapUsedSize": 13739400,
+          "backingStorageSize": 3287821
+        },
+        {
+          "usedSize": 1851033064,
+          "totalSize": 1905082368,
+          "embedderHeapUsedSize": 13733296,
+          "backingStorageSize": 3287821
+        },
+        {
+          "usedSize": 1857685372,
+          "totalSize": 1900429312,
+          "embedderHeapUsedSize": 13722704,
+          "backingStorageSize": 3287751
+        },
+        {
+          "usedSize": 1847846812,
+          "totalSize": 1907949568,
+          "embedderHeapUsedSize": 13762112,
+          "backingStorageSize": 3287751
+        }
+      ],
+      "summary": {
+        "coldStartup": {
+          "stableMs": {
+            "median": 4664.199999999255,
+            "p95": 4733.699999999255,
+            "min": 4532,
+            "max": 4733.699999999255
+          }
+        },
+        "color": {
+          "synchronousMs": {
+            "median": 0.09999999776482582,
+            "p95": 0.10000000149011612,
+            "min": 0,
+            "max": 0.10000000149011612
+          },
+          "stableMs": {
+            "median": 42.5,
+            "p95": 43,
+            "min": 37.600000001490116,
+            "max": 43
+          },
+          "registrations": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          },
+          "layouts": {
+            "median": 0,
+            "p95": 0,
+            "min": 0,
+            "max": 0
+          }
+        },
+        "single-channel": {
+          "synchronousMs": {
+            "median": 222.30000000074506,
+            "p95": 281.5,
+            "min": 217.60000000149012,
+            "max": 281.5
+          },
+          "stableMs": {
+            "median": 590,
+            "p95": 669.3999999985099,
+            "min": 582.8999999985099,
+            "max": 669.3999999985099
+          },
+          "registrations": {
+            "median": 1,
+            "p95": 1,
+            "min": 1,
+            "max": 1
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        },
+        "all-channels": {
+          "synchronousMs": {
+            "median": 2081,
+            "p95": 2252.10000000149,
+            "min": 2029.1000000014901,
+            "max": 2252.10000000149
+          },
+          "stableMs": {
+            "median": 3993,
+            "p95": 4121.10000000149,
+            "min": 3893.400000002235,
+            "max": 4121.10000000149
+          },
+          "registrations": {
+            "median": 8,
+            "p95": 8,
+            "min": 8,
+            "max": 8
+          },
+          "layouts": {
+            "median": 7,
+            "p95": 7,
+            "min": 7,
+            "max": 7
+          }
+        }
+      }
+    }
+  ],
+  "errors": [],
+  "memoryNote": "CDP JS 堆快照，不代表进程/ArrayBuffer/WASM/SVG/GPU 峰值；分配量和各线程峰值未观测。数据生成和挂载不计入更新耗时；稳定耗时包含 SVG 导出屏障。",
+  "vueUpdate": {
+    "samples": [
+      {
+        "synchronousMs": 0.8000000007450581,
+        "stableMs": 45
+      },
+      {
+        "synchronousMs": 0.5999999977648258,
+        "stableMs": 47.599999997764826
+      },
+      {
+        "synchronousMs": 0.5,
+        "stableMs": 45.30000000074506
+      },
+      {
+        "synchronousMs": 0.7000000029802322,
+        "stableMs": 47.900000002235174
+      },
+      {
+        "synchronousMs": 0.6999999992549419,
+        "stableMs": 45.19999999925494
+      }
+    ],
+    "summary": {
+      "synchronousMs": {
+        "median": 0.6999999992549419,
+        "p95": 0.8000000007450581,
+        "min": 0.5,
+        "max": 0.8000000007450581
+      },
+      "stableMs": {
+        "median": 45.30000000074506,
+        "p95": 47.900000002235174,
+        "min": 45,
+        "max": 47.900000002235174
+      }
+    }
+  },
+  "geometry": {
+    "samples": [
+      {
+        "durationMs": 69.5,
+        "bytes": 36060000
+      },
+      {
+        "durationMs": 68.29999999701977,
+        "bytes": 36060000
+      },
+      {
+        "durationMs": 67.89999999850988,
+        "bytes": 36060000
+      },
+      {
+        "durationMs": 66,
+        "bytes": 36060000
+      },
+      {
+        "durationMs": 66.90000000223517,
+        "bytes": 36060000
+      }
+    ],
+    "summary": {
+      "durationMs": {
+        "median": 67.89999999850988,
+        "p95": 69.5,
+        "min": 66,
+        "max": 69.5
+      },
+      "bytes": {
+        "median": 36060000,
+        "p95": 36060000,
+        "min": 36060000,
+        "max": 36060000
+      }
+    }
+  },
+  "recovery": [
+    {
+      "revision": 1,
+      "points": 100000,
+      "samples": [
+        {
+          "durationMs": 1.699999999254942,
+          "preparations": 1,
+          "beforeHeap": 2060159043,
+          "afterHeap": 2065360527,
+          "postRecoveryRevision": 2
+        },
+        {
+          "durationMs": 1.699999999254942,
+          "preparations": 1,
+          "beforeHeap": 2072575807,
+          "afterHeap": 2077777287,
+          "postRecoveryRevision": 2
+        },
+        {
+          "durationMs": 1.5,
+          "preparations": 1,
+          "beforeHeap": 2084981243,
+          "afterHeap": 2090182867,
+          "postRecoveryRevision": 2
+        },
+        {
+          "durationMs": 1.699999999254942,
+          "preparations": 1,
+          "beforeHeap": 2056638823,
+          "afterHeap": 2061847227,
+          "postRecoveryRevision": 2
+        },
+        {
+          "durationMs": 1.5999999977648258,
+          "preparations": 1,
+          "beforeHeap": 2069057243,
+          "afterHeap": 2074258679,
+          "postRecoveryRevision": 2
+        }
+      ]
+    },
+    {
+      "revision": 1000,
+      "points": 100000,
+      "samples": [
+        {
+          "durationMs": 1.699999999254942,
+          "preparations": 1,
+          "beforeHeap": 2062734215,
+          "afterHeap": 2067967315,
+          "postRecoveryRevision": 1001
+        },
+        {
+          "durationMs": 1.6000000014901161,
+          "preparations": 1,
+          "beforeHeap": 2075686627,
+          "afterHeap": 2080887959,
+          "postRecoveryRevision": 1001
+        },
+        {
+          "durationMs": 3.199999999254942,
+          "preparations": 1,
+          "beforeHeap": 2088607195,
+          "afterHeap": 2060263843,
+          "postRecoveryRevision": 1001
+        },
+        {
+          "durationMs": 1.6000000014901161,
+          "preparations": 1,
+          "beforeHeap": 2060783075,
+          "afterHeap": 2065984419,
+          "postRecoveryRevision": 1001
+        },
+        {
+          "durationMs": 1.5,
+          "preparations": 1,
+          "beforeHeap": 2073703635,
+          "afterHeap": 2078904983,
+          "postRecoveryRevision": 1001
+        }
+      ]
+    }
+  ],
+  "transport": [
+    {
+      "count": 100000,
+      "transfer": false,
+      "samples": [
+        {
+          "totalMs": 0.19999999925494194,
+          "postMs": 0.10000000149011612,
+          "beforeHeap": 2089770892,
+          "afterHeap": 2090573652,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 0.30000000074505806,
+          "postMs": 0,
+          "beforeHeap": 2090574068,
+          "afterHeap": 2091374944,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 0.5,
+          "postMs": 0.19999999925494194,
+          "beforeHeap": 2091374972,
+          "afterHeap": 2092175848,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 0.30000000074505806,
+          "postMs": 0.09999999776482582,
+          "beforeHeap": 2092175876,
+          "afterHeap": 2092976840,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 0.5,
+          "postMs": 0.10000000149011612,
+          "beforeHeap": 2092976868,
+          "afterHeap": 2093777804,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": false
+        }
+      ]
+    },
+    {
+      "count": 100000,
+      "transfer": true,
+      "samples": [
+        {
+          "totalMs": 0.19999999925494194,
+          "postMs": 0,
+          "beforeHeap": 2097792332,
+          "afterHeap": 2098593356,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 0.30000000074505806,
+          "postMs": 0,
+          "beforeHeap": 2098593476,
+          "afterHeap": 2099394624,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 0.09999999776482582,
+          "postMs": 0,
+          "beforeHeap": 2099394652,
+          "afterHeap": 2100195668,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 0.20000000298023224,
+          "postMs": 0,
+          "beforeHeap": 2100195696,
+          "afterHeap": 2100996712,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 0.19999999925494194,
+          "postMs": 0,
+          "beforeHeap": 2100996740,
+          "afterHeap": 2101797756,
+          "consumerBytes": 800000,
+          "fallbackBytes": 800000,
+          "outgoingDetached": true
+        }
+      ]
+    },
+    {
+      "count": 1000000,
+      "transfer": false,
+      "samples": [
+        {
+          "totalMs": 4,
+          "postMs": 0.8000000007450581,
+          "beforeHeap": 53574996,
+          "afterHeap": 61575864,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 3.600000001490116,
+          "postMs": 0.8000000007450581,
+          "beforeHeap": 61575956,
+          "afterHeap": 69576836,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 4.100000001490116,
+          "postMs": 0.8999999985098839,
+          "beforeHeap": 69576852,
+          "afterHeap": 77577720,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 2.899999998509884,
+          "postMs": 0.8000000007450581,
+          "beforeHeap": 77577736,
+          "afterHeap": 85578592,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": false
+        },
+        {
+          "totalMs": 7.599999997764826,
+          "postMs": 1.0999999977648258,
+          "beforeHeap": 85578608,
+          "afterHeap": 93579476,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": false
+        }
+      ]
+    },
+    {
+      "count": 1000000,
+      "transfer": true,
+      "samples": [
+        {
+          "totalMs": 2.100000001490116,
+          "postMs": 0.09999999776482582,
+          "beforeHeap": 61468413,
+          "afterHeap": 69469393,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 1.300000000745058,
+          "postMs": 0,
+          "beforeHeap": 69469485,
+          "afterHeap": 77470489,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 1.5999999977648258,
+          "postMs": 0,
+          "beforeHeap": 77470505,
+          "afterHeap": 85471461,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 3.900000002235174,
+          "postMs": 0.19999999925494194,
+          "beforeHeap": 85471477,
+          "afterHeap": 93461205,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": true
+        },
+        {
+          "totalMs": 2,
+          "postMs": 0,
+          "beforeHeap": 93461221,
+          "afterHeap": 37462225,
+          "consumerBytes": 8000000,
+          "fallbackBytes": 8000000,
+          "outgoingDetached": true
+        }
+      ]
+    }
+  ],
+  "geometryCandidate": [
+    {
+      "animation": false,
+      "cached": false,
+      "samples": [
+        {
+          "durationMs": 69.69999999925494,
+          "encodings": 100,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 64.5,
+          "encodings": 100,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 69.20000000298023,
+          "encodings": 100,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 63.79999999701977,
+          "encodings": 100,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 63.900000002235174,
+          "encodings": 100,
+          "bytes": 36060000
+        }
+      ]
+    },
+    {
+      "animation": false,
+      "cached": true,
+      "samples": [
+        {
+          "durationMs": 0.6000000014901161,
+          "encodings": 1,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 0.6999999992549419,
+          "encodings": 1,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 0.5999999977648258,
+          "encodings": 1,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 0.6000000014901161,
+          "encodings": 1,
+          "bytes": 36060000
+        },
+        {
+          "durationMs": 0.6000000014901161,
+          "encodings": 1,
+          "bytes": 36060000
+        }
+      ]
+    },
+    {
+      "animation": true,
+      "cached": false,
+      "samples": [
+        {
+          "durationMs": 75.80000000074506,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 69.79999999701977,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 68,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 74.90000000223517,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 69.80000000074506,
+          "encodings": 100,
+          "bytes": 35994528
+        }
+      ]
+    },
+    {
+      "animation": true,
+      "cached": true,
+      "samples": [
+        {
+          "durationMs": 71.89999999850988,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 69.5,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 68.69999999925494,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 73.60000000149012,
+          "encodings": 100,
+          "bytes": 35994528
+        },
+        {
+          "durationMs": 69.5,
+          "encodings": 100,
+          "bytes": 35994528
+        }
+      ]
+    }
+  ]
+}

@@ -3,6 +3,15 @@ import { fileURLToPath, URL } from 'node:url'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig } from 'vitest/config'
 
+// Pure data/algorithm suites do not need a document or the Vue unmount/frame mocks.
+const nodeTests = [
+  'tests/utils/**/*.test.ts',
+  'tests/core/**/*.test.ts',
+  'tests/data/**/*.test.ts',
+  'tests/scripts/**/*.test.ts',
+  'tests/model/ChartModel.test.ts',
+]
+
 export default defineConfig({
   base: process.env.DEMO_BASE_PATH ?? '/',
   plugins: [vue()],
@@ -20,11 +29,24 @@ export default defineConfig({
     },
   },
   test: {
-    environment: 'jsdom',
     // Full chart interactions perform SVG layout repeatedly under V8 coverage in CI.
     testTimeout: 30_000,
-    setupFiles: ['./tests/support/setup.ts'],
-    css: true,
+    projects: [
+      {
+        extends: true,
+        test: { name: 'algorithms', environment: 'node', include: nodeTests },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'dom',
+          environment: 'jsdom',
+          exclude: [...nodeTests, '**/node_modules/**', '**/.git/**'],
+          setupFiles: ['./tests/support/setup.ts'],
+          css: true,
+        },
+      },
+    ],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],

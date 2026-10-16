@@ -92,6 +92,7 @@ export function buildSamplingTargets(
   tracks: readonly TrackLayout[],
   rendering: ResolvedWaveformRenderingOptions,
   revisions: ReadonlyMap<string, number>,
+  datasetIds?: ReadonlyMap<string, string>,
 ) {
   const sampling = rendering.sampling
   return tracks.flatMap((track) => {
@@ -100,7 +101,7 @@ export function buildSamplingTargets(
       if (series.lineType === 'none' || track.width <= 0) return []
       const source = series.source ?? pointSourceFromPoints(series.points)
       const range = source.visibleRange(domain)
-      const datasetId = `${instanceId}:${series.id}`
+      const datasetId = datasetIds?.get(series.id) ?? `${instanceId}:${series.id}`
       return [
         {
           series,

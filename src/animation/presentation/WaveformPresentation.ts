@@ -181,7 +181,7 @@ export class WaveformPresentation {
     const optionSignature = JSON.stringify(
       Object.fromEntries(
         Object.entries(chartExportOptions(props)).filter(
-          ([key]) => !['annotations', 'annotationsVisible'].includes(key),
+          ([key]) => !['annotations', 'annotationsVisible', 'lineColor'].includes(key),
         ),
       ),
     )

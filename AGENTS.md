@@ -2,9 +2,10 @@
 
 ## Project Overview
 
-This repository is a Vue 3, TypeScript, and D3 waveform component library with a Vite demo.
-The published package is `waveform-analysis`; its supported public surface is exported from
-`src/index.ts`. The demo is a consumer of that library code, not part of the public API.
+This repository is a TypeScript and D3 native SVG waveform library with a Vue 3 adapter.
+The published package is `waveform-analysis`; deliberate public exports live in `src/index.ts`,
+`src/native.ts`, and `src/vue.ts`. The private `demo-app` workspace consumes built package entries
+and is not part of the public API.
 
 Important behavioral contracts:
 
@@ -21,26 +22,31 @@ Important behavioral contracts:
 
 ## Repository Layout
 
-- `src/index.ts`: deliberate package exports for components, types, core helpers, and utilities.
-- `src/components/WaveformChart.vue`: top-level chart composition and public prop/event boundary.
-- `src/components/core/`: layout, domains, grids, presentation state, and chart controllers.
-- `src/components/data/`: component-facing data types and data-layer exports.
-- `src/components/rendering/`: SVG tracks, axes, series, legends, hover layers, and styles.
-- `src/components/interaction/`: viewport, zoom, hover, tooltip, and interaction hosts.
-- `src/components/annotation/`: annotation types, serialization, editing, layout, and interaction.
-- `src/core/`: package-level normalization and rendering/downsampling logic.
-- `src/types/`: shared public data and chart types.
-- `src/utils/`: domains, formatting, geometry, sampling, and waveform ID helpers.
-- `src/demo/`, `src/App.vue`: controls and the main interactive demo workspace.
-- `src/router.ts`, `src/DemoRouterApp.vue`, `src/views/`: hash-based demo routes and focused demos.
-- `src/data/`: simulated demo data; `tests/support/`: shared Vitest setup and test helpers.
-- `scripts/`: repository checks and declaration-build cleanup scripts.
-- `docs/` and root Markdown notes: supporting or historical documentation; verify claims against
-  current source, tests, `README.md`, and `package.json` before relying on them.
+- `src/chart/`: instance factory, facade, resources, events and staged update scheduler.
+- `src/model/`, `src/data/`: options, viewport, visibility, presentation, prepared data and queries.
+- `src/layout/`, `src/view/`, `src/rendering/`: layout measurement, persistent DOM/SVG views and geometry.
+- `src/interaction/`, `src/annotation/`, `src/controls/`, `src/export/`: native controllers and exports.
+- `src/sampling/`, `src/core/workerSampling/`, `src/wasm/`, `wasm/`: scheduling, transport, repositories,
+  generated package glue and Rust sources. Daily commands use checked-in WASM; explicit
+  `prepare:wasm` / `build:wasm` and CI validate/rebuild it with the pinned Rust toolchain.
+- `src/animation/`: shared animator and framework-independent presentation lifecycle.
+- `src/adapters/vue/`: prop snapshots, event forwarding, attachment and Vue component.
+- `src/components/`: shared computational helpers, styles and compatibility re-exports; the
+  `WaveformChart.vue` here is a compatibility entry, not the native chart orchestrator.
+- `src/types/`, `src/utils/`: shared public types and pure helpers; exports remain explicit.
+- `demo-app/src/`: private demo app, routes, controls, views and simulated data.
+- `tests/`: native/adapters/core regression tests; `tests/fixtures/legacy/` keeps the old Vue engine
+  for compatibility comparison only. `demo-app/tests/` covers the demo. `tests/support/` owns mocks.
+- `scripts/`: build, package consumer, boundary/license checks and browser evidence tools.
+- `docs/` and root Markdown notes: verify historical claims against current source and README.
 
-Tests live under the root `tests/` directory and mirror the source layout. The large chart suite is
-split under `tests/components/waveformChartCases/`; add focused cases there instead of rebuilding a
-monolithic chart test file.
+When `.codegraph/` exists, prefer CodeGraph for unknown code or cross-file call paths. Its output
+can be stale: compare its indexed revision/source with current files before relying on it, and use
+current targeted file reads/rg when insufficient. Index rebuilds remain the user's decision; do not
+rebuild automatically. Read known files directly for local edits.
+
+Tests mirror source ownership. Add focused regression files under the matching native/adapters
+folder; do not extend the legacy fixtures into a second production implementation.
 
 ## Toolchain and Commands
 
@@ -52,11 +58,15 @@ pnpm install --frozen-lockfile # Reproduce the CI dependency graph
 pnpm dev                       # Start the Vite demo
 pnpm typecheck                 # Run vue-tsc project checks
 pnpm check:file-length         # Enforce the 450-line limit under src/
-pnpm lint                      # Run ESLint with zero warnings allowed
+pnpm lint:all                  # Run oxlint and ESLint with zero warnings
+pnpm check:native-boundary     # Verify native entry dependency boundary
+pnpm check:licenses            # Verify third-party notices
+pnpm typecheck:examples        # Verify public examples after declarations
 pnpm test                      # Run Vitest once
 pnpm test:coverage             # Run tests and enforce coverage thresholds
 pnpm build                     # Type-check and build library, declarations, and demo
-pnpm pack --dry-run            # Inspect the publishable package contents
+pnpm test:package              # Pack and test independent ESM/CJS/types/CSS/WASM consumers
+pnpm pack                      # Create a tarball; prepack runs the complete build
 pnpm preview                   # Preview dist-demo/
 pnpm format                    # Apply the repository Prettier configuration
 ```
@@ -75,7 +85,7 @@ ESLint enforces a maximum of 450 physical lines for files under `src/`; the stan
 check applies the same limit to all text files below `src/`. Split code by existing ownership
 boundaries when a file approaches the limit. Keep rendering, layout, interaction, annotation, and
 data concerns in their existing modules rather than adding more orchestration to
-`WaveformChart.vue`.
+`src/chart/WaveformChart.ts`.
 
 Use the `@/` alias for internal `src/` imports where it improves clarity. Keep public exports
 explicit: adding a type or helper internally does not make it supported API. When changing a
@@ -88,8 +98,10 @@ are externalized by `vite.lib.config.ts`; validate packaging after dependency or
 
 ## Testing Expectations
 
-Vitest runs in jsdom with `@vue/test-utils`; shared setup is in `tests/support/setup.ts`. Coverage uses
-V8 and must remain at least 80% for lines, statements, and functions, and 75% for branches.
+Vitest projects separate pure algorithm/data/script suites in Node from DOM suites in jsdom.
+Only the DOM project uses `@vue/test-utils` and `tests/support/setup.ts`; keep discovery complete
+when moving suites between projects. Unified V8 coverage must remain at least 80% for lines,
+statements, and functions, and 75% for branches; animation/core has stricter existing thresholds.
 
 Cover behavior at the narrowest useful layer:
 
@@ -106,8 +118,9 @@ can be asserted instead. Add regression coverage for every bug fix.
 ## Build, CI, and Release
 
 `pnpm build` produces the ESM/CJS library and CSS in `dist/`, declarations in `dist/types/`, and the
-demo in `dist-demo/`. GitHub CI runs frozen install, typecheck, file-length checks, lint, coverage,
-build, and `pnpm pack --dry-run` on pushes and pull requests.
+demo in `dist-demo/`. GitHub CI runs frozen install, explicit WASM preparation, typecheck, length,
+lint, native-boundary/license/example gates, coverage, build and independent package consumers.
+GitHub and Gitea release verification require the same quality gates before publishing.
 
 Use short Conventional Commit-style messages consistent with current history, for example
 `feat(chart): support ...`, `fix(annotation): handle ...`, or `test: cover ...`. Keep generated

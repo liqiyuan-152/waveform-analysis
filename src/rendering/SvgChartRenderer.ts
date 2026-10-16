@@ -44,7 +44,8 @@ export class SvgChartRenderer {
     this.title = new TitleView(root)
     this.svg = svgNode(root.ownerDocument, 'svg', {
       class: 'waveform-chart__svg',
-      role: 'img',
+      // Interactive descendants must remain exposed to the accessibility tree.
+      role: 'group',
       'aria-label': '波形图表',
     })
     this.defs = svgNode(root.ownerDocument, 'defs')

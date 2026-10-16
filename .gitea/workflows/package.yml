@@ -119,6 +119,13 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Verify native boundary, licenses and examples
+        run: |
+          set -eu
+          pnpm check:native-boundary
+          pnpm check:licenses
+          pnpm typecheck:examples
+
       - name: Test with coverage
         run: pnpm test:coverage --maxWorkers=2
 

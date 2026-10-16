@@ -1,0 +1,913 @@
+{
+  "browser": "141.0.7390.37",
+  "comparisonSourceHashes": [
+    "2f4730997b5e006383fd157bceb866a307e94a0ab9e9bab0d7cf5bc2d396fe96",
+    "7dc844c4f65934904581aec22f7603368282c02417f13535289ef17c4621effd"
+  ],
+  "rows": [
+    {
+      "label": "baseline",
+      "outDir": "/var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-animation-browser-ErTrVX",
+      "scenario": {
+        "series": 1,
+        "points": 1000000,
+        "input": "objects"
+      },
+      "samples": [
+        {
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 26,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 179.40000000223517,
+            "stableMs": 498.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 177.19999999925494,
+            "stableMs": 541.6000000014901,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.30000000074505806,
+            "stableMs": 18.599999997764826,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 193.70000000298023,
+            "stableMs": 514.3000000007451,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 252,
+            "stableMs": 645.8000000007451,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 29.099999997764826,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 189.90000000223517,
+            "stableMs": 509.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 234.19999999925494,
+            "stableMs": 628,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.3999999985098839,
+            "stableMs": 28.100000001490116,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 194.59999999776483,
+            "stableMs": 517.7999999970198,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 243.60000000149012,
+            "stableMs": 684,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.30000000074505806,
+            "stableMs": 25.099999997764826,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 182,
+            "stableMs": 499.4000000022352,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 186.69999999925494,
+            "stableMs": 610,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.3999999985098839,
+            "stableMs": 33.5,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 179.40000000223517,
+            "stableMs": 506.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 171.30000000074506,
+            "stableMs": 550.6999999992549,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.3999999985098839,
+            "stableMs": 19.100000001490116,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 181.59999999776483,
+            "stableMs": 526.5,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 212.39999999850988,
+            "stableMs": 632.5999999977648,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.30000000074505806,
+            "stableMs": 23.699999999254942,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 170.80000000074506,
+            "stableMs": 495.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 232.80000000074506,
+            "stableMs": 620.6999999992549,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.29999999701976776,
+            "stableMs": 22.899999998509884,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 176.69999999925494,
+            "stableMs": 497.6000000014901,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 234,
+            "stableMs": 615.2999999970198,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.30000000074505806,
+            "stableMs": 26.599999997764826,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 169.90000000223517,
+            "stableMs": 503.1000000014901,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 249.89999999850988,
+            "stableMs": 645.5,
+            "registrations": 1,
+            "layouts": 7
+          }
+        }
+      ]
+    },
+    {
+      "label": "baseline",
+      "outDir": "/var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-animation-browser-ErTrVX",
+      "scenario": {
+        "series": 8,
+        "points": 100000,
+        "input": "objects"
+      },
+      "samples": [
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 38.30000000074506,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 95.30000000074506,
+            "stableMs": 342.30000000074506,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 97.89999999850988,
+            "stableMs": 320.5,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 52.19999999925494,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 99.10000000149012,
+            "stableMs": 352.20000000298023,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 100.5,
+            "stableMs": 319.30000000074506,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.6000000014901161,
+            "stableMs": 47.600000001490116,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 99.09999999776483,
+            "stableMs": 339.69999999925494,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 92.69999999925494,
+            "stableMs": 296.3999999985099,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.8000000007450581,
+            "stableMs": 49.600000001490116,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 97.09999999776483,
+            "stableMs": 327.19999999925494,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 95.80000000074506,
+            "stableMs": 301.6000000014901,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5999999977648258,
+            "stableMs": 43,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 102.89999999850988,
+            "stableMs": 350.69999999925494,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.5,
+            "stableMs": 322.5,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5999999977648258,
+            "stableMs": 49.899999998509884,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 101.69999999925494,
+            "stableMs": 352.80000000074506,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.5,
+            "stableMs": 306,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 37.69999999925494,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 102.59999999776483,
+            "stableMs": 336.69999999925494,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 100.39999999850988,
+            "stableMs": 317,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 41.19999999925494,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 99.90000000223517,
+            "stableMs": 337.30000000074506,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 97.10000000149012,
+            "stableMs": 304.3999999985099,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 48.30000000074506,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 97.30000000074506,
+            "stableMs": 352.9000000022352,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 96.79999999701977,
+            "stableMs": 307,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "color": {
+            "synchronousMs": 0.5,
+            "stableMs": 37.19999999925494,
+            "registrations": 0,
+            "layouts": 2
+          },
+          "single-channel": {
+            "synchronousMs": 100.5,
+            "stableMs": 357.8999999985099,
+            "registrations": 8,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 96.80000000074506,
+            "stableMs": 309.1000000014901,
+            "registrations": 8,
+            "layouts": 7
+          }
+        }
+      ]
+    },
+    {
+      "label": "optimized",
+      "outDir": "/var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-animation-browser-aDRqVu",
+      "scenario": {
+        "series": 1,
+        "points": 1000000,
+        "input": "objects"
+      },
+      "samples": [
+        {
+          "coldStartup": {
+            "stableMs": 607.1000000014901
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 26.699999999254942,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 184.40000000223517,
+            "stableMs": 522.1000000014901,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 187.60000000149012,
+            "stableMs": 556,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 611.6999999992549
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 16.699999999254942,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 178.19999999925494,
+            "stableMs": 511,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 249.59999999776483,
+            "stableMs": 637.5,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 591.7999999970198
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 28.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 165.69999999925494,
+            "stableMs": 494.30000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 258.8999999985099,
+            "stableMs": 676.6999999992549,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 589.8000000007451
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 22.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 177.5,
+            "stableMs": 496.6000000014901,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 230.39999999850988,
+            "stableMs": 627.6999999992549,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 586.5
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 20.600000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 192.09999999776483,
+            "stableMs": 518.5999999977648,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 267,
+            "stableMs": 680.8000000007451,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 595.1999999992549
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 16.100000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 189.10000000149012,
+            "stableMs": 511.1000000014901,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 232.89999999850988,
+            "stableMs": 621.0999999977648,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 550.6999999992549
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 25.800000000745058,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 176.40000000223517,
+            "stableMs": 497.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 235.19999999925494,
+            "stableMs": 664.8999999985099,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 547.8999999985099
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 28.600000001490116,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 176.89999999850988,
+            "stableMs": 503.29999999701977,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 218.40000000223517,
+            "stableMs": 635,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 572.8000000007451
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 20.199999999254942,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 177,
+            "stableMs": 518.7000000029802,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 221.59999999776483,
+            "stableMs": 615.2999999970198,
+            "registrations": 1,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 590.6999999992549
+          },
+          "color": {
+            "synchronousMs": 0,
+            "stableMs": 33.30000000074506,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 178.10000000149012,
+            "stableMs": 504.8999999985099,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 227.70000000298023,
+            "stableMs": 591.7000000029802,
+            "registrations": 1,
+            "layouts": 7
+          }
+        }
+      ]
+    },
+    {
+      "label": "optimized",
+      "outDir": "/var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-animation-browser-aDRqVu",
+      "scenario": {
+        "series": 8,
+        "points": 100000,
+        "input": "objects"
+      },
+      "samples": [
+        {
+          "coldStartup": {
+            "stableMs": 493.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 38.19999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.5,
+            "stableMs": 84.19999999925494,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 102.20000000298023,
+            "stableMs": 339.70000000298023,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 508.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 43.19999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 17.199999999254942,
+            "stableMs": 82.40000000223517,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 97.29999999701977,
+            "stableMs": 327.3999999985099,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 470.5999999977648
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 46.5,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 17,
+            "stableMs": 87.60000000149012,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.30000000074506,
+            "stableMs": 339.69999999925494,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 507.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 42,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 17.600000001490116,
+            "stableMs": 82.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 97.69999999925494,
+            "stableMs": 328.4000000022352,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 487.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.20000000298023224,
+            "stableMs": 50.900000002235174,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.899999998509884,
+            "stableMs": 81.39999999850988,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 97.60000000149012,
+            "stableMs": 333.30000000074506,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 477.9000000022352
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 32.80000000074506,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.899999998509884,
+            "stableMs": 83.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 98.59999999776483,
+            "stableMs": 331.5999999977648,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 482.19999999925494
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 49.30000000074506,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.800000000745058,
+            "stableMs": 82.09999999776483,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 98,
+            "stableMs": 332.80000000074506,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 474.69999999925494
+          },
+          "color": {
+            "synchronousMs": 0.20000000298023224,
+            "stableMs": 38.20000000298023,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.5,
+            "stableMs": 81.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 98,
+            "stableMs": 329.1000000014901,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 471.30000000074506
+          },
+          "color": {
+            "synchronousMs": 0.10000000149011612,
+            "stableMs": 47.69999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 16.800000000745058,
+            "stableMs": 83.80000000074506,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.30000000074506,
+            "stableMs": 329.69999999925494,
+            "registrations": 8,
+            "layouts": 7
+          }
+        },
+        {
+          "coldStartup": {
+            "stableMs": 475.9000000022352
+          },
+          "color": {
+            "synchronousMs": 0.19999999925494194,
+            "stableMs": 36.19999999925494,
+            "registrations": 0,
+            "layouts": 0
+          },
+          "single-channel": {
+            "synchronousMs": 17.199999999254942,
+            "stableMs": 82.39999999850988,
+            "registrations": 1,
+            "layouts": 7
+          },
+          "all-channels": {
+            "synchronousMs": 99.19999999925494,
+            "stableMs": 336.69999999925494,
+            "registrations": 8,
+            "layouts": 7
+          }
+        }
+      ]
+    }
+  ]
+}

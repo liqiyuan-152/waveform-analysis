@@ -1,0 +1,11 @@
+{
+  "command": "pnpm dev --port 5213 --strictPort",
+  "fromGeneratedOutputs": false,
+  "httpStatus": 200,
+  "watcherTypesReady": true,
+  "outputsVerified": true,
+  "exitCode": 0,
+  "processExitCode": -15,
+  "shutdown": "SIGTERM after readiness; watcher children stopped by dev shutdown handler",
+  "seconds": 12.79
+}

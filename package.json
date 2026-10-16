@@ -45,7 +45,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build": "pnpm typecheck && pnpm build:lib && pnpm build:types && pnpm build:demo:app",
+    "build": "pnpm build:lib && pnpm typecheck && pnpm build:demo:app",
     "build:wasm": "node scripts/prepare-wasm.mjs --force",
     "build:lib": "vite build --config vite.lib.config.ts",
     "build:types": "node scripts/clean-types.mjs && vue-tsc -p tsconfig.lib.json && node scripts/prepare-package-types.mjs",

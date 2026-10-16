@@ -59,7 +59,13 @@ export class VueChartAdapter implements WaveformChartHandle {
   attach(dom: HTMLElement, options: WaveformChartOptions) {
     if (this.disposed) throw new WaveformChartError('instance-disposed', 'Adapter is disposed')
     if (this.chart) return
-    const captured = snapshotVueOptions(options)
+    this.attachSnapshot(dom, snapshotVueOptions(options))
+  }
+
+  /** Internal handoff: the Vue component already captured reactive configuration. */
+  attachSnapshot(dom: HTMLElement, captured: WaveformChartOptions) {
+    if (this.disposed) throw new WaveformChartError('instance-disposed', 'Adapter is disposed')
+    if (this.chart) return
     this.chart = init(dom, captured)
     this.previous = captured
     const forward = <K extends keyof WaveformChartEvents>(event: K) => {
@@ -70,7 +76,12 @@ export class VueChartAdapter implements WaveformChartHandle {
 
   update(options: WaveformChartOptions) {
     if (!this.chart || this.disposed) return
-    const next = snapshotVueOptions(options)
+    this.updateSnapshot(snapshotVueOptions(options))
+  }
+
+  /** Internal handoff; direct adapter callers retain the defensive update boundary above. */
+  updateSnapshot(next: WaveformChartOptions) {
+    if (!this.chart || this.disposed) return
     const patch: WaveformChartOptionUpdate = {}
     const collect = <K extends keyof WaveformChartOptions>(key: K) => {
       const equal =

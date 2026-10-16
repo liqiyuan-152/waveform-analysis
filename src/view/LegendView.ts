@@ -11,6 +11,7 @@ import { setSvgAttributes, svgNode } from '../rendering/SvgDom'
 import { updateSvgAttribute } from '../components/rendering/updateAxis'
 
 interface LegendItem {
+  item: HTMLDivElement
   button: HTMLButtonElement
   label: HTMLSpanElement
   swatch: SVGSVGElement
@@ -82,10 +83,10 @@ export class LegendView {
     for (const [id, item] of this.items)
       if (!active.has(id)) {
         item.button.onclick = null
-        item.button.remove()
+        item.item.remove()
         this.items.delete(id)
       }
-    let previous: HTMLButtonElement | undefined
+    let previous: HTMLDivElement | undefined
     for (const series of track.legendSeries) {
       let item = this.items.get(series.id)
       if (!item) {
@@ -130,8 +131,8 @@ export class LegendView {
       })
       updateSvgAttribute(item.point, 'display', series.pointType === 'none' ? 'none' : null)
       const next = previous ? previous.nextSibling : this.panel.firstChild
-      if (next !== item.button) this.panel.insertBefore(item.button, next)
-      previous = item.button
+      if (next !== item.item) this.panel.insertBefore(item.item, next)
+      previous = item.item
     }
   }
 
@@ -139,7 +140,10 @@ export class LegendView {
     const document = this.root.ownerDocument
     const button = document.createElement('button')
     button.type = 'button'
-    button.setAttribute('role', 'listitem')
+    const item = document.createElement('div')
+    item.setAttribute('role', 'listitem')
+    item.className = 'waveform-legend__list-item'
+    item.append(button)
     button.setAttribute('data-series-id', id)
     button.onclick = (event) => {
       event.stopPropagation()
@@ -168,7 +172,7 @@ export class LegendView {
     const label = document.createElement('span')
     label.className = 'waveform-legend__label'
     button.append(swatch, label)
-    return { button, swatch, line, error, point, label }
+    return { item, button, swatch, line, error, point, label }
   }
 
   dispose() {

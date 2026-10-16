@@ -125,6 +125,21 @@ export class WorkerSamplingRepository {
     }
   }
 
+  /** Restore one latest snapshot without replaying historical replacements. Internal only. */
+  restoreDataset(
+    datasetId: string,
+    revision: number,
+    points?: readonly WaveformPoint[],
+    numeric?: WorkerSamplingDataset,
+  ) {
+    const existing = this.datasets.get(datasetId)
+    if (existing) disposeDatasetIndexes(this.wasmBackend, existing)
+    this.cache.deleteDataset(datasetId)
+    const stored = createStoredDataset(points, numeric, revision, this.indexMaxBytes)
+    registerWasmDataset(this.wasmBackend, stored, this.indexMaxBytes)
+    this.datasets.set(datasetId, stored)
+  }
+
   private register(
     datasetId: string,
     requestId: number,

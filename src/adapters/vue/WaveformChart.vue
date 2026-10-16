@@ -44,8 +44,8 @@ const hostStyle = computed(() => ({
 }))
 
 const readOptions = () => snapshotVueOptions(props)
-onMounted(() => adapter.attach(host.value!, readOptions()))
-watch(readOptions, (options) => adapter.update(options), { flush: 'post' })
+onMounted(() => adapter.attachSnapshot(host.value!, readOptions()))
+watch(readOptions, (options) => adapter.updateSnapshot(options), { flush: 'post' })
 onBeforeUnmount(() => adapter.dispose())
 
 defineExpose({

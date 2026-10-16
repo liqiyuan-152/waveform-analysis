@@ -1,0 +1,158 @@
+[
+  {
+    "command": "pnpm install --frozen-lockfile",
+    "exitCode": 0,
+    "seconds": 3.55,
+    "log": "final-install.log",
+    "calls": {
+      "build:types": 0,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm typecheck",
+    "exitCode": 0,
+    "seconds": 13.88,
+    "log": "final-typecheck.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm check:file-length",
+    "exitCode": 0,
+    "seconds": 0.26,
+    "log": "final-check-file-length.log",
+    "calls": {
+      "build:types": 0,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm lint:all",
+    "exitCode": 0,
+    "seconds": 8.02,
+    "log": "final-lint-all.log",
+    "calls": {
+      "build:types": 0,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm check:native-boundary",
+    "exitCode": 0,
+    "seconds": 0.7,
+    "log": "final-check-native-boundary.log",
+    "calls": {
+      "build:types": 0,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm check:licenses",
+    "exitCode": 0,
+    "seconds": 0.66,
+    "log": "final-check-licenses.log",
+    "calls": {
+      "build:types": 0,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm typecheck:examples",
+    "exitCode": 0,
+    "seconds": 3.38,
+    "log": "final-typecheck-examples.log",
+    "calls": {
+      "build:types": 0,
+      "build:lib": 0,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm test:coverage --maxWorkers=2",
+    "exitCode": 0,
+    "seconds": 526.63,
+    "log": "final-test-coverage.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 1,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm build",
+    "exitCode": 0,
+    "seconds": 21.2,
+    "log": "final-build.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 1,
+      "build:demo:app": 1,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm test:package",
+    "exitCode": 0,
+    "seconds": 33.31,
+    "log": "final-test-package.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 1,
+      "build:demo:app": 1,
+      "prepack": 1
+    }
+  },
+  {
+    "command": "pnpm test --maxWorkers=2",
+    "exitCode": 0,
+    "seconds": 320.95,
+    "log": "final-test.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 1,
+      "build:demo:app": 0,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm build:demo",
+    "exitCode": 0,
+    "seconds": 10.26,
+    "log": "final-build-demo.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 1,
+      "build:demo:app": 1,
+      "prepack": 0
+    }
+  },
+  {
+    "command": "pnpm pack --pack-destination /var/folders/z5/gv80fxcj4fs1vm7ytzcr5h5h0000gn/T/waveform-quality-clean-2o999xed/packed-direct",
+    "exitCode": 0,
+    "seconds": 17.45,
+    "log": "final-pack.log",
+    "calls": {
+      "build:types": 1,
+      "build:lib": 1,
+      "build:demo:app": 1,
+      "prepack": 1
+    }
+  }
+]

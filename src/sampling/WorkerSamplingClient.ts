@@ -6,6 +6,7 @@ import type {
 } from '../core/workerSampling'
 import type { WaveformPoint } from '../types/chart'
 import type { WorkerSamplingDataset } from '../core/waveformPointSource'
+import type { SamplingTimers, SamplingTimer } from './SamplingSession'
 
 interface StoredDataset {
   points?: readonly WaveformPoint[]
@@ -14,6 +15,7 @@ interface StoredDataset {
 }
 interface PendingRequest {
   request: WorkerSamplingRequest
+  deadline?: SamplingTimer
   resolve: (response: WorkerSamplingResponse) => void
   reject: (error: Error) => void
 }
@@ -21,20 +23,40 @@ export interface SamplingClient {
   readonly workerFailureReason: string | undefined
   send(request: WorkerSamplingRequest): Promise<WorkerSamplingResponse>
   reset?(): void
+  invalidateDatasets?(ids: ReadonlySet<string>): void
+  cancelSampling?(): void
   dispose(): void
+}
+
+interface TransportOptions {
+  timers?: SamplingTimers
+  deadlineMs?: number
+}
+const defaultTimers: SamplingTimers = {
+  setTimeout: (callback, delay) => setTimeout(callback, delay),
+  clearTimeout: (timer) => clearTimeout(timer),
 }
 
 /** Worker transport with a local repository strategy after loading/transport failures. */
 export class WorkerSamplingClient implements SamplingClient {
   private disposed = false
-  private generation = 0
   private worker?: Worker
   private fallback?: WorkerSamplingRepository
   private failureReason?: string
   private readonly pending = new Map<number, PendingRequest>()
   private readonly datasets = new Map<string, StoredDataset>()
 
-  constructor(ownerWindow: Pick<typeof globalThis, 'Worker'> = globalThis, preloadWasm = false) {
+  private readonly timers: SamplingTimers
+  private readonly deadlineMs: number
+
+  constructor(
+    ownerWindow: Pick<typeof globalThis, 'Worker'> = globalThis,
+    preloadWasm = false,
+    options: TransportOptions = {},
+  ) {
+    this.timers = options.timers ?? defaultTimers
+    this.deadlineMs =
+      Number.isFinite(options.deadlineMs) && options.deadlineMs! > 0 ? options.deadlineMs! : 30_000
     const Worker = ownerWindow.Worker
     try {
       if (typeof Worker === 'undefined') this.fallBackToJavascript()
@@ -58,8 +80,7 @@ export class WorkerSamplingClient implements SamplingClient {
             this.fallBackToJavascript(event.data.message)
             return
           }
-          this.pending.delete(event.data.requestId)
-          pending.resolve(event.data)
+          this.settle(event.data.requestId, event.data)
         }
         this.worker.onerror = (event) => this.fallBackToJavascript(event.message)
         this.worker.onmessageerror = () => this.fallBackToJavascript()
@@ -86,36 +107,27 @@ export class WorkerSamplingClient implements SamplingClient {
     if (this.fallback) return this.fallback
     const repository = new WorkerSamplingRepository()
     this.fallback = repository
-    for (const [datasetId, dataset] of this.datasets) {
-      repository.handle({
-        type: 'register-dataset',
-        requestId: 0,
-        datasetId,
-        revision: 0,
-        points: dataset.points,
-        dataset: dataset.dataset,
-      })
-      for (let revision = 1; revision < dataset.revision; revision++)
-        repository.handle({
-          type: 'replace-dataset',
-          requestId: 0,
-          datasetId,
-          revision,
-          points: dataset.points,
-          dataset: dataset.dataset,
-        })
-    }
+    for (const [datasetId, dataset] of this.datasets)
+      repository.restoreDataset(datasetId, dataset.revision, dataset.points, dataset.dataset)
     return repository
   }
 
   private recordDatasetRequest(request: WorkerSamplingRequest) {
-    if (request.type === 'register-dataset' || request.type === 'replace-dataset')
+    if (
+      (request.type === 'register-dataset' && !this.datasets.has(request.datasetId)) ||
+      (request.type === 'replace-dataset' &&
+        this.datasets.get(request.datasetId)?.revision === request.revision)
+    )
       this.datasets.set(request.datasetId, {
         points: request.points,
         dataset: request.dataset,
         revision: request.type === 'register-dataset' ? 1 : request.revision + 1,
       })
-    if (request.type === 'dispose-dataset') this.datasets.delete(request.datasetId)
+    if (
+      request.type === 'dispose-dataset' &&
+      this.datasets.get(request.datasetId)?.revision === request.revision
+    )
+      this.datasets.delete(request.datasetId)
     if (request.type === 'dispose-all') this.datasets.clear()
   }
 
@@ -124,35 +136,95 @@ export class WorkerSamplingClient implements SamplingClient {
     this.failureReason = message || 'Web Worker is unavailable; JavaScript sampling is being used.'
     this.releaseWorker()
     const outstanding = [...this.pending.values()]
-    this.pending.clear()
     try {
       const repository = this.fallbackRepository()
-      outstanding.forEach(({ request, resolve, reject }) => {
+      for (const { request } of outstanding) {
         try {
-          resolve(repository.handle(request))
+          this.settle(request.requestId, repository.handle(request))
         } catch (error) {
-          reject(error instanceof Error ? error : new Error(String(error)))
+          this.settle(request.requestId, undefined, error)
         }
-      })
+      }
     } catch (error) {
-      outstanding.forEach(({ reject }) =>
-        reject(error instanceof Error ? error : new Error(String(error))),
-      )
+      outstanding.forEach(({ request }) => this.settle(request.requestId, undefined, error))
     }
   }
+
+  private settle(id: number, response?: WorkerSamplingResponse, error?: unknown) {
+    const pending = this.pending.get(id)
+    if (!pending) return
+    this.pending.delete(id)
+    this.timers.clearTimeout(pending.deadline)
+    if (response) pending.resolve(response)
+    else pending.reject(error instanceof Error ? error : new Error(String(error)))
+  }
+
+  private cancelWhere(matches: (request: WorkerSamplingRequest) => boolean, message: string) {
+    for (const { request } of this.pending.values())
+      if (matches(request)) this.settle(request.requestId, undefined, new Error(message))
+  }
+
+  cancelSampling() {
+    this.cancelWhere(
+      (request) => request.type === 'sample-viewport' || request.type === 'register-dataset',
+      'Sampling dataset was invalidated.',
+    )
+  }
+
+  invalidateDatasets(ids: ReadonlySet<string>) {
+    if (this.datasets.size && [...this.datasets.keys()].every((id) => ids.has(id))) {
+      this.reset()
+      return
+    }
+    this.cancelWhere(
+      (request) =>
+        request.type === 'sample-viewport'
+          ? request.series.some((series) => ids.has(series.datasetId))
+          : 'datasetId' in request && ids.has(request.datasetId),
+      'Sampling dataset was invalidated.',
+    )
+    for (const id of ids) {
+      const dataset = this.datasets.get(id)
+      if (!dataset) continue
+      this.datasets.delete(id)
+      const request = {
+        type: 'dispose-dataset',
+        requestId: --this.cleanupId,
+        datasetId: id,
+        revision: dataset.revision,
+      } as const
+      if (this.fallback) this.fallback.handle(request)
+      else {
+        try {
+          this.worker!.postMessage(request)
+        } catch {
+          this.fallBackToJavascript()
+        }
+      }
+    }
+  }
+  private cleanupId = 0
 
   send(request: WorkerSamplingRequest): Promise<WorkerSamplingResponse> {
     if (this.disposed) return Promise.reject(new Error('Sampling client was disposed.'))
     this.recordDatasetRequest(request)
-    const generation = this.generation
-    if (this.fallback)
-      return Promise.resolve().then(() => {
-        if (this.disposed) throw new Error('Sampling client was disposed.')
-        if (generation !== this.generation) throw new Error('Sampling dataset was invalidated.')
-        return this.fallback!.handle(request)
-      })
     return new Promise((resolve, reject) => {
-      this.pending.set(request.requestId, { request, resolve, reject })
+      const pending: PendingRequest = { request, resolve, reject }
+      this.pending.set(request.requestId, pending)
+      if (this.fallback) {
+        void Promise.resolve().then(() => {
+          if (!this.pending.has(request.requestId)) return
+          try {
+            this.settle(request.requestId, this.fallback!.handle(request))
+          } catch (error) {
+            this.settle(request.requestId, undefined, error)
+          }
+        })
+        return
+      }
+      pending.deadline = this.timers.setTimeout(() => {
+        this.fallBackToJavascript('Sampling Worker request timed out at its deadline.')
+      }, this.deadlineMs)
       try {
         this.worker!.postMessage(request)
       } catch {
@@ -164,9 +236,7 @@ export class WorkerSamplingClient implements SamplingClient {
   /** Reject obsolete requests before clearing datasets, while retaining the owned transport. */
   reset() {
     if (this.disposed) return
-    this.generation += 1
-    this.pending.forEach(({ reject }) => reject(new Error('Sampling dataset was invalidated.')))
-    this.pending.clear()
+    this.cancelWhere(() => true, 'Sampling dataset was invalidated.')
     this.datasets.clear()
     const request = { type: 'dispose-all', requestId: 0 } as const
     if (this.fallback) this.fallback.handle(request)
@@ -184,8 +254,7 @@ export class WorkerSamplingClient implements SamplingClient {
     this.disposed = true
     this.releaseWorker()
     this.fallback?.handle({ type: 'dispose-all', requestId: 0 })
-    this.pending.forEach(({ reject }) => reject(new Error('Sampling client was disposed.')))
-    this.pending.clear()
+    this.cancelWhere(() => true, 'Sampling client was disposed.')
     this.datasets.clear()
     this.fallback = undefined
   }

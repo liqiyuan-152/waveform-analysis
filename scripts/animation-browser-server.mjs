@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
 /** Measure shipped Vue code by default; retain a development mode for comparable diagnostics. */
-export async function animationBrowserServer(port) {
+export async function animationBrowserServer(port, additionalInputs = {}) {
   if (process.env.ANIMATION_BENCHMARK_BUILD === 'development') {
     const server = await createServer({ server: { port, strictPort: true, hmr: false } })
     await server.listen()
@@ -18,6 +18,7 @@ export async function animationBrowserServer(port) {
         input: {
           demo: resolve('demo-app/index.html'),
           benchmark: resolve('tests/browser/animation.html'),
+          ...additionalInputs,
         },
       },
     },
