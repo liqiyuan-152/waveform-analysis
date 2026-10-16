@@ -125,7 +125,9 @@ jobs:
         run: pnpm build
 
       - name: Verify package consumer
-        run: pnpm test:package
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:package
 
       - name: Pack component
         shell: bash

@@ -32,4 +32,6 @@ jobs:
         run: pnpm test:coverage --maxWorkers=2
       - name: Build package and Demo
         run: pnpm build
+      - name: Install browser for package consumer checks
+        run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:package
