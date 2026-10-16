@@ -52,8 +52,8 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
           aria-label="零值参考线颜色"
           use-type="pure"
           picker-type="chrome"
-          format="hex"
-          :disable-alpha="true"
+          format="rgb"
+          :disable-alpha="false"
           :disable-history="true"
           :blur-close="true"
         />
@@ -107,8 +107,8 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
             v-model:pure-color="model.horizontalGridColor"
             use-type="pure"
             picker-type="chrome"
-            format="hex"
-            :disable-alpha="true"
+            format="rgb"
+            :disable-alpha="false"
             :disable-history="true"
             :blur-close="true"
           />
@@ -126,8 +126,8 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
             v-model:pure-color="model.verticalGridColor"
             use-type="pure"
             picker-type="chrome"
-            format="hex"
-            :disable-alpha="true"
+            format="rgb"
+            :disable-alpha="false"
             :disable-history="true"
             :blur-close="true"
           />

@@ -97,9 +97,9 @@
   gap: 10px;
 }
 .waveform-annotation-editor__series i {
-  flex: 0 0 12px;
-  width: 12px;
-  height: 12px;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
   border: 1px solid rgb(0 0 0 / 12%);
   border-radius: 2px;
 }

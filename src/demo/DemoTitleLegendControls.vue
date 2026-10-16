@@ -109,8 +109,8 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
           aria-label="标题颜色"
           use-type="pure"
           picker-type="chrome"
-          format="hex"
-          :disable-alpha="true"
+          format="rgb"
+          :disable-alpha="false"
           :disable-history="true"
           :blur-close="true"
         />
