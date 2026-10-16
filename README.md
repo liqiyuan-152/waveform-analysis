@@ -54,8 +54,8 @@ Vue 组件是原生实例的薄适配，从 `waveform-analysis/vue` 导入。根
 `WaveformChart`，原有纯工具与类型保持可用。旧 Vue 项目将组件 import 改为 `/vue`，props、
 事件参数和组件 ref handle 保持兼容。
 
-本分支包含尚未发布的破坏性导入迁移；下一次发布建议使用 `0.2.0-rc.1` 验证后发布 `0.2.0`。
-`0.1.77` 保留为回退基线，实施变更不会自动修改版本、打标签或发布。
+`0.2.0-rc.1` 是包含破坏性导入迁移的候选版本，使用 `pnpm add waveform-analysis@next` 安装。
+从 `0.1.x` 升级时，请将 Vue 组件导入改为 `/vue`；稳定版仍可通过 `@latest` 安装。
 
 ```ts
 import { WaveformChart } from 'waveform-analysis/vue'

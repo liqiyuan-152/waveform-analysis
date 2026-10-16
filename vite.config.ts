@@ -20,6 +20,8 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
+    // Full chart interactions perform SVG layout repeatedly under V8 coverage in CI.
+    testTimeout: 30_000,
     setupFiles: ['./tests/support/setup.ts'],
     css: true,
     coverage: {

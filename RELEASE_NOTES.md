@@ -1,8 +1,11 @@
-# waveform-analysis 0.1.82
+# waveform-analysis 0.2.0-rc.1
 
-- 新增 `axes.x.splitNumber`，可配置 X 轴目标分段数，默认仍为 5；使用 ECharts 风格步长并保留重叠标签避让。
-- 左右时间端点最多保留四位小数，分别向下和向上取整，省略末尾零；自定义格式化器和原始坐标不变。
-- 修复单位换算与视口计算的浮点尾差导致端点多取整一位的问题，例如 `1.7` 错误显示为 `1.6999`。
-- 补充段数动态配置、非法值回退、端点精度和缩放兼容性测试。
+- 波形引擎改为框架无关的 TypeScript / D3 DOM 实例，根入口提供 `init`、`getInstanceByDom`、`dispose`；`/native` 为兼容别名。
+- **破坏性变更**：Vue 组件改从 `waveform-analysis/vue` 导入，根入口不再导出 `WaveformChart`。Vue 为可选 peer dependency，原生消费者无需安装 Vue。
+- 库内分页、工具栏、标注编辑和颜色控件使用原生实现，不再依赖 Ant Design Vue；演示页面仍使用 Vue 和 Ant Design Vue 开发依赖。
+- 保留缩放、平移、受控标注、动画、采样及图像导出能力，并完善原生控件的布局和交互。
+- 演示页面所有颜色选择器支持透明度；标注编辑器的波形色块由 12px 放大为 18px。
 
-更新：`pnpm add waveform-analysis@0.1.82`。
+安装候选版本：`pnpm add waveform-analysis@0.2.0-rc.1` 或 `pnpm add waveform-analysis@next`。
+Vue 消费者另行安装 Vue，并使用 `import { WaveformChart } from 'waveform-analysis/vue'`。
+本版本发布到 `next`，不改变 `latest` 稳定版本。
