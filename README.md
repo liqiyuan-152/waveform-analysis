@@ -1640,6 +1640,8 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 修改库 TS、Vue 或 CSS 后会更新 demo 消费的包产物，Ctrl-C 停止服务与监听进程。
 demo 的 Ant Design、颜色选择器和路由依赖由 private `demo-app` 声明；库运行时依赖保持独立。
 根 `typecheck` 覆盖库、测试、构建配置和 demo。首次运行测试也会先准备公开包入口。
+覆盖率测试为库生成未压缩且带 source map 的构建，将 demo 消费产物的执行记录映射回源码；
+普通构建和发布包仍使用默认构建设置。
 
 `pnpm build` 同时生成 `dist/` 组件库产物和根 `dist-demo/` 演示应用。
 `pnpm build:demo` 可独立准备库后构建 demo，`pnpm preview` 预览根 `dist-demo/`。

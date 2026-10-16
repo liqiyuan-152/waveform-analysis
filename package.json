@@ -59,7 +59,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm prepare:demo && vitest run",
-    "test:coverage": "pnpm prepare:demo && vitest run --coverage",
+    "test:coverage": "pnpm build:lib --sourcemap --minify false && pnpm build:types && vitest run --coverage",
     "test:package": "node scripts/test-package.mjs",
     "prepack": "pnpm build",
     "prepare:wasm": "node scripts/prepare-wasm.mjs",

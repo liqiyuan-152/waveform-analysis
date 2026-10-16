@@ -19,3 +19,12 @@ integerZoomStall 的 independent/separated 两例在 20 秒超时，未创建标
 无生产代码变更、无阈值降低。带 V8 覆盖率的定向复测 10/10 测试通过，测试耗时 63.97 秒。
 该定向命令仅运行一个文件，整体覆盖率阈值自然不满足而退出 1，不能代替全量覆盖率验收；
 原始结果见 release-0.2.1-targeted-coverage.txt，CI 失败日志见 release-0.2.1-ci-failure.txt。
+
+第二轮 CI 38885045354：227 文件、2074 测试全部通过，但覆盖率失败（语句 76.93%、
+分支 66.89%、函数 75.55%、行 92.92%）。报告将 demo 消费的压缩 dist 作为另一份代码统计。
+覆盖率专用库构建现使用 --sourcemap --minify false，将打包执行记录合并回原源码；
+正式构建仍保持原压缩设置，没有排除文件或降低阈值。
+仅添加 source map 时优化后的函数边界仍造成重复计数；未压缩映射使 WaveformChart.ts
+函数总数从 168 恢复为直接源码的 84，混合运行源码测试与 demo 测试后仍为 84。
+三文件七例定向测试全部通过（24.21 秒），定向命令仍因全局覆盖率不足退出 1，待完整 CI 验收。
+对应记录：release-0.2.1-ci-second.txt、release-0.2.1-sourcemap-build.txt、release-0.2.1-sourcemap-targeted.txt。
