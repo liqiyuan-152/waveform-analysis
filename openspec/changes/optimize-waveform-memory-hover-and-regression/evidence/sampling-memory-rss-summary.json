@@ -1,0 +1,49 @@
+{
+  "scope": "Sum of this Chromium browser process RSS sampled every ~50ms and at boundaries. Includes renderer/Worker/WASM resident pages; shared pages can be counted repeatedly. Observed sampled maximum, not exact physical peak; harness snapshot retention is identical in both variants.",
+  "browser": "141.0.7390.37",
+  "warmups": 5,
+  "runs": 20,
+  "errors": [],
+  "scenarios": [
+    {
+      "input": "typed",
+      "points": 1000000,
+      "series": 1,
+      "instances": 1,
+      "transfer": false,
+      "medianObservedPeakMiB": 536.3515625,
+      "maxObservedPeakMiB": 592.765625,
+      "sampleCount": 180
+    },
+    {
+      "input": "typed",
+      "points": 1000000,
+      "series": 1,
+      "instances": 1,
+      "transfer": true,
+      "medianObservedPeakMiB": 564.9453125,
+      "maxObservedPeakMiB": 589.375,
+      "sampleCount": 180
+    },
+    {
+      "input": "samples",
+      "points": 1000000,
+      "series": 8,
+      "instances": 1,
+      "transfer": false,
+      "medianObservedPeakMiB": 1021.640625,
+      "maxObservedPeakMiB": 1045.578125,
+      "sampleCount": 714
+    },
+    {
+      "input": "samples",
+      "points": 1000000,
+      "series": 8,
+      "instances": 1,
+      "transfer": true,
+      "medianObservedPeakMiB": 1031.8828125,
+      "maxObservedPeakMiB": 1044.28125,
+      "sampleCount": 715
+    }
+  ]
+}

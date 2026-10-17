@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -68,7 +68,9 @@
     "check:licenses": "node scripts/check-third-party-notices.mjs",
     "typecheck:examples": "vue-tsc -p examples/tsconfig.json",
     "build:demo:app": "pnpm --filter demo-app build",
-    "prepare:demo": "pnpm build:lib && pnpm build:types"
+    "prepare:demo": "pnpm build:lib && pnpm build:types",
+    "test:browser": "pnpm prepare:demo && node scripts/verify-update-quality-browser.mjs",
+    "test:browser:resources": "node scripts/test-native-resources-browser.mjs"
   },
   "dependencies": {
     "@types/d3": "7.4.3",

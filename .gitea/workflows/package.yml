@@ -135,8 +135,13 @@ jobs:
         run: pnpm build
 
       - name: Verify package consumer
+        env:
+          WAVEFORM_BROWSER: chromium
+          WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
         run: |
+          set -eu
           pnpm exec playwright install --with-deps chromium
+          pnpm test:browser
           pnpm test:package
 
       - name: Pack component
@@ -270,3 +275,10 @@ jobs:
               --data-binary "@$asset" \
               "$api_url/$release_id/assets?name=$asset_name" > /dev/null
           done
+
+      - name: Preserve browser summary in job logs
+        if: always()
+        run: |
+          if [ -f artifacts/browser/browser-verification.json ]; then
+            cat artifacts/browser/browser-verification.json
+          fi

@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "baselineEnvironment": "macOS arm64 Apple M1, Node 22.23.2, Playwright 1.56.1; three local rounds per browser; not a Linux runner baseline",
+  "rule": "max(2x baseline, baseline + absolute tolerance): median +4ms, p95 +8ms. One immediate remeasurement on timing violation; second violation fails. Functional checks never retry. CI uses these conservative absolute budgets, not a same-hardware speedup claim.",
+  "budgets": {
+    "chromium/false/1280/false": {
+      "baselineMedianMs": 0.10000000149011612,
+      "baselineP95Ms": 0.20000000298023224,
+      "medianMs": 4.1,
+      "p95Ms": 8.2
+    },
+    "chromium/false/1280/true": {
+      "baselineMedianMs": 0.5,
+      "baselineP95Ms": 0.7999999970197678,
+      "medianMs": 4.5,
+      "p95Ms": 8.8
+    },
+    "chromium/false/360/false": {
+      "baselineMedianMs": 0.10000000149011612,
+      "baselineP95Ms": 0.19999999552965164,
+      "medianMs": 4.1,
+      "p95Ms": 8.2
+    },
+    "chromium/false/360/true": {
+      "baselineMedianMs": 0.5,
+      "baselineP95Ms": 0.7000000029802322,
+      "medianMs": 4.5,
+      "p95Ms": 8.7
+    },
+    "chromium/true/1280/false": {
+      "baselineMedianMs": 0.10000000149011612,
+      "baselineP95Ms": 0.20000000298023224,
+      "medianMs": 4.1,
+      "p95Ms": 8.2
+    },
+    "chromium/true/1280/true": {
+      "baselineMedianMs": 0.5,
+      "baselineP95Ms": 0.7000000029802322,
+      "medianMs": 4.5,
+      "p95Ms": 8.7
+    },
+    "chromium/true/360/false": {
+      "baselineMedianMs": 0.10000000149011612,
+      "baselineP95Ms": 0.20000000298023224,
+      "medianMs": 4.1,
+      "p95Ms": 8.2
+    },
+    "chromium/true/360/true": {
+      "baselineMedianMs": 0.5,
+      "baselineP95Ms": 0.6000000014901161,
+      "medianMs": 4.5,
+      "p95Ms": 8.6
+    },
+    "firefox/false/1280/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "firefox/false/1280/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1,
+      "medianMs": 5,
+      "p95Ms": 9
+    },
+    "firefox/false/360/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "firefox/false/360/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1,
+      "medianMs": 5,
+      "p95Ms": 9
+    },
+    "firefox/true/1280/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "firefox/true/1280/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1,
+      "medianMs": 5,
+      "p95Ms": 9
+    },
+    "firefox/true/360/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "firefox/true/360/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1,
+      "medianMs": 5,
+      "p95Ms": 9
+    },
+    "webkit/false/1280/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "webkit/false/1280/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1,
+      "medianMs": 5,
+      "p95Ms": 9
+    },
+    "webkit/false/360/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "webkit/false/360/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1.0000000000004547,
+      "medianMs": 5,
+      "p95Ms": 9.0
+    },
+    "webkit/true/1280/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1.0000000000009095,
+      "medianMs": 4,
+      "p95Ms": 9.0
+    },
+    "webkit/true/1280/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1.0000000000009095,
+      "medianMs": 5,
+      "p95Ms": 9.0
+    },
+    "webkit/true/360/false": {
+      "baselineMedianMs": 0,
+      "baselineP95Ms": 1,
+      "medianMs": 4,
+      "p95Ms": 9
+    },
+    "webkit/true/360/true": {
+      "baselineMedianMs": 1,
+      "baselineP95Ms": 1.000000000001819,
+      "medianMs": 5,
+      "p95Ms": 9.0
+    }
+  }
+}

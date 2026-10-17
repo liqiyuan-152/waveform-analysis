@@ -1,12 +1,13 @@
-# waveform-analysis 0.2.1
+# waveform-analysis 0.2.2
 
-- 将演示应用隔离到私有 `demo-app` workspace，演示通过公开包入口消费组件库，UI 和路由依赖由演示应用独立声明。
-- 保留根目录开发、构建和预览命令，支持库代码、样式和声明监听，演示构建输出仍为 `dist-demo`。
-- 修复 Windows 原生 `pnpm.exe` 启动失败；日常启动、类型检查和测试复用现有 WASM，不再要求 Rust 工具链。
-- Rust 源码修改后通过 `pnpm build:wasm` 显式重新打包；CI 和发布流程显式准备 WASM。
-- 保持 rc.1 的根、native、vue 三个包入口及图表行为。Vue 组件仍从 `waveform-analysis/vue` 导入。
-- **从 0.1.x 升级的破坏性变更**：根入口提供框架无关的 `init`、`getInstanceByDom`、`dispose`，不再导出 `WaveformChart`；Vue 组件需改从 `waveform-analysis/vue` 导入。Vue 为可选 peer dependency，原生消费者无需安装 Vue。
+- 修复采样索引先分配再检查预算的问题，避免超预算大数组分配；分配失败后保留正确降级路径。
+- Tooltip 按稳定系列 ID 复用节点，同内容移动复用尺寸，减少连续悬停中的 DOM 创建和布局测量。
+- 为 typed/samples 紧凑输入增加受预算限制的 JavaScript 极值索引，改善 Worker/WASM 降级时的连续视口查询；sum/average 保留原顺序聚合语义。
+- 包含增量更新优化与回归加固；保持完整源查询、坐标单位、受控状态及原生/Vue 公开 API 兼容。
+- 增加 Chromium 持续交互门禁与每周 Chromium/Firefox/WebKit 回归，覆盖桌面、小容器、动画、标注、导出和资源释放。
+- 固定 Node 22 开发入口，继续使用 pnpm 10.32.1；传输仍使用 clone，未启用未经证实的内存或构建缓存候选。
 
-安装正式版本：`pnpm add waveform-analysis@0.2.1` 或 `pnpm add waveform-analysis@latest`。
-Vue 消费者另行安装 Vue，并使用 `import { WaveformChart } from 'waveform-analysis/vue'`。
-本版本发布到 `latest`，并触发正式演示站部署。
+本地验证：238 个测试文件、2140 项测试通过，三引擎浏览器回归、类型检查、lint、覆盖率、构建与实际 tarball 消费者检查通过。详细证据见 `openspec/changes/optimize-waveform-memory-hover-and-regression/implementation.md`。浏览器自动化不代表真实 Safari/iOS 或屏幕阅读器验证。
+
+安装：`pnpm add waveform-analysis@0.2.2`。Vue 消费者使用 `import { WaveformChart } from 'waveform-analysis/vue'`。
+本版本使用 `latest` 标签，正式发布工作流同时部署演示站。

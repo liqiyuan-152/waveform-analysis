@@ -95,6 +95,20 @@ export function createStoredDataset(
   revision: number,
   indexMaxBytes: number | undefined,
 ): StoredDataset {
+  const dataset = normalizeStoredDataset(input, numeric, revision, indexMaxBytes)
+  if (!dataset.points) {
+    // Numeric extrema need only existing Y columns, never expanded X or point objects.
+    dataset.index = new MultiResolutionSamplingIndex({ y: dataset.y }, { maxBytes: indexMaxBytes })
+  }
+  return dataset
+}
+
+function normalizeStoredDataset(
+  input: readonly WaveformPoint[] | undefined,
+  numeric: WorkerSamplingDataset | undefined,
+  revision: number,
+  indexMaxBytes: number | undefined,
+): StoredDataset {
   if (numeric?.kind === 'typed') {
     const normalized = copyFiniteNumericValues(numeric.x, numeric.y)
     return {

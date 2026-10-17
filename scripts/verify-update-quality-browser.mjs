@@ -1,24 +1,52 @@
+import { measureDemoHover } from './browser-hover-metrics.mjs'
 import assert from 'node:assert/strict'
-import { writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { chromium } from 'playwright'
+import { chromium, firefox, webkit } from 'playwright'
+import { tmpdir, cpus, platform, arch } from 'node:os'
+import { evaluateHoverTiming } from './browser-performance.mjs'
+import { animationBuildInputs } from './animation-build-inputs.mjs'
 import { animationBrowserServer } from './animation-browser-server.mjs'
 
-const evidence = 'openspec/changes/optimize-native-waveform-update-and-quality/evidence'
-const server = await animationBrowserServer(5210, {
-  quality: resolve('tests/browser/update-quality.html'),
-})
-const browser = await chromium.launch()
+const evidence =
+  process.env.WAVEFORM_BROWSER_EVIDENCE_DIR ?? (await mkdtemp(`${tmpdir()}/waveform-regression-`))
+await mkdir(evidence, { recursive: true })
+const name = process.env.WAVEFORM_BROWSER ?? 'chromium'
+// macOS WebKit follows the system's text-fields-only Tab preference; Option-Tab includes buttons.
+const tabKey = name === 'webkit' && platform() === 'darwin' ? 'Alt+Tab' : 'Tab'
+const backTabKey = name === 'webkit' && platform() === 'darwin' ? 'Alt+Shift+Tab' : 'Shift+Tab'
+const driver = { chromium, firefox, webkit }[name]
+if (!driver) throw new Error(`Unsupported browser: ${name}`)
+const server = await animationBrowserServer(
+  5210,
+  {
+    quality: resolve('tests/browser/update-quality.html'),
+  },
+  { benchmark: false },
+)
+let browser
+const budgets = JSON.parse(
+  await readFile(new URL('./browser-performance-budgets.json', import.meta.url), 'utf8'),
+)
 const report = {
-  browser: browser.version(),
+  budgetVersion: budgets.version,
+  budgetMode: process.env.WAVEFORM_MEASURE_BASELINE ? 'measurement-only' : 'enforced',
+  name,
+  node: process.version,
+  source: animationBuildInputs().sha256,
+  environment: { platform: platform(), arch: arch(), cpu: cpus()[0]?.model },
+  buildMode: server.buildMode,
   cases: [],
   errors: [],
-  assistiveTechnology: '真实屏幕阅读器未验证；仅检查 Chromium 可访问性树及真实键盘输入。',
-  otherBrowsers: 'Firefox / Safari / Edge / 移动浏览器未验证。',
+  assistiveTechnology: '真实屏幕阅读器未验证；仅检查本次引擎的可访问性树及真实键盘输入。',
+  limitations: '结果仅适用于本次实际引擎；真实 Safari/iOS/辅助技术未验证。',
 }
-const page = await browser.newPage()
-page.on('pageerror', (error) => report.errors.push(error.message))
 try {
+  browser = await driver.launch()
+  report.browser = browser.version()
+  const page = await browser.newPage()
+  page.setDefaultTimeout(30_000)
+  page.on('pageerror', (error) => report.errors.push(error.message))
   await page.goto('http://localhost:5210/tests/browser/update-quality.html')
   await page.waitForFunction(() => !!globalThis.updateQuality)
   for (const vue of [false, true])
@@ -28,6 +56,31 @@ try {
         ({ vue, width }) => globalThis.updateQuality.startInteractive(vue, width),
         { vue, width },
       )
+      const hover = []
+      for (const movingX of [false, true]) {
+        const run = () =>
+          page.evaluate(
+            (movingX) => globalThis.updateQuality.interactive.measureHover(movingX),
+            movingX,
+          )
+        const measured = await run()
+        if (!process.env.WAVEFORM_MEASURE_BASELINE) {
+          const budget = budgets.budgets[`${name}/${vue}/${width}/${movingX}`]
+          const failure = evaluateHoverTiming(measured, budget)
+          if (failure) {
+            measured.retest = await run()
+            assert.equal(evaluateHoverTiming(measured.retest, budget), undefined, failure)
+          }
+        }
+        hover.push(measured)
+      }
+      assert.equal(await page.locator('[role=tooltip]').count(), 1)
+      if (!process.env.WAVEFORM_MEASURE_BASELINE) {
+        assert.equal(hover[0].createdNodes, 0, 'Stable hover must reuse nodes')
+        assert.equal(hover[0].measurements, 0, 'Stable hover must reuse measured size')
+        assert.equal(hover[1].createdNodes, 0, 'Changing points must reuse nodes')
+      }
+      await page.screenshot({ path: `${evidence}/hover-${vue ? 'vue' : 'native'}-${width}.png` })
       const first = page.getByRole('button', { name: '隐藏曲线 通道 A', exact: true })
       const second = page.getByRole('button', { name: '隐藏曲线 通道 B', exact: true })
       assert.equal(await first.count(), 1)
@@ -35,9 +88,9 @@ try {
       const accessibility = await page.locator('svg.waveform-chart__svg').ariaSnapshot()
       assert.match(accessibility, /button.*隐藏曲线 通道 A/)
       await first.focus()
-      await page.keyboard.press('Tab')
+      await page.keyboard.press(tabKey)
       assert(await second.evaluate((node) => node === node.ownerDocument.activeElement))
-      await page.keyboard.press('Shift+Tab')
+      await page.keyboard.press(backTabKey)
       await page.keyboard.press('Enter')
       assert.deepEqual(await page.evaluate(() => globalThis.updateQuality.interactive.requests()), [
         ['a'],
@@ -207,10 +260,11 @@ try {
       report.cases.push({
         vue,
         width,
+        hover,
         animationCompletions,
         recovery: true,
         pagination: true,
-        keyboard: 'Tab/Shift+Tab/Enter/Space',
+        keyboard: `${tabKey}/${backTabKey}/Enter/Space`,
         focusRetained: true,
         controlledVisibility: true,
         wheel: true,
@@ -222,6 +276,9 @@ try {
         accessibility,
         screenshot,
       })
+      await page.evaluate(() => globalThis.updateQuality.interactive.dispose())
+      assert.equal(await page.locator('svg.waveform-chart__svg').count(), 0)
+      assert.equal(await page.locator('[role=tooltip]').count(), 0)
     }
   for (const width of [1280, 360]) {
     await page.setViewportSize({ width, height: 800 })
@@ -242,14 +299,20 @@ try {
         assert.equal(await page.locator('[data-label="后端"]').count(), 10)
       }
       await page.locator('svg.waveform-chart__svg path').first().waitFor({ state: 'attached' })
+      const demoHover = await measureDemoHover(page)
       const screenshot = `demo-${route === '/' ? 'workspace' : route.slice(1)}-${width}.png`
       await page.screenshot({ path: `${evidence}/${screenshot}`, fullPage: true })
-      report.cases.push({ demo: route, width, screenshot })
+      report.cases.push({ demo: route, width, screenshot, demoHover })
     }
   }
   assert.deepEqual(report.errors, [])
+} catch (error) {
+  report.failure = String(error)
+  throw error
 } finally {
   await writeFile(`${evidence}/browser-verification.json`, JSON.stringify(report, null, 2) + '\n')
-  await browser.close()
+  await browser?.close()
   await server.close()
 }
+
+console.log(`Browser regression passed (${name}); evidence: ${evidence}`)

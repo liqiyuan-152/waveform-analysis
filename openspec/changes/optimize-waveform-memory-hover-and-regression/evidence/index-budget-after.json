@@ -1,0 +1,90 @@
+{
+  "node": "v22.23.2",
+  "pointCount": 100000,
+  "workload": "x=index,y=sin(index); two requests [0,n),[1,n); target=100",
+  "warmup": 5,
+  "measuredRuns": 20,
+  "allocationScope": "Cumulative Uint32Array/Float64Array constructor bytes, not peak residency; includes fallback output",
+  "results": [
+    {
+      "strategy": "minmax",
+      "maxBytes": 0,
+      "allocated": {
+        "median": 800,
+        "p95": 800
+      },
+      "retained": {
+        "median": 0,
+        "p95": 0
+      },
+      "coldMs": {
+        "median": 2.44079099999999,
+        "p95": 7.78779099999997
+      },
+      "warmMs": {
+        "median": 2.3321670000000267,
+        "p95": 4.260499999999979
+      }
+    },
+    {
+      "strategy": "minmax",
+      "maxBytes": 8388608,
+      "allocated": {
+        "median": 800040,
+        "p95": 800040
+      },
+      "retained": {
+        "median": 799240,
+        "p95": 799240
+      },
+      "coldMs": {
+        "median": 1.1437500000000114,
+        "p95": 1.7221250000000055
+      },
+      "warmMs": {
+        "median": 0.03837500000003047,
+        "p95": 0.07716599999997698
+      }
+    },
+    {
+      "strategy": "sum",
+      "maxBytes": 0,
+      "allocated": {
+        "median": 6400,
+        "p95": 6400
+      },
+      "retained": {
+        "median": 0,
+        "p95": 0
+      },
+      "coldMs": {
+        "median": 1.8797500000000014,
+        "p95": 5.420875000000024
+      },
+      "warmMs": {
+        "median": 2.1921250000000327,
+        "p95": 3.903958999999986
+      }
+    },
+    {
+      "strategy": "sum",
+      "maxBytes": 8388608,
+      "allocated": {
+        "median": 1999340,
+        "p95": 1999340
+      },
+      "retained": {
+        "median": 1996140,
+        "p95": 1996140
+      },
+      "coldMs": {
+        "median": 0.9067079999999805,
+        "p95": 2.314875000000029
+      },
+      "warmMs": {
+        "median": 0.038333000000079664,
+        "p95": 0.10099999999999909
+      }
+    }
+  ]
+}

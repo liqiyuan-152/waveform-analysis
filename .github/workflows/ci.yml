@@ -10,6 +10,7 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -40,4 +41,17 @@ jobs:
         run: pnpm build
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
+      - name: Verify browser interactions
+        run: pnpm test:browser
+        env:
+          WAVEFORM_BROWSER: chromium
+          WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
       - run: pnpm test:package
+
+      - name: Retain browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-chromium
+          path: artifacts/browser
+          retention-days: 14

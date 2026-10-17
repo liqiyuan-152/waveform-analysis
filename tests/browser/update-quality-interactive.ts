@@ -1,3 +1,4 @@
+import { measureHover } from './hover-metrics'
 import { createApp, h, nextTick, reactive } from 'vue'
 import { init, getInstanceByDom } from '@/native'
 import WaveformChart from '@/adapters/vue/WaveformChart.vue'
@@ -63,6 +64,13 @@ export async function startInteractive(vue: boolean, width: number) {
 }
 
 export const interactive = {
+  measureHover,
+  dispose: () => {
+    cleanup?.()
+    cleanup = undefined
+    chart = undefined
+    patchOptions = undefined
+  },
   patch: async (patch: WaveformChartOptionUpdate) => {
     await patchOptions!(patch)
     await chart!.exportImage({ format: 'svg' })

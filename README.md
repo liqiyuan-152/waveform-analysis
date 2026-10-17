@@ -1626,7 +1626,7 @@ Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的�
 
 ## 本地开发
 
-日常开发环境要求 Node.js 22、pnpm 10.32.1；启动直接使用仓库已有的 `wasm/pkg` 产物，
+日常开发环境要求 Node.js 22、pnpm 10.32.1；`.nvmrc` 固定为与普通 CI 一致的 22.20.0，可先执行 `nvm install && nvm use`。启动直接使用仓库已有的 `wasm/pkg` 产物，
 不需要安装或校验 Rust 工具链：
 
 ```bash
@@ -1644,8 +1644,12 @@ pnpm lint:all
 pnpm format:check
 pnpm test
 pnpm test:coverage
+pnpm test:browser            # Chromium，原生/Vue、桌面/小容器、交互及 SVG/PNG
+pnpm test:browser:resources  # 三引擎重复创建/替换/销毁；Chromium 额外测 JS 堆
 pnpm build
 ```
+
+`WAVEFORM_BROWSER=firefox` 或 `webkit` 可选择浏览器；运行前用 `pnpm exec playwright install --with-deps <browser>` 安装对应引擎。浏览器证据默认写入系统临时目录，可用 `WAVEFORM_BROWSER_EVIDENCE_DIR` 指定保留位置。每周 CI 执行三引擎矩阵，性能阈值固定在 `scripts/browser-performance-budgets.json`，仅耗时超限允许一次重测，功能失败不跳过。
 
 `pnpm lint:oxlint` 使用 Oxlint 的默认 correctness 检查及内置 TypeScript、Unicorn 和 Oxc
 插件，自动忽略 `dist/`、`dist-demo/`、`coverage/` 和 `node_modules/`。`pnpm lint` 继续负责

@@ -1,3 +1,4 @@
+import { WorkerSamplingRepository } from '@/core/workerSampling/repository'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { WorkerSamplingClient } from '@/sampling/WorkerSamplingClient'
 import * as datasetPreparation from '@/core/workerSampling/repositoryDataset'
@@ -213,6 +214,73 @@ describe('finite sampling transport ownership', () => {
       expect(prepare).toHaveBeenCalledTimes(2)
       worker.onerror?.({ message: 'duplicate notification' })
       expect(prepare).toHaveBeenCalledTimes(2)
+    },
+  )
+})
+
+describe('compact data after transport failure', () => {
+  it.each(['typed', 'samples'] as const)(
+    'preserves %s data and viewport sampling on recovery',
+    async (kind) => {
+      const { client, worker } = setup()
+      const y = Float64Array.from({ length: 64 }, (_, i) => i % 7)
+      const dataset =
+        kind === 'typed'
+          ? { kind, x: Float64Array.from(y, (_, i) => i), y }
+          : { kind, values: y, sampleRate: 1, startTime: 0 }
+      const registration = {
+        type: 'register-dataset' as const,
+        requestId: 1,
+        datasetId: 'a',
+        revision: 0 as const,
+        dataset,
+      }
+      const ready = client.send(registration)
+      worker.reply(1, 'a')
+      await ready
+      const reference = new WorkerSamplingRepository({ indexMaxBytes: 0 })
+      reference.handle(registration)
+      const series = {
+        datasetId: 'a',
+        seriesId: 's',
+        revision: 1,
+        xDomain: [3, 60] as [number, number],
+        plotWidth: 10,
+        maxPointCount: 10,
+        mode: 'wasm' as const,
+        wasmFailureFallback: 'javascript' as const,
+        strategy: 'minmax' as const,
+      }
+      const request = { type: 'sample-viewport' as const, requestId: 2, series: [series] }
+      const pending = client.send(request)
+      await vi.advanceTimersByTimeAsync(30000)
+      const actual = await pending
+      const expected = reference.handle(request)
+      expect(actual).toMatchObject({
+        results: [{ status: 'wasm-unavailable', diagnostics: { backend: 'javascript' } }],
+      })
+      if (
+        actual.type !== 'sample-viewport-response' ||
+        expected.type !== 'sample-viewport-response'
+      )
+        throw new Error('Unexpected response')
+      expect(actual.results[0]!.output).toEqual(expected.results[0]!.output)
+      expect(y.byteLength).toBe(64 * 8)
+      const replacement = {
+        ...registration,
+        type: 'replace-dataset' as const,
+        requestId: 3,
+        revision: 1,
+      }
+      await expect(client.send(replacement)).resolves.toMatchObject({
+        revision: 2,
+        metrics: { indexBytes: 0 },
+      })
+      await expect(client.send({ type: 'dispose-all', requestId: 4 })).resolves.toMatchObject({
+        disposedDatasetIds: ['a'],
+      })
+      expect(worker.terminate).toHaveBeenCalledOnce()
+      expect(vi.getTimerCount()).toBe(0)
     },
   )
 })

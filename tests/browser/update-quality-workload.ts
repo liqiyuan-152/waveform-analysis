@@ -1,3 +1,4 @@
+import { measureSamplingMemory } from './sampling-memory-workload'
 import { createApp, h, nextTick, reactive } from 'vue'
 import { init } from '@/native'
 import type { WaveformChartInstance } from '@/types/native'
@@ -179,6 +180,7 @@ function geometry() {
 declare global {
   interface Window {
     updateQuality: {
+      measureSamplingMemory: typeof measureSamplingMemory
       measure: typeof measure
       vueUpdate: typeof vueUpdate
       geometry: typeof geometry
@@ -200,6 +202,7 @@ function loseTransport() {
   )
 }
 window.updateQuality = {
+  measureSamplingMemory,
   loseTransport,
   measure,
   vueUpdate,

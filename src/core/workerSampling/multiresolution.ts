@@ -41,12 +41,6 @@ function addUnique(indexes: number[], index: number) {
   if (indexes[indexes.length - 1] !== index) indexes.push(index)
 }
 
-function byteLength(layer: ExtremaLayer | SumLayer) {
-  return 'minimumIndexes' in layer
-    ? layer.minimumIndexes.byteLength + layer.maximumIndexes.byteLength
-    : layer.x.byteLength + layer.y.byteLength + layer.count.byteLength
-}
-
 function largestAlignedBlock(start: number, remaining: number) {
   let size = 1
   while (size * 2 <= remaining && start % (size * 2) === 0) size *= 2
@@ -57,12 +51,25 @@ export class MultiResolutionSamplingIndex {
   private readonly extremaLayers: Array<ExtremaLayer | undefined> = []
   private readonly sumLayers: Array<SumLayer | undefined> = []
   private indexBytes = 0
+  private failedExtremaLevel = Infinity
+  private failedSumLevel = Infinity
   private readonly maxBytes: number
+  private readonly length: number
+  private readonly yAt: (index: number) => number
+  private readonly xAt?: (index: number) => number
 
   constructor(
-    private readonly points: readonly WaveformPoint[],
+    points: readonly WaveformPoint[] | { y: Float64Array },
     options: MultiResolutionSamplingIndexOptions = {},
   ) {
+    if ('y' in points) {
+      this.length = points.y.length
+      this.yAt = (index) => points.y[index]!
+    } else {
+      this.length = points.length
+      this.yAt = (index) => points[index]!.y
+      this.xAt = (index) => points[index]!.x
+    }
     this.maxBytes = Number.isFinite(options.maxBytes)
       ? Math.max(0, Math.floor(options.maxBytes ?? 0))
       : DEFAULT_MAX_BYTES
@@ -76,6 +83,8 @@ export class MultiResolutionSamplingIndex {
     this.extremaLayers.length = 0
     this.sumLayers.length = 0
     this.indexBytes = 0
+    this.failedExtremaLevel = Infinity
+    this.failedSumLevel = Infinity
   }
 
   sample(
@@ -84,12 +93,14 @@ export class MultiResolutionSamplingIndex {
     strategy: IndexedSamplingStrategy,
     requestedTarget: number,
   ): WorkerSamplingOutput | undefined {
-    const rangeStart = Math.max(0, Math.min(this.points.length, Math.floor(start)))
-    const rangeEnd = Math.max(rangeStart, Math.min(this.points.length, Math.floor(end)))
+    const rangeStart = Math.max(0, Math.min(this.length, Math.floor(start)))
+    const rangeEnd = Math.max(rangeStart, Math.min(this.length, Math.floor(end)))
     const count = rangeEnd - rangeStart
     const target = targetCount(requestedTarget, count)
     if (strategy === 'lttb') return undefined
     if (strategy === 'average' || strategy === 'sum') {
+      // Compact numeric inputs retain their original ordered aggregate arithmetic.
+      if (!this.xAt) return undefined
       return this.aggregate(rangeStart, rangeEnd, target, strategy)
     }
     if (strategy === 'none' || count <= target) return this.allIndexes(rangeStart, rangeEnd)
@@ -202,9 +213,8 @@ export class MultiResolutionSamplingIndex {
         y += layer.y[block]!
         count += layer.count[block]!
       } else {
-        const point = this.points[position]!
-        x += point.x
-        y += point.y
+        x += this.xAt!(position)
+        y += this.yAt(position)
         count += 1
       }
       position += size
@@ -213,23 +223,30 @@ export class MultiResolutionSamplingIndex {
   }
 
   private ensureExtrema(level: number) {
+    if (level >= this.failedExtremaLevel) return false
     for (let current = 1; current <= level; current += 1) {
       if (this.extremaLayers[current]) continue
-      const length = Math.ceil(this.points.length / 2 ** current)
-      const layer: ExtremaLayer = {
-        minimumIndexes: new Uint32Array(length),
-        maximumIndexes: new Uint32Array(length),
+      const length = Math.ceil(this.length / 2 ** current)
+      const bytes = length * 2 * Uint32Array.BYTES_PER_ELEMENT
+      if (this.indexBytes + bytes > this.maxBytes) return false
+      let layer: ExtremaLayer
+      try {
+        layer = {
+          minimumIndexes: new Uint32Array(length),
+          maximumIndexes: new Uint32Array(length),
+        }
+      } catch (error) {
+        if (!(error instanceof RangeError)) throw error
+        this.failedExtremaLevel = current
+        return false
       }
-      if (!this.reserve(byteLength(layer))) return false
       const previous = this.extremaLayers[current - 1]
       for (let block = 0; block < length; block += 1) {
         const left = block * 2
         const right = left + 1
         const leftMinimum = previous ? previous.minimumIndexes[left]! : left
         const leftMaximum = previous ? previous.maximumIndexes[left]! : left
-        const hasRight = previous
-          ? right < previous.minimumIndexes.length
-          : right < this.points.length
+        const hasRight = previous ? right < previous.minimumIndexes.length : right < this.length
         const rightMinimum = previous && hasRight ? previous.minimumIndexes[right]! : right
         const rightMaximum = previous && hasRight ? previous.maximumIndexes[right]! : right
         layer.minimumIndexes[block] =
@@ -238,20 +255,30 @@ export class MultiResolutionSamplingIndex {
           hasRight && this.isMaximum(rightMaximum, leftMaximum) ? rightMaximum : leftMaximum
       }
       this.extremaLayers[current] = layer
+      this.indexBytes += bytes
     }
     return true
   }
 
   private ensureSum(level: number) {
+    if (level >= this.failedSumLevel) return false
     for (let current = 1; current <= level; current += 1) {
       if (this.sumLayers[current]) continue
-      const length = Math.ceil(this.points.length / 2 ** current)
-      const layer: SumLayer = {
-        x: new Float64Array(length),
-        y: new Float64Array(length),
-        count: new Uint32Array(length),
+      const length = Math.ceil(this.length / 2 ** current)
+      const bytes = length * (2 * Float64Array.BYTES_PER_ELEMENT + Uint32Array.BYTES_PER_ELEMENT)
+      if (this.indexBytes + bytes > this.maxBytes) return false
+      let layer: SumLayer
+      try {
+        layer = {
+          x: new Float64Array(length),
+          y: new Float64Array(length),
+          count: new Uint32Array(length),
+        }
+      } catch (error) {
+        if (!(error instanceof RangeError)) throw error
+        this.failedSumLevel = current
+        return false
       }
-      if (!this.reserve(byteLength(layer))) return false
       const previous = this.sumLayers[current - 1]
       for (let block = 0; block < length; block += 1) {
         const left = block * 2
@@ -262,39 +289,27 @@ export class MultiResolutionSamplingIndex {
           layer.count[block] =
             previous.count[left]! + (right < previous.count.length ? previous.count[right]! : 0)
         } else {
-          const leftPoint = this.points[left]!
-          const rightPoint = this.points[right]
-          layer.x[block] = leftPoint.x + (rightPoint?.x ?? 0)
-          layer.y[block] = leftPoint.y + (rightPoint?.y ?? 0)
-          layer.count[block] = rightPoint ? 2 : 1
+          const hasRight = right < this.length
+          layer.x[block] = this.xAt!(left) + (hasRight ? this.xAt!(right) : 0)
+          layer.y[block] = this.yAt(left) + (hasRight ? this.yAt(right) : 0)
+          layer.count[block] = hasRight ? 2 : 1
         }
       }
       this.sumLayers[current] = layer
+      this.indexBytes += bytes
     }
     return true
   }
 
-  private reserve(bytes: number) {
-    if (this.indexBytes + bytes > this.maxBytes) return false
-    this.indexBytes += bytes
-    return true
-  }
-
   private isMinimum(candidate: number, current: number) {
-    const candidatePoint = this.points[candidate]!
-    const currentPoint = this.points[current]!
-    return (
-      candidatePoint.y < currentPoint.y ||
-      (candidatePoint.y === currentPoint.y && candidate < current)
-    )
+    const candidateY = this.yAt(candidate)
+    const currentY = this.yAt(current)
+    return candidateY < currentY || (candidateY === currentY && candidate < current)
   }
 
   private isMaximum(candidate: number, current: number) {
-    const candidatePoint = this.points[candidate]!
-    const currentPoint = this.points[current]!
-    return (
-      candidatePoint.y > currentPoint.y ||
-      (candidatePoint.y === currentPoint.y && candidate < current)
-    )
+    const candidateY = this.yAt(candidate)
+    const currentY = this.yAt(current)
+    return candidateY > currentY || (candidateY === currentY && candidate < current)
   }
 }

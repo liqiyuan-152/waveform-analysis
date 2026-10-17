@@ -1,0 +1,90 @@
+{
+  "node": "v22.23.2",
+  "pointCount": 100000,
+  "workload": "x=index,y=sin(index); two requests [0,n),[1,n); target=100",
+  "warmup": 5,
+  "measuredRuns": 20,
+  "allocationScope": "Cumulative Uint32Array/Float64Array constructor bytes, not peak residency; includes fallback output",
+  "results": [
+    {
+      "strategy": "minmax",
+      "maxBytes": 0,
+      "allocated": {
+        "median": 800800,
+        "p95": 800800
+      },
+      "retained": {
+        "median": 0,
+        "p95": 0
+      },
+      "coldMs": {
+        "median": 2.242291000000023,
+        "p95": 6.212625000000003
+      },
+      "warmMs": {
+        "median": 2.075166999999965,
+        "p95": 5.051292000000018
+      }
+    },
+    {
+      "strategy": "minmax",
+      "maxBytes": 8388608,
+      "allocated": {
+        "median": 800040,
+        "p95": 800040
+      },
+      "retained": {
+        "median": 799240,
+        "p95": 799240
+      },
+      "coldMs": {
+        "median": 1.0183750000000487,
+        "p95": 1.3529170000000477
+      },
+      "warmMs": {
+        "median": 0.03654199999999719,
+        "p95": 0.044375000000002274
+      }
+    },
+    {
+      "strategy": "sum",
+      "maxBytes": 0,
+      "allocated": {
+        "median": 2006400,
+        "p95": 2006400
+      },
+      "retained": {
+        "median": 0,
+        "p95": 0
+      },
+      "coldMs": {
+        "median": 1.7249159999999506,
+        "p95": 7.124375000000043
+      },
+      "warmMs": {
+        "median": 1.6264579999999569,
+        "p95": 4.212874999999997
+      }
+    },
+    {
+      "strategy": "sum",
+      "maxBytes": 8388608,
+      "allocated": {
+        "median": 1999340,
+        "p95": 1999340
+      },
+      "retained": {
+        "median": 1996140,
+        "p95": 1996140
+      },
+      "coldMs": {
+        "median": 0.7907079999999951,
+        "p95": 1.5130830000000515
+      },
+      "warmMs": {
+        "median": 0.03429099999993923,
+        "p95": 0.05270800000005238
+      }
+    }
+  ]
+}

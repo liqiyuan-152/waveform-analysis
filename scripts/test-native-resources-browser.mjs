@@ -138,7 +138,9 @@ function instrument() {
   }
 }
 
-const evidence = resolve('openspec/changes/decouple-waveform-engine-from-vue/evidence')
+const evidence =
+  process.env.WAVEFORM_BROWSER_EVIDENCE_DIR ??
+  (await mkdtemp(join(tmpdir(), 'waveform-resources-evidence-')))
 await mkdir(evidence, { recursive: true })
 const outDir = await mkdtemp(join(tmpdir(), 'waveform-native-resources-'))
 await build({
@@ -151,7 +153,11 @@ const server = await preview({ build: { outDir }, preview: { port: 5199, strictP
 const report = { startedAt: new Date().toISOString(), node: process.version, browsers: [] }
 let failed = false
 try {
-  for (const [name, driver] of Object.entries({ chromium, firefox, webkit })) {
+  const drivers = { chromium, firefox, webkit }
+  const names = process.env.WAVEFORM_BROWSER ? [process.env.WAVEFORM_BROWSER] : Object.keys(drivers)
+  for (const name of names) {
+    const driver = drivers[name]
+    if (!driver) throw new Error(`Unsupported browser: ${name}`)
     let browser
     const result = { name, errors: [], cycles: [], heap: 'unavailable', detachedDOM: 'unavailable' }
     try {
@@ -163,15 +169,25 @@ try {
       await page.goto('http://localhost:5199/tests/browser/native-resource-lifecycle.html')
       await page.waitForFunction(() => !!globalThis.nativeResourceLifecycle)
       // Warm shared WASM/font/browser allocations before the retained-heap baseline.
-      for (let index = 0; index < 3; index++)
+      for (let index = 0; index < 5; index++)
         await page.evaluate((index) => globalThis.nativeResourceLifecycle.cycle(index), index)
       await page.evaluate(() => globalThis.resourceProbe.idle())
       const cdp = name === 'chromium' ? await page.context().newCDPSession(page) : undefined
       const memory = async () => {
-        if (!cdp) return undefined
+        if (!cdp) {
+          result.heap = {
+            status: 'N/A',
+            reason: `${name}: Chromium CDP HeapProfiler is unavailable; portable resource counters still required`,
+          }
+          return undefined
+        }
         await cdp.send('HeapProfiler.collectGarbage')
         const heap = await cdp.send('Runtime.getHeapUsage')
         const dom = await cdp.send('Memory.getDOMCounters')
+        assert.ok(
+          Number.isFinite(heap.usedSize) && heap.usedSize > 0,
+          'Required Chromium heap metric missing',
+        )
         return { heap: heap.usedSize, ...dom }
       }
       const baseline = await page.evaluate(() => globalThis.resourceProbe.snapshot())
@@ -190,8 +206,8 @@ try {
       const memoryAfter = await memory()
       result.baseline = baseline
       result.allocated = await page.evaluate(() => globalThis.resourceProbe.allocated())
-      assert.ok(result.allocated.workers >= 66, 'Worker path was not exercised by every chart')
-      assert.ok(result.allocated.observers >= 66, 'Observer path was not exercised by every chart')
+      assert.ok(result.allocated.workers >= 70, 'Worker path was not exercised by every chart')
+      assert.ok(result.allocated.observers >= 70, 'Observer path was not exercised by every chart')
       assert.equal(
         result.allocated.workers,
         result.allocated.observers,

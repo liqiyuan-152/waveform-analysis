@@ -78,6 +78,11 @@ jobs:
       - run: pnpm build
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
+      - name: Verify browser interactions
+        run: pnpm test:browser
+        env:
+          WAVEFORM_BROWSER: chromium
+          WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
       - run: pnpm test:package
 
       - name: Pack release assets
@@ -109,6 +114,14 @@ jobs:
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
           files: release-assets/*
+
+      - name: Retain browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-chromium
+          path: artifacts/browser
+          retention-days: 14
 
   deploy-demo:
     needs: release

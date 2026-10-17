@@ -1,0 +1,38 @@
+name: Browser regression
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, firefox, webkit]
+    env:
+      WAVEFORM_BROWSER: ${{ matrix.browser }}
+      WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.20.0
+      - name: Install locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.32.1 --activate && pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps ${{ matrix.browser }}
+      - run: pnpm test:browser
+      - run: pnpm test:browser:resources
+      - name: Retain browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-${{ matrix.browser }}
+          path: artifacts/browser
+          retention-days: 14
