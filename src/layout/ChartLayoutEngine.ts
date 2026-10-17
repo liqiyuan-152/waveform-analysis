@@ -64,6 +64,7 @@ export class ChartLayoutEngine {
     const hidden = this.model.visibility.snapshot(options.hiddenSeriesIds)
     const series: DisplaySeries[] = this.model.data.series.map((item, index) => ({
       ...item,
+      pointSize: item.pointSize ?? options.pointSize,
       color:
         item.color ??
         (index === 0 ? options.lineColor : channelColors[index % channelColors.length]!),

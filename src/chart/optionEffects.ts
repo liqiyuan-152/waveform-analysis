@@ -14,6 +14,7 @@ export const optionEffects = {
   xLabel: ['layout', 'geometry', 'sampling'],
   yLabel: ['layout', 'geometry', 'sampling'],
   lineColor: ['style'],
+  pointSize: ['geometry', 'style', 'animation'],
   showTooltip: ['interaction'],
   zoomable: ['interaction', 'layout', 'sampling'],
   integerZoom: ['interaction', 'layout', 'sampling'],
@@ -65,6 +66,7 @@ export function changedOptionKeys(
 
 export const samplingIndependentOptions = new Set([
   'lineColor',
+  'pointSize',
   'frameNumber',
   'frameNumbers',
   'frameStyle',

@@ -26,6 +26,7 @@ export function chartExportOptions(props: ResolvedWaveformChartProps) {
     'timeUnit',
     'zeroLine',
     'lineColor',
+    'pointSize',
     'layoutPreset',
     'unitDisplayMode',
   ] as const satisfies readonly (keyof ResolvedWaveformChartProps)[]

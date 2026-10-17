@@ -34,6 +34,8 @@ export interface WaveformChartProps extends WaveformAnimationProps {
   xLabel?: string
   yLabel?: string
   lineColor?: string
+  /** Point diameter in CSS pixels (equal-area circle for other shapes). Defaults to 2. */
+  pointSize?: number
   showTooltip?: boolean
   zoomable?: boolean
   /** Prefer integer display-unit endpoints; preserve any window narrower than one unit. */
@@ -88,6 +90,7 @@ type DefaultedProp =
   | 'layoutPreset'
   | 'yLabel'
   | 'lineColor'
+  | 'pointSize'
   | 'showTooltip'
   | 'zoomable'
   | 'integerZoom'

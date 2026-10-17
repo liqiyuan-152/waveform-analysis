@@ -7,7 +7,15 @@ import {
 } from 'waveform-analysis/vue'
 
 const sameInit: typeof init = nativeInit
-const props: WaveformChartProps = { data: { kind: 'points', points: [] } }
+const props: WaveformChartProps = {
+  pointSize: 2,
+  data: {
+    kind: 'series',
+    series: [
+      { name: 'points', pointType: 'circle', pointSize: 4, data: { kind: 'points', points: [] } },
+    ],
+  },
+}
 const options: WaveformChartOptions = props
 const instance = (chart: WaveformChartInstance, vueChart: WaveformChartHandle) => {
   chart.setOption(options)

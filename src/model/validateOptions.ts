@@ -105,6 +105,11 @@ export function validateOptions(patch: WaveformChartOptionUpdate) {
       continue
     }
     if (value === undefined) continue
+    if (
+      field === 'pointSize' &&
+      (typeof value !== 'number' || !Number.isFinite(value) || value <= 0)
+    )
+      invalid(field)
     const choices = enumFields[field]
     if (choices && (typeof value !== 'string' || !choices.includes(value))) invalid(field)
     if (booleanFields.has(field) && typeof value !== 'boolean') invalid(field)

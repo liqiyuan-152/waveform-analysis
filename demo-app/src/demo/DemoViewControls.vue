@@ -59,6 +59,17 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
   </section>
   <section class="control-section">
     <h2>波形线型</h2>
+    <label class="frame-style-control">
+      <span>点大小（px）</span>
+      <InputNumber
+        v-model:value="model.pointSize"
+        :min="0.5"
+        :step="0.5"
+        size="small"
+        aria-label="点大小（px）"
+        @change="model.pointSize = model.pointSize || 2"
+      />
+    </label>
     <label class="select-control">
       <span>波形</span>
       <Select

@@ -1057,6 +1057,7 @@ const series = {
   lineType: 'step-end',
   lineStyle: 'dashed',
   pointType: 'circle',
+  pointSize: 4, // 本系列覆盖全局点大小，单位 CSS px
   errorBar: { visible: true, width: 1.5, capWidth: 8 },
   data: {
     kind: 'points',
@@ -1077,6 +1078,13 @@ const series = {
 并参与 Y 轴范围计算；当误差棒可见时，`lineType` 和 `pointType` 可以同时为 `none`，用于展示
 纯误差棒。只有连接线、点符号和误差棒全部关闭时才会回退为普通直线。`lowerError`、
 `upperError` 分别覆盖对称的 `error`，图例会同步显示实际线型、点型和误差棒样式。
+
+全局 `pointSize` 默认 **2**，表示圆点直径（CSS px）；其他形状按等面积圆换算。
+原生创建选项或 `chart.setOption({ pointSize: 3 })` 可以设置全图大小，Vue 使用
+`:point-size="3"`。系列的 `pointSize` 优先覆盖全局配置；移除该字段并替换 `data`
+即可恢复继承。全局只接受有限正数，否则报 `invalid-option`；无效系列值回退全局配置。
+点大小不随缩放变化，图例使用相同大小；隐藏点请设置 `pointType: 'none'`。
+未配置大小的图表也使用新的 2 px 默认值（此前固定面积为 48 px²）。
 
 ### 叠加与多值轴
 

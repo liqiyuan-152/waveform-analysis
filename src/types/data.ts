@@ -80,6 +80,8 @@ export interface WaveformSeries {
   lineType?: WaveformLineType
   lineStyle?: WaveformLineStyle
   pointType?: WaveformPointType
+  /** Overrides the chart point diameter in CSS pixels; invalid values inherit the chart default. */
+  pointSize?: number
   errorBar?: WaveformErrorBarOptions
   data: SingleWaveformData
 }
@@ -107,6 +109,7 @@ export interface NormalizedWaveformSeries {
   lineType: WaveformLineType
   lineStyle: WaveformLineStyle
   pointType: WaveformPointType
+  pointSize?: number
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]
 }

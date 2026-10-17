@@ -19,6 +19,7 @@ export interface PreparedWaveformSeries {
   lineType: WaveformLineType
   lineStyle: WaveformLineStyle
   pointType: WaveformPointType
+  pointSize?: number
   errorBar: ResolvedWaveformErrorBarOptions
   points: WaveformPoint[]
   source: WaveformPointSource

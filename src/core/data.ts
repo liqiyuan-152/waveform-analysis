@@ -180,6 +180,7 @@ function normalizedSeriesOptions(
     lineType?: NormalizedWaveformSeries['lineType']
     lineStyle?: WaveformLineStyle
     pointType?: NormalizedWaveformSeries['pointType']
+    pointSize?: number
     errorBar?: { visible?: boolean; color?: string; width?: number; capWidth?: number }
   },
 ) {
@@ -203,6 +204,12 @@ function normalizedSeriesOptions(
     lineType,
     lineStyle,
     pointType: requestedPointType,
+    pointSize:
+      typeof series.pointSize === 'number' &&
+      Number.isFinite(series.pointSize) &&
+      series.pointSize > 0
+        ? series.pointSize
+        : undefined,
     errorBar: {
       visible: errorBarVisible,
       color: series.errorBar?.color,

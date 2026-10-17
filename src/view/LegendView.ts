@@ -6,6 +6,7 @@ import {
   waveformLegendLinePath,
   waveformLineDasharray,
   waveformPointSymbolPath,
+  waveformPointSymbolArea,
 } from '../components/rendering/seriesStyle'
 import { setSvgAttributes, svgNode } from '../rendering/SvgDom'
 import { updateSvgAttribute } from '../components/rendering/updateAxis'
@@ -126,7 +127,9 @@ export class LegendView {
       })
       updateSvgAttribute(item.error, 'display', series.errorBar.visible ? null : 'none')
       setSvgAttributes(item.point, {
-        d: waveformPointSymbolPath(series.pointType, 30) ?? '',
+        d:
+          waveformPointSymbolPath(series.pointType, waveformPointSymbolArea(series.pointSize)) ??
+          '',
         fill: series.color,
       })
       updateSvgAttribute(item.point, 'display', series.pointType === 'none' ? 'none' : null)

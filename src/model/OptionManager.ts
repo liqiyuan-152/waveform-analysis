@@ -12,6 +12,7 @@ function defaults(): ResolvedWaveformChartProps {
     layoutPreset: 'default',
     yLabel: '幅值',
     lineColor: '#0960bd',
+    pointSize: 2,
     showTooltip: true,
     zoomable: true,
     integerZoom: false,

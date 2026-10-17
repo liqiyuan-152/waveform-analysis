@@ -4,6 +4,7 @@
  */
 
 // Framework-independent algorithms and public integration contracts.
+/** Chart props include the global CSS-pixel pointSize (default 2). */
 export type { WaveformChartProps } from './components/core/waveformChartTypes'
 
 // Numeric engine, pure preset factories and owner-scoped chart animation.

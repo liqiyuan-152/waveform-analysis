@@ -22,7 +22,15 @@ const pointSymbols: Record<Exclude<WaveformPointType, 'none'>, SymbolType> = {
   diamond: symbolDiamond,
 }
 
-export function waveformPointSymbolPath(pointType: WaveformPointType, size = 48): string | null {
+/** Convert CSS-pixel circle diameter to the area expected by D3 symbols. */
+export function waveformPointSymbolArea(pointSize = 2): number {
+  return Math.PI * (pointSize / 2) ** 2
+}
+
+export function waveformPointSymbolPath(
+  pointType: WaveformPointType,
+  size = waveformPointSymbolArea(),
+): string | null {
   if (pointType === 'none') return null
   return symbol().type(pointSymbols[pointType]).size(size)() ?? null
 }
@@ -30,7 +38,7 @@ export function waveformPointSymbolPath(pointType: WaveformPointType, size = 48)
 export function waveformPointSeriesPath(
   pointType: WaveformPointType,
   points: ReadonlyArray<{ x: number; y: number }>,
-  size = 48,
+  size = waveformPointSymbolArea(),
 ): string | null {
   if (pointType === 'none' || points.length === 0) return null
 

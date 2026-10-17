@@ -1,6 +1,9 @@
 import { resolveWaveformPointErrors } from '../../core/data'
 import type { TrackLayout, TrackSeriesPath } from '../../components/core/types'
-import { waveformPointSeriesPath } from '../../components/rendering/seriesStyle'
+import {
+  waveformPointSeriesPath,
+  waveformPointSymbolArea,
+} from '../../components/rendering/seriesStyle'
 
 /** Shared by native and Vue views; sampling chooses points before geometry is encoded. */
 export function seriesGeometry(path: TrackSeriesPath, track: TrackLayout) {
@@ -10,6 +13,7 @@ export function seriesGeometry(path: TrackSeriesPath, track: TrackLayout) {
       x: track.xScale(point.x),
       y: path.yScale(point.y),
     })),
+    waveformPointSymbolArea(path.series.pointSize),
   )
   const half = path.series.errorBar.capWidth / 2
   const errorBarPath = path.errorBarRenderPoints

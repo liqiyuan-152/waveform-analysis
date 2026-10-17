@@ -35,6 +35,7 @@ export interface DemoControlPanelModel {
   displayMode: WaveformDisplayMode
   overlayMode: WaveformOverlayMode
   showTooltip: boolean
+  pointSize: number
   integerZoom: boolean
   plotMarginTop: number
   plotMarginBottom: number
@@ -124,6 +125,7 @@ export interface DemoChartModel {
   cleanView: boolean
   presentationMode: boolean
   showTooltip: boolean
+  pointSize: number
   integerZoom: boolean
   plotMargin: WaveformPlotMargin
   zeroLine: WaveformZeroLineOptions

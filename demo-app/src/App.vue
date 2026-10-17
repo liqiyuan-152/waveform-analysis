@@ -69,6 +69,7 @@ const annotationsVisible = ref(true)
 const cleanView = ref(false)
 const presentationMode = ref(false)
 const showTooltip = ref(true)
+const pointSize = ref(2)
 const integerZoom = ref(true)
 const plotMarginTop = ref(10)
 const plotMarginBottom = ref(44)
@@ -287,6 +288,7 @@ const controlPanelModel = reactive({
   displayMode,
   overlayMode,
   showTooltip,
+  pointSize,
   integerZoom,
   plotMarginTop,
   plotMarginBottom,
@@ -369,6 +371,7 @@ const chartModel = reactive({
   cleanView,
   presentationMode,
   showTooltip,
+  pointSize,
   integerZoom,
   plotMargin,
   zeroLine,

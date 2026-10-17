@@ -137,6 +137,7 @@ export function compatibleGeometry(
   if (
     a.series.lineType !== b.series.lineType ||
     a.series.pointType !== b.series.pointType ||
+    a.series.pointSize !== b.series.pointSize ||
     a.series.errorBar.visible !== b.series.errorBar.visible
   )
     return false
