@@ -110,3 +110,15 @@ compactIndex 回归包含异常/乱序/重复 X/稀疏样本、多视口、多�
 发布准备执行 prepare:wasm 成功，并对 0.2.2 运行冻结安装、格式检查、lint、发布流程定向回归和实际 tarball 消费者验证。WASM 源未变，重建的本地产物不提交；保留仓库既有生成资产。结构化检查记录见 evidence/release-0.2.2-local-checks.json。发布前等待 main 的完整 CI 验证；标签、npm 和演示站结果以远端实际状态为准。
 
 提交保留结构化 JSON 测量与最终三引擎截图；文中引用的原始 .txt 日志、中间轮次截图和临时副本路径留在本地，不加入版本控制。历史未跟踪文件未删除。
+
+## Release Result: 0.2.2
+
+2026-10-17 已按用户授权完成提交、推送与正式发布。发布提交为 `6ae94c4f699d787251bf0e5c8d5433a8d39291b0`，附注标签 `v0.2.2` 已推送。
+
+- [发布前完整 CI](https://github.com/liqiyuan-152/waveform-analysis/actions/runs/38991376623) 通过；结构化结果见 evidence/release-0.2.2-ci.json。
+- [正式发布工作流](https://github.com/liqiyuan-152/waveform-analysis/actions/runs/38992860095) 的 release 与 deploy-demo 两个 job 均成功；结果见 evidence/release-0.2.2-result.json。
+- [GitHub Release v0.2.2](https://github.com/liqiyuan-152/waveform-analysis/releases/tag/v0.2.2) 已发布，包含 tarball 和 SHA256 文件。
+- npm 查询确认 `version=0.2.2`、`latest=0.2.2`，`next` 仍为 `0.2.0-rc.1`。下载的 GitHub tarball 与 SHA256 文件匹配，且 SHA1 与 npm 元数据一致；见 evidence/release-0.2.2-package.json。
+- [演示站](https://lqycustomsite.online/waveform-analysis/) 的 version.txt 最终返回 `6ae94c4f699d787251bf0e5c8d5433a8d39291b0`，确认切换至本次发布提交。部署核验经历等待后成功，未将中途返回旧版本的状态误记为最终失败。
+
+GitHub 是当前配置的唯一 Git remote，本次通过其现有发布工作流发布 npmjs 与演示站，未额外向 Gitea 创建标签或声称其 registry 已同步。历史未跟踪文件保持原样。
