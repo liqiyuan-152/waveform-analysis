@@ -53,7 +53,7 @@ jobs:
           pnpm check:licenses
           pnpm typecheck:examples
       - name: Test
-        run: pnpm test:coverage --maxWorkers=2
+        run: pnpm test:coverage --maxWorkers=5
       - name: Build package and Demo
         run: pnpm build
         env:

@@ -83,7 +83,7 @@ jobs:
       - run: pnpm lint
       - name: Verify Demo artifact deployment and rollback
         run: python3 -m unittest discover -s deploy -p 'test_*.py'
-      - run: pnpm test:coverage --maxWorkers=2
+      - run: pnpm test:coverage --maxWorkers=5
       - run: pnpm build
         env:
           DEMO_BASE_PATH: /waveform-analysis/

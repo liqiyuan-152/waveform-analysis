@@ -127,7 +127,7 @@ jobs:
           pnpm typecheck:examples
 
       - name: Test with coverage
-        run: pnpm test:coverage --maxWorkers=2
+        run: pnpm test:coverage --maxWorkers=5
 
       - name: Build component
         env:
