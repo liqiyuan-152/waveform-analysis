@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAnalysisTheme } from '../theme/useAnalysisTheme'
 import { computed, reactive, ref } from 'vue'
 import { InputNumber, RadioButton, RadioGroup, Select, Switch } from 'ant-design-vue'
 
@@ -104,6 +105,7 @@ function onSamplingComplete(diagnostic: WaveformSamplingDiagnostics) {
 function pointCount(value: number | undefined) {
   return value === undefined ? '--' : value.toLocaleString('en-US')
 }
+const { controlTheme, frameStyle, legendBackground, titleTextStyle } = useAnalysisTheme()
 </script>
 
 <template>
@@ -169,16 +171,27 @@ function pointCount(value: number | undefined) {
     <section class="sampling-demo__workspace">
       <div class="sampling-demo__chart">
         <WaveformChart
+          :control-theme="controlTheme"
+          :frame-style="frameStyle"
           :toolbar="toolbarVisible"
           pannable
           :data="data"
           v-model:annotations="annotations"
           :rendering="rendering"
           :grid="{ rowCount: 1, columnCount: 1, showPagination: false }"
-          :legend="{ position: 'top-right', orientation: 'vertical' }"
+          :legend="{
+            position: 'top-right',
+            orientation: 'vertical',
+            backgroundColor: legendBackground,
+          }"
           :max-zoom-scale="null"
           :min-visible-points="minVisiblePoints"
-          :title="{ visible: true, text: '多系列采样与缓存诊断', align: 'left' }"
+          :title="{
+            visible: true,
+            text: '多系列采样与缓存诊断',
+            align: 'left',
+            textStyle: titleTextStyle,
+          }"
           x-label="时间（s）"
           time-unit="s"
           @sampling-complete="onSamplingComplete"

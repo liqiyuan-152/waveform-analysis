@@ -1,3 +1,4 @@
+@import './controlTheme.css';
 @import './base.css';
 @import '../components/rendering/WaveformTrack.css';
 @import '../components/controls/WaveformPagination.css';

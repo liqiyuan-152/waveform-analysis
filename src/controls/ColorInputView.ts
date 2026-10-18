@@ -1,3 +1,4 @@
+import { setControlTreeTheme, type ControlTheme, type ControlThemeOptions } from './theme'
 import { rgb } from 'd3'
 import { parseColorValue, toHsv, fromHsv } from './colorValue'
 import { PopupController } from './PopupController'
@@ -29,6 +30,7 @@ export class ColorInputView {
     label: string,
     value: string,
     private readonly changed: () => void,
+    options: ControlThemeOptions = {},
   ) {
     this.current = value
     this.root = document.createElement('div')
@@ -117,6 +119,7 @@ export class ColorInputView {
     this.popup.panel.append(this.panel.root)
     this.popup.panel.append(this.error)
     this.root.append(this.swatch)
+    this.setTheme(options.theme)
     this.hydrate()
     this.text.oninput = () => this.fromText(true)
     this.text.onblur = () => {
@@ -219,6 +222,11 @@ export class ColorInputView {
       `linear-gradient(to right, transparent, ${rgb(...this.channels).formatHex()})`,
     )
     this.panel.update(this.hsv, this.current, this.channels, this.opacity)
+  }
+
+  setTheme(theme: ControlTheme = 'auto') {
+    setControlTreeTheme(this.root, theme)
+    this.popup.setTheme(theme)
   }
 
   dispose() {

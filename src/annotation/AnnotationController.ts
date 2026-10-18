@@ -241,6 +241,7 @@ export class AnnotationController {
           series && { id: series.id, name: series.name, color: series.color, unit: series.unit }
         )
       },
+      theme: () => this.context.model.options.value.controlTheme,
       timeUnit: () => this.context.model.options.value.timeUnit,
       time: (value) => this.changeDraftTime(value),
       select: (id) => this.changeDraftSeries(id),

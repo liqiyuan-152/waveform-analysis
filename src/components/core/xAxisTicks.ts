@@ -1,3 +1,4 @@
+import { niceCoefficient } from '../../shared/axis/numeric'
 import { scaleLinear } from 'd3'
 import { decimalPrecision } from '../../utils/numericPrecision'
 
@@ -19,8 +20,7 @@ export function resolveXAxisTicks(
   const exponent = Math.floor(Math.log10(roughInterval))
   const power = 10 ** exponent
   const fraction = roughInterval / power
-  const coefficient =
-    fraction < 1.5 ? 1 : fraction < 2.5 ? 2 : fraction < 4 ? 3 : fraction < 7 ? 5 : 10
+  const coefficient = niceCoefficient(fraction, '1235')
   const interval = Math.max(coefficient * power, minInterval)
   const precision = decimalPrecision(interval) + 2
   const fallback = () => fallbackTicks(start, end, count)

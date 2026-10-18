@@ -1,10 +1,22 @@
+import { TextMeasurer } from '../shared/axis/TextMeasurer'
 /** Lazy, document-scoped canvas ownership; importing the engine remains safe in SSR. */
 export class YAxisTextMeasurer {
   private context: CanvasRenderingContext2D | null | undefined
 
   constructor(private readonly ownerDocument?: Document) {}
 
-  readonly measure = (text: string): number => {
+  private readonly measurer = new TextMeasurer(
+    { width: (text) => this.measureCanvas(text) },
+    (text) =>
+      [...text].reduce(
+        (sum, character) => sum + (/[0-9]/.test(character) ? 6.2 : character === '.' ? 3.1 : 7),
+        0,
+      ),
+  )
+
+  readonly measure = (text: string): number => Math.ceil(this.measurer.measure(text))
+
+  private measureCanvas(text: string) {
     if (this.context === undefined) {
       const document =
         this.ownerDocument ??
@@ -15,12 +27,6 @@ export class YAxisTextMeasurer {
       // Matches D3 axis text after the chart's CSS overrides.
       if (this.context) this.context.font = '700 11px sans-serif'
     }
-    const width = this.context
-      ? this.context.measureText(text).width
-      : [...text].reduce(
-          (sum, character) => sum + (/[0-9]/.test(character) ? 6.2 : character === '.' ? 3.1 : 7),
-          0,
-        )
-    return Math.ceil(width)
+    return this.context?.measureText(text).width
   }
 }

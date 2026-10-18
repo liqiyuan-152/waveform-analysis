@@ -1,3 +1,4 @@
+import { normalizePackageDeclarations } from './normalize-package-declarations.mjs'
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 
@@ -18,3 +19,5 @@ if (!contents.includes(wasmImport) && !contents.includes(packagedWasmImport)) {
   throw new Error(`Expected ${wasmDeclaration} to reference ${wasmImport}.`)
 }
 writeFileSync(wasmDeclaration, contents.replaceAll(wasmImport, packagedWasmImport))
+
+normalizePackageDeclarations(typesRoot)

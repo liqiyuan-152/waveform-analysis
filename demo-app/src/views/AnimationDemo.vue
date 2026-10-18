@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAnalysisTheme } from '../theme/useAnalysisTheme'
 import { ref } from 'vue'
 import { WaveformChart } from 'waveform-analysis/vue'
 import type {
@@ -50,6 +51,7 @@ function toggleAnnotation() {
         text: '受控标注',
       }))
 }
+const { controlTheme, frameStyle, legendBackground } = useAnalysisTheme()
 </script>
 
 <template>
@@ -95,6 +97,9 @@ function toggleAnnotation() {
       <button @click="toggleAnnotation">增删标注</button>
     </div>
     <WaveformChart
+      :control-theme="controlTheme"
+      :frame-style="frameStyle"
+      :legend="{ backgroundColor: legendBackground }"
       :key="key"
       :data="data"
       :height="360"

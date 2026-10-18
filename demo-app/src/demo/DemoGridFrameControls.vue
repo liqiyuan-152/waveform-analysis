@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useTheme } from '../theme/useTheme'
 import { InputNumber, Select, Switch } from 'ant-design-vue'
 import { ColorPicker } from 'vue3-colorpicker'
 
@@ -6,6 +7,7 @@ import DemoYAxisPaddingControls from './DemoYAxisPaddingControls.vue'
 import type { DemoControlPanelModel } from './types'
 
 const model = defineModel<DemoControlPanelModel>('model', { required: true })
+const { dark } = useTheme()
 </script>
 
 <template>
@@ -48,6 +50,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
       <label class="frame-style-control">
         <span>颜色</span>
         <ColorPicker
+          :theme="dark ? 'black' : 'white'"
           v-model:pure-color="model.zeroLineColor"
           aria-label="零值参考线颜色"
           use-type="pure"
@@ -104,6 +107,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         />
         <span class="grid-line-color-picker" role="group" aria-label="水平网格线颜色">
           <ColorPicker
+            :theme="dark ? 'black' : 'white'"
             v-model:pure-color="model.horizontalGridColor"
             use-type="pure"
             picker-type="chrome"
@@ -123,6 +127,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         />
         <span class="grid-line-color-picker" role="group" aria-label="垂直网格线颜色">
           <ColorPicker
+            :theme="dark ? 'black' : 'white'"
             v-model:pure-color="model.verticalGridColor"
             use-type="pure"
             picker-type="chrome"
@@ -219,6 +224,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
       <label class="frame-style-control">
         <span>边框颜色</span>
         <ColorPicker
+          :theme="dark ? 'black' : 'white'"
           v-model:pure-color="model.frameBorderColor"
           aria-label="图框边框颜色"
           use-type="pure"
@@ -232,6 +238,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
       <label class="frame-style-control">
         <span>背景颜色</span>
         <ColorPicker
+          :theme="dark ? 'black' : 'white'"
           v-model:pure-color="model.frameBackgroundColor"
           aria-label="图框背景颜色"
           use-type="pure"

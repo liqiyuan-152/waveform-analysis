@@ -404,6 +404,9 @@ describe('App workspace layout', { timeout: 20_000 }, () => {
       }
     })
 
+    await vi.waitFor(() =>
+      expect(wrapper.get('[aria-label="下一页"]').attributes('disabled')).toBeUndefined(),
+    )
     await wrapper.get('[aria-label="下一页"]').trigger('click')
     await flushPromises()
     expect(

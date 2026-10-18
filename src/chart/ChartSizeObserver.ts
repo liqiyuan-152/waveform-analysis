@@ -1,3 +1,4 @@
+import { createResizeObserver } from '../shared/dom/resizeObserver'
 import type { ResolvedWaveformChartProps } from '../types/options'
 import { minimumHeight } from '../components/core/constants'
 
@@ -14,11 +15,10 @@ export class ChartSizeObserver {
     measured: () => void = () => {},
   ) {
     if (autoResize) {
-      const Observer = host.ownerDocument.defaultView?.ResizeObserver
-      if (Observer) {
-        this.observer = new Observer(() => {
-          if (!this.resize()) measured()
-        })
+      this.observer = createResizeObserver(host, () => {
+        if (!this.resize()) measured()
+      })
+      if (this.observer) {
         this.observer.observe(root)
         this.observer.observe(host)
       } else {

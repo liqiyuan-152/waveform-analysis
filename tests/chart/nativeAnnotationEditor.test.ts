@@ -98,6 +98,19 @@ function commit(element: HTMLInputElement) {
 }
 
 describe('native annotation editor integration', () => {
+  it('updates the open editor and its controls without losing drafts when controlTheme changes', async () => {
+    const { chart, host } = await setup({ controlTheme: 'dark' })
+    const editor = edit(host)
+    input(editor.text, '主题切换中的草稿')
+    expect(editor.root.dataset.controlTheme).toBe('dark')
+    chart.setOption({ controlTheme: 'light' })
+    await flushNativeUpdates()
+    expect(editor.root.open).toBe(true)
+    expect(editor.text.value).toBe('主题切换中的草稿')
+    for (const control of editor.root.querySelectorAll<HTMLElement>('[data-control-theme]'))
+      expect(control.dataset.controlTheme).toBe('light')
+  })
+
   it('hydrates title, coordinates, character limit, series options and initial focus', async () => {
     const { host } = await setup()
     const editor = edit(host)

@@ -1,13 +1,29 @@
-# waveform-analysis 0.2.2
+# waveform-analysis 1.0.0
 
-- 修复采样索引先分配再检查预算的问题，避免超预算大数组分配；分配失败后保留正确降级路径。
-- Tooltip 按稳定系列 ID 复用节点，同内容移动复用尺寸，减少连续悬停中的 DOM 创建和布局测量。
-- 为 typed/samples 紧凑输入增加受预算限制的 JavaScript 极值索引，改善 Worker/WASM 降级时的连续视口查询；sum/average 保留原顺序聚合语义。
-- 包含增量更新优化与回归加固；保持完整源查询、坐标单位、受控状态及原生/Vue 公开 API 兼容。
-- 增加 Chromium 持续交互门禁与每周 Chromium/Firefox/WebKit 回归，覆盖桌面、小容器、动画、标注、导出和资源释放。
-- 固定 Node 22 开发入口，继续使用 pnpm 10.32.1；传输仍使用 clone，未启用未经证实的内存或构建缓存候选。
+首个 1.x 正式版本，将波形分析、波形展示和基础交互组件统一为一个可按需导入的 npm 包。
 
-本地验证：238 个测试文件、2140 项测试通过，三引擎浏览器回归、类型检查、lint、覆盖率、构建与实际 tarball 消费者检查通过。详细证据见 `openspec/changes/optimize-waveform-memory-hover-and-regression/implementation.md`。浏览器自动化不代表真实 Safari/iOS 或屏幕阅读器验证。
+## 新增与改进
 
-安装：`pnpm add waveform-analysis@0.2.2`。Vue 消费者使用 `import { WaveformChart } from 'waveform-analysis/vue'`。
-本版本使用 `latest` 标签，正式发布工作流同时部署演示站。
+- 新增 `waveform-analysis/analysis` 和 `/display` 独立入口；根入口同时提供分析实例 API 与 `Waveform` 展示类。
+- 两种波形组件复用坐标轴、格式化、SVG 绘制与动画基础能力，保持实例数据、暂停和销毁隔离。
+- 独立导出 InputNumber、Select、ColorPicker、Pagination、Modal、Popup，以及每个组件的样式入口和类型。
+- 基础组件支持 `auto`、`light`、`dark` 主题；分析组件支持 `controlTheme`，Vue 适配同步支持。
+- Popup 参考 Ant Design Popover 重做，支持标题、内容、箭头、悬停/点击/聚焦、12 个方向、边界调整和长内容滚动。
+- Demo 新增“基础组件”二级菜单和六个独立示例页，包含使用源码、交互反馈与主题切换；波形展示提供独立配置页面。
+- 增强独立 ESM/CJS/类型声明消费、无 Vue 导入、组件边界、跨入口实例注册和浏览器资源释放检查。
+
+## 升级说明
+
+```sh
+pnpm add waveform-analysis@1.0.0
+```
+
+- 原分析 API、`/native` 与 `/vue` 入口继续保留；Vue 分析组件仍从 `waveform-analysis/vue` 导入。
+- 从 `waveform-display` 迁移时，将导入路径改为 `waveform-analysis/display`；数据和配置结构保持兼容。
+- 展示类型在根入口使用 `WaveformDisplay` 前缀，在 `/display` 入口保持原名称。
+- 基础组件按子路径导入，并加载对应的 `/style.css`。Popup 旧位置参数构造方式仍支持手动开关，新 options 构造方式默认悬停触发。
+- 分析 X 坐标仍以秒存储，显示单位不改变原始数据；受控显隐和标注状态仍由宿主持有。
+- 旧 Demo `#/components` 重定向到分析页，基础组件示例位于 `#/controls/*`。
+
+1.0.0 代表统一组件包进入正式主版本，不要求现有分析组件消费者进行破坏性迁移。
+正式发布使用 npm `latest`，由 Release 工作流构建发布包并部署演示站。

@@ -1,0 +1,7 @@
+export { Waveform } from './Waveform.js'
+export { defaultOptions } from './config/defaults.js'
+export type * from './types/data.js'
+export type * from './types/options.js'
+export type * from './types/events.js'
+export type * from './types/actions.js'
+export type * from './types/animation.js'

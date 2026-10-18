@@ -1,0 +1,56 @@
+.waveform-popover {
+  z-index: 1030;
+  padding: 12px;
+  overflow: visible;
+  background: var(--waveform-control-elevated);
+  animation: waveform-popover-enter 0.16s ease-out;
+}
+.waveform-popover__title {
+  min-width: min(177px, 100%);
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.waveform-popover__content {
+  overflow: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+.waveform-popover[data-arrow='true']::before {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: var(--waveform-control-elevated);
+  border-radius: 0 0 2px;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.waveform-popover[data-side='top']::before {
+  left: calc(var(--popover-arrow-x) - 6px);
+  bottom: -6px;
+}
+.waveform-popover[data-side='bottom']::before {
+  left: calc(var(--popover-arrow-x) - 6px);
+  top: -6px;
+}
+.waveform-popover[data-side='left']::before {
+  top: calc(var(--popover-arrow-y) - 6px);
+  right: -6px;
+}
+.waveform-popover[data-side='right']::before {
+  top: calc(var(--popover-arrow-y) - 6px);
+  left: -6px;
+}
+@keyframes waveform-popover-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .waveform-popover {
+    animation: none;
+  }
+}

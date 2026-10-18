@@ -1,4 +1,5 @@
-import { svgNode } from '../rendering/SvgDom'
+import { setControlTreeTheme, type ControlTheme, type ControlThemeOptions } from './theme'
+import { svgNode } from '../shared/dom/svg'
 import { PopupController } from './PopupController'
 
 export interface SelectOption {
@@ -26,6 +27,7 @@ export class SelectView {
     label: string,
     private readonly changed: (value: string) => void,
     variant: 'default' | 'compact' = 'default',
+    options: ControlThemeOptions = {},
   ) {
     this.root = document.createElement('div')
     this.root.className = `waveform-control-theme waveform-select${variant === 'compact' ? ' waveform-select--compact' : ''}`
@@ -50,6 +52,7 @@ export class SelectView {
       variant === 'compact' ? 68 : 0,
       264,
     )
+    this.setTheme(options.theme)
     this.popup.panel.setAttribute('role', 'listbox')
     this.popup.panel.setAttribute('aria-label', label)
     this.trigger.onpointerdown = (event) => {
@@ -212,6 +215,11 @@ export class SelectView {
       if (matches.length) this.index = matches[0]
       this.highlight()
     }
+  }
+
+  setTheme(theme: ControlTheme = 'auto') {
+    setControlTreeTheme(this.root, theme)
+    this.popup.setTheme(theme)
   }
 
   dispose() {

@@ -14,6 +14,7 @@ export const optionEffects = {
   xLabel: ['layout', 'geometry', 'sampling'],
   yLabel: ['layout', 'geometry', 'sampling'],
   lineColor: ['style'],
+  controlTheme: ['style', 'interaction'],
   pointSize: ['geometry', 'style', 'animation'],
   showTooltip: ['interaction'],
   zoomable: ['interaction', 'layout', 'sampling'],

@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import 'ant-design-vue/dist/antd.css'
+import 'ant-design-vue/dist/reset.css'
 import 'waveform-analysis/style.css'
 
 import DemoRouterApp from './DemoRouterApp.vue'
@@ -9,3 +9,6 @@ import './styles.css'
 import './demo/colorPicker.css'
 
 createApp(DemoRouterApp).use(router).mount('#app')
+
+import './theme/tokens.css'
+import './theme/analysis.css'

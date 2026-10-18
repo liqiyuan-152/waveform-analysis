@@ -7,25 +7,25 @@
   height: 32px;
   margin: 0;
   padding: 0;
-  color: rgb(0 0 0 / 88%);
+  color: var(--waveform-control-text);
   font-size: 14px;
   line-height: 1.5715;
-  background: #fff;
-  border: 1px solid var(--waveform-control-border, #d9d9d9);
+  background: var(--waveform-control-bg);
+  border: 1px solid var(--waveform-control-border);
   border-radius: var(--waveform-control-radius, 6px);
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
 }
 .waveform-number-input:hover {
-  border-color: var(--waveform-control-hover, #4096ff);
+  border-color: var(--waveform-control-hover);
 }
 .waveform-number-input:focus-within {
-  border-color: var(--waveform-control-primary, #1677ff);
+  border-color: var(--waveform-control-primary);
   box-shadow: var(--waveform-control-focus, 0 0 0 2px rgb(5 145 255 / 10%));
 }
 .waveform-number-input.is-invalid {
-  border-color: var(--waveform-control-error, #ff4d4f);
+  border-color: var(--waveform-control-error);
 }
 .waveform-number-input.is-invalid:hover:not(:focus-within) {
   border-color: #ffa39e;
@@ -50,7 +50,7 @@
   appearance: textfield;
 }
 .waveform-number-input input::placeholder {
-  color: rgb(0 0 0 / 25%);
+  color: var(--waveform-control-disabled);
 }
 .waveform-number-input__steps {
   position: absolute;
@@ -62,7 +62,7 @@
   height: 100%;
   overflow: hidden;
   opacity: 0;
-  background: #fff;
+  background: var(--waveform-control-bg);
   border-radius: 0 6px 6px 0;
   transition: all 0.2s;
 }
@@ -82,11 +82,11 @@
   margin: 0;
   padding: 0;
   overflow: hidden;
-  color: rgb(0 0 0 / 45%);
+  color: var(--waveform-control-muted);
   line-height: 0;
   background: transparent;
   border: 0;
-  border-left: 1px solid #d9d9d9;
+  border-left: 1px solid var(--waveform-control-border);
   border-radius: 0;
   box-shadow: none;
   cursor: pointer;
@@ -95,14 +95,14 @@
   transition: all 0.2s linear;
 }
 .waveform-number-input__steps button + button {
-  border-top: 1px solid #d9d9d9;
+  border-top: 1px solid var(--waveform-control-border);
 }
 .waveform-number-input__steps button:hover {
   height: 60%;
-  color: var(--waveform-control-primary, #1677ff);
+  color: var(--waveform-control-primary);
 }
 .waveform-number-input__steps button:active {
-  background: rgb(0 0 0 / 2%);
+  background: var(--waveform-control-raised);
 }
 .waveform-number-input__steps svg {
   width: 7px;
@@ -113,9 +113,9 @@
 }
 .waveform-number-input.is-disabled,
 .waveform-number-input.is-disabled:hover {
-  color: rgb(0 0 0 / 25%);
-  background: rgb(0 0 0 / 4%);
-  border-color: #d9d9d9;
+  color: var(--waveform-control-disabled);
+  background: var(--waveform-control-raised);
+  border-color: var(--waveform-control-border);
   box-shadow: none;
   cursor: not-allowed;
 }

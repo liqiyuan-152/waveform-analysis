@@ -1,4 +1,5 @@
-import { line, curveLinear, curveStep, curveStepBefore, curveStepAfter } from 'd3'
+import { line } from 'd3'
+import { curveFor } from '../../shared/rendering/styles'
 import type { ScaleLinear } from 'd3'
 import type { WaveformPoint, WaveformLineType } from '@/types'
 
@@ -43,15 +44,7 @@ export function createPathBuffer(x: ScaleLinear<number, number>, y: ScaleLinear<
     xScale = x
     yScale = y
     if (type !== nextType) {
-      generator.curve(
-        nextType === 'step-start'
-          ? curveStepBefore
-          : nextType === 'step-middle'
-            ? curveStep
-            : nextType === 'step-end' || nextType === 'step-after'
-              ? curveStepAfter
-              : curveLinear,
-      )
+      generator.curve(curveFor(nextType))
       type = nextType
     }
     length = 0

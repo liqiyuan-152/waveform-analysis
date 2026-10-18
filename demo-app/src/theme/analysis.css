@@ -1,0 +1,69 @@
+/* Chart-only demo theme; public controls own their theme. */
+html[data-theme='dark'] {
+  .waveform-chart,
+  .waveform-chart__title-area,
+  .waveform-tooltip,
+  .waveform-annotation-context-menu,
+  .waveform-toolbar__menu {
+    color: var(--demo-text);
+    background: var(--demo-panel);
+    border-color: var(--demo-border);
+  }
+
+  .waveform-chart--clean {
+    border-color: transparent;
+  }
+
+  .waveform-chart__grid-slot-placeholder {
+    fill: var(--demo-raised);
+    stroke: var(--demo-border);
+  }
+
+  .waveform-track__grid--major line {
+    stroke: var(--demo-border);
+  }
+
+  .waveform-track__grid--minor line {
+    stroke: var(--demo-raised);
+  }
+
+  .waveform-track__axis path,
+  .waveform-track__axis line {
+    stroke: #94a3b8;
+  }
+
+  .waveform-track__axis text,
+  .waveform-track__axis-endpoint,
+  .waveform-track__axis-exponent,
+  .waveform-track__no-visible-series,
+  .waveform-chart__label,
+  .waveform-chart__empty {
+    fill: var(--demo-muted);
+  }
+
+  .waveform-legend__panel {
+    color: var(--demo-text);
+    border-color: var(--demo-border);
+  }
+
+  .waveform-toolbar__group,
+  .waveform-toolbar__toggle,
+  .waveform-toolbar__feedback {
+    background: rgb(17 24 39 / 90%);
+    border-color: var(--demo-border);
+    color: var(--demo-text);
+  }
+
+  .waveform-toolbar button,
+  .waveform-annotation-context-menu button {
+    color: var(--demo-text);
+  }
+
+  .waveform-toolbar button:hover,
+  .waveform-toolbar button[aria-pressed='true'],
+  .waveform-annotation-context-menu button:hover,
+  .waveform-annotation-context-menu button:focus-visible {
+    color: var(--demo-primary);
+    background: var(--demo-selected);
+  }
+}

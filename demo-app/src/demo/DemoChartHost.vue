@@ -61,6 +61,7 @@ defineExpose({ resetViewport })
         backgroundColor: model.legendBackgroundColor,
         interactive: true,
       }"
+      :control-theme="model.controlTheme"
       :frame-style="model.frameStyle"
       :axes="model.axes"
       :clean-view="model.cleanView"
@@ -98,9 +99,9 @@ defineExpose({ resetViewport })
   gap: 8px;
   max-width: calc(100% - 24px);
   padding: 6px 10px;
-  border: 1px solid #d0d5dd;
+  border: 1px solid var(--demo-border);
   border-radius: 4px;
-  background: #fff;
-  color: #344054;
+  background: var(--demo-panel);
+  color: var(--demo-text);
 }
 </style>

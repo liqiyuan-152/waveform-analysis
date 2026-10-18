@@ -1,0 +1,51 @@
+// Frozen migration contract: the original display package public types retain their
+// names at /display and have explicit, equivalent aliases at the aggregate entry.
+import type * as Root from 'waveform-analysis'
+import type * as Display from 'waveform-analysis/display'
+type Equal<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? true : false
+type Assert<T extends true> = T
+export type DisplayPublicTypeContract = [
+  Assert<Equal<Root.WaveformDisplayPoint, Display.WaveformPoint>>,
+  Assert<Equal<Root.WaveformDisplayLineType, Display.WaveformLineType>>,
+  Assert<Equal<Root.WaveformDisplayLineStyle, Display.WaveformLineStyle>>,
+  Assert<Equal<Root.WaveformDisplayPointType, Display.WaveformPointType>>,
+  Assert<Equal<Root.WaveformDisplaySeriesPointStyle, Display.WaveformSeriesPointStyle>>,
+  Assert<Equal<Root.WaveformDisplaySeriesStyle, Display.WaveformSeriesStyle>>,
+  Assert<Equal<Root.WaveformDisplaySeries, Display.WaveformSeries>>,
+  Assert<Equal<Root.WaveformDisplayData, Display.WaveformData>>,
+  Assert<Equal<Root.WaveformDisplayBorderStyle, Display.BorderStyle>>,
+  Assert<Equal<Root.WaveformDisplayGridLineStyle, Display.GridLineStyle>>,
+  Assert<Equal<Root.WaveformDisplayPaddingOptions, Display.PaddingOptions>>,
+  Assert<Equal<Root.WaveformDisplayFrameOptions, Display.FrameOptions>>,
+  Assert<Equal<Root.WaveformDisplayFrameNumberStyleOptions, Display.FrameNumberStyleOptions>>,
+  Assert<Equal<Root.WaveformDisplayLineOptions, Display.LineOptions>>,
+  Assert<Equal<Root.WaveformDisplayPointOptions, Display.PointOptions>>,
+  Assert<Equal<Root.WaveformDisplayAxisLabelOptions, Display.AxisLabelOptions>>,
+  Assert<Equal<Root.WaveformDisplayAxisOptions, Display.AxisOptions>>,
+  Assert<Equal<Root.WaveformDisplayXAxisOptions, Display.XAxisOptions>>,
+  Assert<Equal<Root.WaveformDisplayValueAxisOptions, Display.ValueAxisOptions>>,
+  Assert<Equal<Root.WaveformDisplayGridAxisOptions, Display.GridAxisOptions>>,
+  Assert<Equal<Root.WaveformDisplayValueGridAxisOptions, Display.ValueGridAxisOptions>>,
+  Assert<Equal<Root.WaveformDisplayGridOptions, Display.GridOptions>>,
+  Assert<Equal<Root.WaveformDisplayZeroLineOptions, Display.ZeroLineOptions>>,
+  Assert<Equal<Root.WaveformDisplayTitleOptions, Display.TitleOptions>>,
+  Assert<Equal<Root.WaveformDisplayShotOptions, Display.ShotOptions>>,
+  Assert<Equal<Root.WaveformDisplayResponsiveOptions, Display.ResponsiveOptions>>,
+  Assert<Equal<Root.WaveformDisplayLegendOptions, Display.LegendOptions>>,
+  Assert<Equal<Root.WaveformDisplayEmptyStateOptions, Display.EmptyStateOptions>>,
+  Assert<Equal<Root.WaveformDisplayHorizontalPadding, Display.HorizontalPadding>>,
+  Assert<Equal<Root.WaveformDisplayLayoutOptions, Display.LayoutOptions>>,
+  Assert<Equal<Root.WaveformDisplayLayoutChange, Display.WaveformLayoutChange>>,
+  Assert<Equal<Root.WaveformDisplayXDomainStrategy, Display.XDomainStrategy>>,
+  Assert<Equal<Root.WaveformDisplayOptions, Display.WaveformOptions>>,
+  Assert<Equal<Root.WaveformDisplaySeriesVisibilityChange, Display.SeriesVisibilityChange>>,
+  Assert<Equal<Root.WaveformDisplayEvents, Display.WaveformEvents>>,
+  Assert<Equal<Root.WaveformDisplayToggleSeriesAction, Display.ToggleSeriesAction>>,
+  Assert<Equal<Root.WaveformDisplayAction, Display.WaveformAction>>,
+  Assert<Equal<Root.WaveformDisplayAnimationEasing, Display.AnimationEasing>>,
+  Assert<Equal<Root.WaveformDisplayAnimationDirection, Display.AnimationDirection>>,
+  Assert<Equal<Root.WaveformDisplayAnimationUpdateOptions, Display.AnimationUpdateOptions>>,
+  Assert<Equal<Root.WaveformDisplayAnimationEnterOptions, Display.AnimationEnterOptions>>,
+  Assert<Equal<Root.WaveformDisplayAnimation, Display.WaveformAnimation>>,
+]

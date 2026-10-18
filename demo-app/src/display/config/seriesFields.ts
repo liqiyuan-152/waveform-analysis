@@ -1,0 +1,90 @@
+import { lineTypes, lineStyles, pointTypes, type FieldDefinition } from './fields'
+export interface SeriesField extends FieldDefinition {
+  inherited: string
+  category: 'line' | 'point'
+}
+export const seriesFields: SeriesField[] = [
+  { label: '颜色', path: 'style.color', inherited: 'line.color', category: 'line', kind: 'color' },
+  {
+    label: '线宽',
+    path: 'style.lineWidth',
+    inherited: 'line.width',
+    category: 'line',
+    kind: 'number',
+    min: 0,
+    step: 0.1,
+  },
+  {
+    label: '连线类型',
+    path: 'style.lineType',
+    inherited: 'line.type',
+    category: 'line',
+    kind: 'select',
+    options: lineTypes,
+  },
+  {
+    label: '线条样式',
+    path: 'style.lineStyle',
+    inherited: 'line.style',
+    category: 'line',
+    kind: 'select',
+    options: lineStyles,
+  },
+  {
+    label: '透明度',
+    path: 'style.opacity',
+    inherited: 'line.opacity',
+    category: 'line',
+    kind: 'range',
+    min: 0,
+    max: 1,
+    step: 0.05,
+  },
+  {
+    label: '显示数据点',
+    path: 'style.point.visible',
+    inherited: 'point.visible',
+    category: 'point',
+    kind: 'boolean',
+  },
+  {
+    label: '数据点形状',
+    path: 'style.point.type',
+    inherited: 'point.type',
+    category: 'point',
+    kind: 'select',
+    options: pointTypes,
+  },
+  {
+    label: '数据点大小',
+    path: 'style.point.size',
+    inherited: 'point.size',
+    category: 'point',
+    kind: 'number',
+    min: 0,
+    step: 0.5,
+  },
+  {
+    label: '数据点颜色',
+    path: 'style.point.color',
+    inherited: 'point.color',
+    category: 'point',
+    kind: 'color',
+  },
+  {
+    label: '点边框颜色',
+    path: 'style.point.borderColor',
+    inherited: 'point.borderColor',
+    category: 'point',
+    kind: 'color',
+  },
+  {
+    label: '点边框宽度',
+    path: 'style.point.borderWidth',
+    inherited: 'point.borderWidth',
+    category: 'point',
+    kind: 'number',
+    min: 0,
+    step: 0.1,
+  },
+]

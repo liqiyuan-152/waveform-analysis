@@ -102,6 +102,7 @@ export class SvgChartRenderer {
       options.layoutPreset === 'edge-compact',
     )
     this.root.classList.toggle('waveform-chart--presentation', options.presentationMode)
+    this.pagination.setTheme(options.controlTheme)
     this.pagination.render(layout)
     this.title.alignToPlot(layout.left, layout.innerWidth, options)
     setSvgAttributes(this.svg, {

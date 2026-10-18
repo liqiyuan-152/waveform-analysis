@@ -9,5 +9,18 @@
     "rootDir": "./src",
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.lib.tsbuildinfo"
   },
-  "include": ["src/index.ts", "src/native.ts", "src/vue.ts", "src/env.d.ts"]
+  "include": [
+    "src/index.ts",
+    "src/native.ts",
+    "src/vue.ts",
+    "src/env.d.ts",
+    "src/analysis.ts",
+    "src/display.ts",
+    "src/input-number.ts",
+    "src/select.ts",
+    "src/color-picker.ts",
+    "src/pagination.ts",
+    "src/modal.ts",
+    "src/popup.ts"
+  ]
 }

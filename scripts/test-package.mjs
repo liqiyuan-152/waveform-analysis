@@ -1,3 +1,4 @@
+import { verifyUnifiedPackage } from './verify-unified-package.mjs'
 import {
   existsSync,
   mkdirSync,
@@ -39,6 +40,11 @@ const packageFile = readdirSync(temporaryRoot)
   .map((fileName) => resolve(temporaryRoot, fileName))
   .at(0)
 if (!packageFile) throw new Error('pnpm pack did not create a package tarball.')
+await verifyUnifiedPackage(packageFile)
+await import('./verify-public-controls-browser.mjs')
+// prepack built the unified Demo from the same inputs as this tarball. Exercise
+// its routes here so CI and both release workflows inherit the new component gate.
+await import('./verify-unified-demo.mjs')
 
 writeFileSync(
   join(temporaryRoot, 'package.json'),

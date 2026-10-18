@@ -120,6 +120,7 @@ export interface DemoChartModel {
   legendPosition: WaveformLegendPosition
   legendOrientation: WaveformLegendOrientation
   legendBackgroundColor: string
+  controlTheme: 'light' | 'dark'
   frameStyle: WaveformFrameStyle
   axes: WaveformAxesOptions
   cleanView: boolean

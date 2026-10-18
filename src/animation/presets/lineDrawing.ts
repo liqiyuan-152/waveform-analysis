@@ -1,3 +1,4 @@
+import { entryClip } from '../../shared/animation/geometry'
 import type { AnimationConfig } from '../core/types'
 import type {
   AnimationBinding,
@@ -18,15 +19,8 @@ export function createLineDrawingAnimation(
   const direction = options.direction ?? 'left-to-right'
   if (!['left-to-right', 'right-to-left', 'center-out'].includes(direction))
     throw new TypeError('Invalid drawing direction')
-  const state = (p: number): ClipAnimationState => ({
-    x:
-      direction === 'right-to-left'
-        ? width * (1 - p)
-        : direction === 'center-out'
-          ? (width * (1 - p)) / 2
-          : 0,
-    width: width * p,
-  })
+  const state = (p: number): ClipAnimationState => entryClip(width, p, direction)
+
   return presetConfig(
     { ...options, duration: options.duration ?? 1000 },
     {

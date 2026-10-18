@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue'
 import 'vue3-colorpicker/style.css'
+import { useTheme, useThemeColor } from './theme/useTheme'
 
 import {
   type WaveformAnnotation,
@@ -22,6 +23,7 @@ import { normalizeWaveformSeries } from 'waveform-analysis'
 import { createSimulatedWaveformData } from './demo/data/simulatedWaveforms'
 import type { WaveformToolbarOptions, WaveformToolbarItem } from 'waveform-analysis'
 import { defaultToolbarItems, defaultToolbarOffsets } from './demo/toolbarOptions'
+import { defaultDemoPointSize } from './demo/pointStyle'
 import DemoChartHost from './demo/DemoChartHost.vue'
 import DemoControlPanel from './demo/DemoControlPanel.vue'
 import type { DemoChartModel, DemoControlPanelModel } from './demo/types'
@@ -29,6 +31,7 @@ import { useDemoXAxisLabelControls } from './demo/useDemoXAxisLabelControls'
 import { remoteWindowLoaderKey } from './demo/remoteWaveformLoader'
 import { useRemoteWaveformWindow } from './demo/useRemoteWaveformWindow'
 
+const { dark } = useTheme()
 const demoPreset = new URLSearchParams(window.location.search).get('demo')
 const compactNineDemo = demoPreset === 'compact-nine'
 const compactFourteenDemo = demoPreset === 'compact-fourteen'
@@ -46,15 +49,15 @@ const displayMode = ref<WaveformDisplayMode>(
 const overlayMode = ref<WaveformOverlayMode>('single-axis')
 const rowCount = ref(compactNineDemo ? 5 : 4)
 const columnCount = ref(compactNineDemo || compactFourteenDemo ? 2 : 1)
-const frameBorderColor = ref('#1f2937')
+const frameBorderColor = useThemeColor(dark, '#1f2937', '#94a3b8')
 const frameBorderWidth = ref(2)
 const frameBorderStyle = ref<NonNullable<WaveformFrameStyle['borderStyle']>>('solid')
 const frameBackgroundColor = ref('rgba(255, 255, 255, 0)')
 const frameWatermarkVisible = ref(true)
 const horizontalGridVisible = ref(true)
-const horizontalGridColor = ref('#dfe5ef')
+const horizontalGridColor = useThemeColor(dark, '#dfe5ef', '#334155')
 const verticalGridVisible = ref(true)
-const verticalGridColor = ref('#dfe5ef')
+const verticalGridColor = useThemeColor(dark, '#dfe5ef', '#334155')
 const xAxisLineVisible = ref(false)
 const yAxisLineVisible = ref(false)
 const upperPaddingEnabled = ref(true)
@@ -69,7 +72,7 @@ const annotationsVisible = ref(true)
 const cleanView = ref(false)
 const presentationMode = ref(false)
 const showTooltip = ref(true)
-const pointSize = ref(2)
+const pointSize = ref(defaultDemoPointSize)
 const integerZoom = ref(true)
 const plotMarginTop = ref(10)
 const plotMarginBottom = ref(44)
@@ -93,7 +96,11 @@ const toolbarOptions = computed<WaveformToolbarOptions>(() => ({
 const interactionMode = ref<WaveformInteractionMode>('zoom')
 const legendPosition = ref<WaveformLegendPosition>('top-right')
 const legendOrientation = ref<WaveformLegendOrientation>('auto')
-const legendBackgroundColor = ref('rgba(255, 255, 255, 0.7)')
+const legendBackgroundColor = useThemeColor(
+  dark,
+  'rgba(255, 255, 255, 0.7)',
+  'rgba(17, 24, 39, 0.85)',
+)
 const hiddenSeriesIds = ref<string[]>([])
 const titleVisible = ref(true)
 const titleText = ref('模拟波形分析')
@@ -101,7 +108,7 @@ const titleAlign = ref<NonNullable<WaveformTitleOptions['align']>>('center')
 const titleFontFamily = ref('"Microsoft YaHei", "微软雅黑", sans-serif')
 const titleFontSize = ref(18)
 const titleRotation = ref(0)
-const titleColor = ref('#1f2937')
+const titleColor = useThemeColor(dark, '#1f2937', '#f1f5f9')
 const titleBold = ref(true)
 const titleItalic = ref(false)
 const titleUnderline = ref(false)
@@ -366,6 +373,7 @@ const chartModel = reactive({
   legendPosition,
   legendOrientation,
   legendBackgroundColor,
+  controlTheme: computed(() => (dark.value ? ('dark' as const) : ('light' as const))),
   frameStyle,
   axes,
   cleanView,

@@ -1,16 +1,11 @@
+import { fadeOpacity } from '../../shared/animation/geometry'
 import type { AnimationConfig } from '../core/types'
 import type {
   AnimationBinding,
   AnnotationAnimationOptions,
   AnnotationAnimationState,
 } from '../types'
-import {
-  annotationEasing,
-  isAnnotationEffect,
-  clampProgress,
-  presetConfig,
-  validateBinding,
-} from './shared'
+import { annotationEasing, isAnnotationEffect, presetConfig, validateBinding } from './shared'
 
 function annotationConfig(
   binding: AnimationBinding<AnnotationAnimationState>,
@@ -44,7 +39,7 @@ function annotationConfig(
         const interpolate = (key: keyof AnnotationAnimationState) =>
           (1 - p) * start[key] + p * final[key]
         binding.write({
-          opacity: clampProgress(interpolate('opacity')),
+          opacity: fadeOpacity(start.opacity, final.opacity, p),
           scale: Math.max(0, interpolate('scale')),
           offsetY: interpolate('offsetY'),
         })

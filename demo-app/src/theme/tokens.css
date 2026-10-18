@@ -1,0 +1,69 @@
+:root {
+  --demo-page: #f5f7fa;
+  --demo-panel: #fff;
+  --demo-raised: #f8fafc;
+  --demo-text: #17232e;
+  --demo-muted: #52606d;
+  --demo-border: #d6dde3;
+  --demo-primary: #087f6b;
+  --demo-selected: #e6f4f1;
+  --demo-success: #237804;
+  --demo-error: #c93737;
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --demo-page: #0f172a;
+  --demo-panel: #111827;
+  --demo-raised: #1e293b;
+  --demo-text: #f1f5f9;
+  --demo-muted: #cbd5e1;
+  --demo-border: #334155;
+  --demo-primary: #2dd4bf;
+  --demo-selected: #134e4a;
+  --demo-success: #86efac;
+  --demo-error: #ff7875;
+  color-scheme: dark;
+}
+
+.demo-shell__theme {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.demo-shell__theme-compact {
+  display: none;
+  max-width: 100px;
+  padding: 5px;
+  color: var(--demo-text);
+  background: var(--demo-panel);
+  border: 1px solid var(--demo-border);
+  border-radius: 5px;
+}
+
+.animation-demo button,
+.animation-demo select {
+  color: var(--demo-text);
+  background: var(--demo-panel);
+  border: 1px solid var(--demo-border);
+  border-radius: 4px;
+}
+
+.animation-demo input {
+  accent-color: var(--demo-primary);
+}
+
+@media (max-width: 900px) {
+  .demo-shell__nav {
+    width: auto;
+    flex: 1;
+  }
+
+  .demo-shell__theme-wide {
+    display: none;
+  }
+
+  .demo-shell__theme-compact {
+    display: block;
+  }
+}

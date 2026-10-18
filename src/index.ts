@@ -5,25 +5,16 @@
 
 // Framework-independent algorithms and public integration contracts.
 /** Chart props include the global CSS-pixel pointSize (default 2). */
-export type { WaveformChartProps } from './components/core/waveformChartTypes'
+export type { WaveformChartProps } from './analysis'
 
 // Numeric engine, pure preset factories and owner-scoped chart animation.
-export { getEasingFunction } from './animation/core/easing'
-export { WaveformAnimationController } from './animation/WaveformAnimationController'
-export {
-  createLineDrawingAnimation,
-  createStaggeredLineDrawingAnimations,
-} from './animation/presets/lineDrawing'
-export {
-  createPathTransitionAnimation,
-  createYAxisScaleAnimation,
-} from './animation/presets/transitions'
-export {
-  createAnnotationAppearAnimation,
-  createAnnotationDisappearAnimation,
-} from './animation/presets/annotation'
-export { Animation } from './animation/core/Animation'
-export { Animator, globalAnimator } from './animation/core/Animator'
+export { getEasingFunction } from './analysis'
+export { WaveformAnimationController } from './analysis'
+export { createLineDrawingAnimation, createStaggeredLineDrawingAnimations } from './analysis'
+export { createPathTransitionAnimation, createYAxisScaleAnimation } from './analysis'
+export { createAnnotationAppearAnimation, createAnnotationDisappearAnimation } from './analysis'
+export { Animation } from './analysis'
+export { Animator, globalAnimator } from './analysis'
 export type {
   AnimationValue,
   AnimationDirection,
@@ -36,7 +27,7 @@ export type {
   EasingFunction,
   EasingFamily,
   EasingType,
-} from './animation/core/types'
+} from './analysis'
 export type {
   LineDrawingDirection,
   AnnotationAnimationType,
@@ -57,7 +48,7 @@ export type {
   AnimationScope,
   AnimationObjectKey,
   WaveformAnimationControllerOptions,
-} from './animation/types'
+} from './analysis'
 
 // 类型定义
 export type {
@@ -112,16 +103,16 @@ export type {
   WaveformSeries,
   WaveformData,
   NormalizedWaveformSeries,
-} from './types'
+} from './analysis'
 
 export type {
   WaveformGridOptions,
   WaveformGridLineOptions,
   WaveformGridTrackLines,
-} from './components/core/grid'
+} from './analysis'
 
 // 核心功能
-export { normalizeWaveformData, normalizeWaveformSeries } from './core'
+export { normalizeWaveformData, normalizeWaveformSeries } from './analysis'
 
 // 工具函数
 export {
@@ -135,7 +126,7 @@ export {
   clamp,
   type TimeUnit,
   type TrackGeometry,
-} from './utils'
+} from './analysis'
 
 export {
   calculateWasmRange,
@@ -151,9 +142,9 @@ export {
   type WasmSamplingRequest,
   type WasmSamplingResult,
   type WasmSamplingStrategy,
-} from './core'
+} from './analysis'
 
-export { parseWaveformAnnotations, serializeWaveformAnnotations } from './annotation/serialization'
+export { parseWaveformAnnotations, serializeWaveformAnnotations } from './analysis'
 
 export type {
   WaveformToolbarItem,
@@ -170,18 +161,68 @@ export type {
   WaveformImageExportErrorCode,
   WaveformImageExportError,
   WaveformChartHandle,
-} from './types/controls'
+} from './analysis'
 
 export type {
   WaveformChartOptions,
   WaveformChartOptionUpdate,
   WaveformChartInitOptions,
-} from './types/options'
+} from './analysis'
 export type {
   WaveformChartEvents,
   WaveformChartEventHandler,
   WaveformChartAction,
   WaveformChartInstance,
   WaveformChartErrorCode,
-} from './types/native'
-export { init, getInstanceByDom, dispose } from './chart/init'
+} from './analysis'
+export { init, getInstanceByDom, dispose } from './analysis'
+
+export { Waveform, defaultOptions as waveformDisplayDefaultOptions } from './display'
+export type {
+  WaveformPoint as WaveformDisplayPoint,
+  WaveformLineType as WaveformDisplayLineType,
+  WaveformLineStyle as WaveformDisplayLineStyle,
+  WaveformPointType as WaveformDisplayPointType,
+  WaveformSeriesPointStyle as WaveformDisplaySeriesPointStyle,
+  WaveformSeriesStyle as WaveformDisplaySeriesStyle,
+  WaveformSeries as WaveformDisplaySeries,
+  WaveformData as WaveformDisplayData,
+  BorderStyle as WaveformDisplayBorderStyle,
+  GridLineStyle as WaveformDisplayGridLineStyle,
+  PaddingOptions as WaveformDisplayPaddingOptions,
+  FrameOptions as WaveformDisplayFrameOptions,
+  FrameNumberStyleOptions as WaveformDisplayFrameNumberStyleOptions,
+  LineOptions as WaveformDisplayLineOptions,
+  PointOptions as WaveformDisplayPointOptions,
+  AxisLabelOptions as WaveformDisplayAxisLabelOptions,
+  AxisOptions as WaveformDisplayAxisOptions,
+  XAxisOptions as WaveformDisplayXAxisOptions,
+  ValueAxisOptions as WaveformDisplayValueAxisOptions,
+  GridAxisOptions as WaveformDisplayGridAxisOptions,
+  ValueGridAxisOptions as WaveformDisplayValueGridAxisOptions,
+  GridOptions as WaveformDisplayGridOptions,
+  ZeroLineOptions as WaveformDisplayZeroLineOptions,
+  TitleOptions as WaveformDisplayTitleOptions,
+  ShotOptions as WaveformDisplayShotOptions,
+  ResponsiveOptions as WaveformDisplayResponsiveOptions,
+  LegendOptions as WaveformDisplayLegendOptions,
+  EmptyStateOptions as WaveformDisplayEmptyStateOptions,
+  HorizontalPadding as WaveformDisplayHorizontalPadding,
+  LayoutOptions as WaveformDisplayLayoutOptions,
+  WaveformLayoutChange as WaveformDisplayLayoutChange,
+  XDomainStrategy as WaveformDisplayXDomainStrategy,
+  WaveformOptions as WaveformDisplayOptions,
+  SeriesVisibilityChange as WaveformDisplaySeriesVisibilityChange,
+  WaveformEvents as WaveformDisplayEvents,
+  ToggleSeriesAction as WaveformDisplayToggleSeriesAction,
+  WaveformAction as WaveformDisplayAction,
+  AnimationEasing as WaveformDisplayAnimationEasing,
+  AnimationDirection as WaveformDisplayAnimationDirection,
+  AnimationUpdateOptions as WaveformDisplayAnimationUpdateOptions,
+  AnimationEnterOptions as WaveformDisplayAnimationEnterOptions,
+  WaveformAnimation as WaveformDisplayAnimation,
+} from './display'
+
+export type { ControlTheme } from './controls/theme'
+
+export type { PopupOptions, PopupTrigger, PopupPlacement } from './popup'

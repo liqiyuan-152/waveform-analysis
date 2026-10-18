@@ -1,3 +1,4 @@
+import type { ControlTheme } from '../controls/theme'
 import { ColorInputView } from '../controls/ColorInputView'
 import { resolveAnnotationStyle } from './markup'
 import type { WaveformAnnotationStyle } from '../types/chart'
@@ -29,6 +30,10 @@ export class AnnotationStyleEditor {
       textColor: control('textColor', '文字色'),
       backgroundColor: control('backgroundColor', '背景色'),
     }
+  }
+
+  setTheme(theme: ControlTheme) {
+    for (const control of Object.values(this.controls)) control.setTheme(theme)
   }
 
   get valid() {

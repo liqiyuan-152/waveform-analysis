@@ -1,3 +1,9 @@
+import {
+  usesScientificMagnitude,
+  scientificExponent,
+  scientificExponentText as formatExponent,
+  scientificNumber as formatYAxisNumber,
+} from '../shared/formatting/scientific'
 import type { WaveformXAxisLabelFormatter, WaveformXAxisLabelKind } from '../types'
 import { formatXAxisNumber } from './xAxisNumber'
 import { cleanAxisNumber } from './numericPrecision'
@@ -20,11 +26,6 @@ export interface ScientificAxisLabelOptions {
 /** @deprecated Use ScientificAxisLabelOptions. */
 export type ScientificYAxisLabelOptions = ScientificAxisLabelOptions
 
-const SCIENTIFIC_MIN_ABSOLUTE_VALUE = 0.001
-const SCIENTIFIC_MAX_PLAIN_ABSOLUTE_VALUE = 1000
-const Y_AXIS_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
-  maximumFractionDigits: 4,
-})
 const TOOLTIP_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 4,
 })
@@ -50,33 +51,13 @@ function formatFixedNumber(value: number, precision: number): string {
 
 /** Whether an axis magnitude should use one shared scientific exponent. */
 export function shouldUseScientificAxisLabel(maxAbsoluteValue: number): boolean {
-  const magnitude = Math.abs(maxAbsoluteValue)
-  return (
-    Number.isFinite(magnitude) &&
-    (magnitude >= SCIENTIFIC_MAX_PLAIN_ABSOLUTE_VALUE ||
-      (magnitude > 0 && magnitude <= SCIENTIFIC_MIN_ABSOLUTE_VALUE))
-  )
+  return usesScientificMagnitude(maxAbsoluteValue)
 }
 
 export function resolveScientificAxisExponent(axisMin?: number, axisMax?: number): number | null {
   if (typeof axisMin !== 'number' || typeof axisMax !== 'number') return null
 
-  const absoluteMaxValue = Math.max(Math.abs(axisMin), Math.abs(axisMax))
-  return shouldUseScientificAxisLabel(absoluteMaxValue)
-    ? Math.floor(Math.log10(absoluteMaxValue))
-    : null
-}
-
-function formatExponent(exponent: number): string {
-  const sign = exponent >= 0 ? '+' : '-'
-  return `E${sign}${Math.abs(exponent).toString().padStart(2, '0')}`
-}
-
-function formatYAxisNumber(value: number): string {
-  if (Object.is(value, -0)) return '0'
-  const roundedValue = value === 0 ? 0 : Number(value.toPrecision(5))
-  const formatted = Y_AXIS_NUMBER_FORMATTER.format(roundedValue)
-  return formatted === '-0' ? '0' : formatted
+  return scientificExponent(axisMin, axisMax)
 }
 
 /** Format a Y-axis tick, sharing one exponent derived from the complete axis domain. */

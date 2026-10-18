@@ -1,3 +1,4 @@
+import { niceCoefficient, expandDomainToStep } from '../../shared/axis/numeric'
 /**
  * ECharts-compatible Nice Number algorithm for axis tick calculation
  * Based on "Nice Numbers for Graph Labels" from Graphics Gems
@@ -20,20 +21,7 @@ function niceNumber(value: number, round: boolean): number {
   const exponent = Math.floor(Math.log10(Math.abs(value)))
   const fraction = Math.abs(value) / Math.pow(10, exponent)
 
-  let niceFraction: number
-  if (round) {
-    // 向上取整到 1, 2, 5, 10
-    if (fraction < 1.5) niceFraction = 1
-    else if (fraction < 3) niceFraction = 2
-    else if (fraction < 7) niceFraction = 5
-    else niceFraction = 10
-  } else {
-    // 向下取整到 1, 2, 5, 10
-    if (fraction <= 1) niceFraction = 1
-    else if (fraction <= 2) niceFraction = 2
-    else if (fraction <= 5) niceFraction = 5
-    else niceFraction = 10
-  }
+  const niceFraction = niceCoefficient(fraction, '125', round)
 
   return niceFraction * Math.pow(10, exponent) * Math.sign(value)
 }
@@ -94,8 +82,7 @@ export function calculateNiceScale(min: number, max: number, maxTicks = 5): Nice
   const tickSpacing = niceNumber(roughTickSpacing, true)
 
   // 计算优雅的边界
-  const niceMin = Math.floor(min / tickSpacing) * tickSpacing
-  const niceMax = Math.ceil(max / tickSpacing) * tickSpacing
+  const [niceMin, niceMax] = expandDomainToStep([min, max], tickSpacing)
 
   // 生成刻度值
   const ticks: number[] = []

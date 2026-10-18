@@ -2,6 +2,8 @@ export interface ModalOptions {
   initialFocus: () => HTMLElement | undefined
   cancel: () => void
   dismissPopup?: () => boolean
+  /** Reusable shells may leave the dialog open when the consumer rejects cancellation. */
+  repeatCancel?: boolean
 }
 
 interface Session {
@@ -141,7 +143,11 @@ export class ModalController {
   private cancel() {
     if (this.disposed || this.dismissing) return
     this.dismissing = true
-    this.options.cancel()
+    try {
+      this.options.cancel()
+    } finally {
+      if (this.options.repeatCancel) this.dismissing = false
+    }
   }
   private dismissPopup() {
     if (!this.options.dismissPopup?.()) return false

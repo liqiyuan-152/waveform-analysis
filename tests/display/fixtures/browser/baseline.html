@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN">
+  <meta charset="UTF-8" />
+  <title>Waveform visual fixtures</title>
+  <style>
+    body {
+      margin: 16px;
+      background: #fff;
+      font-family: Arial, sans-serif;
+    }
+    section {
+      width: 800px;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 16px;
+    }
+    .chart {
+      width: 800px;
+      height: 320px;
+    }
+  </style>
+  <body>
+    <script type="module">
+      import { Waveform } from '/src/index.ts'
+      const points = [
+        { x: 0, y: -2 },
+        { x: 1, y: 3 },
+        { x: 2, y: 1 },
+      ]
+      const a = { id: 'a', name: 'Channel A', data: points }
+      const b = { id: 'b', name: 'Channel B', data: points.map((p) => ({ x: p.x, y: p.y * 2 })) }
+      const cases = [
+        ['single', [a], {}],
+        ['multiple', [a, b], {}],
+        ['dual-axis', [a, { ...b, yAxis: 'right' }], { secondaryYAxis: { visible: true } }],
+        [
+          'scientific',
+          [{ ...a, data: points.map((p) => ({ x: p.x, y: p.y * 1e-5 })) }],
+          { yAxis: { unit: 'V' } },
+        ],
+        ['empty', [], {}],
+      ]
+      window.charts = cases.map(([name, data, options]) => {
+        const section = document.createElement('section')
+        const title = document.createElement('h2')
+        title.textContent = name
+        const host = document.createElement('div')
+        host.className = 'chart'
+        host.id = name
+        section.append(title, host)
+        document.body.append(section)
+        return new Waveform(host, data, {
+          width: 800,
+          height: 320,
+          responsive: { enabled: false },
+          ...options,
+        })
+      })
+    </script>
+  </body>
+</html>

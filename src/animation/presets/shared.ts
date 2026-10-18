@@ -17,7 +17,7 @@ export function isAnnotationEffect(value: unknown): value is AnnotationAnimation
   return typeof value === 'string' && Object.hasOwn(annotationEasing, value)
 }
 
-export const clampProgress = (p: number) => Math.max(0, Math.min(1, p))
+export { clampProgress } from '../../shared/animation/geometry'
 export function validateBinding<T>(binding: AnimationBinding<T>): void {
   if (!binding || typeof binding.read !== 'function' || typeof binding.write !== 'function') {
     throw new TypeError('Animation binding requires read and write functions')

@@ -26,6 +26,49 @@
 - 受控标注、右键编辑、拖拽避让和自定义颜色
 - 标题、图框、坐标轴、零值参考线、净图和渲染参数可配置
 
+## 单包双组件
+
+本包同时提供波形分析与波形展示，两个原生组件共享基础能力，分别使用独立实例。
+
+```ts
+import { init, Waveform } from 'waveform-analysis'
+// 需要明确的按需边界时：
+import { init as initAnalysis } from 'waveform-analysis/analysis'
+import { Waveform as Display, type WaveformOptions } from 'waveform-analysis/display'
+import 'waveform-analysis/style.css' // 分析组件需要；展示组件不需要此样式
+
+const display = new Display(displayContainer, [
+  { x: 0, y: 0 },
+  { x: 1, y: 1 },
+])
+display.updateData([
+  { x: 0, y: 1 },
+  { x: 1, y: 0 },
+])
+display.destroy()
+```
+
+`/native` 仍为根入口兼容别名。`/vue` 仅公开分析组件 `WaveformChart`；展示是原生类，
+Vue 消费者在挂载时创建、卸载时 `destroy()`。根入口展示类型采用 `WaveformDisplay` 前缀，
+例如 `WaveformDisplayOptions`，默认配置为 `waveformDisplayDefaultOptions`。
+`/display` 保留原展示包的 `WaveformOptions`、`WaveformData`、`defaultOptions` 等名称。
+从 `waveform-display` 迁移时将导入路径改为 `waveform-analysis/display`，无需修改原数据和配置。
+分析 X 坐标仍为秒；展示保留原始 X 坐标，轴单位只用于显示。
+
+两组件使用同一动画任务引擎和共享绘图/格式化基础能力，各实例的暂停、销毁与数据保持隔离。
+
+X/Y 轴共用内部 `src/shared/axis` 核心（SVG 绘制、增量更新、刻度系数和文字测量），
+通过方向与渲染计划组合使用。刻度密度、范围扩展、单位格式、端点避让和标题布局仍由各组件
+适配层决定；不会将分析组件的秒坐标或展示组件的刻度规则相互替换。共享轴类不属于公共 API。
+展示动画默认关闭，使用 `animationEnabled: true` 开启后可调用
+`display.animation.pause()` / `resume()` / `finish()`。分析保持原有动画配置和接口；
+其图表实例没有直接的 `pause/resume` 方法。展示 `toSVGString()` 同步提交终态并导出，
+分析 `exportImage()` 仍为等待稳定状态的异步导出。
+
+统一 Demo 的 `/display` 提供原展示配置面板、科学数据和动画场景；`/components` 提供双组件
+同页使用及可查看的实际示例代码。旧分析路由保持可用。原展示源码的 MIT 通知保留于
+`src/display/LICENSE`。包内共享模块属于实现细节，不支持从内部路径深层导入。
+
 ## 安装
 
 Vue 是可选 peer dependency；只有 `/vue` 组件入口需要业务项目显式安装 Vue。
@@ -1909,3 +1952,148 @@ const axes: WaveformAxesOptions = {
 Demo 的“Y 轴留白”配置区默认显式启用上下各 10%，与组件省略配置时的默认值不同；
 “显示最大值刻度”和“显示最小值刻度”默认都开启，可分别切换。
 原 `extremaTicksVisible` 总开关已移除，请改用上述两个独立配置项。
+
+### 独立基础组件
+
+以下原生 DOM 组件不依赖 Vue，也不会加载波形分析引擎。每个子路径同时提供
+ESM、CommonJS 和 TypeScript 类型；样式需要显式导入。使用 ColorPicker 时，其样式
+已包含内部 InputNumber、Select 和 Popup 所需样式。
+
+| 入口                             | 导出          | 样式入口                                   |
+| -------------------------------- | ------------- | ------------------------------------------ |
+| `waveform-analysis/input-number` | `InputNumber` | `waveform-analysis/input-number/style.css` |
+| `waveform-analysis/select`       | `Select`      | `waveform-analysis/select/style.css`       |
+| `waveform-analysis/color-picker` | `ColorPicker` | `waveform-analysis/color-picker/style.css` |
+| `waveform-analysis/pagination`   | `Pagination`  | `waveform-analysis/pagination/style.css`   |
+| `waveform-analysis/modal`        | `Modal`       | `waveform-analysis/modal/style.css`        |
+| `waveform-analysis/popup`        | `Popup`       | `waveform-analysis/popup/style.css`        |
+
+所有入口导出 `ControlTheme` 和 `ControlThemeOptions`。组件默认 `theme: 'auto'`，
+随系统深浅色偏好实时切换，也可指定 `'light'` 或 `'dark'`，或调用
+`setTheme('dark')` 动态切换。不同实例可以使用不同主题，切换不会清空输入草稿。
+系统偏好不可用时采用浅色。组件内部浮层随所属组件切换主题。
+
+```ts
+import { InputNumber } from 'waveform-analysis/input-number'
+import { Select } from 'waveform-analysis/select'
+import { ColorPicker } from 'waveform-analysis/color-picker'
+import { Pagination } from 'waveform-analysis/pagination'
+import { Modal } from 'waveform-analysis/modal'
+import { Popup } from 'waveform-analysis/popup'
+import 'waveform-analysis/input-number/style.css'
+import 'waveform-analysis/select/style.css'
+import 'waveform-analysis/color-picker/style.css'
+import 'waveform-analysis/pagination/style.css'
+import 'waveform-analysis/modal/style.css'
+import 'waveform-analysis/popup/style.css'
+
+const host = document.createElement('div')
+document.body.append(host)
+const number = new InputNumber(
+  document,
+  '数量',
+  (value) => number.update(value, false),
+  () => console.log('提交', number.input.value),
+  { step: 1, shiftStep: 10, min: 0, max: 100, theme: 'auto' },
+)
+number.update('10', false)
+host.append(number.root)
+
+const options = [
+  { value: 'a', label: '选项 A' },
+  { value: 'b', label: '选项 B' },
+]
+const select = new Select(document, '选项', (value) => select.update(options, value), 'default', {
+  theme: 'auto',
+})
+select.update(options, 'a')
+host.append(select.root)
+
+const color = new ColorPicker(
+  document,
+  '颜色',
+  '#1677ff',
+  () => {
+    if (color.valid) console.log(color.value)
+  },
+  { theme: 'auto' },
+)
+host.append(color.root)
+
+const pagination = new Pagination(
+  host,
+  (page) => {
+    pagination.update({ page, pageCount: 20 })
+  },
+  { theme: 'auto' },
+)
+pagination.update({ page: 1, pageCount: 20 })
+
+const modal = new Modal(document, { title: '设置', theme: 'auto' })
+modal.body.append(document.createTextNode('可在 body 和 footer 中插入自定义 DOM。'))
+modal.open()
+// modal.close() 播放关闭动画；同一实例可以再次 open()。
+
+const trigger = document.createElement('button')
+trigger.textContent = '显示浮层'
+host.append(trigger)
+const popup = new Popup(trigger, {
+  title: '标题',
+  content: '浮层内容',
+  trigger: 'click',
+  placement: 'top',
+  theme: 'auto',
+  onOpenChange: (open) => console.log(open),
+})
+
+// 宿主卸载时清理监听器、浮层、动画和模态滚动锁。
+function disposeControls() {
+  for (const control of [popup, modal, pagination, color, select, number]) control.dispose()
+  host.remove()
+}
+```
+
+- `InputNumber.update(value, invalid, description?, { disabled?, readOnly? })` 使用字符串保留
+  小数输入草稿。`changed` 回调由消费者校验并回写；支持 `increaseLabel`、`decreaseLabel`
+  自定义按钮文案。默认步长保持为 `0.001`，Shift 步长为 `0.01`。
+- `Select.update(options, value, disabled?, placeholder?)` 更新受控选项和选中值；
+  第四个构造参数为 `'default' | 'compact'`。
+- `ColorPicker` 的回调不带参数，通过 `value` 和 `valid` 读取当前颜色及有效性。
+- `Pagination.update({ page, pageCount, visible?, disabled? })` 使用从 1 开始的页码，
+  自动将页码约束到有效范围（最少一页）；仅用户导航触发回调，更新本身不触发回调。
+- `Modal` 支持 `setTitle()`、`isOpen`、`busy` 和 `initialFocus` 配置。可传 `cancel`
+  回调接管关闭请求；此时消费者负责调用 `close()`，适合未保存内容确认。
+  不传回调时关闭按钮、Escape 和遮罩点击默认关闭。自定义内容可继承主题 CSS 变量；
+  自行创建并插入的子组件通过其 `setTheme()` 独立配置。
+- `Popup(trigger, className?, width?, maxHeight?, options?)` 暴露 `panel` 和 `isOpen`，
+  消费者负责绑定打开动作；外部点击和 Escape 可关闭浮层。宽度默认 240px，最大高度默认
+  根据可用视口限制。弹窗内部浮层挂载到对应 dialog，保持浏览器顶层可见性。
+
+波形分析使用 `controlTheme: 'auto' | 'light' | 'dark'` 统一配置以上控件：
+原生实例调用 `chart.setOption({ controlTheme: 'dark' })`，Vue 使用
+`<WaveformChart control-theme="dark" ... />`。该选项不改变曲线、坐标轴等图表配色。
+现有整体样式入口保持兼容；独立组件演示位于 Demo 顶部「基础组件」二级菜单：
+`#/controls/input-number`、`#/controls/select`、`#/controls/color-picker`、
+`#/controls/pagination`、`#/controls/modal` 和 `#/controls/popup`。
+原 `#/controls` 地址会跳转到数字输入框页面。每页包含交互示例、事件反馈、
+实际使用源码及独立主题覆盖设置。
+
+### Popup 气泡卡片
+
+`new Popup(trigger, options)` 采用 Ant Design Popover 风格：12px 内边距、8px 圆角、
+标题和内容分区、箭头及深浅色浮层背景。默认 `trigger: 'hover'`、`placement: 'top'`，
+移入和移出延迟均为 0.1 秒（`mouseEnterDelay` / `mouseLeaveDelay`，单位秒）。
+`trigger` 支持 `hover`、`click`、`focus` 或它们的数组。Escape、点击外部或焦点移出会关闭。
+`onOpenChange` 在实际开关状态变化时触发。
+
+`placement` 支持 top / bottom / left / right 及 topLeft、topRight、bottomLeft、bottomRight、
+leftTop、leftBottom、rightTop、rightBottom。默认自动翻转，居中方向支持边缘平移；
+`autoAdjustOverflow: false` 可关闭调整，`arrow: false` 可隐藏箭头。
+`width` 默认 240px，`maxHeight` 限制内容滚动高度。
+`title`、`content` 接受字符串或 HTMLElement；可用 `setTitle`、`setContent` 更新，
+或向 `content` 添加 DOM。浮层默认挂在 body，弹窗内保持在 dialog 顶层中。
+旧位置参数构造方式仍支持，维持手动 `open()` / `close()` 控制。
+这是原生 DOM 实现，未引入 React/Ant Design 依赖，也不宣称完整兼容其 React API。
+
+实现参考：[Ant Design Popover](https://github.com/ant-design/ant-design/tree/master/components/popover)
+及 [共享交互 API](https://github.com/ant-design/ant-design/blob/master/components/tooltip/shared/sharedProps.en-US.md)。

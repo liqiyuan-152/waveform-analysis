@@ -2,6 +2,7 @@ import { WaveformChartError } from '../chart/WaveformChartError'
 import type { WaveformChartOptionUpdate } from '../types/options'
 
 const enumFields: Record<string, readonly string[]> = {
+  controlTheme: ['auto', 'light', 'dark'],
   displayMode: ['independent', 'separated', 'compact'],
   overlayMode: ['single-axis', 'multi-axis'],
   interactionMode: ['zoom', 'annotation', 'pan', 'none'],

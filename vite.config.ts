@@ -34,6 +34,10 @@ export default defineConfig({
     projects: [
       {
         extends: true,
+        test: { name: 'display', environment: 'node', include: ['tests/display/**/*.test.ts'] },
+      },
+      {
+        extends: true,
         test: { name: 'algorithms', environment: 'node', include: nodeTests },
       },
       {
@@ -41,7 +45,7 @@ export default defineConfig({
         test: {
           name: 'dom',
           environment: 'jsdom',
-          exclude: [...nodeTests, '**/node_modules/**', '**/.git/**'],
+          exclude: [...nodeTests, 'tests/display/**', '**/node_modules/**', '**/.git/**'],
           setupFiles: ['./tests/support/setup.ts'],
           css: true,
         },

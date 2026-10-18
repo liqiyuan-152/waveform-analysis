@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "0.2.2",
+  "version": "1.0.0",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -11,6 +11,30 @@
       ],
       "vue": [
         "dist/types/vue.d.ts"
+      ],
+      "analysis": [
+        "dist/types/analysis.d.ts"
+      ],
+      "display": [
+        "dist/types/display.d.ts"
+      ],
+      "input-number": [
+        "dist/types/input-number.d.ts"
+      ],
+      "select": [
+        "dist/types/select.d.ts"
+      ],
+      "color-picker": [
+        "dist/types/color-picker.d.ts"
+      ],
+      "pagination": [
+        "dist/types/pagination.d.ts"
+      ],
+      "modal": [
+        "dist/types/modal.d.ts"
+      ],
+      "popup": [
+        "dist/types/popup.d.ts"
       ]
     }
   },
@@ -31,7 +55,53 @@
       "types": "./dist/types/vue.d.ts",
       "import": "./dist/vue.js",
       "require": "./dist/vue.cjs"
-    }
+    },
+    "./analysis": {
+      "types": "./dist/types/analysis.d.ts",
+      "import": "./dist/analysis.js",
+      "require": "./dist/analysis.cjs"
+    },
+    "./display": {
+      "types": "./dist/types/display.d.ts",
+      "import": "./dist/display.js",
+      "require": "./dist/display.cjs"
+    },
+    "./input-number": {
+      "types": "./dist/types/input-number.d.ts",
+      "import": "./dist/input-number.js",
+      "require": "./dist/input-number.cjs"
+    },
+    "./input-number/style.css": "./dist/input-number/style.css",
+    "./select": {
+      "types": "./dist/types/select.d.ts",
+      "import": "./dist/select.js",
+      "require": "./dist/select.cjs"
+    },
+    "./select/style.css": "./dist/select/style.css",
+    "./color-picker": {
+      "types": "./dist/types/color-picker.d.ts",
+      "import": "./dist/color-picker.js",
+      "require": "./dist/color-picker.cjs"
+    },
+    "./color-picker/style.css": "./dist/color-picker/style.css",
+    "./pagination": {
+      "types": "./dist/types/pagination.d.ts",
+      "import": "./dist/pagination.js",
+      "require": "./dist/pagination.cjs"
+    },
+    "./pagination/style.css": "./dist/pagination/style.css",
+    "./modal": {
+      "types": "./dist/types/modal.d.ts",
+      "import": "./dist/modal.js",
+      "require": "./dist/modal.cjs"
+    },
+    "./modal/style.css": "./dist/modal/style.css",
+    "./popup": {
+      "types": "./dist/types/popup.d.ts",
+      "import": "./dist/popup.js",
+      "require": "./dist/popup.cjs"
+    },
+    "./popup/style.css": "./dist/popup/style.css"
   },
   "files": [
     "dist",

@@ -6,7 +6,8 @@ import { chromium } from 'playwright'
 export async function verifyPackageNativeControls(url) {
   const evidence =
     process.env.WAVEFORM_PACKAGE_EVIDENCE_DIR ??
-    'openspec/changes/remove-waveform-antd-dependency/evidence'
+    process.env.WAVEFORM_EVIDENCE_DIR ??
+    'artifacts/package'
   mkdirSync(evidence, { recursive: true })
   const browser = await chromium.launch()
   try {

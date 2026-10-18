@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAnalysisTheme } from '../theme/useAnalysisTheme'
 import { computed, ref } from 'vue'
 import { InputNumber, RadioButton, RadioGroup } from 'ant-design-vue'
 
@@ -83,6 +84,7 @@ const rangeSummary = computed(() => {
     current?.[0] ?? '-'
   } ～ ${current?.[1] ?? '-'} mA`
 })
+const { controlTheme, frameStyle, legendBackground, titleTextStyle } = useAnalysisTheme()
 </script>
 
 <template>
@@ -135,14 +137,16 @@ const rangeSummary = computed(() => {
 
     <section class="fixed-domain-demo__chart">
       <WaveformChart
+        :control-theme="controlTheme"
+        :frame-style="frameStyle"
         :data="chartData"
         :y-domain="yDomain"
         :y-domains="yDomains"
         display-mode="independent"
         :grid="{ rowCount: 2, columnCount: 1, showPagination: false }"
-        :title="{ visible: true, text: '振幅上下限示例', align: 'left' }"
+        :title="{ visible: true, text: '振幅上下限示例', align: 'left', textStyle: titleTextStyle }"
         :zero-line="{ visible: true, color: '#98a2b3', width: 1, dash: '5 4' }"
-        :legend="{ position: 'top-right', backgroundColor: 'rgba(255,255,255,0.8)' }"
+        :legend="{ position: 'top-right', backgroundColor: legendBackground }"
         x-label="时间（s）"
         time-unit="s"
         :show-tooltip="true"

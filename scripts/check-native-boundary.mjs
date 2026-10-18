@@ -42,7 +42,7 @@ function visit(file) {
       violations.push(`${file}: dependency outside production source: ${dependency}`)
     const target = [
       base,
-      `${base}.ts`,
+      base.endsWith('.js') ? base.slice(0, -3) + '.ts' : `${base}.ts`,
       `${base}.d.ts`,
       `${base}.js`,
       resolve(base, 'index.ts'),
@@ -51,6 +51,44 @@ function visit(file) {
     if (target.endsWith('.ts')) visit(target)
   }
 }
+for (const [entry, forbidden] of [
+  ...['input-number', 'select', 'color-picker', 'pagination', 'modal', 'popup'].map((name) => [
+    `src/${name}.ts`,
+    [
+      'src/chart/',
+      'src/model/',
+      'src/layout/',
+      'src/rendering/',
+      'src/annotation/',
+      'src/adapters/',
+      'src/display/',
+      'src/sampling/',
+    ],
+  ]),
+  ['src/analysis.ts', ['src/display/']],
+  [
+    'src/display.ts',
+    ['src/chart/', 'src/components/', 'src/sampling/', 'src/annotation/', 'src/adapters/'],
+  ],
+]) {
+  seen.clear()
+  visit(resolve(entry))
+  for (const file of seen) {
+    if (forbidden.some((directory) => file.startsWith(resolve(directory) + sep)))
+      violations.push(`${entry}: cross-component dependency ${file}`)
+  }
+}
+seen.clear()
+// Pure shared helpers may depend on each other and external math/rendering libraries,
+// but must not acquire component models, adapters, or business orchestration.
+for (const entry of readdirSync(resolve('src/shared'), { recursive: true })) {
+  if (entry.endsWith('.ts')) visit(resolve('src/shared', entry))
+}
+for (const file of seen) {
+  if (!file.startsWith(resolve('src/shared') + sep))
+    violations.push(`Shared foundation depends on non-shared production source: ${file}`)
+}
+seen.clear()
 visit(resolve('src/native.ts'))
 // Shared presentation owners must stay framework-free before native instance wiring lands.
 visit(resolve('src/animation/presentation/PaginationPresentation.ts'))

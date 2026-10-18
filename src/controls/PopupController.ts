@@ -1,3 +1,4 @@
+import { setControlTreeTheme, type ControlTheme, type ControlThemeOptions } from './theme'
 let sequence = 0
 const active = new WeakMap<Document, PopupController[]>()
 
@@ -10,20 +11,23 @@ export class PopupController {
   private opened = false
 
   constructor(
-    private readonly trigger: HTMLElement,
-    className: string,
-    private readonly width = 240,
-    private readonly maxHeight = Number.POSITIVE_INFINITY,
+    protected readonly trigger: HTMLElement,
+    className = '',
+    protected readonly width = 240,
+    protected readonly maxHeight = Number.POSITIVE_INFINITY,
+    options: ControlThemeOptions = {},
   ) {
     this.panel = trigger.ownerDocument.createElement('div')
     this.panel.id = `waveform-popup-${++sequence}`
     this.panel.className = `waveform-control-theme waveform-popup ${className}`
+    this.setTheme(options.theme)
     this.panel.hidden = true
     trigger.setAttribute('aria-controls', this.panel.id)
     trigger.setAttribute('aria-expanded', 'false')
     for (const name of ['pointerdown', 'click', 'dblclick', 'wheel', 'contextmenu', 'keydown'])
       this.panel.addEventListener(name, this.stop)
     this.panel.addEventListener('keydown', this.keydown)
+    this.trigger.addEventListener('keydown', this.keydown)
     this.panel.addEventListener('pointerdown', this.focusButton)
   }
 
@@ -40,14 +44,13 @@ export class PopupController {
 
   open() {
     if (this.disposed || this.opened || !this.trigger.isConnected) return
+    const inherited = this.trigger.closest<HTMLElement>('[data-control-theme]')?.dataset
+      .controlTheme as ControlTheme | undefined
+    if (inherited) setControlTreeTheme(this.panel, inherited)
     const document = this.trigger.ownerDocument
     const stack = active.get(document) ?? []
     for (const popup of [...stack].reverse()) if (!popup.panel.contains(this.trigger)) popup.close()
-    const host =
-      this.trigger.closest('.waveform-popup') ??
-      this.trigger.closest('dialog') ??
-      this.trigger.closest('.waveform-chart') ??
-      this.trigger.parentElement!
+    const host = this.getHost()
     host.append(this.panel)
     this.opened = true
     this.panel.hidden = false
@@ -106,6 +109,15 @@ export class PopupController {
     if (focus && this.trigger.isConnected) this.trigger.focus({ preventScroll: true })
   }
 
+  protected getHost(): Element {
+    return (
+      this.trigger.closest('.waveform-popup') ??
+      this.trigger.closest('dialog') ??
+      this.trigger.closest('.waveform-chart') ??
+      this.trigger.parentElement!
+    )
+  }
+
   private readonly position = () => {
     if (!this.opened) return
     if (
@@ -128,6 +140,14 @@ export class PopupController {
       this.close()
       return
     }
+    this.layout(rect, { left, top, width, height })
+  }
+
+  protected layout(
+    rect: DOMRect,
+    viewport: { left: number; top: number; width: number; height: number },
+  ) {
+    const { left, top, width, height } = viewport
     const panelWidth = Math.min(Math.max(this.width, rect.width), width - 16)
     this.panel.style.width = `${Math.max(0, panelWidth)}px`
     const gap = this.panel.classList.contains('waveform-color-popup') ? 12 : 4
@@ -166,10 +186,15 @@ export class PopupController {
   }
   private readonly stop = (event: Event) => event.stopPropagation()
   private readonly keydown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && this.opened) {
       event.preventDefault()
       this.close(true)
     }
+  }
+
+  setTheme(theme: ControlTheme = 'auto') {
+    this.trigger.dataset.controlTheme = theme
+    setControlTreeTheme(this.panel, theme)
   }
 
   dispose() {
@@ -179,6 +204,7 @@ export class PopupController {
     for (const name of ['pointerdown', 'click', 'dblclick', 'wheel', 'contextmenu', 'keydown'])
       this.panel.removeEventListener(name, this.stop)
     this.panel.removeEventListener('keydown', this.keydown)
+    this.trigger.removeEventListener('keydown', this.keydown)
     this.panel.removeEventListener('pointerdown', this.focusButton)
     this.trigger.removeAttribute('aria-controls')
     this.panel.replaceChildren()

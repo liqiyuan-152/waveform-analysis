@@ -1,11 +1,5 @@
-import {
-  symbol,
-  symbolCircle,
-  symbolDiamond,
-  symbolSquare,
-  symbolTriangle,
-  type SymbolType,
-} from 'd3'
+import { symbol } from 'd3'
+import { pointSymbol, lineDash } from '../../shared/rendering/styles'
 
 import type { WaveformLineStyle, WaveformLineType, WaveformPointType } from '../../types'
 
@@ -14,13 +8,6 @@ const LEGEND_ERROR_BAR_TOP = 2
 const LEGEND_ERROR_BAR_BOTTOM = 14
 const LEGEND_ERROR_BAR_DEFAULT_CAP_WIDTH = 8
 const LEGEND_ERROR_BAR_MAX_CAP_WIDTH = 24
-
-const pointSymbols: Record<Exclude<WaveformPointType, 'none'>, SymbolType> = {
-  circle: symbolCircle,
-  square: symbolSquare,
-  triangle: symbolTriangle,
-  diamond: symbolDiamond,
-}
 
 /** Convert CSS-pixel circle diameter to the area expected by D3 symbols. */
 export function waveformPointSymbolArea(pointSize = 2): number {
@@ -32,7 +19,7 @@ export function waveformPointSymbolPath(
   size = waveformPointSymbolArea(),
 ): string | null {
   if (pointType === 'none') return null
-  return symbol().type(pointSymbols[pointType]).size(size)() ?? null
+  return symbol().type(pointSymbol(pointType)).size(size)() ?? null
 }
 
 export function waveformPointSeriesPath(
@@ -91,9 +78,7 @@ export function waveformLegendLinePath(lineType: WaveformLineType): string | nul
 }
 
 export function waveformLineDasharray(lineStyle: WaveformLineStyle): string | undefined {
-  if (lineStyle === 'dashed') return '8 5'
-  if (lineStyle === 'dash-dot') return '8 5 1.5 5'
-  return undefined
+  return lineDash(lineStyle, '8 5 1.5 5')
 }
 
 export function waveformLegendErrorBarPath(capWidth: number): string {

@@ -1,8 +1,8 @@
-.waveform-annotation-editor-root,
-.waveform-annotation-editor-root * {
+.waveform-modal-root,
+.waveform-modal-root * {
   box-sizing: border-box;
 }
-.waveform-annotation-editor-root {
+.waveform-modal-root {
   position: fixed;
   inset: 0;
   width: 100%;
@@ -12,7 +12,7 @@
   margin: 0;
   padding: 0;
   overflow: auto;
-  color: #344054;
+  color: var(--waveform-control-text);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif;
@@ -25,8 +25,8 @@
   border: 0;
   outline: none;
 }
-.waveform-annotation-editor-root::backdrop {
-  background: rgb(0 0 0 / 45%);
+.waveform-modal-root::backdrop {
+  background: var(--waveform-control-backdrop);
 }
 .waveform-modal {
   position: relative;
@@ -38,7 +38,7 @@
 }
 .waveform-modal__panel {
   position: relative;
-  background: #fff;
+  background: var(--waveform-control-bg);
   border-radius: 2px;
   box-shadow:
     0 3px 6px -4px rgb(0 0 0 / 12%),
@@ -48,12 +48,12 @@
 .waveform-modal__header {
   margin: 0;
   padding: 16px 24px;
-  color: rgb(0 0 0 / 85%);
+  color: var(--waveform-control-text);
   font-size: 16px;
   font-weight: 500;
   line-height: 22px;
-  background: #fff;
-  border-bottom: 1px solid #f0f0f0;
+  background: var(--waveform-control-bg);
+  border-bottom: 1px solid var(--waveform-control-border);
   border-radius: 2px 2px 0 0;
 }
 .waveform-modal__body {
@@ -62,22 +62,22 @@
 .waveform-modal__footer {
   padding: 10px 16px;
   text-align: right;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--waveform-control-border);
   border-radius: 0 0 2px 2px;
 }
 .waveform-modal__button {
   height: 32px;
   margin: 0;
   padding: 4px 15px;
-  color: rgb(0 0 0 / 85%);
+  color: var(--waveform-control-text);
   font: inherit;
   line-height: 1.5715;
   letter-spacing: normal;
   text-align: center;
   text-transform: none;
   vertical-align: middle;
-  background: #fff;
-  border: 1px solid #d9d9d9;
+  background: var(--waveform-control-bg);
+  border: 1px solid var(--waveform-control-border);
   border-radius: 2px;
   box-shadow: 0 2px 0 rgb(0 0 0 / 2%);
   cursor: pointer;
@@ -88,25 +88,25 @@
 }
 .waveform-modal__button:hover,
 .waveform-modal__button:focus-visible {
-  color: #40a9ff;
-  border-color: #40a9ff;
+  color: var(--waveform-control-hover);
+  border-color: var(--waveform-control-hover);
 }
 .waveform-modal__button--primary {
   color: #fff;
-  background: #1890ff;
-  border-color: #1890ff;
+  background: var(--waveform-control-primary);
+  border-color: var(--waveform-control-primary);
   box-shadow: 0 2px 0 rgb(0 0 0 / 4.5%);
   text-shadow: 0 -1px 0 rgb(0 0 0 / 12%);
 }
 .waveform-modal__button--primary:hover,
 .waveform-modal__button--primary:focus-visible {
   color: #fff;
-  background: #40a9ff;
+  background: var(--waveform-control-hover);
 }
 .waveform-modal__button:disabled {
-  color: rgb(0 0 0 / 25%);
-  background: #f5f5f5;
-  border-color: #d9d9d9;
+  color: var(--waveform-control-disabled);
+  background: var(--waveform-control-raised);
+  border-color: var(--waveform-control-border);
   box-shadow: none;
   text-shadow: none;
   cursor: not-allowed;
@@ -121,7 +121,7 @@
   height: 56px;
   margin: 0;
   padding: 0;
-  color: rgb(0 0 0 / 45%);
+  color: var(--waveform-control-muted);
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -130,7 +130,7 @@
   appearance: none;
 }
 .waveform-modal__close:hover {
-  color: rgb(0 0 0 / 75%);
+  color: var(--waveform-control-text);
 }
 .waveform-modal__close svg {
   width: 16px;
@@ -153,18 +153,18 @@
     margin: 8px auto;
   }
 }
-.waveform-annotation-editor-root[data-motion='enter']::backdrop {
+.waveform-modal-root[data-motion='enter']::backdrop {
   animation: waveform-modal-fade-in 0.3s linear;
 }
-.waveform-annotation-editor-root[data-motion='leave']::backdrop {
+.waveform-modal-root[data-motion='leave']::backdrop {
   animation: waveform-modal-fade-out 0.3s linear forwards;
 }
-.waveform-annotation-editor-root[data-motion='leave'] .waveform-modal__panel {
+.waveform-modal-root[data-motion='leave'] .waveform-modal__panel {
   pointer-events: none;
 }
 .waveform-modal__button:focus-visible,
 .waveform-modal__close:focus-visible {
-  outline: 2px solid #91caff;
+  outline: 2px solid var(--waveform-control-hover);
   outline-offset: 2px;
 }
 @keyframes waveform-modal-fade-in {
@@ -189,7 +189,7 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .waveform-annotation-editor-root::backdrop {
+  .waveform-modal-root::backdrop {
     animation: none !important;
   }
 }

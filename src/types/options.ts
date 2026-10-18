@@ -1,3 +1,4 @@
+import type { ControlTheme } from '../controls/theme'
 import type { WaveformAnimationProps } from '../animation/types'
 import type { WaveformToolbarOptions } from './controls'
 import type {
@@ -21,6 +22,7 @@ import type {
 import type { WaveformGridOptions } from '../components/core/grid'
 
 export interface WaveformChartProps extends WaveformAnimationProps {
+  controlTheme?: ControlTheme
   toolbar?: boolean | WaveformToolbarOptions
   data: WaveformData
   displayMode?: WaveformDisplayMode

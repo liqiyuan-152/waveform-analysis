@@ -1,13 +1,16 @@
+import { setControlTreeTheme, type ControlTheme, type ControlThemeOptions } from './theme'
 import { stepNumberInput } from '../components/controls/numberInput'
-import { svgNode } from '../rendering/SvgDom'
+import { svgNode } from '../shared/dom/svg'
 import { NumberInputHold } from './NumberInputHold'
 
-interface NumberInputState {
+export interface NumberInputState {
   disabled?: boolean
   readOnly?: boolean
 }
 
-interface NumberInputOptions {
+export interface NumberInputOptions extends ControlThemeOptions {
+  increaseLabel?: string
+  decreaseLabel?: string
   compact?: boolean
   step?: number
   shiftStep?: number
@@ -34,6 +37,7 @@ export class NumberInputView {
     this.root = document.createElement('div')
     this.root.className = 'waveform-control-theme waveform-number-input'
     this.root.classList.toggle('waveform-number-input--compact', !!options.compact)
+    this.setTheme(options.theme)
     this.input = document.createElement('input')
     this.input.type = 'text'
     this.input.inputMode = 'decimal'
@@ -56,13 +60,9 @@ export class NumberInputView {
       button.tabIndex = -1
       button.setAttribute(
         'aria-label',
-        options.compact
-          ? direction === 1
-            ? '增加数值'
-            : '减少数值'
-          : direction === 1
-            ? '增加时间'
-            : '减少时间',
+        direction === 1
+          ? (options.increaseLabel ?? '增加数值')
+          : (options.decreaseLabel ?? '减少数值'),
       )
       const icon = svgNode(document, 'svg', { viewBox: '0 0 12 12', 'aria-hidden': 'true' })
       icon.append(
@@ -141,6 +141,10 @@ export class NumberInputView {
     if (value.trim() && Number.isFinite(Number(value)))
       this.input.setAttribute('aria-valuenow', String(Number(value)))
     else this.input.removeAttribute('aria-valuenow')
+  }
+
+  setTheme(theme: ControlTheme = 'auto') {
+    setControlTreeTheme(this.root, theme)
   }
 
   dispose() {

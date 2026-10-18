@@ -32,7 +32,11 @@ export function updateGrid(
     const next = previous ? previous.nextSibling : group.firstChild
     if (next !== line) group.insertBefore(line, next)
     const position = scale(tick)
-    updateSvgAttribute(line, 'stroke', color ?? null)
+    // Explicit grid colors must take precedence over the stylesheet's theme defaults.
+    if (line.getAttribute('stroke') !== (color ?? null)) {
+      updateSvgAttribute(line, 'stroke', color ?? null)
+      line.style.stroke = color ?? ''
+    }
     updateSvgAttribute(line, 'x1', direction === 'vertical' ? position : 0)
     updateSvgAttribute(line, 'x2', direction === 'vertical' ? position : extent)
     updateSvgAttribute(line, 'y1', direction === 'horizontal' ? position : 0)

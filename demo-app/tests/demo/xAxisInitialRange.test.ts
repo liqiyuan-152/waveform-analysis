@@ -54,7 +54,8 @@ describe('demo initial X-axis range', () => {
         wrapper.unmount()
       }
     },
-    // Whole-demo integration normalizes real dense records before zoom/reset assertions.
-    10_000,
+    // Keep real dense records and all controls in this integration test. V8 coverage
+    // instruments the complete built chart; its wall time is not a rendering budget.
+    30_000,
   )
 })

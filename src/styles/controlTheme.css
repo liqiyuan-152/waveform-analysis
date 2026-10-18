@@ -1,0 +1,53 @@
+[data-control-theme] {
+  --waveform-control-bg: #fff;
+  --waveform-control-elevated: #fff;
+  --waveform-control-text: rgb(0 0 0 / 88%);
+  --waveform-control-muted: rgb(0 0 0 / 45%);
+  --waveform-control-disabled: rgb(0 0 0 / 25%);
+  --waveform-control-raised: rgb(0 0 0 / 4%);
+  --waveform-control-border: #d9d9d9;
+  --waveform-control-selected: #e6f4ff;
+  --waveform-control-primary: #1677ff;
+  --waveform-control-hover: #4096ff;
+  --waveform-control-error: #ff4d4f;
+  --waveform-control-radius: 6px;
+  --waveform-control-focus: 0 0 0 2px rgb(5 145 255 / 10%);
+  --waveform-control-backdrop: rgb(0 0 0 / 45%);
+  color-scheme: light;
+}
+[data-control-theme='dark'] {
+  --waveform-control-bg: #141414;
+  --waveform-control-elevated: #1f1f1f;
+  --waveform-control-text: rgb(255 255 255 / 88%);
+  --waveform-control-muted: rgb(255 255 255 / 55%);
+  --waveform-control-disabled: rgb(255 255 255 / 30%);
+  --waveform-control-raised: rgb(255 255 255 / 8%);
+  --waveform-control-border: #424242;
+  --waveform-control-selected: #111d2c;
+  --waveform-control-primary: #3c89e8;
+  --waveform-control-hover: #69b1ff;
+  --waveform-control-error: #ff7875;
+  --waveform-control-radius: 6px;
+  --waveform-control-focus: 0 0 0 2px rgb(22 119 255 / 25%);
+  --waveform-control-backdrop: rgb(0 0 0 / 65%);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: dark) {
+  [data-control-theme='auto'] {
+    --waveform-control-bg: #141414;
+    --waveform-control-elevated: #1f1f1f;
+    --waveform-control-text: rgb(255 255 255 / 88%);
+    --waveform-control-muted: rgb(255 255 255 / 55%);
+    --waveform-control-disabled: rgb(255 255 255 / 30%);
+    --waveform-control-raised: rgb(255 255 255 / 8%);
+    --waveform-control-border: #424242;
+    --waveform-control-selected: #111d2c;
+    --waveform-control-primary: #3c89e8;
+    --waveform-control-hover: #69b1ff;
+    --waveform-control-error: #ff7875;
+    --waveform-control-radius: 6px;
+    --waveform-control-focus: 0 0 0 2px rgb(22 119 255 / 25%);
+    --waveform-control-backdrop: rgb(0 0 0 / 65%);
+    color-scheme: dark;
+  }
+}

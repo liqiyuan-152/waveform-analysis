@@ -13,7 +13,7 @@
   width: 100%;
   height: 24px;
   border: 0;
-  box-shadow: inset 0 0 1px rgb(0 0 0 / 25%);
+  box-shadow: inset 0 0 1px var(--waveform-control-disabled);
   border-radius: 4px;
   background-image: conic-gradient(
     rgb(0 0 0 / 6%) 25%,
@@ -89,7 +89,7 @@
   padding: 0 7px;
 }
 .waveform-color-panel__hex > span {
-  color: rgb(0 0 0 / 25%);
+  color: var(--waveform-control-disabled);
 }
 .waveform-color-panel__hex input {
   text-transform: uppercase;
@@ -134,7 +134,7 @@
   border: 2px solid white;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 1px rgb(0 0 0 / 25%),
+    inset 0 0 1px var(--waveform-control-disabled),
     0 0 0 1px rgb(0 0 0 / 6%);
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -164,7 +164,7 @@
   border: 2px solid #fff;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 1px rgb(0 0 0 / 25%),
+    inset 0 0 1px var(--waveform-control-disabled),
     0 0 0 1px rgb(0 0 0 / 6%);
   appearance: none;
   transform: translateX(var(--waveform-slider-shift, 0px));
@@ -178,7 +178,7 @@
   border: 2px solid #fff;
   border-radius: 50%;
   box-shadow:
-    inset 0 0 1px rgb(0 0 0 / 25%),
+    inset 0 0 1px var(--waveform-control-disabled),
     0 0 0 1px rgb(0 0 0 / 6%);
   transform: translateX(var(--waveform-slider-shift, 0px));
 }
@@ -199,7 +199,7 @@
   flex: 0 0 28px;
   height: 28px;
   border-radius: 4px;
-  box-shadow: inset 0 0 1px rgb(0 0 0 / 25%);
+  box-shadow: inset 0 0 1px var(--waveform-control-disabled);
 }
 .waveform-color-panel__format {
   display: flex;
@@ -254,10 +254,10 @@
   width: 12px;
   height: 12px;
   content: '';
-  background: #fff;
+  background: var(--waveform-control-bg);
   border-radius: 2px;
   transform: rotate(45deg);
-  box-shadow: -2px -2px 3px rgb(0 0 0 / 4%);
+  box-shadow: -2px -2px 3px var(--waveform-control-raised);
   pointer-events: none;
 }
 

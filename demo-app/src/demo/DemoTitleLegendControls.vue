@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { useTheme } from '../theme/useTheme'
 import { Input, InputNumber, Select, Switch } from 'ant-design-vue'
 import { ColorPicker } from 'vue3-colorpicker'
 
 import type { DemoControlPanelModel } from './types'
 
 const model = defineModel<DemoControlPanelModel>('model', { required: true })
+const { dark } = useTheme()
 </script>
 
 <template>
@@ -105,6 +107,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
       <div class="title-control title-control--color">
         <span>颜色</span>
         <ColorPicker
+          :theme="dark ? 'black' : 'white'"
           v-model:pure-color="model.titleColor"
           aria-label="标题颜色"
           use-type="pure"
@@ -140,6 +143,7 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
     <label class="legend-color-control">
       <span>背景</span>
       <ColorPicker
+        :theme="dark ? 'black' : 'white'"
         v-model:pure-color="model.legendBackgroundColor"
         aria-label="图例背景颜色"
         use-type="pure"

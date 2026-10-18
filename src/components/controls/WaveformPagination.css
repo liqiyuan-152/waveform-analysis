@@ -6,7 +6,7 @@
   padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
-  color: rgb(0 0 0 / 85%);
+  color: var(--waveform-control-text);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
     sans-serif;
@@ -28,8 +28,8 @@
   line-height: 30px;
   letter-spacing: normal;
   text-transform: none;
-  background: #fff;
-  border: 1px solid #d9d9d9;
+  background: var(--waveform-control-bg);
+  border: 1px solid var(--waveform-control-border);
   border-radius: 2px;
   box-shadow: none;
   cursor: pointer;
@@ -40,20 +40,20 @@
 }
 .waveform-pagination button:hover:not(:disabled),
 .waveform-pagination button:focus-visible {
-  color: #1890ff;
-  border-color: #1890ff;
+  color: var(--waveform-control-primary);
+  border-color: var(--waveform-control-primary);
 }
 .waveform-pagination button:focus-visible {
   outline: 2px solid rgb(24 144 255 / 20%);
   outline-offset: 1px;
 }
 .waveform-pagination button[aria-current='page'] {
-  color: #1890ff;
+  color: var(--waveform-control-primary);
   font-weight: 500;
-  border-color: #1677ff;
+  border-color: var(--waveform-control-primary);
 }
 .waveform-pagination button:disabled {
-  color: rgb(0 0 0 / 25%);
+  color: var(--waveform-control-disabled);
   cursor: not-allowed;
 }
 .waveform-pagination svg {
@@ -81,7 +81,7 @@
   display: none;
 }
 .waveform-pagination__dots {
-  color: rgb(0 0 0 / 25%);
+  color: var(--waveform-control-disabled);
   font-size: 10px;
   letter-spacing: 2px;
 }

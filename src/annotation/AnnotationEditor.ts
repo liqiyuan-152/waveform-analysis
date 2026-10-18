@@ -2,10 +2,9 @@ import { SelectView } from '../controls/SelectView'
 import { PopupController } from '../controls/PopupController'
 import type { WaveformAnnotation } from '../types/chart'
 import { formatAnnotationTime, formatPlainNumber } from '../utils/formatters'
-import { ModalMotion } from '../controls/ModalMotion'
-import { ModalController } from '../controls/ModalController'
+import { Modal } from '../controls/Modal'
+import type { ControlTheme } from '../controls/theme'
 import { NumberInputView } from '../controls/NumberInputView'
-import { svgNode } from '../rendering/SvgDom'
 import { ANNOTATION_MAX_TEXT_LENGTH } from './markup'
 import { AnnotationStyleEditor } from './AnnotationStyleEditor'
 import type {
@@ -18,6 +17,7 @@ export interface AnnotationEditorContext {
   draft: () => AnnotationEditorDraft | undefined
   candidates: () => AnnotationSeriesCandidate[]
   series: () => AnnotationSeriesInfo | undefined
+  theme?: () => ControlTheme | undefined
   timeUnit: () => 's' | 'ms'
   time: (value: string) => string
   select: (id: string) => string
@@ -30,8 +30,7 @@ let sequence = 0
 /** DOM editor owns local text/time/style fields; the controller owns the snapped draft. */
 export class AnnotationEditor {
   readonly root: HTMLDialogElement
-  private readonly modal: ModalController
-  private readonly motion: ModalMotion
+  private readonly modal: Modal
   private readonly time: NumberInputView
   private readonly xLabel: HTMLLabelElement
   private readonly textarea: HTMLTextAreaElement
@@ -61,39 +60,30 @@ export class AnnotationEditor {
     this.unit = context.timeUnit()
     const titleId = `waveform-native-annotation-editor-${++sequence}`
     this.errorId = `${titleId}-time-error`
-    this.root = document.createElement('dialog')
-    this.root.className = 'waveform-annotation-editor-root waveform-annotation-editor'
-    this.root.setAttribute('role', 'dialog')
-    this.root.setAttribute('aria-modal', 'true')
-    this.root.setAttribute('aria-labelledby', titleId)
-    this.root.tabIndex = -1
+    this.modal = new Modal(document, {
+      title: draft.mode === 'add' ? '添加标注' : '编辑标注',
+      initialFocus: () => this.textarea,
+      cancel: () => this.cancel(),
+      theme: context.theme?.(),
+    })
+    this.root = this.modal.root
+    this.root.classList.add('waveform-annotation-editor-root', 'waveform-annotation-editor')
     const node = <K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text = '') => {
       const element = document.createElement(tag)
       element.className = className
       element.textContent = text
       return element
     }
-    const modal = node('div', 'waveform-modal'),
-      panel = node('div', 'waveform-modal__panel')
-    const header = node('header', 'waveform-modal__header')
-    const title = node('span', '', draft.mode === 'add' ? '添加标注' : '编辑标注')
-    title.id = titleId
-    header.append(title)
     const button = (text: string, className: string, action: () => void) => {
       const element = node('button', className, text)
       element.type = 'button'
       element.onclick = () => {
-        if (!this.disposed && !this.motion.busy) action()
+        if (!this.disposed && !this.modal.busy) action()
       }
       this.buttons.push(element)
       return element
     }
-    const close = button('', 'waveform-modal__close', () => this.cancel())
-    close.setAttribute('aria-label', '关闭')
-    const icon = svgNode(document, 'svg', { viewBox: '0 0 16 16', 'aria-hidden': 'true' })
-    icon.append(svgNode(document, 'path', { d: 'm3 3 10 10M13 3 3 13' }))
-    close.append(icon)
-    const body = node('div', 'waveform-modal__body'),
+    const body = this.modal.body,
       content = node('div', 'waveform-annotation-editor__content')
     const coordinates = node('div', 'waveform-annotation-editor__coordinates')
     coordinates.setAttribute('aria-label', '标注坐标')
@@ -108,6 +98,7 @@ export class AnnotationEditor {
         this.refresh()
       },
       () => this.commitTime(),
+      { increaseLabel: '增加时间', decreaseLabel: '减少时间' },
     )
     this.time.update(formatAnnotationTime(draft.annotation.x, this.unit), false)
     x.append(node('b', '', 'X'), this.time.root)
@@ -155,7 +146,7 @@ export class AnnotationEditor {
     this.style = new AnnotationStyleEditor(document, draft.annotation.style, () => this.refresh())
     content.append(this.style.root)
     body.append(content)
-    const footer = node('footer', 'waveform-modal__footer')
+    const footer = this.modal.footer
     this.save = button('保存标注', 'waveform-modal__button waveform-modal__button--primary', () =>
       this.confirm(),
     )
@@ -163,16 +154,7 @@ export class AnnotationEditor {
       button('取 消', 'waveform-modal__button', () => this.cancel()),
       this.save,
     )
-    panel.append(header, close, body, footer)
-    modal.append(panel)
-    this.root.append(modal)
     this.root.addEventListener('keydown', this.keydown, true)
-    this.motion = new ModalMotion(this.root)
-    this.modal = new ModalController(this.root, {
-      initialFocus: () => this.textarea,
-      cancel: () => this.cancel(),
-      dismissPopup: () => PopupController.dismissWithin(this.root),
-    })
     this.refresh()
   }
 
@@ -180,7 +162,6 @@ export class AnnotationEditor {
     if (this.disposed) return
     this.root.ownerDocument.body.append(this.root)
     this.modal.open()
-    this.motion.enter()
   }
 
   private commitTime() {
@@ -192,17 +173,17 @@ export class AnnotationEditor {
   }
 
   private cancel() {
-    if (this.disposed || this.motion.busy) return
+    if (this.disposed || this.modal.busy) return
     this.select.close()
     PopupController.dismissWithin(this.root)
-    this.motion.close(() => this.context.cancel())
+    this.modal.transitionClose(() => this.context.cancel())
   }
 
   private confirm() {
-    if (this.disposed || this.motion.busy || !this.commitTime() || this.save.disabled) return
+    if (this.disposed || this.modal.busy || !this.commitTime() || this.save.disabled) return
     this.select.close()
     PopupController.dismissWithin(this.root)
-    this.motion.close(() => this.confirmNow())
+    this.modal.transitionClose(() => this.confirmNow())
   }
 
   private confirmNow() {
@@ -224,6 +205,11 @@ export class AnnotationEditor {
   }
 
   refresh() {
+    const theme = this.context.theme?.() ?? 'auto'
+    this.modal.setTheme(theme)
+    this.time.setTheme(theme)
+    this.select.setTheme(theme)
+    this.style.setTheme(theme)
     if (this.disposed) return
     const draft = this.context.draft()
     if (!draft) return
@@ -276,7 +262,6 @@ export class AnnotationEditor {
   dispose() {
     if (this.disposed) return
     this.disposed = true
-    this.motion.dispose()
     this.root.removeEventListener('keydown', this.keydown, true)
     this.textarea.oninput = null
     this.select.dispose()

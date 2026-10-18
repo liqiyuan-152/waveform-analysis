@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { InputNumber, Radio, Select, Switch } from 'ant-design-vue'
 
+import { defaultDemoPointSize } from './pointStyle'
 import DemoToolbarControls from './DemoToolbarControls.vue'
 import type { DemoControlPanelModel } from './types'
 
@@ -65,9 +66,10 @@ const model = defineModel<DemoControlPanelModel>('model', { required: true })
         v-model:value="model.pointSize"
         :min="0.5"
         :step="0.5"
+        :precision="1"
         size="small"
         aria-label="点大小（px）"
-        @change="model.pointSize = model.pointSize || 2"
+        @change="model.pointSize = model.pointSize || defaultDemoPointSize"
       />
     </label>
     <label class="select-control">

@@ -66,14 +66,14 @@ const buttons = defaultToolbarItems.map((id) => ({ label: toolbarLabels[id], val
 }
 .toolbar-controls__hint {
   margin: 8px 0 0;
-  color: #667085;
+  color: var(--demo-muted);
   font-size: 12px;
 }
 .toolbar-controls__buttons {
   display: grid;
   gap: 8px;
   margin-top: 16px;
-  color: #475467;
+  color: var(--demo-muted);
   font-size: 12px;
 }
 .toolbar-controls__buttons :deep(.ant-checkbox-group) {

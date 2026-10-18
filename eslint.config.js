@@ -28,7 +28,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['examples/**/*.{ts,tsx,vue}', 'tests/fixtures/legacy/**/*.{ts,vue}'],
+    files: ['examples/**/*.{ts,tsx,vue}', 'tests/fixtures/legacy/**/*.{ts,vue}', 'tests/display/fixtures/browser/*.js'],
     languageOptions: {
       globals: globals.browser,
     },

@@ -6,6 +6,7 @@ function defaults(): ResolvedWaveformChartProps {
   return {
     data: { kind: 'points', points: [] },
     animationEnabled: true,
+    controlTheme: 'auto',
     displayMode: 'independent',
     overlayMode: 'single-axis',
     unitDisplayMode: 'axis',

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <meta charset="UTF-8" /><title>Deterministic animation fixtures</title>
+  <style>
+    body {
+      margin: 20px;
+      background: #f5f7fa;
+      font: 14px Arial;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    section {
+      background: white;
+      padding: 12px;
+    }
+    h2 {
+      font-size: 16px;
+    }
+    .chart {
+      width: 640px;
+      height: 270px;
+    }
+  </style>
+  <body>
+    <h1>Animation: deterministic middle frames</h1>
+    <main></main>
+    <script type="module">
+      import { Waveform } from '/src/index.ts'
+      let now = 0,
+        serial = 0
+      const frames = new Map()
+      window.requestAnimationFrame = (callback) => {
+        frames.set(++serial, callback)
+        return serial
+      }
+      window.cancelAnimationFrame = (id) => frames.delete(id)
+      performance.now = () => now
+      const step = (delta) => {
+        now += delta
+        const pending = [...frames.values()]
+        frames.clear()
+        pending.forEach((callback) => callback(now))
+      }
+      const source = [
+        {
+          id: 'signal',
+          name: 'Signal',
+          data: Array.from({ length: 12 }, (_, x) => ({ id: String(x), x, y: Math.sin(x / 2) })),
+        },
+      ]
+      const options = {
+        width: 640,
+        height: 270,
+        responsive: { enabled: false },
+        layout: { autoPadding: false },
+        padding: { left: 65, right: 65 },
+        animationEnabled: true,
+        animation: { duration: 1000, staggerDelay: 0, easing: 'linear' },
+        animationUpdate: { duration: 1000, easing: 'linear' },
+        line: { style: 'dashed' },
+        point: { visible: true, size: 2 },
+        xAxis: { tickStrategy: 'nice' },
+        yAxes: [{ id: 'left', tickStrategy: 'nice' }],
+      }
+      const charts = []
+      function create(name, overrides = {}) {
+        const section = document.createElement('section'),
+          title = document.createElement('h2'),
+          host = document.createElement('div')
+        title.textContent = name
+        host.className = 'chart'
+        section.append(title, host)
+        document.querySelector('main').append(section)
+        const chart = new Waveform(host, source, { ...options, ...overrides })
+        charts.push(chart)
+        return { chart, host }
+      }
+      for (const direction of ['left-to-right', 'right-to-left', 'center-out'])
+        create(direction, { animation: { ...options.animation, direction } })
+      const moving = create('Shared domain + appended points')
+      moving.chart.animation.finish()
+      moving.chart.updateData([
+        {
+          ...source[0],
+          data: Array.from({ length: 16 }, (_, x) => ({
+            id: String(x),
+            x,
+            y: Math.sin(x / 2) * 3,
+          })),
+        },
+      ])
+      step(500)
+      window.animationEvidence = {
+        middle: {
+          running: charts.map((chart) => chart.animation.isRunning()),
+          pendingRAF: frames.size,
+          clips: [...document.querySelectorAll('clipPath[id*="entry"] rect')].map((rect) => ({
+            x: rect.getAttribute('x'),
+            width: rect.getAttribute('width'),
+          })),
+          nodes: document.querySelectorAll('*').length,
+        },
+        finish() {
+          step(500)
+          const stable = charts.map((chart) => {
+            const before = chart.toSVGString()
+            chart.render()
+            return before === chart.toSVGString()
+          })
+          const result = {
+            stable,
+            pendingRAF: frames.size,
+            clips: document.querySelectorAll('clipPath[id*="entry"]').length,
+          }
+          charts.forEach((chart) => chart.destroy())
+          return {
+            ...result,
+            svgAfterDestroy: document.querySelectorAll('svg').length,
+            pendingAfterDestroy: frames.size,
+          }
+        },
+      }
+    </script>
+  </body>
+</html>

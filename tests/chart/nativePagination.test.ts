@@ -52,6 +52,20 @@ async function setup(count = 12, displayMode: 'independent' | 'separated' = 'ind
   return { host, chart, click }
 }
 describe('native pagination ownership', () => {
+  it('updates pagination theme without changing the page', async () => {
+    const { chart, host, click } = await setup()
+    await click('下一页')
+    const changed = vi.fn()
+    chart.on('page-change', changed)
+    chart.setOption({ controlTheme: 'dark' })
+    await flushNativeUpdates()
+    expect(host.querySelector<HTMLElement>('.waveform-pagination')?.dataset.controlTheme).toBe(
+      'dark',
+    )
+    expect(host.querySelector('[aria-current="page"]')?.textContent).toBe('2')
+    expect(changed).not.toHaveBeenCalled()
+  })
+
   it('supports jump windows, boundary disabling and stable focus without repeated page events', async () => {
     const { host, chart, click } = await setup()
     const event = vi.fn()

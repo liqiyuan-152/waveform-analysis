@@ -1,4 +1,5 @@
-import { axisBottom, axisLeft, axisRight, select } from 'd3'
+import { AxisView as SharedAxisView } from '../shared/axis/AxisView'
+import { select } from 'd3'
 import type { DisplaySeries, TrackLayout, WaveformYAxisLayout } from '../components/core/types'
 import { formatYAxisTickLabel } from '../components/core/layout'
 import { updateXAxisTickVisibility } from '../components/rendering/xAxisTickVisibility'
@@ -7,7 +8,7 @@ import {
   resolveYAxisLabelBandWidth,
   resolveYAxisLabelFontSize,
 } from '../components/core/yAxisLabelStyle'
-import { updateAxis, updateSvgAttribute } from '../components/rendering/updateAxis'
+import { updateSvgAttribute } from '../components/rendering/updateAxis'
 import { formatChannelLabel } from '../components/rendering/channelLabel'
 import { formatXAxisLabel } from '../utils/formatters'
 import type { ResolvedWaveformChartProps } from '../types/options'
@@ -16,6 +17,7 @@ import { setSvgAttributes, svgNode } from '../rendering/SvgDom'
 export class AxisView {
   private readonly root: SVGGElement
   private readonly x: SVGGElement
+  private readonly sharedAxes = new WeakMap<SVGGElement, SharedAxisView>()
   private readonly y = new Map<number, SVGGElement>()
   private readonly titles = new Map<number, SVGGElement>()
   private readonly endpoints: SVGGElement
@@ -74,24 +76,16 @@ export class AxisView {
           'tick',
           options.axes?.x?.labelFormatter ?? track.xAxisLabelFormatter,
         )
-      updateAxis(
-        this.x,
-        axisBottom(track.xScale)
-          .tickValues(track.xAxisTickValues)
-          .tickFormat((value) => format(Number(value)))
-          .tickSize(-4)
-          .tickPadding(7)
-          .tickSizeOuter(0),
-        track.xScale,
-        track.xAxisTickValues,
-        'bottom',
+      this.renderAxis(this.x, {
+        scale: track.xScale,
+        ticks: track.xAxisTickValues,
+        side: 'bottom',
         format,
-      )
-      updateSvgAttribute(
-        this.x.querySelector('path.domain')!,
-        'display',
-        options.axes?.x?.lineVisible === false ? 'none' : null,
-      )
+        tickSize: -4,
+        tickPadding: 7,
+        outerTickSize: 0,
+        line: options.axes?.x?.lineVisible === false ? 'hidden' : 'visible',
+      })
     }
     this.start.textContent = track.endpointLabels.start
     this.end.textContent = track.endpointLabels.end
@@ -160,13 +154,16 @@ export class AxisView {
         unit,
         axis.side,
       )
-    const generator = (axis.side === 'left' ? axisLeft(axis.scale) : axisRight(axis.scale))
-      .tickValues(axis.tickValues)
-      .tickFormat((value) => format(Number(value)))
-      .tickSize(-4)
-      .tickPadding(7)
-      .tickSizeOuter(0)
-    updateAxis(node, generator, axis.scale, axis.tickValues, axis.side, format)
+    this.renderAxis(node, {
+      scale: axis.scale,
+      ticks: axis.tickValues,
+      side: axis.side,
+      format,
+      tickSize: -4,
+      tickPadding: 7,
+      outerTickSize: 0,
+      line: options.axes?.y?.lineVisible === false ? 'hidden' : 'visible',
+    })
     updateSvgAttribute(node, 'data-label-domain-min', axis.scale.domain()[0])
     updateSvgAttribute(node, 'data-label-domain-max', axis.scale.domain()[1])
     updateSvgAttribute(node, 'data-label-unit', unit ?? null)
@@ -199,11 +196,15 @@ export class AxisView {
         )
         setSvgAttributes(this, { 'data-tick-value': value, 'data-tick-y': axis.scale(value) })
       })
-    updateSvgAttribute(
-      node.querySelector('path.domain')!,
-      'display',
-      options.axes?.y?.lineVisible === false ? 'none' : null,
-    )
+  }
+
+  private renderAxis(node: SVGGElement, plan: Parameters<SharedAxisView['render']>[0]) {
+    let view = this.sharedAxes.get(node)
+    if (!view) {
+      view = new SharedAxisView(node)
+      this.sharedAxes.set(node, view)
+    }
+    view.render(plan)
   }
 
   private label(series: DisplaySeries, options: ResolvedWaveformChartProps) {

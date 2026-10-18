@@ -1,3 +1,4 @@
+import { interpolateNumber } from '../../shared/animation/geometry'
 import type { AnimationDirection, AnimationValue } from './types'
 
 export function mapValue(a: AnimationValue, fn: (value: number) => number): AnimationValue {
@@ -20,7 +21,7 @@ export const addValues = (a: AnimationValue, b: AnimationValue) =>
 export const subtractValues = (a: AnimationValue, b: AnimationValue) =>
   combineValues(a, b, (x, y) => x - y)
 export const interpolateValue = (a: AnimationValue, b: AnimationValue, p: number) =>
-  combineValues(a, b, (x, y) => (p === 0 ? x : p === 1 ? y : (1 - p) * x + p * y))
+  combineValues(a, b, (x, y) => interpolateNumber(x, y, p))
 export function equalValues(a: AnimationValue, b: AnimationValue): boolean {
   if (typeof a === 'number' || typeof b === 'number') return a === b
   return a.length === b.length && a.every((value, i) => equalValues(value, b[i]))
