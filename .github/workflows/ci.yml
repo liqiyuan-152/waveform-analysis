@@ -56,6 +56,15 @@ jobs:
         run: pnpm test:coverage --maxWorkers=2
       - name: Build package and Demo
         run: pnpm build
+        env:
+          DEMO_BASE_PATH: /waveform-analysis/
+      - name: Verify Demo artifact deployment and rollback
+        run: |
+          python3 -m unittest discover -s deploy -p 'test_*.py'
+          package_version="$(node -p "require('./package.json').version")"
+          if [[ "$package_version" != *-* ]]; then
+            python3 deploy/demo_release.py pack --tag "v$package_version" --sha "$GITHUB_SHA"
+          fi
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify browser interactions

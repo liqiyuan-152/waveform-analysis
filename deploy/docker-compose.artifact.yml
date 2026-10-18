@@ -1,0 +1,27 @@
+# Dokploy raw Compose: keep its existing project name and port, without cloning GitHub.
+services:
+  web:
+    image: local/waveform-analysis-static:runtime-v1
+    pull_policy: never
+    command: ['busybox-extras', 'httpd', '-f', '-p', '8080', '-h', '/www']
+    volumes:
+      - /srv/waveform-demo:/www:ro
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:18089:8080'
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 64m
+    cpus: 0.5
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '-O', '/dev/null', 'http://127.0.0.1:8080/current/version.txt']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'

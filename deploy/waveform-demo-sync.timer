@@ -1,0 +1,10 @@
+[Unit]
+Description=Check for a new waveform Demo Release every two minutes
+
+[Timer]
+OnBootSec=1min
+OnUnitInactiveSec=2min
+RandomizedDelaySec=10
+
+[Install]
+WantedBy=timers.target

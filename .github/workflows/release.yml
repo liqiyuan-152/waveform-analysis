@@ -81,8 +81,12 @@ jobs:
       - run: pnpm check:file-length
       - run: pnpm lint:oxlint
       - run: pnpm lint
+      - name: Verify Demo artifact deployment and rollback
+        run: python3 -m unittest discover -s deploy -p 'test_*.py'
       - run: pnpm test:coverage --maxWorkers=2
       - run: pnpm build
+        env:
+          DEMO_BASE_PATH: /waveform-analysis/
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify browser interactions
@@ -97,6 +101,10 @@ jobs:
           pnpm --config.ignore-scripts=true pack --pack-destination release-assets
           published_name="waveform-analysis-${package_version}.tgz"
           sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
+
+      - name: Pack the built Demo for artifact deployment
+        if: env.prerelease == 'false'
+        run: python3 deploy/demo_release.py pack --tag "$GITHUB_REF_NAME" --sha "$GITHUB_SHA"
 
       - name: Verify the release tarball
         run: pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
@@ -117,6 +125,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           prerelease: ${{ env.prerelease }}
+          target_commitish: ${{ github.sha }}
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
           files: release-assets/*
@@ -136,40 +145,8 @@ jobs:
     environment: production
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Promote the verified release
-        shell: bash
-        run: |
-          set -euo pipefail
-          remote_sha="$(git ls-remote origin refs/heads/production | cut -f1)"
-          if [[ -n "$remote_sha" ]]; then
-            git push origin \
-              --force-with-lease="refs/heads/production:$remote_sha" \
-              "$GITHUB_SHA:refs/heads/production"
-          else
-            git push origin "$GITHUB_SHA:refs/heads/production"
-          fi
-
-      - name: Trigger Dokploy deployment
-        env:
-          DOKPLOY_DEPLOY_URL: ${{ secrets.DOKPLOY_DEPLOY_URL }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$DOKPLOY_DEPLOY_URL"
-          jq -n --arg sha "$GITHUB_SHA" --arg tag "$GITHUB_REF_NAME" \
-            '{ref:"refs/heads/production",after:$sha,head_commit:{id:$sha,message:("Release " + $tag)},commits:[{modified:["package.json"]}]}' \
-            > deploy-payload.json
-          curl --fail-with-body --silent --show-error --retry 3 \
-            --connect-timeout 15 --max-time 60 \
-            -H 'Content-Type: application/json' \
-            -H 'X-GitHub-Event: push' \
-            --data-binary @deploy-payload.json \
-            "$DOKPLOY_DEPLOY_URL"
-
+      # The server pulls the public Demo asset, checks GitHub's digest, and switches
+      # the static directory. No production branch promotion or source-clone webhook.
       - name: Verify deployed release
         shell: bash
         run: |

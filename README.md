@@ -1722,6 +1722,13 @@ GitHub CI 缓存 pnpm 下载和固定版本的 wasm-pack 工具；完整覆盖�
 GitHub/Gitea 发布同一个已验证 tarball，发布前检查 SHA-256，防止验证后产物发生变化。
 本地 `pnpm test:package` 和 `pnpm pack` 仍会执行 prepack 完整构建，避免使用过期产物。
 
+GitHub 稳定版额外发布 `waveform-demo-<版本>.tar.gz` 和 SHA-256 文件，复用同次正式构建的
+Demo（`DEMO_BASE_PATH=/waveform-analysis/`），归档内 `version.txt` 为完整提交 SHA。
+腾讯云上的部署检查器每两分钟查询最新稳定 Release，通过 `gh-download` 下载归档，使用
+GitHub API 返回的 SHA-256 校验，安全解压后原子切换目录；版本或 HTML 检查失败时恢复旧目录。
+Dokploy 使用 raw Compose 管理只读静态容器，不再克隆仓库或重复安装 Node/Rust 工具链。
+安装、手动部署及回滚见 [Demo 产物部署](deploy/README.md)。
+
 `pnpm build` 同时生成 `dist/` 组件库产物和根 `dist-demo/` 演示应用。
 `pnpm build:demo` 可独立准备库后构建 demo，`pnpm preview` 预览根 `dist-demo/`。
 正式公开入口为

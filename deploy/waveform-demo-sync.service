@@ -1,0 +1,15 @@
+[Unit]
+Description=Download and deploy the verified waveform Demo Release
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/waveform-demo/demo_release.py sync
+TimeoutStartSec=25min
+UMask=0022
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/waveform-demo
