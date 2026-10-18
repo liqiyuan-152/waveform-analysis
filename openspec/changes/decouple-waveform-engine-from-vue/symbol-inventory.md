@@ -1,6 +1,6 @@
 ## Purpose
 
-原始公共 API 快照来自 `evidence/public-api-baseline.json`（247144ee3e88a7fceb6cb3382fb80eb5b274dd3e）。本表列出全部 134 个原始出口及当前源码/测试关联，由 `scripts/build-native-compatibility-inventory.mjs` 生成，不重写原始快照。
+本表保留历史提交 `247144ee3e88a7fceb6cb3382fb80eb5b274dd3e` 的 134 个原始公共 API 出口及当时的源码/测试关联。原始验证快照与一次性生成脚本已清理；本表仅作为历史追溯记录，当前公共 API 以源码出口和 README 为准。
 
 组件出口通过 /vue 追踪，其余原始出口必须同时存在于 root 与 /native，且解析到同一 TypeScript symbol；这项源码检查不代替最终产物的运行时身份检查。
 

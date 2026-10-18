@@ -175,4 +175,4 @@ console.timeEnd('data-processing')
 
 ## 📚 更多信息
 
-完整的优化详情请参考 [OPTIMIZATIONS.md](./OPTIMIZATIONS.md)
+当前用法请参考 [README](../README.md)，模块职责与渲染流程请参考[架构说明](./architecture.md)。
