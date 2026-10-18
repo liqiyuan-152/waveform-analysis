@@ -1,6 +1,6 @@
-# waveform-analysis 1.0.0
+# waveform-analysis 0.3.0
 
-首个 1.x 正式版本，将波形分析、波形展示和基础交互组件统一为一个可按需导入的 npm 包。
+0.3 系列功能版本，将波形分析、波形展示和基础交互组件统一为一个可按需导入的 npm 包。
 
 ## 新增与改进
 
@@ -15,7 +15,7 @@
 ## 升级说明
 
 ```sh
-pnpm add waveform-analysis@1.0.0
+pnpm add waveform-analysis@0.3.0
 ```
 
 - 原分析 API、`/native` 与 `/vue` 入口继续保留；Vue 分析组件仍从 `waveform-analysis/vue` 导入。
@@ -25,5 +25,5 @@ pnpm add waveform-analysis@1.0.0
 - 分析 X 坐标仍以秒存储，显示单位不改变原始数据；受控显隐和标注状态仍由宿主持有。
 - 旧 Demo `#/components` 重定向到分析页，基础组件示例位于 `#/controls/*`。
 
-1.0.0 代表统一组件包进入正式主版本，不要求现有分析组件消费者进行破坏性迁移。
+0.3.0 汇总统一组件包与基础组件的功能更新，现有分析组件消费者无需进行破坏性迁移。
 正式发布使用 npm `latest`，由 Release 工作流构建发布包并部署演示站。

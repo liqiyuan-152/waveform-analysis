@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
