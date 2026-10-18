@@ -4,7 +4,7 @@
 
 Apple M1 / macOS arm64、Node 22.23.2、pnpm 10.32.1、Chromium 141.0.7390.37，生产 bundle，1200×720 图表，关闭动画，auto 采样最多 1200 点。每种输入预热五次，再记录五次；p95 是五个样本中的最大值，只用于本机比较。数据生成不计入更新耗时。同步时间为 setOption 返回；稳定时间包含采样、帧调度和 SVG 导出屏障，不等同于纯计算或屏幕首次呈现时间。原始样本、主线程同步耗时、布局数、注册数和 CDP 堆采样均保留。
 
-可复核结果：[基线五次预热](evidence/baseline-five-warmups.json)、[最终五次预热](evidence/optimized-five-warmups.json)。基线使用冻结的原实现生产 bundle，其源码摘要沿用 baseline-corrected.json；instrumentationSourceSha256 表示采集脚本版本，不能将其当作基线库实现摘要。最终报告的 sourceSha256 覆盖源码、脚本和浏览器 fixture。
+可复核结果：基线五次预热（历史验证文件，已清理）、最终五次预热（历史验证文件，已清理）。基线使用冻结的原实现生产 bundle，其源码摘要沿用 baseline-corrected.json；instrumentationSourceSha256 表示采集脚本版本，不能将其当作基线库实现摘要。最终报告的 sourceSha256 覆盖源码、脚本和浏览器 fixture。
 
 早期 baseline.json 的完整替换复用了首通道子数据引用，后续已用每通道新描述对象修正；保留原数据，比较只使用修正后的完整替换。此前一轮各五次样本及十次复测见 optimized-final.json、variance-check.json，用于识别帧节拍和异步波动，不挑选最快样本。
 
@@ -104,7 +104,7 @@ browser-verification.json 与同目录截图覆盖原生/Vue 的 1280×800 和 3
 
 接受的兼容成本是维护当前版本索引、请求 deadline/取消、迟到确认校验以及完整替换时的整体重置。这些工作保证未变化资源可保留，旧请求不会占住队列。剩余小规模端到端差值没有逐项归因，明确作为本机观测成本保留。采用按源复用的依据是局部替换注册 8→1、首个 SVG 和稳定耗时显著下降，同时完整替换的归一化与首个 SVG 对照保持；不承诺完整替换总体提速。
 
-为隔离顺序矩阵中“先局部更新、再全量替换”的分配历史影响，使用相同冻结生产 bundle，挂载后先完整替换，再局部替换，每次更新前显式主线程 GC；每种规模各预热五次、记录五次。见 [replacement-isolation.json](evidence/replacement-isolation.json) 及 scripts/measure-replacement-isolation.mjs。这个对照改变了前置条件，不能替代上面的顺序矩阵，也不能证明 Worker/WASM 峰值或 GC 全部耗时。
+为隔离顺序矩阵中“先局部更新、再全量替换”的分配历史影响，使用相同冻结生产 bundle，挂载后先完整替换，再局部替换，每次更新前显式主线程 GC；每种规模各预热五次、记录五次。见 replacement-isolation.json（历史验证文件，已清理） 及 scripts/measure-replacement-isolation.mjs。这个对照改变了前置条件，不能替代上面的顺序矩阵，也不能证明 Worker/WASM 峰值或 GC 全部耗时。
 
 首次 SVG 指 MutationObserver 观测到波形 path 的 d 属性首次变化；它是 DOM 几何更新时刻，不是屏幕合成/像素首次呈现，也可能是最终采样前的占位几何。单位 ms，中位数 / p95。
 

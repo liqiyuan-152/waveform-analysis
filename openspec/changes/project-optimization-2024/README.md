@@ -3,7 +3,7 @@
 ## Status
 
 2026-10-16：阶段 1 完成，阶段 2 各条专项验收完成；全量覆盖率仍有两例基线超时，未宣称完整 CI 通过。
-实际结果见 [基线](evidence/baseline.md) 与 [Workspace 证据](evidence/workspace.md)，任务状态见 tasks.md。
+实际结果见 基线（历史验证文件，已清理） 与 Workspace 证据（历史验证文件，已清理），任务状态见 tasks.md。
 保留 project-optimization-2024 目录名以避免破坏既有引用；名称中的年份不作为实际时间依据。
 
 ## Documents

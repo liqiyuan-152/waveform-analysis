@@ -1,4 +1,0 @@
-
-> waveform-analysis@0.2.0-rc.1 typecheck:examples E:\WebstormProjects\waveform-analysis
-> vue-tsc -p examples/tsconfig.json
-

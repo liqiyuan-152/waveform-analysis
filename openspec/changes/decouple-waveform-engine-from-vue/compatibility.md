@@ -10,7 +10,7 @@
 
 本表追踪既有公共契约及对应测试/浏览器证据。最新实施与验收结果见文末、[implementation.md](implementation.md) 和 tasks.md；历史阶段记录保留原状态，不代表最终入口仍待切换。
 
-原始签名、默认值和序列化快照见 [public-api-baseline.json](evidence/public-api-baseline.json)。全部 134 个原始 symbol 的当前源码及验证关联见 [symbol-inventory.md](symbol-inventory.md)。该索引区分直接测试引用与所属能力/声明检查，不能用类型导入成功代替业务行为验收。
+原始签名、默认值和序列化快照见 public-api-baseline.json（历史验证文件，已清理）。全部 134 个原始 symbol 的当前源码及验证关联见 [symbol-inventory.md](symbol-inventory.md)。该索引区分直接测试引用与所属能力/声明检查，不能用类型导入成功代替业务行为验收。
 
 ## Props
 

@@ -7,7 +7,7 @@
 - [tasks.md](tasks.md)：实施任务和验收门禁；未执行项保持未勾选。
 - [specs/](specs/)：单包双组件、共享基础、统一动画和 Demo 的行为规格。
 
-实施与验收已完成，任务和证据见 [tasks.md](tasks.md) 与 [evidence/verification.md](evidence/verification.md)。原失败记录及修复说明保留；OpenSpec 结构校验与功能验收分别记录。未发布、归档或删除原项目。
+实施与验收已完成，任务和证据见 [tasks.md](tasks.md) 与 evidence/verification.md（历史验证文件，已清理）。原失败记录及修复说明保留；OpenSpec 结构校验与功能验收分别记录。未发布、归档或删除原项目。
 
 ## 后续版本说明
 

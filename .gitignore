@@ -8,3 +8,6 @@ coverage
 *.log
 .claude/settings.local.json
 wasm/target
+
+# Generated OpenSpec validation artifacts
+openspec/**/evidence/

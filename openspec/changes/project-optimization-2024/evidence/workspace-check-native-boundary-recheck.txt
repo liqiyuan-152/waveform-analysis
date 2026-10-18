@@ -1,5 +1,0 @@
-
-> waveform-analysis@0.2.0-rc.1 check:native-boundary E:\WebstormProjects\waveform-analysis
-> node scripts/check-native-boundary.mjs
-
-Native runtime and declaration source boundary verified (204 modules).

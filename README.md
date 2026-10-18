@@ -462,8 +462,7 @@ controller.destroy() // 仅清理此 owner，不销毁共享 animator
 跨浏览器和移动设备结论只覆盖实际可用环境。
 大点数更新和交叉淡化可能增加浏览器物理内存；原 10/20MB 优化目标尚未达到。
 对内存敏感的应用可降低 `animationThreshold` 或关闭对应动画类别；卸载清理与几何数量限制
-不等于跨设备的绝对内存上限。实际测量及验收条件见
-[动画验收记录](openspec/changes/add-animation-system/evidence/final-acceptance-verification.json)。
+不等于跨设备的绝对内存上限。历史验证产物已清理，可运行上述浏览器基准重新生成测量结果。
 
 ## API 速查
 

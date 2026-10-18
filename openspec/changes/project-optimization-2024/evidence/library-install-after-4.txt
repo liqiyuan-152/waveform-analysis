@@ -1,7 +1,0 @@
-Lockfile is up to date, resolution step is skipped
-Progress: resolved 1, reused 0, downloaded 0, added 0
-.                                        | +346 ++++++++++++++++++++++++++++++++
-Progress: resolved 346, reused 77, downloaded 0, added 0
-Progress: resolved 346, reused 346, downloaded 0, added 38
-Progress: resolved 346, reused 346, downloaded 0, added 116
-Progress: resolved 346, reused 346, downloaded 0, added 187

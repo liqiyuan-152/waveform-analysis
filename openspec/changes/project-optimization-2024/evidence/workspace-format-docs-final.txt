@@ -1,2 +1,0 @@
-openspec/changes/project-optimization-2024/README.md 62ms (unchanged)
-openspec/changes/project-optimization-2024/evidence/workspace.md 61ms (unchanged)

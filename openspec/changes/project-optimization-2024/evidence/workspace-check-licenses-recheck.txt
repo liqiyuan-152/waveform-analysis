@@ -1,5 +1,0 @@
-
-> waveform-analysis@0.2.0-rc.1 check:licenses E:\WebstormProjects\waveform-analysis
-> node scripts/check-third-party-notices.mjs
-
-Third-party notices verified: 70 npm packages; 12 Rust crates

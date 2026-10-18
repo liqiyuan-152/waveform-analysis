@@ -1,3 +1,0 @@
-
-> waveform-analysis@0.1.77 check:file-length /Users/liqiyuan/WebstormProjects/waveform-analysis
-> node scripts/check-file-length.mjs
