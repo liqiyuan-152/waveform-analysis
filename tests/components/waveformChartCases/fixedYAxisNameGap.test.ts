@@ -52,7 +52,6 @@ describe('fixed channel name spacing', { timeout: 20_000 }, () => {
               unitDisplayMode: showUnits ? 'axis' : 'channel-label',
               axes: { y: { labelTextStyle: { fontSize } } },
             })
-            await flushPromises()
             const marginLeft = Number(
               chart.get('.waveform-chart').attributes('data-chart-left-margin'),
             )

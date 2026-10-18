@@ -1692,8 +1692,10 @@ pnpm lint:oxlint
 pnpm lint
 pnpm lint:all
 pnpm format:check
-pnpm test
-pnpm test:coverage
+pnpm test                   # 仅组件库测试
+pnpm test:coverage          # 仅组件库覆盖率
+pnpm test:demo              # 手动执行 demo 测试（含右侧控制栏）
+pnpm test:demo:browser      # 手动执行 demo 浏览器测试
 pnpm test:browser            # Chromium，原生/Vue、桌面/小容器、交互及 SVG/PNG
 pnpm test:browser:resources  # 三引擎重复创建/替换/销毁；Chromium 额外测 JS 堆
 pnpm build
@@ -1710,7 +1712,11 @@ ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 
 修改库 TS、Vue 或 CSS 后会更新 demo 消费的包产物，Ctrl-C 停止服务与监听进程。
 demo 的 Ant Design、颜色选择器和路由依赖由 private `demo-app` 声明；库运行时依赖保持独立。
 根 `typecheck` 覆盖库、测试、构建配置和 demo。首次运行测试也会先准备公开包入口。
-覆盖率测试为库生成未压缩且带 source map 的构建，将 demo 消费产物的执行记录映射回源码；
+Demo 用例（`demo-app/tests/` 和 `tests/display/demo/`）由独立的 `vitest.demo.config.ts` 管理，
+不参与默认测试、CI 或发布门禁，仅在手动执行上述 demo 测试命令时运行。Demo 浏览器路由检查也已从
+组件库浏览器检查和包消费者验证中分离；构建、类型检查与 Demo 部署产物校验仍保留。
+版本发布时不额外手动执行 Demo 测试或 Demo 覆盖率，部署后核对线上提交版本。
+覆盖率测试为库生成未压缩且带 source map 的构建，覆盖率范围限定为 `src/`；
 普通构建和发布包仍使用默认构建设置。
 
 GitHub 分支 CI 自动取消同一分支的过期运行，标签由 Release 工作流校验，避免重复触发标签 CI。
@@ -1718,7 +1724,7 @@ GitHub CI 缓存 pnpm 下载和固定版本的 wasm-pack 工具；完整覆盖�
 覆盖率构建之后，CI/发布流程生成一次正式构建，使用 `pnpm test:browser:built` 复用产物，
 再通过 `pnpm --config.ignore-scripts=true pack --pack-destination release-assets` 打包。
 `pnpm test:package --tarball release-assets/waveform-analysis-<版本>.tgz` 直接验证指定包，
-不会重新打包；此模式要求 `dist/` 和 `dist-demo/` 已由同一份源码正式构建。
+不会重新打包；此模式要求 `dist/` 已由同一份源码正式构建。
 GitHub/Gitea 发布同一个已验证 tarball，发布前检查 SHA-256，防止验证后产物发生变化。
 本地 `pnpm test:package` 和 `pnpm pack` 仍会执行 prepack 完整构建，避免使用过期产物。
 

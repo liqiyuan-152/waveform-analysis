@@ -1,6 +1,6 @@
 {
   "name": "waveform-analysis",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/types/index.d.ts",
@@ -129,6 +129,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "pnpm prepare:demo && vitest run",
+    "test:demo": "pnpm prepare:demo && vitest run --config vitest.demo.config.ts",
+    "test:demo:browser": "pnpm build:demo && node scripts/verify-demo-browser.mjs && node scripts/verify-unified-demo.mjs && node scripts/verify-public-controls-browser.mjs",
     "test:coverage": "pnpm build:lib --sourcemap --minify false && pnpm build:types && vitest run --coverage",
     "test:package": "node scripts/test-package.mjs",
     "prepack": "pnpm build",

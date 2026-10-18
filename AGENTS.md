@@ -64,7 +64,9 @@ pnpm lint:all                  # Run oxlint and ESLint with zero warnings
 pnpm check:native-boundary     # Verify native entry dependency boundary
 pnpm check:licenses            # Verify third-party notices
 pnpm typecheck:examples        # Verify public examples after declarations
-pnpm test                      # Run Vitest once
+pnpm test                      # Run library Vitest suites only
+pnpm test:demo                 # Manually run demo suites (including display/demo)
+pnpm test:demo:browser         # Manually run demo browser checks
 pnpm test:coverage             # Run tests and enforce coverage thresholds
 pnpm build                     # Type-check and build library, declarations, and demo
 pnpm test:package              # Pack and test independent ESM/CJS/types/CSS/WASM consumers
@@ -123,6 +125,8 @@ can be asserted instead. Add regression coverage for every bug fix.
 demo in `dist-demo/`. GitHub CI runs frozen install, explicit WASM preparation, typecheck, length,
 lint, native-boundary/license/example gates, coverage, build and independent package consumers.
 GitHub and Gitea release verification require the same quality gates before publishing.
+Do not manually run Demo unit/browser tests or Demo coverage as part of a version release.
+Keep library tests/coverage, Demo builds, artifact validation, and deployed-version checks.
 
 Use short Conventional Commit-style messages consistent with current history, for example
 `feat(chart): support ...`, `fix(annotation): handle ...`, or `test: cover ...`. Keep generated

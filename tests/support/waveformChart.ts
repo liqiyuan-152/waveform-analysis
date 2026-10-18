@@ -3,7 +3,6 @@ import { flushPromises, mount, type DOMWrapper } from '@vue/test-utils'
 import { vi } from 'vitest'
 
 import WaveformChart from '@/components/WaveformChart.vue'
-import LegacyWaveformChart from './LegacyWaveformChart.vue'
 import type { WaveformData } from '@/components/waveform'
 import { flushAnimationFrames, resizeObservers } from '@tests/support/setup'
 
@@ -61,6 +60,7 @@ export async function mountSizedChart(data: WaveformData, extraProps = {}) {
 
 /** Independent pre-adapter oracle; never compare the native engine to its own Vue wrapper. */
 export async function mountLegacySizedChart(data: WaveformData, extraProps = {}) {
+  const { default: LegacyWaveformChart } = await import('./LegacyWaveformChart.vue')
   const wrapper = mount(LegacyWaveformChart, { props: { data, ...extraProps } })
   resizeObservers.at(-1)?.resize(800, 360)
   await flushPromises()

@@ -36,10 +36,6 @@ const consumerRoot = join(temporaryRoot, 'consumer')
 mkdirSync(consumerRoot)
 const packageFile = packageTestInput(process.argv.slice(2), temporaryRoot, runPnpm)
 await verifyUnifiedPackage(packageFile)
-await import('./verify-public-controls-browser.mjs')
-// The caller must build the Demo from the same inputs when supplying a tarball.
-// Default local usage still builds it through prepack. Exercise both paths here.
-await import('./verify-unified-demo.mjs')
 
 writeFileSync(
   join(temporaryRoot, 'package.json'),

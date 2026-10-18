@@ -34,7 +34,12 @@ export default defineConfig({
     projects: [
       {
         extends: true,
-        test: { name: 'display', environment: 'node', include: ['tests/display/**/*.test.ts'] },
+        test: {
+          name: 'display',
+          environment: 'node',
+          include: ['tests/display/**/*.test.ts'],
+          exclude: ['tests/display/demo/**'],
+        },
       },
       {
         extends: true,
@@ -44,6 +49,7 @@ export default defineConfig({
         extends: true,
         test: {
           name: 'dom',
+          include: ['tests/**/*.test.ts'],
           environment: 'jsdom',
           exclude: [...nodeTests, 'tests/display/**', '**/node_modules/**', '**/.git/**'],
           setupFiles: ['./tests/support/setup.ts'],
@@ -53,6 +59,7 @@ export default defineConfig({
     ],
     coverage: {
       provider: 'v8',
+      include: ['src/**/*.{ts,tsx,js,jsx,vue}'],
       reporter: ['text', 'json-summary'],
       thresholds: {
         lines: 80,

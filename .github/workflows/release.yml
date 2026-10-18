@@ -160,5 +160,5 @@ jobs:
             fi
             sleep 10
           done
-          echo "Deployment did not publish $GITHUB_SHA; inspect the Dokploy deployment logs." >&2
+          echo "Deployment did not publish $GITHUB_SHA; inspect waveform-demo-sync.service logs on the server." >&2
           exit 1

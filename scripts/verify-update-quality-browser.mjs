@@ -1,4 +1,3 @@
-import { measureDemoHover } from './browser-hover-metrics.mjs'
 import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -280,31 +279,6 @@ try {
       assert.equal(await page.locator('svg.waveform-chart__svg').count(), 0)
       assert.equal(await page.locator('[role=tooltip]').count(), 0)
     }
-  for (const width of [1280, 360]) {
-    await page.setViewportSize({ width, height: 800 })
-    for (const route of ['/', '/animation', '/wasm-sampling']) {
-      await page.goto(`http://localhost:5210/demo-app/index.html#${route}`)
-      await page.locator('svg.waveform-chart__svg').first().waitFor()
-      if (route === '/animation') {
-        await page.getByRole('button', { name: '更新振幅', exact: true }).click()
-        await page.getByRole('button', { name: '增删标注', exact: true }).click()
-      }
-      if (route === '/wasm-sampling') {
-        await page.getByText('WASM', { exact: true }).click()
-        await page.waitForFunction(() =>
-          [...globalThis.document.querySelectorAll('[data-label="后端"]')].every(
-            (node) => node.textContent === 'wasm',
-          ),
-        )
-        assert.equal(await page.locator('[data-label="后端"]').count(), 10)
-      }
-      await page.locator('svg.waveform-chart__svg path').first().waitFor({ state: 'attached' })
-      const demoHover = await measureDemoHover(page)
-      const screenshot = `demo-${route === '/' ? 'workspace' : route.slice(1)}-${width}.png`
-      await page.screenshot({ path: `${evidence}/${screenshot}`, fullPage: true })
-      report.cases.push({ demo: route, width, screenshot, demoHover })
-    }
-  }
   assert.deepEqual(report.errors, [])
 } catch (error) {
   report.failure = String(error)
