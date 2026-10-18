@@ -7,6 +7,7 @@ import { createExample } from '../example'
 export function mount(host: HTMLElement, report: (message: string) => void) {
   const demo = createExample(host)
   const modal = demo.own(new Modal(demo.document, { title: '基础弹窗' }))
+  modal.root.classList.add('control-example__modal')
   const paragraph = demo.document.createElement('p')
   paragraph.textContent = '自定义内容与页脚。Escape 优先关闭内部下拉框，再关闭弹窗。'
   modal.body.append(paragraph)
@@ -43,6 +44,7 @@ export function mount(host: HTMLElement, report: (message: string) => void) {
       },
     }),
   )
+  confirm.root.classList.add('control-example__modal')
   const text = demo.document.createElement('p')
   text.textContent = '点击关闭按钮或按 Escape，演示由消费者接管关闭请求。'
   confirm.body.append(text)

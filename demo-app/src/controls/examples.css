@@ -1,27 +1,35 @@
 .control-example {
+  display: grid;
+  align-content: start;
+  gap: 24px;
   height: 100%;
   min-width: 0;
   overflow-y: auto;
   padding: 24px;
   color: var(--demo-text);
 }
+.control-example > header {
+  display: grid;
+  gap: 8px;
+}
 .control-example h1 {
-  margin: 4px 0 12px;
+  margin: 0;
   font-size: 26px;
 }
 .control-example p {
+  margin: 0;
   line-height: 1.7;
 }
 .control-example__eyebrow {
   color: var(--demo-muted);
   font-size: 12px;
-  margin: 0;
 }
 .control-example__theme {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
-  margin: 20px 0;
+  gap: 8px 12px;
+  margin-top: 8px;
 }
 .control-example select:not(.waveform-select),
 .control-example__action {
@@ -32,8 +40,10 @@
   border-radius: 6px;
 }
 .control-example__action {
+  flex: 0 0 auto;
+  max-width: 100%;
+  margin: 0;
   cursor: pointer;
-  margin: 0 8px 8px 0;
 }
 .control-example__grid {
   display: grid;
@@ -41,6 +51,10 @@
   gap: 20px;
 }
 .control-example__card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
   min-width: 0;
   padding: 20px;
   border: 1px solid var(--demo-border);
@@ -50,20 +64,46 @@
 .control-example__card h2 {
   margin: 0;
   font-size: 18px;
+  line-height: 1.4;
 }
 .control-example__card > p {
   color: var(--demo-muted);
   font-size: 13px;
 }
-.control-example__card > .waveform-select {
+.control-example__content,
+.control-example__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.control-example__content {
+  margin-top: 4px;
+}
+.control-example__content > p,
+.control-example__actions {
+  flex-basis: 100%;
+}
+.control-example__content > p {
+  overflow-wrap: anywhere;
+}
+.control-example__content > .waveform-select,
+.control-example__content > .waveform-number-input {
+  flex: 0 1 280px;
   width: 100%;
+  min-width: 0;
   max-width: 280px;
 }
-.control-example__card > .waveform-color-input {
+.control-example__content > .waveform-color-input {
+  flex: 0 0 64px;
   width: 64px;
 }
+.control-example__content > .waveform-pagination {
+  max-width: 100%;
+}
 .control-example__status {
-  padding: 12px;
+  padding: 12px 16px;
   background: var(--demo-selected);
   border-radius: 6px;
   overflow-wrap: anywhere;
@@ -80,13 +120,40 @@
 .control-example__source pre {
   max-width: 100%;
   overflow: auto;
+  margin: 16px 0;
   padding: 12px;
   background: var(--demo-panel);
   font-size: 12px;
   line-height: 1.6;
 }
+/* Example content is also mounted outside the page in native dialogs/popovers. */
+.control-example__modal .waveform-modal__body,
+.control-example__popup-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+}
+.control-example__modal .waveform-modal__body > p,
+.control-example__popup-content > p {
+  margin: 0;
+  line-height: 1.7;
+}
+.control-example__modal .waveform-modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
 @media (max-width: 600px) {
   .control-example {
+    gap: 20px;
+    padding: 16px;
+  }
+  .control-example__grid {
+    gap: 16px;
+  }
+  .control-example__card {
     padding: 16px;
   }
 }

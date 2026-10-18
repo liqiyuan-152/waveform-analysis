@@ -4,7 +4,7 @@
 
 This repository is a TypeScript and D3 native SVG waveform library with a Vue 3 adapter.
 The published package is `waveform-analysis`; deliberate public exports live in `src/index.ts`,
-`src/native.ts`, and `src/vue.ts`. The private `demo-app` workspace consumes built package entries
+`src/native.ts`, `src/analysis.ts`, `src/display.ts`, and `src/vue.ts`. The private `demo-app` workspace consumes built package entries
 and is not part of the public API.
 
 Important behavioral contracts:
@@ -22,6 +22,8 @@ Important behavioral contracts:
 
 ## Repository Layout
 
+- `src/display/`: independent display component and compatibility adapters; public entry `src/display.ts`.
+- `src/shared/`: framework-independent formatting, SVG and animation math used by both components.
 - `src/chart/`: instance factory, facade, resources, events and staged update scheduler.
 - `src/model/`, `src/data/`: options, viewport, visibility, presentation, prepared data and queries.
 - `src/layout/`, `src/view/`, `src/rendering/`: layout measurement, persistent DOM/SVG views and geometry.

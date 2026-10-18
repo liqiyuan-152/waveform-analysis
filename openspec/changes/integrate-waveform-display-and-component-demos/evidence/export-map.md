@@ -1,0 +1,50 @@
+# 公开展示导出映射
+
+| /display | 根入口 |
+| --- | --- |
+| Waveform | Waveform |
+| defaultOptions | waveformDisplayDefaultOptions |
+| WaveformPoint | WaveformDisplayPoint |
+| WaveformLineType | WaveformDisplayLineType |
+| WaveformLineStyle | WaveformDisplayLineStyle |
+| WaveformPointType | WaveformDisplayPointType |
+| WaveformSeriesPointStyle | WaveformDisplaySeriesPointStyle |
+| WaveformSeriesStyle | WaveformDisplaySeriesStyle |
+| WaveformSeries | WaveformDisplaySeries |
+| WaveformData | WaveformDisplayData |
+| BorderStyle | WaveformDisplayBorderStyle |
+| GridLineStyle | WaveformDisplayGridLineStyle |
+| PaddingOptions | WaveformDisplayPaddingOptions |
+| FrameOptions | WaveformDisplayFrameOptions |
+| FrameNumberStyleOptions | WaveformDisplayFrameNumberStyleOptions |
+| LineOptions | WaveformDisplayLineOptions |
+| PointOptions | WaveformDisplayPointOptions |
+| AxisLabelOptions | WaveformDisplayAxisLabelOptions |
+| AxisOptions | WaveformDisplayAxisOptions |
+| XAxisOptions | WaveformDisplayXAxisOptions |
+| ValueAxisOptions | WaveformDisplayValueAxisOptions |
+| GridAxisOptions | WaveformDisplayGridAxisOptions |
+| ValueGridAxisOptions | WaveformDisplayValueGridAxisOptions |
+| GridOptions | WaveformDisplayGridOptions |
+| ZeroLineOptions | WaveformDisplayZeroLineOptions |
+| TitleOptions | WaveformDisplayTitleOptions |
+| ShotOptions | WaveformDisplayShotOptions |
+| ResponsiveOptions | WaveformDisplayResponsiveOptions |
+| LegendOptions | WaveformDisplayLegendOptions |
+| EmptyStateOptions | WaveformDisplayEmptyStateOptions |
+| HorizontalPadding | WaveformDisplayHorizontalPadding |
+| LayoutOptions | WaveformDisplayLayoutOptions |
+| WaveformLayoutChange | WaveformDisplayLayoutChange |
+| XDomainStrategy | WaveformDisplayXDomainStrategy |
+| WaveformOptions | WaveformDisplayOptions |
+| SeriesVisibilityChange | WaveformDisplaySeriesVisibilityChange |
+| WaveformEvents | WaveformDisplayEvents |
+| ToggleSeriesAction | WaveformDisplayToggleSeriesAction |
+| WaveformAction | WaveformDisplayAction |
+| AnimationEasing | WaveformDisplayAnimationEasing |
+| AnimationDirection | WaveformDisplayAnimationDirection |
+| AnimationUpdateOptions | WaveformDisplayAnimationUpdateOptions |
+| AnimationEnterOptions | WaveformDisplayAnimationEnterOptions |
+| WaveformAnimation | WaveformDisplayAnimation |
+
+分析入口的全部旧符号由 src/analysis.ts 保留；/native 跟随根入口。

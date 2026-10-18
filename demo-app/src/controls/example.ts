@@ -18,9 +18,11 @@ export function createExample(host: HTMLElement) {
     heading.textContent = title
     const text = document.createElement('p')
     text.textContent = description
-    root.append(heading, text)
+    const content = document.createElement('div')
+    content.className = 'control-example__content'
+    root.append(heading, text, content)
     host.append(root)
-    return root
+    return content
   }
   const own = <T extends ControlExample>(control: T): T => {
     controls.push(control)

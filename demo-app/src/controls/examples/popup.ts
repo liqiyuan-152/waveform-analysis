@@ -14,6 +14,7 @@ export function mount(host: HTMLElement, report: (message: string) => void) {
       onOpenChange: (open) => report(open ? '基本浮层已打开' : '基本浮层已关闭'),
     }),
   )
+  popup.content.classList.add('control-example__popup-content')
   demo.button(popup.content, '关闭浮层', () => popup.close(true))
 
   const modes = demo.section(
@@ -71,6 +72,7 @@ export function mount(host: HTMLElement, report: (message: string) => void) {
   )
   const button = demo.button(custom, '打开自定义尺寸', () => {})
   const content = demo.document.createElement('div')
+  content.className = 'control-example__popup-content'
   for (let i = 1; i <= 12; i++) {
     const line = demo.document.createElement('p')
     line.textContent = `第 ${i} 行：内容超出高度后在卡片内部滚动。`

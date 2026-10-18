@@ -18,7 +18,8 @@ export function mount(host: HTMLElement, report: (message: string) => void) {
     }),
   )
   pagination.update({ page, pageCount })
-  const actions = demo.document.createElement('p')
+  const actions = demo.document.createElement('div')
+  actions.className = 'control-example__actions'
   card.append(actions)
   demo.button(actions, '调整为 3 页', () => {
     pageCount = 3
