@@ -35,7 +35,7 @@ describe('browser gates', () => {
       const shim = join(root, 'pnpm')
       writeFileSync(
         shim,
-        '#!/bin/sh\nif [ "$1" = test:browser ]; then echo "$FAILURE_KIND"; exit "$FAILURE_CODE"; fi\n',
+        '#!/bin/sh\nif [ "$1" = test:browser ] || [ "$1" = test:browser:built ]; then echo "$FAILURE_KIND"; exit "$FAILURE_CODE"; fi\n',
       )
       chmodSync(shim, 0o755)
       for (const [failure, code] of [

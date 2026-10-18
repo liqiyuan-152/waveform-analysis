@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +33,14 @@ jobs:
         with:
           targets: wasm32-unknown-unknown
 
-      - run: cargo install wasm-pack --version 0.14.0 --locked
+      - name: Cache wasm-pack executable
+        id: wasm-pack
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/wasm-pack
+          key: ${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-wasm-pack-0.14.0-rust-1.95.0
+      - if: steps.wasm-pack.outputs.cache-hit != 'true'
+        run: cargo install wasm-pack --version 0.14.0 --locked
 
       - name: Validate release version
         shell: bash
@@ -79,22 +86,20 @@ jobs:
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify browser interactions
-        run: pnpm test:browser
+        run: pnpm test:browser:built
         env:
           WAVEFORM_BROWSER: chromium
           WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
-      - run: pnpm test:package
-
       - name: Pack release assets
         shell: bash
         run: |
           set -euo pipefail
-          pnpm pack --pack-destination artifacts
-          package_file="$(find artifacts -maxdepth 1 -type f -name '*.tgz' -print -quit)"
-          install -d release-assets
+          pnpm --config.ignore-scripts=true pack --pack-destination release-assets
           published_name="waveform-analysis-${package_version}.tgz"
-          install -m 644 "$package_file" "release-assets/$published_name"
           sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
+
+      - name: Verify the release tarball
+        run: pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
 
       - name: Publish npm package
         env:
@@ -105,6 +110,7 @@ jobs:
             echo "NPMJS_PUBLISH_TOKEN is required for npm publish." >&2
             exit 1
           fi
+          sha256sum --check "release-assets/waveform-analysis-${package_version}.tgz.sha256"
           npm publish "./release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
 
       - name: Create GitHub release

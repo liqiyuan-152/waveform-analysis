@@ -9,11 +9,12 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { basename, join, resolve } from 'node:path'
+import { basename, join } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { build, preview } from 'vite'
 import { verifyPackageNativeControls } from './verify-package-native-controls.mjs'
 import { packageManagerInvocation } from './package-manager.mjs'
+import { packageTestInput } from './package-test-input.mjs'
 
 const pnpmCli = process.env.npm_execpath
 if (!pnpmCli || !basename(pnpmCli).startsWith('pnpm')) {
@@ -33,17 +34,11 @@ function runPnpm(args, cwd = process.cwd()) {
 const temporaryRoot = realpathSync(mkdtempSync(join(tmpdir(), 'waveform-analysis-package-')))
 const consumerRoot = join(temporaryRoot, 'consumer')
 mkdirSync(consumerRoot)
-runPnpm(['pack', '--pack-destination', temporaryRoot])
-
-const packageFile = readdirSync(temporaryRoot)
-  .filter((fileName) => fileName.endsWith('.tgz'))
-  .map((fileName) => resolve(temporaryRoot, fileName))
-  .at(0)
-if (!packageFile) throw new Error('pnpm pack did not create a package tarball.')
+const packageFile = packageTestInput(process.argv.slice(2), temporaryRoot, runPnpm)
 await verifyUnifiedPackage(packageFile)
 await import('./verify-public-controls-browser.mjs')
-// prepack built the unified Demo from the same inputs as this tarball. Exercise
-// its routes here so CI and both release workflows inherit the new component gate.
+// The caller must build the Demo from the same inputs when supplying a tarball.
+// Default local usage still builds it through prepack. Exercise both paths here.
 await import('./verify-unified-demo.mjs')
 
 writeFileSync(

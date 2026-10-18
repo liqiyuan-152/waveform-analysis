@@ -5,6 +5,7 @@ import { mkdtempSync, realpathSync, writeFileSync, readFileSync, readdirSync } f
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { pathToFileURL } from 'node:url'
 
 // A separate consumer has no Vue dependency or ancestor workspace node_modules.
 export async function verifyUnifiedPackage(tarball) {
@@ -139,4 +140,10 @@ void Popup
   return root
 }
 
-if (process.argv[2]) await verifyUnifiedPackage(resolve(process.argv[2]))
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href &&
+  process.argv[2]
+) {
+  await verifyUnifiedPackage(resolve(process.argv[2]))
+}

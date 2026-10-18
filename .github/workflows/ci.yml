@@ -2,10 +2,16 @@ name: waveform-analysis-ci
 
 on:
   push:
+    branches:
+      - '**'
   pull_request:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
@@ -13,15 +19,26 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22.20.0
+          cache: pnpm
       - uses: dtolnay/rust-toolchain@1.95.0
         with:
           targets: wasm32-unknown-unknown
-      - run: cargo install wasm-pack --version 0.14.0 --locked
+      - name: Cache wasm-pack executable
+        id: wasm-pack
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/wasm-pack
+          key: ${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-wasm-pack-0.14.0-rust-1.95.0
+      - if: steps.wasm-pack.outputs.cache-hit != 'true'
+        run: cargo install wasm-pack --version 0.14.0 --locked
       - name: Install locked dependencies
-        run: corepack enable && corepack prepare pnpm@10.32.1 --activate && pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
       - run: pnpm prepare:wasm
       - run: python3 scripts/issue_triage_agent.py --self-test
       - run: pnpm lint:all
@@ -42,11 +59,17 @@ jobs:
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
       - name: Verify browser interactions
-        run: pnpm test:browser
+        run: pnpm test:browser:built
         env:
           WAVEFORM_BROWSER: chromium
           WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
-      - run: pnpm test:package
+      - name: Pack and verify the built package
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          pnpm --config.ignore-scripts=true pack --pack-destination release-assets
+          pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
 
       - name: Retain browser diagnostics
         if: always()
