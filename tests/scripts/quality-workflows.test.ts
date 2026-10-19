@@ -5,13 +5,33 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const checks = ['check:native-boundary', 'check:licenses', 'typecheck:examples']
-const workflows = [
-  '.github/workflows/ci.yml',
-  '.github/workflows/release.yml',
-  '.gitea/workflows/package.yml',
-]
+const workflows = ['.github/workflows/verify.yml', '.gitea/workflows/package.yml']
 
 describe('quality gates before packaging or publishing', () => {
+  it('requires either successful fallback verification or a verified CI artifact before publishing', () => {
+    const ci = readFileSync('.github/workflows/ci.yml', 'utf8')
+    const release = readFileSync('.github/workflows/release.yml', 'utf8')
+    const verify = readFileSync('.github/workflows/verify.yml', 'utf8')
+    expect(ci).toContain('uses: ./.github/workflows/verify.yml')
+    expect(release).toContain('uses: ./.github/workflows/verify.yml')
+    expect(release).toContain('needs: [prepare, verify]')
+    expect(release).toContain("needs.verify.result == 'success'")
+    expect(release).toContain(
+      "needs.verify.result == 'skipped' && needs.prepare.outputs.run_id != ''",
+    )
+    expect(release.indexOf('node scripts/release-artifacts.mjs verify')).toBeLessThan(
+      release.indexOf('pnpm test:package'),
+    )
+    expect(release.indexOf('pnpm test:package')).toBeLessThan(release.indexOf('npm publish'))
+    expect(verify.indexOf('pnpm test:package')).toBeLessThan(
+      verify.indexOf('node scripts/release-artifacts.mjs seal'),
+    )
+    expect(verify.indexOf('node scripts/release-artifacts.mjs seal')).toBeLessThan(
+      verify.indexOf('name: Retain verified release artifacts'),
+    )
+    expect(release).not.toMatch(/pnpm build|pnpm test:coverage|ignore-scripts=true pack/)
+  })
+
   it.each(workflows)('%s stops the job when any quality check fails', (file) => {
     const source = readFileSync(file, 'utf8')
     const header = '      - name: Verify native boundary, licenses and examples\n'

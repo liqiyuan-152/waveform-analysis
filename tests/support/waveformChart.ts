@@ -36,12 +36,16 @@ function withChartTrigger<T extends DOMWrapper<Node>>(element: T): T {
   return element
 }
 
-export async function mountSizedChart(data: WaveformData, extraProps = {}) {
+export async function mountSizedChart(
+  data: WaveformData,
+  extraProps = {},
+  size = { width: 800, height: 360 },
+) {
   const wrapper = mount(WaveformChart, {
     props: { data, animationEnabled: false, ...extraProps },
     attachTo: document.body,
   })
-  resizeChart(800, 360)
+  resizeChart(size.width, size.height)
   await flushPromises()
   await flushVueChartUpdates()
   const setProps = wrapper.setProps.bind(wrapper)

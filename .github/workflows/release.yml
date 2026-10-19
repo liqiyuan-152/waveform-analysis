@@ -6,43 +6,29 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
+  actions: read
 
 concurrency:
   group: waveform-analysis-release
   cancel-in-progress: false
 
 jobs:
-  release:
+  prepare:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 20
+    outputs:
+      run_id: ${{ steps.artifacts.outputs.run-id }}
+      package_version: ${{ steps.version.outputs.package_version }}
+      npm_dist_tag: ${{ steps.version.outputs.npm_dist_tag }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.32.1
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
-
-      - uses: dtolnay/rust-toolchain@1.95.0
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Cache wasm-pack executable
-        id: wasm-pack
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/wasm-pack
-          key: ${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-wasm-pack-0.14.0-rust-1.95.0
-      - if: steps.wasm-pack.outputs.cache-hit != 'true'
-        run: cargo install wasm-pack --version 0.14.0 --locked
-
       - name: Validate release version
+        id: version
         shell: bash
         run: |
           set -euo pipefail
@@ -61,51 +47,65 @@ jobs:
           fi
 
           if [[ "$package_version" == *-* ]]; then
-            echo "npm_dist_tag=next" >> "$GITHUB_ENV"
-            echo "prerelease=true" >> "$GITHUB_ENV"
+            echo "npm_dist_tag=next" >> "$GITHUB_OUTPUT"
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
           else
-            echo "npm_dist_tag=latest" >> "$GITHUB_ENV"
-            echo "prerelease=false" >> "$GITHUB_ENV"
+            echo "npm_dist_tag=latest" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "package_version=$package_version" >> "$GITHUB_ENV"
+          echo "package_version=$package_version" >> "$GITHUB_OUTPUT"
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm prepare:wasm
-      - run: pnpm typecheck
-      - name: Verify native boundary, licenses and examples
-        run: |
-          set -eu
-          pnpm check:native-boundary
-          pnpm check:licenses
-          pnpm typecheck:examples
-      - run: pnpm check:file-length
-      - run: pnpm lint:oxlint
-      - run: pnpm lint
-      - name: Verify Demo artifact deployment and rollback
-        run: python3 -m unittest discover -s deploy -p 'test_*.py'
-      - run: pnpm test:coverage --maxWorkers=5
-      - run: pnpm build
+      - name: Find successful CI artifacts for this commit
+        id: artifacts
+        run: node scripts/find-verified-release.mjs
         env:
-          DEMO_BASE_PATH: /waveform-analysis/
+          GH_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+
+  verify:
+    needs: prepare
+    if: needs.prepare.outputs.run_id == ''
+    uses: ./.github/workflows/verify.yml
+    with:
+      coverage_workers: 3
+
+  release:
+    needs: [prepare, verify]
+    if: >-
+      ${{ !cancelled() && needs.prepare.result == 'success' &&
+          (needs.verify.result == 'success' ||
+           (needs.verify.result == 'skipped' && needs.prepare.outputs.run_id != '')) }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: read
+    env:
+      package_version: ${{ needs.prepare.outputs.package_version }}
+      npm_dist_tag: ${{ needs.prepare.outputs.npm_dist_tag }}
+      prerelease: ${{ needs.prepare.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Download the verified release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: verified-release-${{ github.sha }}
+          path: release-assets
+          github-token: ${{ github.token }}
+          run-id: ${{ needs.prepare.outputs.run_id || github.run_id }}
+      - name: Verify artifact commit, version, checksums and Demo path
+        run: node scripts/release-artifacts.mjs verify
+      - run: pnpm install --frozen-lockfile
       - name: Install browser for package consumer checks
         run: pnpm exec playwright install --with-deps chromium
-      - name: Verify browser interactions
-        run: pnpm test:browser:built
-        env:
-          WAVEFORM_BROWSER: chromium
-          WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
-      - name: Pack release assets
-        shell: bash
-        run: |
-          set -euo pipefail
-          pnpm --config.ignore-scripts=true pack --pack-destination release-assets
-          published_name="waveform-analysis-${package_version}.tgz"
-          sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
-
-      - name: Pack the built Demo for artifact deployment
-        if: env.prerelease == 'false'
-        run: python3 deploy/demo_release.py pack --tag "$GITHUB_REF_NAME" --sha "$GITHUB_SHA"
-
       - name: Verify the release tarball
         run: pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
 
@@ -118,7 +118,7 @@ jobs:
             echo "NPMJS_PUBLISH_TOKEN is required for npm publish." >&2
             exit 1
           fi
-          sha256sum --check "release-assets/waveform-analysis-${package_version}.tgz.sha256"
+          (cd release-assets && sha256sum --check "waveform-analysis-${package_version}.tgz.sha256")
           npm publish "./release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
 
       - name: Create GitHub release
@@ -129,14 +129,6 @@ jobs:
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
           files: release-assets/*
-
-      - name: Retain browser diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: browser-chromium
-          path: artifacts/browser
-          retention-days: 14
 
   deploy-demo:
     needs: release

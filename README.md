@@ -1721,10 +1721,15 @@ Demo 用例（`demo-app/tests/` 和 `tests/display/demo/`）由独立的 `vitest
 
 GitHub 分支 CI 自动取消同一分支的过期运行，标签由 Release 工作流校验，避免重复触发标签 CI。
 GitHub CI 缓存 pnpm 下载和固定版本的 wasm-pack 工具；完整覆盖率与质量门禁保持不变。
+GitHub CI 与发布回退共用 `.github/workflows/verify.yml`，默认使用 3 个覆盖率 worker。
+可在 Actions 手动运行 CI，选择 3 或 5 个 worker；测试时长和覆盖率报告保留 14 天。
+标签发布优先复用默认分支上同一提交已成功完成 CI 的产物，并校验提交、版本、Demo 路径及 SHA-256。
+若该 CI 正在运行，最多等待 15 分钟；没有合格产物（包括过期、查询失败或 CI 失败）时完整验证一次。
+发布仍会重新验证归档中的独立消费者与部署版本；不会重新构建已验证的产物。
 覆盖率构建之后，CI/发布流程生成一次正式构建，使用 `pnpm test:browser:built` 复用产物，
 再通过 `pnpm --config.ignore-scripts=true pack --pack-destination release-assets` 打包。
 `pnpm test:package --tarball release-assets/waveform-analysis-<版本>.tgz` 直接验证指定包，
-不会重新打包；此模式要求 `dist/` 已由同一份源码正式构建。
+不会重新打包或要求当前工作区存在 `dist/`；验证对象为指定归档中的构建产物。
 GitHub/Gitea 发布同一个已验证 tarball，发布前检查 SHA-256，防止验证后产物发生变化。
 本地 `pnpm test:package` 和 `pnpm pack` 仍会执行 prepack 完整构建，避免使用过期产物。
 

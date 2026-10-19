@@ -4,11 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const workflows = [
-  '.github/workflows/ci.yml',
-  '.github/workflows/release.yml',
-  '.gitea/workflows/package.yml',
-]
+const workflows = ['.github/workflows/verify.yml', '.gitea/workflows/package.yml']
 
 describe('browser gates', () => {
   it.each(workflows)('%s rejects browser failures before publishing', (file) => {
@@ -61,8 +57,8 @@ describe('browser gates', () => {
     }
   })
 
-  it('uploads release browser evidence from the job that produces it', () => {
-    const source = readFileSync('.github/workflows/release.yml', 'utf8')
+  it('uploads browser evidence from the reusable verification job', () => {
+    const source = readFileSync('.github/workflows/verify.yml', 'utf8')
     const releaseJob = source.split('  deploy-demo:')[0]!
     expect(releaseJob).toContain('pnpm test:browser')
     expect(releaseJob).toContain('name: Retain browser diagnostics')

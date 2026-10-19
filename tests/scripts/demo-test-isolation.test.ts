@@ -60,6 +60,7 @@ it('keeps demo browser checks out of release commands', () => {
   )
   for (const file of [
     '.github/workflows/ci.yml',
+    '.github/workflows/verify.yml',
     '.github/workflows/release.yml',
     '.github/workflows/browser-regression.yml',
     '.gitea/workflows/package.yml',

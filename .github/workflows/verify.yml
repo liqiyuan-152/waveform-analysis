@@ -1,0 +1,112 @@
+name: Verify library and release artifacts
+
+on:
+  workflow_call:
+    inputs:
+      coverage_workers:
+        type: number
+        default: 3
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22.20.0
+          cache: pnpm
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: wasm32-unknown-unknown
+      - name: Cache wasm-pack executable
+        id: wasm-pack
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/wasm-pack
+          key: ${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-wasm-pack-0.14.0-rust-1.95.0
+      - if: steps.wasm-pack.outputs.cache-hit != 'true'
+        run: cargo install wasm-pack --version 0.14.0 --locked
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - run: pnpm prepare:wasm
+      - run: python3 scripts/issue_triage_agent.py --self-test
+      - run: pnpm lint:all
+      - name: Verify source length
+        run: pnpm check:file-length
+      - name: Type check
+        run: pnpm typecheck
+      - name: Verify native boundary, licenses and examples
+        run: |
+          set -eu
+          pnpm check:native-boundary
+          pnpm check:licenses
+          pnpm typecheck:examples
+      - name: Test library with coverage
+        env:
+          COVERAGE_WORKERS: ${{ inputs.coverage_workers }}
+        run: |
+          case "$COVERAGE_WORKERS" in 3|5) ;; *) exit 1 ;; esac
+          node -e 'const os = require("node:os"); console.log({workers: process.env.COVERAGE_WORKERS, cpus: os.availableParallelism(), memoryGiB: os.totalmem() / 2 ** 30})'
+          pnpm test:coverage --maxWorkers="$COVERAGE_WORKERS" --reporter=default --reporter=json --outputFile=artifacts/library-tests.json
+      - name: Build package and Demo
+        run: pnpm build
+        env:
+          DEMO_BASE_PATH: /waveform-analysis/
+      - name: Verify Demo artifact deployment and rollback
+        run: |
+          python3 -m unittest discover -s deploy -p 'test_*.py'
+          package_version="$(node -p "require('./package.json').version")"
+          if [[ "$package_version" != *-* ]]; then
+            python3 deploy/demo_release.py pack --tag "v$package_version" --sha "$GITHUB_SHA"
+          fi
+      - name: Install browser for package consumer checks
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify browser interactions
+        run: pnpm test:browser:built
+        env:
+          WAVEFORM_BROWSER: chromium
+          WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
+      - name: Pack and verify the built package
+        shell: bash
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          pnpm --config.ignore-scripts=true pack --pack-destination release-assets
+          (cd release-assets && sha256sum "waveform-analysis-${package_version}.tgz" > "waveform-analysis-${package_version}.tgz.sha256")
+          pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
+      - name: Seal verified release artifacts
+        run: node scripts/release-artifacts.mjs seal
+      - name: Retain verified release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-${{ github.sha }}
+          path: release-assets/
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 14
+
+      - name: Retain browser diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-chromium
+          path: artifacts/browser
+          retention-days: 14
+      - name: Retain library test timings and coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-tests-${{ inputs.coverage_workers }}-workers
+          path: |
+            artifacts/library-tests.json
+            coverage/coverage-summary.json
+          retention-days: 14
+          overwrite: true

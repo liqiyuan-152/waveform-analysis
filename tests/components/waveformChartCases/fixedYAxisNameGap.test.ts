@@ -1,5 +1,3 @@
-import { resizeChart } from '@tests/support/setup'
-import { flushVueChartUpdates as flushPromises } from '@tests/support/waveformChart'
 import { describe, expect, it } from 'vitest'
 
 import type { WaveformData } from '@/components/waveform'
@@ -47,20 +45,21 @@ describe('fixed channel name spacing', { timeout: 20_000 }, () => {
           },
         })),
       }
-      const chart = await mountSizedChart(data, {
-        displayMode,
-        layoutPreset,
-        overlayMode: multi ? 'multi-axis' : 'single-axis',
-        grid: { rowCount: 2, columnCount: multi ? 2 : 1 },
-      })
-      try {
-        resizeChart(multi ? 1600 : 800, 600)
-        await flushPromises()
-        // Keep the full matrix, with one layout update per independently timed case.
-        await chart.setProps({
+      // This matrix verifies final geometry. Mounted resize/style transitions have
+      // dedicated lifecycle coverage; avoid rendering two unused layouts per case.
+      const chart = await mountSizedChart(
+        data,
+        {
+          displayMode,
+          layoutPreset,
+          overlayMode: multi ? 'multi-axis' : 'single-axis',
+          grid: { rowCount: 2, columnCount: multi ? 2 : 1 },
           unitDisplayMode: showUnits ? 'axis' : 'channel-label',
           axes: { y: { labelTextStyle: { fontSize } } },
-        })
+        },
+        { width: multi ? 1600 : 800, height: 600 },
+      )
+      try {
         const marginLeft = Number(chart.get('.waveform-chart').attributes('data-chart-left-margin'))
         const svgWidth = Number(chart.get('.waveform-chart__svg').attributes('width'))
         const tracks = chart.findAll('.waveform-chart__track')
