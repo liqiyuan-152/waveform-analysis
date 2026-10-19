@@ -362,12 +362,15 @@ describe('native/Vue layout and axis parity', () => {
           amplitudeLimits: { a: { lower: -0.0001, upper: 0.0001 }, c: { upper: 200 } },
         },
         800,
+        // Configured boundary labels intentionally differ from the frozen legacy engine.
+        true,
       )
       expect(snapshot(host)).toEqual(snapshot(vue.element))
       native.setViewportDomain([0.1, 0.7])
       vue.vm.setViewportDomain([0.1, 0.7])
       await flushPromises()
       await flushNativeUpdates()
+      await flushVueChartUpdates()
       expect(snapshot(host)).toEqual(snapshot(vue.element))
     },
   )
