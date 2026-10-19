@@ -1,3 +1,7 @@
+.display-demo {
+  height: 100%;
+  overflow: auto;
+}
 .display-demo :scope {
   font-family: Inter, 'Segoe UI', system-ui, sans-serif;
   font-synthesis: none;
@@ -17,9 +21,9 @@
   --error: var(--demo-error);
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  min-height: 100dvh;
-  padding: 14px;
+  gap: 12px;
+  min-height: 100%;
+  padding: 12px;
   color: var(--text);
   background: var(--page);
 }
@@ -32,11 +36,20 @@
 }
 .display-demo .control-pane {
   container-type: inline-size;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.display-demo .control-pane::-webkit-scrollbar {
+  width: 6px;
+}
+.display-demo .control-pane::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
 .display-demo .control-toolbar {
   display: grid;
   gap: 12px;
-  padding: 12px;
+  padding: 16px 18px;
   border-bottom: 1px solid var(--border);
 }
 .display-demo .toolbar-row {
@@ -52,16 +65,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 44px;
-  padding: 10px 12px;
+  min-height: 46px;
+  padding: 16px 18px 12px;
+}
+.display-demo .preview-pane__header {
   border-bottom: 1px solid var(--border);
 }
 .display-demo h1,
 .display-demo h2 {
   margin: 0;
   color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 650;
 }
 .display-demo .animation-panel {
   border-bottom: 1px solid var(--border);
@@ -74,7 +89,10 @@
   color: var(--muted);
 }
 .display-demo .config-tabs {
-  padding: 0 12px;
+  padding: 0 18px;
+}
+.display-demo .config-tabs .ant-tabs-tab {
+  font-size: 12px;
 }
 .display-demo .config-tabs .ant-tabs-nav {
   margin: 0;
@@ -83,28 +101,37 @@
   display: none;
 }
 .display-demo .config-tabs .ant-tabs-tab + .ant-tabs-tab {
-  margin-left: 16px;
+  margin-left: 12px;
 }
 .display-demo .config-tabpanel,
 .display-demo .animation-content {
-  padding: 12px;
+  padding: 12px 18px 16px;
 }
 .display-demo .config-grid,
 .display-demo .series-overrides {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 12px 16px;
-  margin: 16px 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 10px;
+  margin: 12px 0 0;
 }
 .display-demo .animation-content .config-grid {
   margin-top: 0;
 }
+.display-demo .animation-content > .config-grid + .ant-btn {
+  margin-top: 12px;
+}
 .display-demo .config-field {
   display: grid;
-  grid-template-columns: minmax(70px, 0.8fr) minmax(0, 1.2fr);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
   gap: 6px;
   min-width: 0;
+}
+.display-demo .config-field--switch {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  align-content: center;
+  min-height: 46px;
 }
 .display-demo .config-field__label,
 .display-demo .series-selector,
@@ -118,6 +145,7 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  min-height: 24px;
 }
 .display-demo .config-field--switch .config-field__control {
   justify-content: flex-end;
@@ -193,6 +221,7 @@
 }
 .display-demo .series-override__heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
@@ -247,21 +276,23 @@
   height: auto;
   max-height: 100%;
 }
-@container (min-width: 520px) {
+@container (max-width: 279px) {
   .display-demo .config-grid,
   .display-demo .series-overrides {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 }
-@media (min-width: 1100px) and (min-height: 700px) {
+@media (min-width: 901px) {
   .display-demo .workspace {
     display: grid;
-    height: 100dvh;
+    height: 100%;
     min-height: 0;
-    grid-template-columns: minmax(340px, 3fr) minmax(0, 9fr);
+    grid-template-columns: 400px minmax(0, 1fr);
     overflow: hidden;
   }
   .display-demo .control-pane {
+    min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
   }

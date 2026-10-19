@@ -26,80 +26,16 @@
 }
 
 .demo-shell__nav {
-  display: flex;
+  flex: 1 1 0;
   align-self: stretch;
   min-width: 0;
 }
 
-.demo-shell__nav a,
-.demo-shell__menu summary {
-  display: inline-flex;
-  align-items: center;
-  padding: 0 14px;
-  color: var(--demo-muted);
-  font-size: 13px;
-  text-decoration: none;
-  border-bottom: 2px solid transparent;
-}
-
-.demo-shell__menu summary:hover,
-.demo-shell__menu summary:focus-visible,
-.demo-shell__menu summary.is-active,
-.demo-shell__nav a:hover,
-.demo-shell__nav a:focus-visible,
-.demo-shell__nav a.router-link-exact-active {
-  color: var(--demo-primary);
-}
-
-.demo-shell__menu summary.is-active,
-.demo-shell__nav a.router-link-exact-active {
-  background: var(--demo-selected);
-  border-bottom-color: var(--demo-primary);
-}
-
-.demo-shell__menu {
-  position: relative;
-}
-
-.demo-shell__menu summary {
-  height: 100%;
-  cursor: pointer;
-  list-style: none;
-  gap: 8px;
-}
-
-.demo-shell__menu summary::-webkit-details-marker {
-  display: none;
-}
-
-.demo-shell__menu summary::after {
-  content: '⌄';
-}
-
-.demo-shell__menu[open] summary::after {
-  transform: rotate(180deg);
-}
-
-.demo-shell__submenu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  display: flex;
-  flex-direction: column;
-  width: 180px;
-  padding: 6px;
-  background: var(--demo-panel);
-  border: 1px solid var(--demo-border);
-  border-radius: 0 0 8px 8px;
-  box-shadow: 0 8px 20px rgb(16 24 40 / 12%);
-}
-
-.demo-shell__nav .demo-shell__submenu a {
-  flex: none;
-  justify-content: flex-start;
-  min-height: 40px;
-  padding: 8px 12px;
-  border-radius: 4px;
+.demo-shell__navigation.ant-menu-horizontal {
+  width: 100%;
+  line-height: 46px;
+  background: transparent;
+  border-bottom: 0;
 }
 
 .demo-shell__content {
@@ -312,22 +248,8 @@
     display: none;
   }
 
-  .demo-shell__nav {
-    width: 100%;
-  }
-
-  .demo-shell__menu {
-    flex: 1 1 0;
-  }
-
-  .demo-shell__menu summary {
-    justify-content: center;
-  }
-
-  .demo-shell__nav a {
-    flex: 1 1 0;
-    justify-content: center;
-    padding: 0 6px;
+  .demo-shell__navigation.ant-menu-horizontal {
+    line-height: 42px;
   }
 
   .fixed-domain-demo {
@@ -433,13 +355,4 @@
   .sampling-demo__diagnostic-row span:first-child {
     grid-column: 1 / -1;
   }
-}
-
-.demo-shell__menu--controls .demo-shell__submenu {
-  left: auto;
-  right: 0;
-  width: 248px;
-  max-width: calc(100vw - 16px);
-  max-height: calc(100dvh - 56px);
-  overflow-y: auto;
 }
