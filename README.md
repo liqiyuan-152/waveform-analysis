@@ -1825,6 +1825,9 @@ async function createImage() {
 
 `interactionMode` 支持 `zoom | pan | annotation | none`。省略时使用内部状态，默认 `zoom`；传入时为受控状态：
 命令只发 `update:interactionMode` 请求，宿主回传后才改变模式、高亮和 `aria-pressed`。
+
+再次点击当前选中的平移或注解按钮会退出该模式并返回框选；重复点击框选仍保持框选。
+框选被禁用时无法返回框选，保留当前模式。`setInteractionMode()` 始终显式设置模式，重复调用不会切换回框选。
 `interaction-mode-change` 只通知实际变化。`pan` 需要 `pannable`，直接拖动；`zoom` 仍支持 Space 临时平移。
 `none` 禁止拖动、滚轮和创建注解，但保留悬浮和外部视口方法。展示模式禁用新交互命令，允许导出。
 

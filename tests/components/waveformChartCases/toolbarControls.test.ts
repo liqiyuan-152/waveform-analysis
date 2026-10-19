@@ -9,6 +9,26 @@ const data: WaveformData = {
 }
 const setup = (props = {}) => mountSizedChart(data, { xDomainStrategy: { type: 'data' }, ...props })
 describe('toolbar and external commands', () => {
+  it.each(['pan', 'annotation'] as const)(
+    'requests box zoom when clicking the active controlled %s tool',
+    async (mode) => {
+      const w = await setup({ toolbar: true, pannable: true, interactionMode: mode })
+      const selector = `[data-command="${mode === 'pan' ? 'pan' : 'annotate'}"]`
+      await w.get(selector).trigger('click')
+      expect(w.emitted('update:interactionMode')).toEqual([['zoom']])
+      expect(w.vm.getControlState().mode).toBe(mode)
+      expect(w.get(selector).attributes('aria-pressed')).toBe('true')
+      expect(w.emitted('interaction-mode-change')).toBeUndefined()
+      await w.setProps({ interactionMode: 'zoom' })
+      expect(w.get(selector).attributes('aria-pressed')).toBe('false')
+      expect(w.get('[data-command="zoom-box"]').attributes('aria-pressed')).toBe('true')
+      expect(w.emitted('interaction-mode-change')).toEqual([['zoom']])
+      await w.get('[data-command="zoom-box"]').trigger('click')
+      expect(w.emitted('update:interactionMode')).toHaveLength(1)
+      w.unmount()
+    },
+  )
+
   it('preserves silent numeric methods and default UI', async () => {
     const w = await setup()
     const api: WaveformChartHandle = w.vm

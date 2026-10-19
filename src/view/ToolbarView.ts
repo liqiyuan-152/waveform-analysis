@@ -153,6 +153,8 @@ export class ToolbarView {
             if (item.id === 'export') {
               this.menuOpen = !this.menuOpen
               this.refresh()
+            } else if (item.group === 'mode' && item.active(this.context.state())) {
+              this.context.commands.setInteractionMode('zoom')
             } else item.run(this.context.commands)
           }
           this.buttons.set(item.id, button)

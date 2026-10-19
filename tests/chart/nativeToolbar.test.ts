@@ -50,6 +50,54 @@ async function setup(options: WaveformChartOptions = {}) {
 }
 
 describe('native toolbar instance integration', () => {
+  it('returns active tools to box zoom and reads the current mode between redraws', async () => {
+    const { chart, host, button } = await setup({ pannable: true })
+    const change = vi.fn()
+    chart.on('interaction-mode-change', change)
+    button('zoom-box').click()
+    expect(change).not.toHaveBeenCalled()
+    for (const id of ['pan', 'annotate']) {
+      button(id).click()
+      // A second click before a redraw must use the actual mode, not cached highlights.
+      button(id).click()
+      expect(chart.getControlState().mode).toBe('zoom')
+      await flushNativeUpdates()
+      expect(button(id).getAttribute('aria-pressed')).toBe('false')
+      expect(button('zoom-box').getAttribute('aria-pressed')).toBe('true')
+      expect(host.querySelectorAll('[aria-pressed="true"]')).toHaveLength(1)
+    }
+    button('pan').click()
+    button('annotate').click()
+    expect(chart.getControlState().mode).toBe('annotation')
+    expect(chart.setInteractionMode('annotation').status).toBe('unchanged')
+    expect(chart.getControlState().mode).toBe('annotation')
+    expect(change.mock.calls.map(([mode]) => mode)).toEqual([
+      'pan',
+      'zoom',
+      'annotation',
+      'zoom',
+      'pan',
+      'annotation',
+    ])
+  })
+
+  it.each(['pan', 'annotation'] as const)(
+    'keeps %s active when box zoom is disabled',
+    async (mode) => {
+      const { chart, button } = await setup({ pannable: true, zoomable: false })
+      chart.setInteractionMode(mode)
+      await flushNativeUpdates()
+      const change = vi.fn()
+      chart.on('interaction-mode-change', change)
+      button(mode === 'pan' ? 'pan' : 'annotate').click()
+      await flushNativeUpdates()
+      expect(chart.getControlState().mode).toBe(mode)
+      expect(button(mode === 'pan' ? 'pan' : 'annotate').getAttribute('aria-pressed')).toBe('true')
+      expect(button('zoom-box').disabled).toBe(true)
+      expect(change).not.toHaveBeenCalled()
+    },
+  )
+
   it('keeps adjacent groups/order, disabled items and stable focused nodes on redraw', async () => {
     const { host, chart, button } = await setup({
       toolbar: { items: ['reset', 'export', 'pan', 'zoom-in', 'reset'] },
