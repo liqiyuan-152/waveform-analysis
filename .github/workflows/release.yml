@@ -67,7 +67,7 @@ jobs:
     if: needs.prepare.outputs.run_id == ''
     uses: ./.github/workflows/verify.yml
     with:
-      coverage_workers: 3
+      coverage_workers: 5
 
   release:
     needs: [prepare, verify]

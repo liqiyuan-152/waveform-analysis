@@ -11,17 +11,17 @@ on:
         description: Coverage worker count for a comparable CI run
         type: choice
         options: ['3', '5']
-        default: '3'
+        default: '5'
 
 permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.coverage_workers || '3' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ inputs.coverage_workers || '5' }}
   cancel-in-progress: true
 
 jobs:
   verify:
     uses: ./.github/workflows/verify.yml
     with:
-      coverage_workers: ${{ fromJSON(inputs.coverage_workers || '3') }}
+      coverage_workers: ${{ fromJSON(inputs.coverage_workers || '5') }}
