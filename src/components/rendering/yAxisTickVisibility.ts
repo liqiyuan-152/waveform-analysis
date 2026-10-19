@@ -55,6 +55,87 @@ function strokeWidth(element: Element): number {
 }
 
 const pending = new WeakSet<SVGSVGElement>()
+const originalLabelY = new WeakMap<SVGTextElement, string | null>()
+
+function resetLabelOffsets(svg: SVGSVGElement) {
+  svg.querySelectorAll<SVGTextElement>('.waveform-track__axis--y .tick text').forEach((text) => {
+    if (!originalLabelY.has(text)) return
+    updateSvgAttribute(text, 'y', originalLabelY.get(text)!)
+    originalLabelY.delete(text)
+  })
+}
+
+/** Separate text at shared compact frame edges without moving ticks or changing domains. */
+function separateCompactExtrema(svg: SVGSVGElement) {
+  resetLabelOffsets(svg)
+  const tracks = [...svg.querySelectorAll('.waveform-track')]
+  const bounds = new Map<SVGTextElement, Box>()
+  const offsets = new Map<SVGTextElement, number>()
+  const box = (text: SVGTextElement) => {
+    if (!bounds.has(text)) {
+      const { left, right, top, bottom } = textBox(text)
+      bounds.set(text, { left, right, top, bottom })
+    }
+    return bounds.get(text)!
+  }
+  const move = (text: SVGTextElement, offset: number) => {
+    const rect = box(text)
+    rect.top += offset
+    rect.bottom += offset
+    offsets.set(text, (offsets.get(text) ?? 0) + offset)
+  }
+  const extrema = (track: Element, kind: 'minimum' | 'maximum') =>
+    [...track.querySelectorAll('.waveform-track__axis--y')].flatMap((axis) => {
+      if (!axis.querySelector(`[data-axis-${kind}-label]`)) return []
+      const boundary = kind === 'minimum' ? 'lower' : 'upper'
+      return [
+        ...axis.querySelectorAll<SVGTextElement>(
+          axis.querySelector(`[data-boundary-tick="${boundary}"]`)
+            ? `[data-boundary-tick="${boundary}"] text`
+            : `[data-${kind}-tick] text`,
+        ),
+      ]
+    })
+  for (const upper of tracks) {
+    const bottom =
+      Number(upper.getAttribute('data-track-top')) + Number(upper.getAttribute('data-track-height'))
+    const minima = extrema(upper, 'minimum')
+    if (!minima.length) continue
+    for (const lower of tracks) {
+      if (upper === lower || Math.abs(bottom - Number(lower.getAttribute('data-track-top'))) > 1e-6)
+        continue
+      const left = Number(upper.getAttribute('data-track-left'))
+      const lowerLeft = Number(lower.getAttribute('data-track-left'))
+      if (
+        left >= lowerLeft + Number(lower.getAttribute('data-track-width')) ||
+        lowerLeft >= left + Number(upper.getAttribute('data-track-width'))
+      )
+        continue
+      for (const maximum of extrema(lower, 'maximum')) {
+        for (const minimum of minima) {
+          if (
+            minimum.closest('[data-y-axis-side]')?.getAttribute('data-y-axis-side') !==
+            maximum.closest('[data-y-axis-side]')?.getAttribute('data-y-axis-side')
+          )
+            continue
+          const a = box(minimum)
+          const b = box(maximum)
+          if (!labelsOverlap(a, b)) continue
+          const offset = (a.bottom + 4 - b.top) / 2
+          move(minimum, -offset)
+          move(maximum, offset)
+        }
+      }
+    }
+  }
+  offsets.forEach((offset, text) => {
+    const y = text.getAttribute('y')
+    originalLabelY.set(text, y)
+    const scale = Math.abs(text.getScreenCTM?.()?.d ?? 1) || 1
+    updateSvgAttribute(text, 'y', (Number(y) || 0) + offset / scale)
+  })
+}
+
 /** Coalesce sibling axes after Vue's current DOM patch, without adding a late animation frame. */
 export function scheduleMaximumTickVisibility(svg: SVGSVGElement) {
   if (pending.has(svg)) return
@@ -94,6 +175,7 @@ function formatVisibleLabels(svg: SVGSVGElement) {
 
 /** Apply after axes and grid are in the DOM; never feed the filtered set back into layout. */
 export function updateMaximumTickVisibility(svg: SVGSVGElement) {
+  resetLabelOffsets(svg)
   svg.querySelectorAll('[data-maximum-hidden]').forEach((el) => {
     updateSvgAttribute(el, 'display', null)
     updateSvgAttribute(el, 'data-maximum-hidden', null)
@@ -120,7 +202,7 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
   }
   const minimumLabels = [...svg.querySelectorAll<SVGTextElement>('text[data-axis-minimum-label]')]
   svg.querySelectorAll<SVGTextElement>('text[data-axis-maximum-label]').forEach((maximum) => {
-    if (maximum.parentElement?.hasAttribute('data-maximum-tick')) return
+    if (maximum.parentElement?.matches('[data-maximum-tick], [data-boundary-tick]')) return
     const maximumBox = box(maximum)
     if (minimumLabels.some((minimum) => labelsOverlap(maximumBox, box(minimum))))
       hidden.add(maximum)
@@ -130,7 +212,8 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
     const height = Number(tick.closest('.waveform-track')?.getAttribute('data-track-height'))
     const line = tick.querySelector('line')
     const text = tick.querySelector('text')
-    const hideUpperBoundary = sameTick(position, 0) && !tick.hasAttribute('data-maximum-tick')
+    const hideUpperBoundary =
+      sameTick(position, 0) && !tick.matches('[data-maximum-tick], [data-boundary-tick]')
     if (text && hideUpperBoundary) hidden.add(text)
     if (line)
       updateSvgAttribute(
@@ -142,21 +225,12 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
   const minimumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-minimum-tick]')]
   const maximumTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-maximum-tick]')]
   const labels = [...svg.querySelectorAll<SVGTextElement>('.waveform-track__axis--y .tick text')]
+  const boundaryTicks = [...svg.querySelectorAll<SVGGElement>('.tick[data-boundary-tick]')]
   // Enabled data extrema stay visible even when adjacent tracks have little clearance.
   const extremeTicks = [...new Set([...minimumTicks, ...maximumTicks])]
   extremeTicks.forEach((tick) => {
-    const text = tick.querySelector('text')
     const line = tick.querySelector('line')
-    if (!text || !line) return
-    const textBounds = box(text)
-    labels.forEach((other) => {
-      if (isHidden(text)) return
-      if (isHidden(other)) return
-      if (other.parentElement?.matches('[data-minimum-tick], [data-maximum-tick]')) return
-      if (!tick.hasAttribute('data-minimum-tick') && other.hasAttribute('data-axis-minimum-label'))
-        return
-      if (labelsOverlap(textBounds, box(other))) hidden.add(other)
-    })
+    if (!tick.querySelector('text') || !line) return
     const axis = tick.parentElement!
     const value = Number(tick.getAttribute('data-tick-value'))
     const position = Number(tick.getAttribute('data-tick-y'))
@@ -189,5 +263,34 @@ export function updateMaximumTickVisibility(svg: SVGSVGElement) {
   })
   hidden.forEach(hide)
   extremaValues.forEach(([element, name, value]) => updateSvgAttribute(element, name, value))
-  formatVisibleLabels(svg)
+  // Reformat after filtering, then measure the final glyphs and suppress ordinary labels
+  // against the moved extrema. A second pass accounts for scientific-format changes.
+  for (let pass = 0; pass < 2; pass++) {
+    formatVisibleLabels(svg)
+    separateCompactExtrema(svg)
+    boxes.clear()
+    // Configuration bounds outrank data extrema; neither extrema switch controls them.
+    ;[...boundaryTicks, ...extremeTicks].forEach((tick) => {
+      const text = tick.querySelector('text')
+      if (!text || isHidden(text)) return
+      const textBounds = box(text)
+      labels.forEach((other) => {
+        if (isHidden(other)) return
+        if (other === text || other.parentElement?.hasAttribute('data-boundary-tick')) return
+        if (
+          !tick.hasAttribute('data-boundary-tick') &&
+          other.parentElement?.matches('[data-minimum-tick], [data-maximum-tick]')
+        )
+          return
+        if (
+          !tick.hasAttribute('data-boundary-tick') &&
+          !tick.hasAttribute('data-minimum-tick') &&
+          other.hasAttribute('data-axis-minimum-label')
+        )
+          return
+        if (labelsOverlap(textBounds, box(other))) hidden.add(other)
+      })
+    })
+    hidden.forEach(hide)
+  }
 }

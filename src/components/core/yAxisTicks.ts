@@ -1,5 +1,21 @@
 import type { WaveformAmplitudeLimit } from '../../types'
 import { resolveYAxisTicksECharts } from './niceScale'
+import { sameTick, withMaximumTick } from './yAxisPadding'
+
+/** Configured bounds survive data-extrema filtering and keep their exact numeric values. */
+export function resolveYAxisTickValues(
+  values: number[],
+  maximum?: number,
+  minimum?: number,
+  limit?: WaveformAmplitudeLimit,
+): number[] {
+  let ticks = withMaximumTick(values, maximum, minimum)
+  for (const bound of [limit?.lower, limit?.upper]) {
+    if (bound === undefined) continue
+    ticks = [...ticks.filter((value) => !sameTick(value, bound)), bound]
+  }
+  return [...ticks].sort((a, b) => a - b)
+}
 
 export interface ResolvedYAxisTicks {
   domain: [number, number]

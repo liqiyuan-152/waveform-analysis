@@ -75,6 +75,7 @@ export function resolveYAxisLayoutMetrics(
         group.maximumTick,
         group.minimumTick,
         group.tickBounds,
+        group.amplitudeLimit,
       ),
     )
   const tickTextWidth = Math.max(

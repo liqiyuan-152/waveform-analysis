@@ -12,15 +12,10 @@ import {
   resolveTrackFixedYDomain,
   type WaveformYDomain,
 } from './yDomain'
-import { resolveYAxisTicks } from './yAxisTicks'
+import { resolveYAxisTicks, resolveYAxisTickValues } from './yAxisTicks'
 export { resolveYAxisTicks, type ResolvedYAxisTicks } from './yAxisTicks'
 import { applyAmplitudeLimits, mergeAmplitudeLimits } from './amplitudeLimits'
-import {
-  applyYAxisPadding,
-  sameTick,
-  withMaximumTick,
-  type YAxisPaddingOptions,
-} from './yAxisPadding'
+import { applyYAxisPadding, sameTick, type YAxisPaddingOptions } from './yAxisPadding'
 import { resolveYAxisLabelBandWidth } from './yAxisLabelStyle'
 
 // 导出常量供外部使用
@@ -217,6 +212,7 @@ export function axisTextMetrics(
   maximumTick?: number,
   minimumTick?: number,
   amplitudeLimit?: WaveformAmplitudeLimit,
+  configuredBounds?: WaveformAmplitudeLimit,
 ): { tickTextWidth: number; titleTextWidth: number } {
   const resolvedTicks = tickValues
     ? { domain, values: tickValues }
@@ -226,7 +222,12 @@ export function axisTextMetrics(
       ? value
       : undefined
   const tickValueSets = [
-    withMaximumTick(resolvedTicks.values, inRange(maximumTick), inRange(minimumTick)),
+    resolveYAxisTickValues(
+      resolvedTicks.values,
+      inRange(maximumTick),
+      inRange(minimumTick),
+      configuredBounds,
+    ),
   ]
   const visibleTicks = tickValueSets[0]!.filter(
     (value) =>
@@ -359,6 +360,7 @@ export function buildYAxisSlots(
         group.maximumTick,
         group.minimumTick,
         group.tickBounds,
+        group.amplitudeLimit,
       )
       widths.set(key, Math.max(widths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, tickTextWidth))
       titleWidths.set(key, Math.max(titleWidths.get(key) ?? Y_AXIS_CHARACTER_WIDTH, titleTextWidth))

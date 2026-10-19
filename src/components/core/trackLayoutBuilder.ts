@@ -1,5 +1,6 @@
 import { generateWaveformPath } from '../animation/geometry'
-import { withMaximumTick, type YAxisPaddingOptions } from './yAxisPadding'
+import { type YAxisPaddingOptions } from './yAxisPadding'
+import { resolveYAxisTickValues } from './yAxisTicks'
 import { selectSeriesRenderSourcePoints } from '../../core/rendering'
 import { pointSourceFromPoints } from '../../core/waveformPointSource'
 import { scaleLinear, zoomIdentity, type ZoomTransform } from 'd3'
@@ -166,7 +167,12 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         group.minimumTick <= resolvedTicks.domain[1]
           ? group.minimumTick
           : undefined
-      const tickValues = withMaximumTick(majorTicks, maximumTick, minimumTick)
+      const tickValues = resolveYAxisTickValues(
+        majorTicks,
+        maximumTick,
+        minimumTick,
+        group.amplitudeLimit,
+      )
       const budget = resolveYAxisSpaceBudget({
         unit: options.showAxisUnits !== false ? group.seriesList[0]?.unit : undefined,
         labelTextStyle: options.yAxisPadding?.labelTextStyle,
@@ -191,6 +197,7 @@ export function buildTrackLayouts(options: BuildTrackLayoutsOptions): TrackLayou
         scale,
         maximumTick,
         minimumTick,
+        amplitudeLimit: group.amplitudeLimit,
         majorTicks,
         minorTicks: buildMinorTicks(majorTicks, 2),
         tickValues,

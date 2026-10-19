@@ -1,5 +1,6 @@
 import type { ScaleLinear } from 'd3'
 import type {
+  WaveformAmplitudeLimit,
   ResolvedWaveformErrorBarOptions,
   WaveformLineType,
   WaveformLineStyle,
@@ -59,6 +60,7 @@ export interface TrackSeriesPath {
 }
 
 export interface WaveformYAxisLayout {
+  amplitudeLimit?: WaveformAmplitudeLimit
   maximumTick?: number
   minimumTick?: number
   index: number

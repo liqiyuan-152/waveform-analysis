@@ -172,6 +172,13 @@ export class AxisView {
       .selectAll<SVGGElement, number>('.tick')
       .each(function (value) {
         const text = this.querySelector('text')!
+        const bound =
+          axis.amplitudeLimit?.lower !== undefined && sameTick(value, axis.amplitudeLimit.lower)
+            ? 'lower'
+            : axis.amplitudeLimit?.upper !== undefined && sameTick(value, axis.amplitudeLimit.upper)
+              ? 'upper'
+              : null
+        updateSvgAttribute(this, 'data-boundary-tick', bound)
         updateSvgAttribute(text, 'y', null)
         setSvgAttributes(text, { dy: 0, 'dominant-baseline': 'central' })
         updateSvgAttribute(
