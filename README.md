@@ -6,6 +6,17 @@
 组件使用不可变数据模型：替换 `data` 引用后会重新计算数据域和视口；大数据会按当前可见范围
 和屏幕像素自动保峰降采样，而 tooltip、最近点查询和标注仍使用完整原始数据。
 
+本文按仓库当前版本 `0.3.6` 的公开入口和行为整理。
+
+## 文档导航
+
+- [安装](#安装) · [最小示例](#最小示例) · [单包双组件](#单包双组件)
+- [原生实例与 Vue 适配](#原生实例与-vue-适配) · [API 速查](#api-速查)
+- [波形图](#波形图) · [内置工具栏与外部控制](#内置工具栏与外部控制)
+- [动画](#动画) · [大数据渲染](#大数据渲染) · [采样点标注](#采样点标注) · [事件](#事件)
+- [展示组件 API](#展示组件-api) · [独立基础组件](#独立基础组件)
+- [项目结构](#项目结构) · [本地开发](#本地开发)
+
 ## 在线示例
 
 线上 Demo：[波形分析组件在线示例](https://lqycustomsite.online/waveform-analysis/)。
@@ -29,6 +40,17 @@
 ## 单包双组件
 
 本包同时提供波形分析与波形展示，两个原生组件共享基础能力，分别使用独立实例。
+
+| 入口                         | 用途                     | 主要导出                                   |
+| ---------------------------- | ------------------------ | ------------------------------------------ |
+| `waveform-analysis`          | 原生分析、展示及公共工具 | `init`、`Waveform`、公开类型和算法         |
+| `waveform-analysis/analysis` | 交互式波形分析           | `init`、`getInstanceByDom`、`dispose`      |
+| `waveform-analysis/display`  | 波形展示与 SVG 导出      | `Waveform`、`defaultOptions`、展示类型     |
+| `waveform-analysis/native`   | 根入口兼容别名           | 与根入口相同                               |
+| `waveform-analysis/vue`      | Vue 3 分析组件           | `WaveformChart`、组件 Props 和 Handle 类型 |
+
+分析组件适合缩放、取点、标注和远程视口加载；展示组件适合原生 DOM 展示、
+多系列配色、坐标轴配置和 SVG 导出。两者的数据结构、配置和事件 API 不可混用。
 
 ```ts
 import { init, Waveform } from 'waveform-analysis'
@@ -72,7 +94,8 @@ X/Y 轴共用内部 `src/shared/axis` 核心（SVG 绘制、增量更新、刻�
 ## 安装
 
 Vue 是可选 peer dependency；只有 `/vue` 组件入口需要业务项目显式安装 Vue。
-D3 是运行时依赖；router 和旧色选包仅作为开发依赖，图表使用原生颜色/透明度控件。
+D3 随包安装。Vue Router、Ant Design Vue 和 vue3-colorpicker 仅由私有 Demo 工作区依赖，
+不属于库的运行时依赖；图表使用原生颜色/透明度控件。
 发布包随附 [第三方许可证通知](THIRD_PARTY_NOTICES.md)，包含外部依赖清单及 WASM 绑定通知。
 分页、标注弹窗与时间输入使用组件自有控件，无需安装 Ant Design Vue 或加载 antd.css。
 原生实例无需安装 Vue 或 React；使用 Vue 组件时另行提供兼容 Vue：
@@ -83,7 +106,74 @@ pnpm add waveform-analysis
 pnpm add vue
 ```
 
-### 原生实例与 Vue 适配
+## 最小示例
+
+### 原生 DOM / React ref
+
+在 DOM 挂载后创建实例，并为容器设置明确尺寸：
+
+```ts
+import { init } from 'waveform-analysis/analysis'
+import 'waveform-analysis/style.css'
+
+const container = document.createElement('div')
+container.style.height = '420px'
+document.body.append(container)
+
+const chart = init(container, {
+  data: { kind: 'samples', values: [0, 1, 0, -1, 0], sampleRate: 1000 },
+  toolbar: true,
+})
+
+// 使用新的数据引用更新。
+chart.setOption({
+  data: { kind: 'samples', values: [0, 2, 0, -2, 0], sampleRate: 1000 },
+})
+
+// 宿主卸载时调用；React 中将容器换为 ref.current，并在 effect 清理函数中销毁。
+function unmount() {
+  chart.dispose()
+  container.remove()
+}
+```
+
+### Vue 3 组件
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { WaveformChart } from 'waveform-analysis/vue'
+import type { WaveformData } from 'waveform-analysis'
+import 'waveform-analysis/style.css'
+
+const data = ref<WaveformData>({
+  kind: 'points',
+  points: [
+    { x: 0, y: 0.2 },
+    { x: 0.001, y: 0.4 },
+    { x: 0.002, y: 0.1 },
+  ],
+})
+</script>
+
+<template>
+  <div class="chart-container">
+    <WaveformChart :data="data" />
+  </div>
+</template>
+
+<style scoped>
+.chart-container {
+  height: 420px;
+}
+</style>
+```
+
+父容器需要有明确高度；未指定 `width` 或 `height` 时，组件会填充父容器，并保持最小高度
+`180px`。Vue `WaveformChart` 从 `waveform-analysis/vue` 导入，对应源码入口 `src/vue.ts`；
+样式入口为 `waveform-analysis/style.css`。
+
+## 原生实例与 Vue 适配
 
 `waveform-analysis` 提供 `init(dom, options?, initOptions?)`、
 `getInstanceByDom(dom)` 和 `dispose(domOrInstance)`。传入真实 HTMLElement，
@@ -97,8 +187,8 @@ Vue 组件是原生实例的薄适配，从 `waveform-analysis/vue` 导入。根
 `WaveformChart`，原有纯工具与类型保持可用。旧 Vue 项目将组件 import 改为 `/vue`，props、
 事件参数和组件 ref handle 保持兼容。
 
-`0.2.0-rc.1` 是包含破坏性导入迁移的候选版本，使用 `pnpm add waveform-analysis@next` 安装。
-从 `0.1.x` 升级时，请将 Vue 组件导入改为 `/vue`；稳定版仍可通过 `@latest` 安装。
+从 `0.1.x` 升级时，请将 Vue 组件导入改为 `waveform-analysis/vue`，
+并保留样式导入。根入口用于原生实例、展示类、算法和类型；安装当前稳定版无需使用 `@next`。
 
 ```ts
 import { WaveformChart } from 'waveform-analysis/vue'
@@ -154,7 +244,8 @@ DOM 更新可合并到下一帧，后续命令和 `getControlState()` 同步采�
 `showTooltip: false` 隐藏 tooltip 和交叉线，保留悬停事件；`presentationMode` 同时停用悬停。
 竖向交叉线吸附到当前轨道内最近的可见系列原始数据点 X 坐标，不随鼠标在点间连续移动；
 距离相同时选择右侧点。降采样不影响吸附精度，`timeUnit` 不改变吸附坐标。
-悬停更新不创建新的业务 revision 或 `finished` 周期，正在进行的轨道动画会先稳定到目标几何。
+悬停更新不创建新的业务 revision 或 `finished` 周期。默认会先将轨道动画稳定到目标几何；
+开启 `animationUpdate.animateViewport` 后，无按键悬停保留正在进行的动画。
 `control-state-change` 在微任务中合并同步更新，仅当有效模式、目标视口或命令能力快照变化时
 通知；未回传的受控请求不触发它。初始化快照请同步调用 `getControlState()`。
 原生标注拖拽只发出 `update:annotations` 替换数组，不触发 `annotation-update`；
@@ -165,7 +256,8 @@ DOM 更新可合并到下一帧，后续命令和 `getControlState()` 同步采�
 保存前重新校验当前数据范围，取消不发替换数组；Ctrl/⌘+Enter 保存，Esc 取消。
 图表内置 Select、Input/InputNumber 与 ColorPicker 使用原生 TypeScript、DOM 和隔离 CSS，
 以 Ant Design 5 默认浅色主题为参照（32px 高、14px 字号、6px 圆角、主色 #1677ff），
-无需框架或第三方控件运行时。它们是内部控件，不作为通用组件导出；Demo 设置面板仍使用第三方组件。
+无需框架或第三方控件运行时。InputNumber、Select、ColorPicker、Pagination、Modal 和 Popup
+已通过独立子路径公开，详见[独立基础组件](#独立基础组件)；它们不从根入口导出。
 Select 按 Ant Design 5.29.3 默认单选样式显示选中背景，不额外显示勾号；方向键展开后循环跳过禁用项，
 Home/End 定位首尾，Enter 或展开时首次 Tab 确认，Escape 取消，后续 Tab 正常移动焦点；支持字符定位，
 不支持搜索框、多选或虚拟列表。InputNumber 支持方向键、Shift 十倍步进、Enter/失焦校验，
@@ -215,7 +307,7 @@ SSR 只导入类型、算法或入口；Vue DOM ref 在 `onMounted`、React DOM 
 每次 effect 都必须返回取消订阅及 `dispose()` 的清理函数；稳定订阅通过 ref 读取最新回调。
 同一模块格式的多个入口共享 DOM 注册表；不要混用同一包的 ESM/CJS 或重复安装副本来管理同一 DOM。
 
-### 运行时版本要求
+## 运行时版本要求
 
 组件库当前使用或支持以下运行时版本：
 
@@ -229,47 +321,34 @@ D3 随组件包安装。适配入口已在隔离消费者验证 Vue 3.5.40 + Typ
 以及 Vue 3.2.33 + TypeScript 4.7.4，均使用严格声明检查。Vue 3.2.33 自身的声明
 不兼容 TypeScript 6；旧 Vue 项目应使用匹配的 TypeScript 版本。
 
-仓库 demo 仍使用 Ant Design Vue，它仅作为开发依赖。图表核心与颜色控件使用普通 TypeScript；
+私有 `demo-app` 工作区仍依赖 Ant Design Vue，发布库不依赖它。图表核心与颜色控件使用普通 TypeScript；
 Vue 组件仅负责 props、事件和生命周期适配。
 标注弹窗使用浏览器原生 `<dialog>`，需要支持 `showModal()` 的现代浏览器。
 
-## 最小示例
+## 动画
 
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
-import { WaveformChart } from 'waveform-analysis/vue'
-import type { WaveformData } from 'waveform-analysis'
-import 'waveform-analysis/style.css'
+### 可选的视口过渡
 
-const data = ref<WaveformData>({
-  kind: 'points',
-  points: [
-    { x: 0, y: 0.2 },
-    { x: 0.001, y: 0.4 },
-    { x: 0.002, y: 0.1 },
-  ],
+`animationUpdate.animateViewport` 默认为 `false`，省略时视口继续即时更新。
+设为 `true` 后，兼容的滚轮缩放、图表命令和 `setViewportDomain` 使用更新动画的
+`enabled`、`duration`、`easing` 配置，在当前显示位置与目标视口之间平滑过渡：
+
+```ts
+chart.setOption({
+  animationUpdate: { animateViewport: true, duration: 400, easing: 'linear' },
 })
-</script>
-
-<template>
-  <div class="chart-container">
-    <WaveformChart :data="data" />
-  </div>
-</template>
-
-<style scoped>
-.chart-container {
-  height: 420px;
-}
-</style>
+chart.setViewportDomain([0.025, 0.075]) // 秒；Vue 组件 ref 同样支持
 ```
 
-父容器需要有明确高度；未指定 `width` 或 `height` 时，组件会填充父容器，并保持最小高度
-`180px`。Vue `WaveformChart` 从 `waveform-analysis/vue` 导入，对应源码入口 `src/vue.ts`；
-样式入口为 `waveform-analysis/style.css`。
+Vue 可通过 `:animation-update="{ animateViewport: true, duration: 400 }"` 开启。
+连续缩放从当前显示中的几何接续，采样未完成时等待当前结果。原始数据不变，
+命令状态、查询和事件立即使用目标视口，显示动画不会延迟业务请求。
+无按键悬停不会提前结束入场或视口动画；按键拖拽等直接交互仍会稳定化。
+尺寸、系列或轴归属等不兼容结构变化直接提交，数据替换仍走既有数据更新逻辑。
+关闭该选项会结束当前视口过渡；总动画开关、更新动画开关、零时长、减少动态效果偏好
+和大数据阈值继续生效。导出及 `finished` 等待有限动画完成。
 
-## 动画
+### 默认配置
 
 动画默认开启：系列整体入场 1000ms（cubicInOut），多系列交错 100ms，数据更新和标注
 300ms。这改变首次完整显示和替换数据的时机；需要即时画面时关闭：
@@ -470,8 +549,13 @@ controller.destroy() // 仅清理此 owner，不销毁共享 animator
 
 ### Props
 
+下表用于 Vue 组件，也适用于原生 `init` / `setOption` 的配置。Vue 的 `data` 必填；
+原生 `init` 可以省略数据，以空图开始。动画配置见[动画](#动画)。
+
 | Prop                       | 类型                                                                               | 默认值                                                                                | 说明                                          |
 | -------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------- |
+| `pointSize`                | `number`                                                                           | `2`                                                                                   | 全局点符号直径，单位为 CSS 像素               |
+| `controlTheme`             | `'auto' \| 'light' \| 'dark'`                                                      | `'auto'`                                                                              | 工具栏及表单控件主题，不改变图表配色          |
 | `data`                     | `WaveformData`                                                                     | 必填                                                                                  | 波形数据                                      |
 | `displayMode`              | `'independent' \| 'separated' \| 'compact'`                                        | `'independent'`                                                                       | 图框布局                                      |
 | `overlayMode`              | `'single-axis' \| 'multi-axis'`                                                    | `'single-axis'`                                                                       | 叠加曲线的 Y 轴模式                           |
@@ -711,6 +795,88 @@ Y 轴图框上边界的普通刻度标签隐藏；开启最大值刻度展示时
 ```vue
 <WaveformChart :data="chartData" :axes="{ y: { nice: false, upperPaddingRatio: 0.1 } }" />
 ```
+
+### Y 轴名称文字样式
+
+通过 `axes.y.labelTextStyle` 设置“正弦基波”等系列名称的字号、字重、字体、斜体和颜色：
+
+```vue
+<WaveformChart
+  :data="data"
+  :axes="{
+    y: {
+      labelTextStyle: {
+        fontSize: 16,
+        fontWeight: 'normal',
+        fontFamily: 'Microsoft YaHei, sans-serif',
+        fontStyle: 'normal',
+        color: '#333333',
+      },
+    },
+  }"
+/>
+```
+
+`fontSize` 单位为 px，默认为 `12`，零、负数和非有限值回退为默认值。
+`fontWeight` 默认为 `600`；使用 `'normal'` 或 `400` 取消加粗，`'bold'` 或 `700` 加粗。
+字体默认继承，斜体默认为 `'normal'`，颜色默认使用对应系列颜色。
+配置支持响应式更新，适用于单轴和多轴模式的左右 Y 轴名称，不影响刻度数字、图例或 X 轴文字。
+字号参与名称与刻度之间的间距及图表边距计算；名称背景保持透明。
+
+### Y 轴上下留白与极值刻度
+
+组件统一计算自动 Y 范围留白，调用方无需修改数据或自行设置扩展后的 `yDomain`：
+
+```ts
+const axes: WaveformAxesOptions = {
+  y: {
+    lineVisible: false,
+    nice: true,
+    upperPaddingEnabled: true,
+    lowerPaddingEnabled: true,
+    upperPaddingRatio: 0.1,
+    lowerPaddingRatio: 0.1,
+  },
+}
+```
+
+上下分别使用同一个原始自动跨度。例如 `[20, 80]` 上下各 10% 得到 `[14, 86]`。
+`upperPaddingRatio` 的旧用法继续生效：只指定 `0.1` 仍仅增加上方留白。
+每侧开关显式 `false` 优先关闭；显式 `true` 且未提供比例时使用 `0.1`。
+全部省略则不增加留白；零、负数或非有限比例不生效。关闭开关不清除配置比例。
+
+固定 `yDomain` / `yDomains` 和手动 Y 视口不添加比例留白；重置或适应数据后恢复自动规则。
+显式配置某侧开关或比例后，该侧边界严格按留白结果确定，nice 不再扩展该侧。
+比例为 `0` 或开关为 `false` 时，该侧贴近数据极值；负数或非有限比例按零留白处理。
+未配置侧仍沿用 nice 扩域，全部未配置时行为保持兼容。主刻度继续使用
+`1 / 2 / 5 × 10ⁿ` 漂亮步长，仅显示最终范围内的刻度；边界不必是主刻度，实际数量可能减少。
+例如 `[-73, 86]` 上下各 10% 的图框范围严格为 `[-88.9, 101.9]`。
+这改变了旧版显式留白后仍会被 nice 进一步扩域的行为。限幅配置侧优先于比例留白，
+未限幅侧仍应用上述规则；手动视口不重复添加留白，显式留白模式下保留手动视口边界。
+常量沿用非零范围回退后计算跨度；误差棒开启时包含其端点；单轴合并范围，多轴分别计算。
+
+`axes.y.maximumTickVisible` 和 `axes.y.minimumTickVisible` 分别控制原始最大值、最小值的
+额外刻度线和标签，默认都为 `true`。两个开关与上下留白独立，设为 `false` 隐藏对应的
+额外最值刻度；关闭留白后仍显示域内已开启的最值。
+最大值刻度开启且位于当前 Y 轴范围内时，高于最大值的轴刻度线和文字不显示，
+顶部留白、坐标范围及水平网格线保持不变。关闭最大值刻度后恢复普通刻度规则；
+最大值在当前范围外时不触发过滤，多轴按各自系列组的最大值分别处理。
+普通等距刻度不受开关影响，即使某个普通刻度恰好等于最值，也仍正常显示。
+支持响应式切换，不改变数据、Y 轴范围、缩放视口或 tooltip。
+
+```vue
+<!-- 只显示最大值的额外刻度 -->
+<WaveformChart :axes="{ y: { maximumTickVisible: true, minimumTickVisible: false } }" />
+```
+
+常量标记仍为原始值且最大值、最小值合并为一个刻度，误差棒开启时极值包含其端点。
+相同值刻度合并；极值标签优先，隐藏距离不足 4px 的相邻普通标签；过近的普通短刻度及
+关联水平网格线也会隐藏，图框边框始终保留。不会移动数值位置或为避让扩大范围。
+最小值与最大值标签重叠时两者均保留，科学计数法倍率仍跟随最大值标签。手动视口或固定范围中仅显示域内的极值，
+不会为显示最值而扩展范围。同轴取可见系列的共同最值，多轴分别计算，使用完整原始数据。
+Demo 的“Y 轴留白”配置区默认显式启用上下各 10%，与组件省略配置时的默认值不同；
+“显示最大值刻度”和“显示最小值刻度”默认都开启，可分别切换。
+原 `extremaTicksVisible` 总开关已移除，请改用上述两个独立配置项。
 
 ### 缩放后按可视区间加载数据
 
@@ -1296,6 +1462,21 @@ const hiddenSeriesIds = ref<string[]>([])
 显隐状态以规范化后的 `series.id` 为键。要在数据刷新和重新排序后稳定保留状态，每个系列都应
 提供全图唯一且稳定的显式 `id`；自动生成的索引 ID 或重复 ID 添加的后缀不保证跨排序稳定。
 
+### 通道名称与交互图例
+
+`unit-display-mode="channel-label-or-legend"` 在左侧统一隐藏通道名称时，为每个非空图框
+显示带单位的图例，包括只有一条通道曲线的图框。
+当前页所有图框均为单曲线时，左侧名称显示为 `DEMO_VOLTAGE(V)`；当前页任一图框
+包含两条及以上曲线时，整页隐藏左侧通道名称及多轴通道标题，保留坐标刻度。
+当前页均为单曲线时，名称显示在左侧，图框不显示图例。
+判断使用当前页原始曲线数量，隐藏曲线仍计数，其他页不会影响当前页。
+单位去除首尾空白；缺失、空白或 `--` 时只显示名称。原始数据及 ID 保持不变。
+图例显示为 `DEMO_VOLTAGE (V)`，设置 `:legend="{ interactive: true }"` 可点击显隐。
+隐藏后保留图例条目，可全部隐藏后恢复；`cleanView` 隐藏名称和图例。
+显隐状态可通过 `hiddenSeriesIds` 及 `update:hidden-series-ids` 控制；未传入时使用
+组件内部状态，持久化仍由宿主应用负责。已有两种单位展示模式保留各自的单位规则，
+但单曲线图框统一不显示图例；多曲线图框仍保留可交互的图例条目。
+
 ### 零值参考线与净图
 
 `zeroLine` 用于绘制 `y = 0` 的水平参考线，默认显示红色（`#ff0000`）、1px 宽的虚线
@@ -1455,337 +1636,6 @@ Demo 左侧“网格与轴线”支持直接切换数值或固定时间格式。
 
 空数据或过滤后没有有效点时，组件会保留图框布局并显示“暂无有效波形数据”。
 
-## 大数据渲染
-
-组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；
-原地修改已有数组不会触发缓存刷新。建议通过 `shallowRef` 保存大数据并整体替换引用。
-规范化始终保留所有有效点，坐标域、误差棒、tooltip 和标注均使用完整数据；绘制路径会根据
-当前视口和 `rendering` 配置自动降采样。调用方如需在传入组件前主动压缩数据，应自行保留
-原始数据，以免影响 tooltip、标注和误差范围的精度。
-
-默认 `auto` 模式按每条系列的当前可见点数决定渲染路径：不超过 1,000 个点直接使用原始
-可视点；超过 1,000 个点时，组件将当前页面的可见系列合并为一次 Web Worker 请求，并在
-Worker 内通过 WASM 执行保峰采样。默认采样数量由图框宽度和每像素最大点数控制，默认每个像素
-最多渲染 4 个保峰点。多通道场景可通过 `sampling.maxPointCount` 设定每条曲线的固定目标数量；
-设置后会优先于像素密度。可按业务调整：
-
-```vue
-<WaveformChart
-  :data="chartData"
-  :rendering="{
-    downsample: true,
-    downsampleThreshold: 2000,
-    maxPointsPerPixel: 4,
-    pointMinSpacing: 10,
-    errorBarMinSpacing: 12,
-  }"
-/>
-```
-
-全量视图只绘制均匀分布的真实数据点，放大后会自动恢复更多源标记。`pointMinSpacing` 和
-`errorBarMinSpacing` 分别控制点符号和误差棒的最小水平间距，单位为 CSS 像素。两者同时
-显示时共用一批采样点，并采用两个间距中的较大值，确保误差棒与对应点符号保持共心；仅显示
-一类装饰时仍使用各自的间距。仅显示一类装饰时可将对应间距设为 `0`；两者同时显示时需将
-两个间距都设为 `0` 才会关闭共同限制。设置 `downsample: false` 会关闭曲线和装饰的全部降采样。
-
-`rendering.sampling` 控制 Worker/WASM 渲染路径。默认模式为 `auto`，其单系列可见点阈值为
-`1_000`，默认策略为 `peak`。`wasm` 强制发起 Worker+WASM 请求，不受阈值影响；`raw` 完全绕过
-Worker 和采样，直接渲染当前可见原始点。`sampling.maxPointCount` 用于每条线的固定采样数量，
-`sampling.maxPointsPerPixel` 用于按宽度自适应；两者同时存在时固定数量优先。嵌套的
-`sampling.maxPointsPerPixel` 优先于旧的 `rendering.maxPointsPerPixel`。未指定 `sampling.mode` 时，旧的 `downsample: false` 映射为
-`raw`，`downsample: true` 映射为 `auto`。
-
-```ts
-rendering: {
-  sampling: {
-    mode: 'auto',
-    autoThreshold: 1_000,
-    autoHysteresis: 0,
-    strategy: 'peak',
-    maxPointCount: 1_000,
-    maxPointsPerPixel: 4,
-    rawPointLimit: 100_000,
-    wasmFailureFallback: 'error',
-  },
-}
-```
-
-Worker 或 WASM 初始化不可用时，`auto` 会报告诊断后使用等价 JavaScript 采样，避免把大数据
-退回为超长 SVG 路径。强制 `wasm` 模式遵循 `wasmFailureFallback`：`'error'` 保留已有有效路径
-或当前同步渲染回退，并发出错误；`'javascript'` 会在错误诊断后显示 JavaScript 等价结果。快速
-缩放或数据替换会用 `requestId` 和数据 revision 丢弃过期结果；等待新结果时保留当前有效路径。
-采样结果只覆盖 SVG 线条点，完整原始数据仍用于 domain、tooltip、最近点、标注、误差范围和缩放
-约束。组件卸载和 `data` 引用替换会终止实例 Worker 并释放其数据集。
-
-高级场景可直接使用独立的 `sampleWaveformWasm` 数值内核。它接收等长的扁平 `Float64Array`
-X/Y 坐标，返回真实源点的 `Uint32Array` 索引，或 `average` / `sum` 的新 X/Y 数组。该 API 不会
-修改输入：
-
-```ts
-import { sampleWaveformWasm } from 'waveform-analysis'
-
-const result = await sampleWaveformWasm({
-  x: new Float64Array([0, 1, 2, 3]),
-  y: new Float64Array([4, 1, 8, 3]),
-  strategy: 'peak',
-  targetPointCount: 4,
-})
-```
-
-`none`、`peak`、`lttb`、`min`、`max` 和 `minmax` 返回源索引；`average` 与 `sum` 返回合成
-坐标。`calculateWasmRange` 与 `findWasmVisibleRange` 分别提供完整范围统计和规范化序列上的
-半开可见索引范围查询。WASM 初始化失败时这些调用会拒绝，由调用方选择是否使用 JavaScript
-参考实现回退。
-
-降采样仅作用于 SVG 中的曲线、点符号和误差棒。点符号和误差棒在每个系列中分别合并为
-单个 SVG path；最近点查询、tooltip、标注插值、Y 轴误差范围和受控数据不会损失精度。
-
-## 采样点标注
-
-标注由父组件通过 `v-model:annotations` 持有，标注使用 `seriesId` 和 `x/y` 数据坐标，
-不依赖数组下标：
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
-import {
-  parseWaveformAnnotations,
-  serializeWaveformAnnotations,
-  type WaveformAnnotation,
-  type WaveformInteractionMode,
-} from 'waveform-analysis'
-import { WaveformChart } from 'waveform-analysis/vue'
-import 'waveform-analysis/style.css'
-
-const annotations = ref<WaveformAnnotation[]>([])
-const annotationsVisible = ref(true)
-const interactionMode = ref<WaveformInteractionMode>('zoom')
-</script>
-
-<template>
-  <WaveformChart
-    :data="chartData"
-    v-model:annotations="annotations"
-    :annotations-visible="annotationsVisible"
-    :interaction-mode="interactionMode"
-  />
-</template>
-```
-
-标注默认显示。标注模式下左键单击绘图区任意位置即可弹出居中编辑器，标注会吸附到当前 X 位置最近的真实采样点，右键已有标注可以编辑或删除。
-标注框可以直接拖动进行手动避让，拖动只改变标签框位置，不会改变 `x/y` 数据锚点；偏移会以 `labelOffsetX/labelOffsetY` 像素字段保存在标注中。标注文本最多 40 个字符，边框色、文字色和背景色均支持取色与透明度调整。组件只负责内存中的受控数据，
-业务层负责会话或后端持久化。
-
-标注可以序列化为带版本号的 JSON，并在解析成功后整体替换当前数据：
-
-```ts
-const exportedJson = serializeWaveformAnnotations(annotations.value)
-
-async function importAnnotationFile(file: File) {
-  annotations.value = parseWaveformAnnotations(await file.text())
-}
-```
-
-导出格式为 `{ version: 1, annotations: [...] }`。解析会验证全部标注；文件格式、版本或任意
-字段无效时会抛出 `TypeError`，不会返回部分结果。导入包含未知 `seriesId` 的标注是允许的，
-对应曲线加载后会恢复显示。文件选择、错误提示和下载由业务层实现。
-
-X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为不带分组符的自适应精度数值；左右端点默认最多保留四位小数，左端向下取整、右端向上取整并省略末尾零，可通过 `axes.x.labelFormatter` 自定义。Y 轴根据完整显示域的最大绝对值选择格式：大于等于 `10³`，或大于 `0` 且小于等于 `10⁻³` 时，自动使用科学计数法，并在最高可见刻度同行显示共享倍率 `E±NN`；其他范围使用普通数字，零值不触发科学计数法。倍率完整纳入稳定的轴空间预算，缩放切换数字格式时不改变图框和通道名称的位置。Y 轴标签先保留五位有效数字，再本地化为最多四位小数。科学计数法刻度不追加单位；普通刻度在 series 配置了 `unit` 时显示 `(单位)`，多 Y 轴分别使用对应轴首个 series 的单位。tooltip 使用最多 4 位小数的本地化普通数字并省略无意义尾零；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
-标注框默认布局在采样点正上方，只做绘图区边界裁剪；文本框通过连接箭头指向标注位置，多个标注重叠时可通过拖动手动避让。
-
-## 事件
-
-组件提供以下事件，名称与 Vue 模板写法一致：
-
-| 事件                                                            | 说明                                                      |
-| --------------------------------------------------------------- | --------------------------------------------------------- |
-| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`               |
-| `zoom-intent`                                                   | 滚轮、框选或新缩放命令确定范围时触发；fit 不发 intent     |
-| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                     |
-| `pan-end`                                                       | 平移结束且范围变化时返回时间端点，独立模式附带轨道信息    |
-| `zoom-end`                                                      | 滚轮、框选或新命令提交后触发；加载器需忽略 action=fit     |
-| `zoom-reset`                                                    | 重置按钮或新对象 reset 恢复意图；独立模式标识目标图框     |
-| `page-change`                                                   | 分页变化，参数为当前页和总页数                            |
-| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                    |
-| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                      |
-| `sampling-complete`                                             | 每条系列当前采样结果的 `WaveformSamplingDiagnostics`      |
-| `sampling-backend-change`                                       | 某系列在 `raw`、`javascript` 或 `wasm` 后端之间切换时触发 |
-| `sampling-error`                                                | Worker/WASM 不可用或强制 WASM 无法满足时的降级/失败信息   |
-| `update:interactionMode`                                        | 受控模式更新请求，由宿主回传后生效                        |
-| `interaction-mode-change`                                       | 实际模式改变后通知                                        |
-| `control-state-change`                                          | 合并通知控制状态快照，不作为加载入口                      |
-| `update:annotations`                                            | 完整替换数组，宿主回传 `annotations` 后生效               |
-| `update:hidden-series-ids`                                      | 完整替换数组，宿主回传 `hiddenSeriesIds` 后生效           |
-| `rendered` / `finished`                                         | `{ revision }`；本帧绘制完成 / 当前版本稳定完成           |
-
-原生实例使用 `chart.on(name, handler)`，Vue 包装使用 `@name="handler"`，事件名称与参数
-顺序相同；例如 `chart.on('annotation-update', (annotation, previous) => …)` 对应
-`@annotation-update="(annotation, previous) => …"`，`page-change` 两个参数依次为页码和总页数。
-原生订阅返回取消函数，也可用 `off(name, handler)` 或 `off(name)`；Vue 包装通过
-emits 转发到最新监听器。`update:interactionMode` 在 Vue 模板中可写
-`@update:interaction-mode` 或 `v-model:interaction-mode`。显示单位不改变事件中的秒坐标。
-
-`annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
-`interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
-
-`sampling-complete` 的 payload 包含模式、实际后端、策略、完整/可视/渲染点数、耗时、请求号、
-revision，以及 `scheduledRequestCount`、`coalescedRequestCount` 和
-`maxPendingRequestCount` 三个调度指标；适合性能面板或日志采集。`sampling-error` 不携带原始
-`Error` 对象，只提供可序列化的消息、请求模式、回退方式和受影响系列 ID。不要将这些诊断事件
-作为 pointermove 处理逻辑。
-
-### 多分辨率索引、缓存与诊断
-
-Worker 的 JavaScript 回退后端和 Rust/WASM 后端都按需建立多分辨率索引。`peak`、`min`、`max`
-和 `minmax` 使用可追溯到真实源点的 Min/Max 分层；`average` 与 `sum` 使用可重用的 Sum/Count
-分层，LTTB 仍按当前视口即时计算。WASM 数据集通过可释放 handle 持久保存；每个桶的左右边界按
-当前可见半开索引范围精确计算，所以局部缩放不会复用首次全局采样而丢失细节。
-
-连续 wheel、pan 和 resize 使用 latest-wins 调度：同一图表最多保留一个执行中任务和一个最新
-待处理任务，中间视口会被合并，Worker 消息队列不会随输入事件无界增长。过期请求仍通过
-`requestId` 和 revision 双重校验，不能覆盖最终稳定视口。
-
-每个已访问数据集的索引默认最多使用 8 MiB。采样输出缓存使用 LRU，默认最多 96 个条目或
-16 MiB；先到达任一上限就逐出最久未使用结果。缓存键包括 dataset ID、revision、可见起止索引、
-图框宽度、目标密度、策略、后端及线型/点型/误差棒/装饰间距等渲染维度。替换、删除或清空数据集会
-同步释放其索引与缓存项。`sampling-complete.cacheHit` 只在 Worker 实际返回该缓存项时为 `true`。
-
-演示可在 `#/wasm-sampling` 打开。该路由生成 10 条各 100,000 点的 `Float32Array` 通道，可切换
-`auto` / `wasm` / `raw`，所有采样策略与自动阈值；Peak 类策略按每像素点数采样，LTTB、Average、
-Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的真实后端、
-源点/可见点/渲染点、耗时和缓存命中状态。
-
-库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署
-仍需允许库的模块 Worker，并允许浏览器编译 WebAssembly；若策略禁止 `data:` Worker/WASM 资源
-或 WebAssembly 编译，`auto` 可回退到 JavaScript，而强制 `wasm` 会按配置报告失败。当前自动化
-与浏览器回归覆盖 Chromium、Firefox 和 WebKit；实际 Safari、严格 CSP、离线和子路径部署应按
-[`docs/performance-guide.md`](docs/performance-guide.md) 的发布清单验证。
-
-## 项目结构
-
-- `src/index.ts`：框架无关公开入口；`src/native.ts` 仅重导出根入口，`src/vue.ts` 提供 Vue 适配
-- `src/chart/`：实例门面、初始化注册、事件、调度和资源生命周期
-- `src/model/`、`src/data/`、`src/layout/`：配置与受控状态、全量数据查询、域与轨道布局
-- `src/rendering/`、`src/view/`：SVG 渲染器及稳定 ID 对应的视图对象
-- `src/interaction/`、`src/annotation/`：手势、hover、受控标注与编辑
-- `src/controls/`、`src/export/`：原生工具栏、浮层、分页和 SVG/PNG 导出
-- `src/sampling/`、`src/animation/`：采样会话/Worker 策略和动画编排
-- `src/core/`、`src/types/`、`src/utils/`：共享算法、公开类型和纯辅助函数
-- `src/adapters/vue/`：Vue 薄适配；`src/components/WaveformChart.vue` 保留源码兼容转发
-- `src/components/{core,data,rendering,annotation}`：仍复用的框架无关算法与兼容类型路径
-- `src/styles/`：共享原生样式，根与 `/native/style.css` 产物保持一致
-- `examples/{vanilla,react,vue}/`：DOM ref 消费示例；`tests/fixtures/legacy/`：独立旧版对照夹具
-- `demo-app/`：private workspace 演示应用，只通过库的公开包入口消费组件
-- `demo-app/src/App.vue`：综合可交互 demo，`demo-app/src/demo/data` 提供示例波形数据
-- `demo-app/src/router.ts`、`demo-app/src/views/`：Demo 路由与固定振幅、动画、WASM 专用示例
-- `demo-app/tests/`：demo 测试；`tests/`：库测试与历史对照夹具
-- `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 是提交到 Git 的
-  WASM 绑定与二进制产物，`wasm/target` 是本地 Rust 构建缓存，不提交到 Git
-
-## 本地开发
-
-日常开发环境要求 Node.js 22、pnpm 10.32.1；`.nvmrc` 固定为与普通 CI 一致的 22.20.0，可先执行 `nvm install && nvm use`。启动直接使用仓库已有的 `wasm/pkg` 产物，
-不需要安装或校验 Rust 工具链：
-
-```bash
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-常用质量检查和构建命令：
-
-```bash
-pnpm typecheck
-pnpm lint:oxlint
-pnpm lint
-pnpm lint:all
-pnpm format:check
-pnpm test                   # 仅组件库测试
-pnpm test:coverage          # 仅组件库覆盖率
-pnpm test:demo              # 手动执行 demo 测试（含右侧控制栏）
-pnpm test:demo:browser      # 手动执行 demo 浏览器测试
-pnpm test:browser            # Chromium，原生/Vue、桌面/小容器、交互及 SVG/PNG
-pnpm test:browser:resources  # 三引擎重复创建/替换/销毁；Chromium 额外测 JS 堆
-pnpm build
-```
-
-`WAVEFORM_BROWSER=firefox` 或 `webkit` 可选择浏览器；运行前用 `pnpm exec playwright install --with-deps <browser>` 安装对应引擎。浏览器证据默认写入系统临时目录，可用 `WAVEFORM_BROWSER_EVIDENCE_DIR` 指定保留位置。每周 CI 执行三引擎矩阵，性能阈值固定在 `scripts/browser-performance-budgets.json`，仅耗时超限允许一次重测，功能失败不跳过。
-
-`pnpm lint:oxlint` 使用 Oxlint 的默认 correctness 检查及内置 TypeScript、Unicorn 和 Oxc
-插件，自动忽略 `dist/`、`dist-demo/`、`coverage/` 和 `node_modules/`。`pnpm lint` 继续负责
-ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 会依次运行两者。
-`pnpm format:check` 只读检查 Prettier 格式，`pnpm format` 保持原有的写入行为。
-
-根目录 `pnpm dev` 使用现有 WASM 产物构建库和声明，再启动库构建/声明监听与 demo 服务；
-修改库 TS、Vue 或 CSS 后会更新 demo 消费的包产物，Ctrl-C 停止服务与监听进程。
-demo 的 Ant Design、颜色选择器和路由依赖由 private `demo-app` 声明；库运行时依赖保持独立。
-根 `typecheck` 覆盖库、测试、构建配置和 demo。首次运行测试也会先准备公开包入口。
-Demo 用例（`demo-app/tests/` 和 `tests/display/demo/`）由独立的 `vitest.demo.config.ts` 管理，
-不参与默认测试、CI 或发布门禁，仅在手动执行上述 demo 测试命令时运行。Demo 浏览器路由检查也已从
-组件库浏览器检查和包消费者验证中分离；构建、类型检查与 Demo 部署产物校验仍保留。
-版本发布时不额外手动执行 Demo 测试或 Demo 覆盖率，部署后核对线上提交版本。
-覆盖率测试为库生成未压缩且带 source map 的构建，覆盖率范围限定为 `src/`；
-普通构建和发布包仍使用默认构建设置。
-
-GitHub 分支 CI 自动取消同一分支的过期运行，标签由 Release 工作流校验，避免重复触发标签 CI。
-GitHub CI 缓存 pnpm 下载和固定版本的 wasm-pack 工具；完整覆盖率与质量门禁保持不变。
-GitHub Release 按标签对应的完整 commit SHA 等待或复用同仓库分支/手动 CI 的成功结果，
-下载该运行已验证的 npm 包和 Demo 归档，不再重复执行覆盖率、构建和包消费者测试。
-CI 产物保留 14 天；没有可用运行、运行被取消或产物过期时，Release 自动对该标签触发一次
-手动 CI 补验。CI 失败或等待超时会阻止发布。PR 的验证产物不会用于发布。
-发布前仍检查标签版本、下载产物的 SHA-256、包版本及稳定版 Demo 的提交 SHA。
-首次使用此流程前需将支持 `workflow_dispatch` 的 CI 配置合入默认分支。
-覆盖率构建之后，CI/发布流程生成一次正式构建，使用 `pnpm test:browser:built` 复用产物，
-再通过 `pnpm --config.ignore-scripts=true pack --pack-destination release-assets` 打包。
-`pnpm test:package --tarball release-assets/waveform-analysis-<版本>.tgz` 直接验证指定包，
-不会重新打包；此模式要求 `dist/` 已由同一份源码正式构建。
-GitHub/Gitea 发布同一个已验证 tarball，发布前检查 SHA-256，防止验证后产物发生变化。
-本地 `pnpm test:package` 和 `pnpm pack` 仍会执行 prepack 完整构建，避免使用过期产物。
-
-GitHub 稳定版额外发布 `waveform-demo-<版本>.tar.gz` 和 SHA-256 文件，复用同次正式构建的
-Demo（`DEMO_BASE_PATH=/waveform-analysis/`），归档内 `version.txt` 为完整提交 SHA。
-腾讯云上的部署检查器每两分钟查询最新稳定 Release，通过 `gh-download` 下载归档，使用
-GitHub API 返回的 SHA-256 校验，安全解压后原子切换目录；版本或 HTML 检查失败时恢复旧目录。
-Dokploy 使用 raw Compose 管理只读静态容器，不再克隆仓库或重复安装 Node/Rust 工具链。
-安装、手动部署及回滚见 [Demo 产物部署](deploy/README.md)。
-
-`pnpm build` 同时生成 `dist/` 组件库产物和根 `dist-demo/` 演示应用。
-`pnpm build:demo` 可独立准备库后构建 demo，`pnpm preview` 预览根 `dist-demo/`。
-正式公开入口为
-`src/index.ts`，共享样式入口为 `src/styles/native.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
-
-### 通道名称与交互图例
-
-`unit-display-mode="channel-label-or-legend"` 在左侧统一隐藏通道名称时，为每个非空图框
-显示带单位的图例，包括只有一条通道曲线的图框。
-当前页所有图框均为单曲线时，左侧名称显示为 `DEMO_VOLTAGE(V)`；当前页任一图框
-包含两条及以上曲线时，整页隐藏左侧通道名称及多轴通道标题，保留坐标刻度。
-当前页均为单曲线时，名称显示在左侧，图框不显示图例。
-判断使用当前页原始曲线数量，隐藏曲线仍计数，其他页不会影响当前页。
-单位去除首尾空白；缺失、空白或 `--` 时只显示名称。原始数据及 ID 保持不变。
-图例显示为 `DEMO_VOLTAGE (V)`，设置 `:legend="{ interactive: true }"` 可点击显隐。
-隐藏后保留图例条目，可全部隐藏后恢复；`cleanView` 隐藏名称和图例。
-显隐状态可通过 `hiddenSeriesIds` 及 `update:hidden-series-ids` 控制；未传入时使用
-组件内部状态，持久化仍由宿主应用负责。已有两种单位展示模式保留各自的单位规则，
-但单曲线图框统一不显示图例；多曲线图框仍保留可交互的图例条目。
-
-### WASM 构建准备与源文件长度
-
-`dev`、`typecheck`、`test`、`test:coverage`、`build` 和 `prepack` 使用已有的 `wasm/pkg`，
-不调用 Rust 工具链。修改 Rust 源码或缺失 WASM 产物时，显式执行 `pnpm build:wasm` 重新打包，
-再运行这些命令；仅修改 Rust 源码不会自动更新演示中的 WASM。
-Rust/WASM 打包需要 Rust 1.95（含 `wasm32-unknown-unknown` target）和 wasm-pack 0.14.0。
-`pnpm build:wasm` 强制重建；`pnpm prepare:wasm` 则按源码、工具版本和产物摘要校验缓存，
-仅在缓存失效时重建。准备记录位于忽略的 `node_modules/.cache/waveform/wasm.json`。
-`src/` 和 `demo-app/src/` 文本文件上限为 450 物理行（包含注释和空行），
-ESLint 与独立长度检查保持一致。
-
-采样的 `maxPointCount` 是视口内主体点数的目标；为了保持线性和阶梯线在视口边缘连续，
-绘图输出还可能包含左右各一个相邻原始点（最多额外 2 点）。`visiblePointCount` 只统计
-视口内原始点，`renderedPointCount` 包含连接点。average/sum 仅聚合视口内部数据，连接点
-不参与聚合；视口内无采样点但存在跨越视口的线段时，保留两侧连接点。
-域、误差范围、悬浮查询及注解仍使用完整数据，时间单位仅影响显示。
-
 ### 内置工具栏与外部控制
 
 工具栏默认关闭。`toolbar=true` 开启悬浮工具栏；Demo 默认开启，参数区可关闭。
@@ -1909,89 +1759,290 @@ async function exportSvg(chart: WaveformChartHandle): Promise<Blob | undefined> 
 
 错误码还包括 `export-invalid-options`、`export-unavailable`、`export-cancelled`、`export-render-failed`、`export-timeout`。
 
-### Y 轴名称文字样式
+## 大数据渲染
 
-通过 `axes.y.labelTextStyle` 设置“正弦基波”等系列名称的字号、字重、字体、斜体和颜色：
+组件按不可变数据处理：替换 `data` 引用会重新过滤、排序和缓存坐标域，并重置视口；
+原地修改已有数组不会触发缓存刷新。建议通过 `shallowRef` 保存大数据并整体替换引用。
+规范化始终保留所有有效点，坐标域、误差棒、tooltip 和标注均使用完整数据；绘制路径会根据
+当前视口和 `rendering` 配置自动降采样。调用方如需在传入组件前主动压缩数据，应自行保留
+原始数据，以免影响 tooltip、标注和误差范围的精度。
+
+默认 `auto` 模式按每条系列的当前可见点数决定渲染路径：不超过 1,000 个点直接使用原始
+可视点；超过 1,000 个点时，组件将当前页面的可见系列合并为一次 Web Worker 请求，并在
+Worker 内通过 WASM 执行保峰采样。默认采样数量由图框宽度和每像素最大点数控制，默认每个像素
+最多渲染 4 个保峰点。多通道场景可通过 `sampling.maxPointCount` 设定每条曲线的固定目标数量；
+设置后会优先于像素密度。可按业务调整：
 
 ```vue
 <WaveformChart
-  :data="data"
-  :axes="{
-    y: {
-      labelTextStyle: {
-        fontSize: 16,
-        fontWeight: 'normal',
-        fontFamily: 'Microsoft YaHei, sans-serif',
-        fontStyle: 'normal',
-        color: '#333333',
-      },
-    },
+  :data="chartData"
+  :rendering="{
+    downsample: true,
+    downsampleThreshold: 2000,
+    maxPointsPerPixel: 4,
+    pointMinSpacing: 10,
+    errorBarMinSpacing: 12,
   }"
 />
 ```
 
-`fontSize` 单位为 px，默认为 `12`，零、负数和非有限值回退为默认值。
-`fontWeight` 默认为 `600`；使用 `'normal'` 或 `400` 取消加粗，`'bold'` 或 `700` 加粗。
-字体默认继承，斜体默认为 `'normal'`，颜色默认使用对应系列颜色。
-配置支持响应式更新，适用于单轴和多轴模式的左右 Y 轴名称，不影响刻度数字、图例或 X 轴文字。
-字号参与名称与刻度之间的间距及图表边距计算；名称背景保持透明。
+全量视图只绘制均匀分布的真实数据点，放大后会自动恢复更多源标记。`pointMinSpacing` 和
+`errorBarMinSpacing` 分别控制点符号和误差棒的最小水平间距，单位为 CSS 像素。两者同时
+显示时共用一批采样点，并采用两个间距中的较大值，确保误差棒与对应点符号保持共心；仅显示
+一类装饰时仍使用各自的间距。仅显示一类装饰时可将对应间距设为 `0`；两者同时显示时需将
+两个间距都设为 `0` 才会关闭共同限制。设置 `downsample: false` 会关闭曲线和装饰的全部降采样。
 
-### Y 轴上下留白与极值刻度
-
-组件统一计算自动 Y 范围留白，调用方无需修改数据或自行设置扩展后的 `yDomain`：
+`rendering.sampling` 控制 Worker/WASM 渲染路径。默认模式为 `auto`，其单系列可见点阈值为
+`1_000`，默认策略为 `peak`。`wasm` 强制发起 Worker+WASM 请求，不受阈值影响；`raw` 完全绕过
+Worker 和采样，直接渲染当前可见原始点。`sampling.maxPointCount` 用于每条线的固定采样数量，
+`sampling.maxPointsPerPixel` 用于按宽度自适应；两者同时存在时固定数量优先。嵌套的
+`sampling.maxPointsPerPixel` 优先于旧的 `rendering.maxPointsPerPixel`。未指定 `sampling.mode` 时，旧的 `downsample: false` 映射为
+`raw`，`downsample: true` 映射为 `auto`。
 
 ```ts
-const axes: WaveformAxesOptions = {
-  y: {
-    lineVisible: false,
-    nice: true,
-    upperPaddingEnabled: true,
-    lowerPaddingEnabled: true,
-    upperPaddingRatio: 0.1,
-    lowerPaddingRatio: 0.1,
+rendering: {
+  sampling: {
+    mode: 'auto',
+    autoThreshold: 1_000,
+    autoHysteresis: 0,
+    strategy: 'peak',
+    maxPointCount: 1_000,
+    maxPointsPerPixel: 4,
+    rawPointLimit: 100_000,
+    wasmFailureFallback: 'error',
   },
 }
 ```
 
-上下分别使用同一个原始自动跨度。例如 `[20, 80]` 上下各 10% 得到 `[14, 86]`。
-`upperPaddingRatio` 的旧用法继续生效：只指定 `0.1` 仍仅增加上方留白。
-每侧开关显式 `false` 优先关闭；显式 `true` 且未提供比例时使用 `0.1`。
-全部省略则不增加留白；零、负数或非有限比例不生效。关闭开关不清除配置比例。
+Worker 或 WASM 初始化不可用时，`auto` 会报告诊断后使用等价 JavaScript 采样，避免把大数据
+退回为超长 SVG 路径。强制 `wasm` 模式遵循 `wasmFailureFallback`：`'error'` 保留已有有效路径
+或当前同步渲染回退，并发出错误；`'javascript'` 会在错误诊断后显示 JavaScript 等价结果。快速
+缩放或数据替换会用 `requestId` 和数据 revision 丢弃过期结果；等待新结果时保留当前有效路径。
+采样结果只覆盖 SVG 线条点，完整原始数据仍用于 domain、tooltip、最近点、标注、误差范围和缩放
+约束。组件卸载和 `data` 引用替换会终止实例 Worker 并释放其数据集。
 
-固定 `yDomain` / `yDomains` 和手动 Y 视口不添加比例留白；重置或适应数据后恢复自动规则。
-显式配置某侧开关或比例后，该侧边界严格按留白结果确定，nice 不再扩展该侧。
-比例为 `0` 或开关为 `false` 时，该侧贴近数据极值；负数或非有限比例按零留白处理。
-未配置侧仍沿用 nice 扩域，全部未配置时行为保持兼容。主刻度继续使用
-`1 / 2 / 5 × 10ⁿ` 漂亮步长，仅显示最终范围内的刻度；边界不必是主刻度，实际数量可能减少。
-例如 `[-73, 86]` 上下各 10% 的图框范围严格为 `[-88.9, 101.9]`。
-这改变了旧版显式留白后仍会被 nice 进一步扩域的行为。限幅配置侧优先于比例留白，
-未限幅侧仍应用上述规则；手动视口不重复添加留白，显式留白模式下保留手动视口边界。
-常量沿用非零范围回退后计算跨度；误差棒开启时包含其端点；单轴合并范围，多轴分别计算。
+高级场景可直接使用独立的 `sampleWaveformWasm` 数值内核。它接收等长的扁平 `Float64Array`
+X/Y 坐标，返回真实源点的 `Uint32Array` 索引，或 `average` / `sum` 的新 X/Y 数组。该 API 不会
+修改输入：
 
-`axes.y.maximumTickVisible` 和 `axes.y.minimumTickVisible` 分别控制原始最大值、最小值的
-额外刻度线和标签，默认都为 `true`。两个开关与上下留白独立，设为 `false` 隐藏对应的
-额外最值刻度；关闭留白后仍显示域内已开启的最值。
-最大值刻度开启且位于当前 Y 轴范围内时，高于最大值的轴刻度线和文字不显示，
-顶部留白、坐标范围及水平网格线保持不变。关闭最大值刻度后恢复普通刻度规则；
-最大值在当前范围外时不触发过滤，多轴按各自系列组的最大值分别处理。
-普通等距刻度不受开关影响，即使某个普通刻度恰好等于最值，也仍正常显示。
-支持响应式切换，不改变数据、Y 轴范围、缩放视口或 tooltip。
+```ts
+import { sampleWaveformWasm } from 'waveform-analysis'
 
-```vue
-<!-- 只显示最大值的额外刻度 -->
-<WaveformChart :axes="{ y: { maximumTickVisible: true, minimumTickVisible: false } }" />
+const result = await sampleWaveformWasm({
+  x: new Float64Array([0, 1, 2, 3]),
+  y: new Float64Array([4, 1, 8, 3]),
+  strategy: 'peak',
+  targetPointCount: 4,
+})
 ```
 
-常量标记仍为原始值且最大值、最小值合并为一个刻度，误差棒开启时极值包含其端点。
-相同值刻度合并；极值标签优先，隐藏距离不足 4px 的相邻普通标签；过近的普通短刻度及
-关联水平网格线也会隐藏，图框边框始终保留。不会移动数值位置或为避让扩大范围。
-最小值与最大值标签重叠时两者均保留，科学计数法倍率仍跟随最大值标签。手动视口或固定范围中仅显示域内的极值，
-不会为显示最值而扩展范围。同轴取可见系列的共同最值，多轴分别计算，使用完整原始数据。
-Demo 的“Y 轴留白”配置区默认显式启用上下各 10%，与组件省略配置时的默认值不同；
-“显示最大值刻度”和“显示最小值刻度”默认都开启，可分别切换。
-原 `extremaTicksVisible` 总开关已移除，请改用上述两个独立配置项。
+`none`、`peak`、`lttb`、`min`、`max` 和 `minmax` 返回源索引；`average` 与 `sum` 返回合成
+坐标。`calculateWasmRange` 与 `findWasmVisibleRange` 分别提供完整范围统计和规范化序列上的
+半开可见索引范围查询。WASM 初始化失败时这些调用会拒绝，由调用方选择是否使用 JavaScript
+参考实现回退。
 
-### 独立基础组件
+降采样仅作用于 SVG 中的曲线、点符号和误差棒。点符号和误差棒在每个系列中分别合并为
+单个 SVG path；最近点查询、tooltip、标注插值、Y 轴误差范围和受控数据不会损失精度。
+
+采样的 `maxPointCount` 是视口内主体点数的目标；为了保持线性和阶梯线在视口边缘连续，
+绘图输出还可能包含左右各一个相邻原始点（最多额外 2 点）。`visiblePointCount` 只统计
+视口内原始点，`renderedPointCount` 包含连接点。average/sum 仅聚合视口内部数据，连接点
+不参与聚合；视口内无采样点但存在跨越视口的线段时，保留两侧连接点。
+域、误差范围、悬浮查询及注解仍使用完整数据，时间单位仅影响显示。
+
+### 多分辨率索引、缓存与诊断
+
+Worker 的 JavaScript 回退后端和 Rust/WASM 后端都按需建立多分辨率索引。`peak`、`min`、`max`
+和 `minmax` 使用可追溯到真实源点的 Min/Max 分层；`average` 与 `sum` 使用可重用的 Sum/Count
+分层，LTTB 仍按当前视口即时计算。WASM 数据集通过可释放 handle 持久保存；每个桶的左右边界按
+当前可见半开索引范围精确计算，所以局部缩放不会复用首次全局采样而丢失细节。
+
+连续 wheel、pan 和 resize 使用 latest-wins 调度：同一图表最多保留一个执行中任务和一个最新
+待处理任务，中间视口会被合并，Worker 消息队列不会随输入事件无界增长。过期请求仍通过
+`requestId` 和 revision 双重校验，不能覆盖最终稳定视口。
+
+每个已访问数据集的索引默认最多使用 8 MiB。采样输出缓存使用 LRU，默认最多 96 个条目或
+16 MiB；先到达任一上限就逐出最久未使用结果。缓存键包括 dataset ID、revision、可见起止索引、
+图框宽度、目标密度、策略、后端及线型/点型/误差棒/装饰间距等渲染维度。替换、删除或清空数据集会
+同步释放其索引与缓存项。`sampling-complete.cacheHit` 只在 Worker 实际返回该缓存项时为 `true`。
+
+演示可在 `#/wasm-sampling` 打开。该路由生成 10 条各 100,000 点的 `Float32Array` 通道，可切换
+`auto` / `wasm` / `raw`，所有采样策略与自动阈值；Peak 类策略按每像素点数采样，LTTB、Average、
+Sum 按每条线的目标渲染点数采样。右侧表格显示每个系列的真实后端、
+源点/可见点/渲染点、耗时和缓存命中状态。
+
+库产物会把 WASM 数据内联到 Worker 运行时，消费者无需额外复制 `.wasm` 文件。严格 CSP 部署
+仍需允许库的模块 Worker，并允许浏览器编译 WebAssembly；若策略禁止 `data:` Worker/WASM 资源
+或 WebAssembly 编译，`auto` 可回退到 JavaScript，而强制 `wasm` 会按配置报告失败。当前自动化
+与浏览器回归覆盖 Chromium、Firefox 和 WebKit；实际 Safari、严格 CSP、离线和子路径部署应按
+[`docs/performance-guide.md`](docs/performance-guide.md) 的发布清单验证。
+
+## 采样点标注
+
+标注由父组件通过 `v-model:annotations` 持有，标注使用 `seriesId` 和 `x/y` 数据坐标，
+不依赖数组下标：
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import {
+  parseWaveformAnnotations,
+  serializeWaveformAnnotations,
+  type WaveformAnnotation,
+  type WaveformInteractionMode,
+} from 'waveform-analysis'
+import { WaveformChart } from 'waveform-analysis/vue'
+import 'waveform-analysis/style.css'
+
+const annotations = ref<WaveformAnnotation[]>([])
+const annotationsVisible = ref(true)
+const interactionMode = ref<WaveformInteractionMode>('zoom')
+</script>
+
+<template>
+  <WaveformChart
+    :data="chartData"
+    v-model:annotations="annotations"
+    :annotations-visible="annotationsVisible"
+    :interaction-mode="interactionMode"
+  />
+</template>
+```
+
+标注默认显示。标注模式下左键单击绘图区任意位置即可弹出居中编辑器，标注会吸附到当前 X 位置最近的真实采样点，右键已有标注可以编辑或删除。
+标注框可以直接拖动进行手动避让，拖动只改变标签框位置，不会改变 `x/y` 数据锚点；偏移会以 `labelOffsetX/labelOffsetY` 像素字段保存在标注中。标注文本最多 40 个字符，边框色、文字色和背景色均支持取色与透明度调整。组件只负责内存中的受控数据，
+业务层负责会话或后端持久化。
+
+标注可以序列化为带版本号的 JSON，并在解析成功后整体替换当前数据：
+
+```ts
+const exportedJson = serializeWaveformAnnotations(annotations.value)
+
+async function importAnnotationFile(file: File) {
+  annotations.value = parseWaveformAnnotations(await file.text())
+}
+```
+
+导出格式为 `{ version: 1, annotations: [...] }`。解析会验证全部标注；文件格式、版本或任意
+字段无效时会抛出 `TypeError`，不会返回部分结果。导入包含未知 `seriesId` 的标注是允许的，
+对应曲线加载后会恢复显示。文件选择、错误提示和下载由业务层实现。
+
+X 轴刻度和左右端点先按 `timeUnit` 转换为秒或毫秒，再显示为不带分组符的自适应精度数值；左右端点默认最多保留四位小数，左端向下取整、右端向上取整并省略末尾零，可通过 `axes.x.labelFormatter` 自定义。Y 轴根据完整显示域的最大绝对值选择格式：大于等于 `10³`，或大于 `0` 且小于等于 `10⁻³` 时，自动使用科学计数法，并在最高可见刻度同行显示共享倍率 `E±NN`；其他范围使用普通数字，零值不触发科学计数法。倍率完整纳入稳定的轴空间预算，缩放切换数字格式时不改变图框和通道名称的位置。Y 轴标签先保留五位有效数字，再本地化为最多四位小数。科学计数法刻度不追加单位；普通刻度在 series 配置了 `unit` 时显示 `(单位)`，多 Y 轴分别使用对应轴首个 series 的单位。tooltip 使用最多 4 位小数的本地化普通数字并省略无意义尾零；标注编辑器的 X 坐标跟随 `timeUnit` 并固定 3 位小数，Y 坐标显示完整普通十进制。所有格式化都只发生在展示层，内部坐标值保持原始精度。
+标注框默认布局在采样点正上方，只做绘图区边界裁剪；文本框通过连接箭头指向标注位置，多个标注重叠时可通过拖动手动避让。
+
+## 事件
+
+组件提供以下事件，名称与 Vue 模板写法一致：
+
+| 事件                                                            | 说明                                                      |
+| --------------------------------------------------------------- | --------------------------------------------------------- |
+| `point-hover`                                                   | 当前最近点变化时触发，离开图表时传入 `null`               |
+| `zoom-intent`                                                   | 滚轮、框选或新缩放命令确定范围时触发；fit 不发 intent     |
+| `zoom-change`                                                   | 缩放过程中触发，参数为 `[start, end]`                     |
+| `pan-end`                                                       | 平移结束且范围变化时返回时间端点，独立模式附带轨道信息    |
+| `zoom-end`                                                      | 滚轮、框选或新命令提交后触发；加载器需忽略 action=fit     |
+| `zoom-reset`                                                    | 重置按钮或新对象 reset 恢复意图；独立模式标识目标图框     |
+| `page-change`                                                   | 分页变化，参数为当前页和总页数                            |
+| `series-visibility-change`                                      | 图例切换曲线显隐时触发                                    |
+| `annotation-create` / `annotation-update` / `annotation-delete` | 标注新增、更新或删除                                      |
+| `sampling-complete`                                             | 每条系列当前采样结果的 `WaveformSamplingDiagnostics`      |
+| `sampling-backend-change`                                       | 某系列在 `raw`、`javascript` 或 `wasm` 后端之间切换时触发 |
+| `sampling-error`                                                | Worker/WASM 不可用或强制 WASM 无法满足时的降级/失败信息   |
+| `update:interactionMode`                                        | 受控模式更新请求，由宿主回传后生效                        |
+| `interaction-mode-change`                                       | 实际模式改变后通知                                        |
+| `control-state-change`                                          | 合并通知控制状态快照，不作为加载入口                      |
+| `update:annotations`                                            | 完整替换数组，宿主回传 `annotations` 后生效               |
+| `update:hidden-series-ids`                                      | 完整替换数组，宿主回传 `hiddenSeriesIds` 后生效           |
+| `rendered` / `finished`                                         | `{ revision }`；本帧绘制完成 / 当前版本稳定完成           |
+
+原生实例使用 `chart.on(name, handler)`，Vue 包装使用 `@name="handler"`，事件名称与参数
+顺序相同；例如 `chart.on('annotation-update', (annotation, previous) => …)` 对应
+`@annotation-update="(annotation, previous) => …"`，`page-change` 两个参数依次为页码和总页数。
+原生订阅返回取消函数，也可用 `off(name, handler)` 或 `off(name)`；Vue 包装通过
+emits 转发到最新监听器。`update:interactionMode` 在 Vue 模板中可写
+`@update:interaction-mode` 或 `v-model:interaction-mode`。显示单位不改变事件中的秒坐标。
+
+`annotations` 和 `hidden-series-ids` 支持 `v-model`；`annotations-visible` 与
+`interaction-mode` 是受控输入属性。业务层应负责将标注和显隐状态持久化。
+
+`sampling-complete` 的 payload 包含模式、实际后端、策略、完整/可视/渲染点数、耗时、请求号、
+revision，以及 `scheduledRequestCount`、`coalescedRequestCount` 和
+`maxPendingRequestCount` 三个调度指标；适合性能面板或日志采集。`sampling-error` 不携带原始
+`Error` 对象，只提供可序列化的消息、请求模式、回退方式和受影响系列 ID。不要将这些诊断事件
+作为 pointermove 处理逻辑。
+
+## 展示组件 API
+
+展示组件从 `waveform-analysis/display` 导入，不需要分析组件 CSS。
+数据为点数组或系列数组，不使用分析组件的 `kind` 判别结构。
+
+```ts
+import { Waveform, type WaveformData } from 'waveform-analysis/display'
+
+const container = document.createElement('div')
+container.style.height = '320px'
+document.body.append(container)
+
+const data: WaveformData = [
+  {
+    id: 'voltage',
+    name: '电压',
+    unit: 'V',
+    data: [
+      { x: 0, y: 1 },
+      { x: 1, y: 3 },
+      { x: 2, y: 2 },
+    ],
+    style: { color: '#1677ff' },
+  },
+]
+
+const display = Waveform.init(container, data, {
+  title: { visible: true, text: '电压波形' },
+  xAxis: { unit: 's' },
+  yAxis: { unit: 'V' },
+  animationEnabled: false,
+})
+
+const unsubscribe = display.on('seriesVisibilityChange', (event) => {
+  console.log(event.seriesId, event.visible)
+})
+display.updateOptions({ line: { width: 2 } })
+
+// 在需要导出时调用；同步提交动画终态并返回 SVG 文本。
+function exportSvg() {
+  return display.toSVGString()
+}
+
+function unmount() {
+  unsubscribe()
+  display.destroy()
+  container.remove()
+}
+```
+
+| API                                                  | 说明                                                              |
+| ---------------------------------------------------- | ----------------------------------------------------------------- |
+| `Waveform.init(target, data?, options?)`             | 创建或复用同一容器的实例；复用时不应用新参数                      |
+| `new Waveform(target, data, options?)`               | 创建实例；容器已有展示实例时抛错                                  |
+| `Waveform.getInstanceByDom(target)`                  | 查询展示实例                                                      |
+| `updateData(data)`                                   | 替换展示数据                                                      |
+| `updateOptions(options)`                             | 更新展示配置                                                      |
+| `update({ data, options })`                          | 一次提交数据和配置                                                |
+| `getOptions()`                                       | 读取当前展示配置                                                  |
+| `on(event, listener)`                                | 订阅 `layoutChange` 或 `seriesVisibilityChange`，返回取消订阅函数 |
+| `dispatchAction({ type: 'toggleSeries', seriesId })` | 切换指定系列显隐                                                  |
+| `toSVGString()` / `downloadSVG(filename?)`           | 获取 SVG 文本或触发下载                                           |
+| `animation.pause()` / `resume()` / `finish()`        | 控制展示动画，需先启用 `animationEnabled`                         |
+| `destroy()`                                          | 释放监听、动画和 SVG；宿主卸载时调用                              |
+
+`target` 支持 HTMLElement 或选择器。Vue / React 中在挂载后创建，卸载时销毁。
+展示 X 坐标保留输入单位，`xAxis.unit` 是标签，不自动将秒转换为毫秒。
+多 Y 轴使用 `yAxes` 的稳定 `id`，系列通过 `yAxis` 引用对应轴。
+完整配置见 [WaveformOptions](src/display/types/options.ts)，
+数据类型见 [WaveformData](src/display/types/data.ts)。
+
+## 独立基础组件
 
 以下原生 DOM 组件不依赖 Vue，也不会加载波形分析引擎。每个子路径同时提供
 ESM、CommonJS 和 TypeScript 类型；样式需要显式导入。使用 ColorPicker 时，其样式
@@ -2135,3 +2186,114 @@ leftTop、leftBottom、rightTop、rightBottom。默认自动翻转，居中方�
 
 实现参考：[Ant Design Popover](https://github.com/ant-design/ant-design/tree/master/components/popover)
 及 [共享交互 API](https://github.com/ant-design/ant-design/blob/master/components/tooltip/shared/sharedProps.en-US.md)。
+
+## 项目结构
+
+- `src/analysis.ts`、`src/display.ts`：分析与展示的独立公开入口
+- `src/display/`：展示组件实现；`src/shared/`：两组件共享的格式化、SVG 与动画基础能力
+- `src/index.ts`：框架无关公开入口；`src/native.ts` 仅重导出根入口，`src/vue.ts` 提供 Vue 适配
+- `src/chart/`：实例门面、初始化注册、事件、调度和资源生命周期
+- `src/model/`、`src/data/`、`src/layout/`：配置与受控状态、全量数据查询、域与轨道布局
+- `src/rendering/`、`src/view/`：SVG 渲染器及稳定 ID 对应的视图对象
+- `src/interaction/`、`src/annotation/`：手势、hover、受控标注与编辑
+- `src/controls/`、`src/export/`：原生工具栏、浮层、分页和 SVG/PNG 导出
+- `src/sampling/`、`src/animation/`：采样会话/Worker 策略和动画编排
+- `src/core/`、`src/types/`、`src/utils/`：共享算法、公开类型和纯辅助函数
+- `src/adapters/vue/`：Vue 薄适配；`src/components/WaveformChart.vue` 保留源码兼容转发
+- `src/components/{core,data,rendering,annotation}`：仍复用的框架无关算法与兼容类型路径
+- `src/styles/`：共享原生样式，根与 `/native/style.css` 产物保持一致
+- `examples/{vanilla,react,vue}/`：DOM ref 消费示例；`tests/fixtures/legacy/`：独立旧版对照夹具
+- `demo-app/`：private workspace 演示应用，只通过库的公开包入口消费组件
+- `demo-app/src/App.vue`：综合可交互 demo，`demo-app/src/demo/data` 提供示例波形数据
+- `demo-app/src/router.ts`、`demo-app/src/views/`：Demo 路由与固定振幅、动画、WASM 专用示例
+- `demo-app/tests/`：demo 测试；`tests/`：库测试与历史对照夹具
+- `wasm/Cargo.toml`、`wasm/src/lib.rs`：Rust/WASM 数值内核源码；`wasm/pkg` 是提交到 Git 的
+  WASM 绑定与二进制产物，`wasm/target` 是本地 Rust 构建缓存，不提交到 Git
+
+## 本地开发
+
+日常开发环境要求 Node.js 22、pnpm 10.32.1；`.nvmrc` 固定为与普通 CI 一致的 22.20.0，可先执行 `nvm install && nvm use`。启动直接使用仓库已有的 `wasm/pkg` 产物，
+不需要安装或校验 Rust 工具链：
+
+```bash
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+常用质量检查和构建命令：
+
+```bash
+pnpm typecheck              # 包含声明生成
+pnpm typecheck:examples     # 在声明生成后检查公开消费示例
+pnpm check:file-length
+pnpm check:native-boundary
+pnpm check:licenses
+pnpm lint:oxlint
+pnpm lint
+pnpm lint:all
+pnpm format:check
+pnpm test                   # 仅组件库测试
+pnpm test:coverage          # 仅组件库覆盖率
+pnpm test:demo              # 手动执行 demo 测试（含右侧控制栏）
+pnpm test:demo:browser      # 手动执行 demo 浏览器测试
+pnpm test:browser            # Chromium，原生/Vue、桌面/小容器、交互及 SVG/PNG
+pnpm test:browser:resources  # 三引擎重复创建/替换/销毁；Chromium 额外测 JS 堆
+pnpm build
+pnpm test:package           # 独立 ESM/CJS/类型/CSS/WASM 消费者验证
+```
+
+`WAVEFORM_BROWSER=firefox` 或 `webkit` 可选择浏览器；运行前用 `pnpm exec playwright install --with-deps <browser>` 安装对应引擎。浏览器证据默认写入系统临时目录，可用 `WAVEFORM_BROWSER_EVIDENCE_DIR` 指定保留位置。每周 CI 执行三引擎矩阵，性能阈值固定在 `scripts/browser-performance-budgets.json`，仅耗时超限允许一次重测，功能失败不跳过。
+
+`pnpm lint:oxlint` 使用 Oxlint 的默认 correctness 检查及内置 TypeScript、Unicorn 和 Oxc
+插件，自动忽略 `dist/`、`dist-demo/`、`coverage/` 和 `node_modules/`。`pnpm lint` 继续负责
+ESLint 的 Vue SFC、TypeScript ESLint 和 `max-lines` 规则；`pnpm lint:all` 会依次运行两者。
+`pnpm format:check` 只读检查 Prettier 格式，`pnpm format` 保持原有的写入行为。
+
+根目录 `pnpm dev` 使用现有 WASM 产物构建库和声明，再启动库构建/声明监听与 demo 服务；
+修改库 TS、Vue 或 CSS 后会更新 demo 消费的包产物，Ctrl-C 停止服务与监听进程。
+demo 的 Ant Design、颜色选择器和路由依赖由 private `demo-app` 声明；库运行时依赖保持独立。
+根 `typecheck` 覆盖库、测试、构建配置和 demo。首次运行测试也会先准备公开包入口。
+Demo 用例（`demo-app/tests/` 和 `tests/display/demo/`）由独立的 `vitest.demo.config.ts` 管理，
+不参与默认测试、CI 或发布门禁，仅在手动执行上述 demo 测试命令时运行。Demo 浏览器路由检查也已从
+组件库浏览器检查和包消费者验证中分离；构建、类型检查与 Demo 部署产物校验仍保留。
+版本发布时不额外手动执行 Demo 测试或 Demo 覆盖率，部署后核对线上提交版本。
+覆盖率测试为库生成未压缩且带 source map 的构建，覆盖率范围限定为 `src/`；
+普通构建和发布包仍使用默认构建设置。
+
+GitHub 分支 CI 自动取消同一分支的过期运行，标签由 Release 工作流校验，避免重复触发标签 CI。
+GitHub CI 缓存 pnpm 下载和固定版本的 wasm-pack 工具；完整覆盖率与质量门禁保持不变。
+GitHub Release 按标签对应的完整 commit SHA 等待或复用同仓库分支/手动 CI 的成功结果，
+下载该运行已验证的 npm 包和 Demo 归档，不再重复执行覆盖率、构建和包消费者测试。
+CI 产物保留 14 天；没有可用运行、运行被取消或产物过期时，Release 自动对该标签触发一次
+手动 CI 补验。CI 失败或等待超时会阻止发布。PR 的验证产物不会用于发布。
+发布前仍检查标签版本、下载产物的 SHA-256、包版本及稳定版 Demo 的提交 SHA。
+首次使用此流程前需将支持 `workflow_dispatch` 的 CI 配置合入默认分支。
+覆盖率构建之后，CI/发布流程生成一次正式构建，使用 `pnpm test:browser:built` 复用产物，
+再通过 `pnpm --config.ignore-scripts=true pack --pack-destination release-assets` 打包。
+`pnpm test:package --tarball release-assets/waveform-analysis-<版本>.tgz` 直接验证指定包，
+不会重新打包；此模式要求 `dist/` 已由同一份源码正式构建。
+GitHub/Gitea 发布同一个已验证 tarball，发布前检查 SHA-256，防止验证后产物发生变化。
+本地 `pnpm test:package` 和 `pnpm pack` 仍会执行 prepack 完整构建，避免使用过期产物。
+
+GitHub 稳定版额外发布 `waveform-demo-<版本>.tar.gz` 和 SHA-256 文件，复用同次正式构建的
+Demo（`DEMO_BASE_PATH=/waveform-analysis/`），归档内 `version.txt` 为完整提交 SHA。
+腾讯云上的部署检查器每两分钟查询最新稳定 Release，通过 `gh-download` 下载归档，使用
+GitHub API 返回的 SHA-256 校验，安全解压后原子切换目录；版本或 HTML 检查失败时恢复旧目录。
+Dokploy 使用 raw Compose 管理只读静态容器，不再克隆仓库或重复安装 Node/Rust 工具链。
+安装、手动部署及回滚见 [Demo 产物部署](deploy/README.md)。
+
+`pnpm build` 同时生成 `dist/` 组件库产物和根 `dist-demo/` 演示应用。
+`pnpm build:demo` 可独立准备库后构建 demo，`pnpm preview` 预览根 `dist-demo/`。
+公开入口由 `package.json` 的 `exports` 明确声明，包括根入口、分析、展示、Vue 和独立控件；
+分析组件共享样式入口为 `src/styles/native.css`；`dist/` 和 `dist-demo/` 均为生成目录，不要手工编辑。
+
+### WASM 构建准备与源文件长度
+
+`dev`、`typecheck`、`test`、`test:coverage`、`build` 和 `prepack` 使用已有的 `wasm/pkg`，
+不调用 Rust 工具链。修改 Rust 源码或缺失 WASM 产物时，显式执行 `pnpm build:wasm` 重新打包，
+再运行这些命令；仅修改 Rust 源码不会自动更新演示中的 WASM。
+Rust/WASM 打包需要 Rust 1.95（含 `wasm32-unknown-unknown` target）和 wasm-pack 0.14.0。
+`pnpm build:wasm` 强制重建；`pnpm prepare:wasm` 则按源码、工具版本和产物摘要校验缓存，
+仅在缓存失效时重建。准备记录位于忽略的 `node_modules/.cache/waveform/wasm.json`。
+`src/` 和 `demo-app/src/` 文本文件上限为 450 物理行（包含注释和空行），
+ESLint 与独立长度检查保持一致。
