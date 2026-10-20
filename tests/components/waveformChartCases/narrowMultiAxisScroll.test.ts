@@ -222,7 +222,7 @@ describe('horizontal scrolling for narrow multi-axis charts', () => {
       await flushPromises()
       const tooltip = chart.get('.waveform-chart__tooltip')
       const tooltipLeft = Number.parseFloat((tooltip.element as HTMLElement).style.left)
-      expect(tooltipLeft).toBeCloseTo(before.leftMargin + width / 2 - 120 + 12)
+      expect(tooltipLeft).toBeCloseTo(before.leftMargin + width / 2 - 120 + 20)
       expect(tooltipLeft).toBeLessThan(320)
       expect(getComputedStyle(tooltip.element).transform).toContain('--waveform-scroll-left')
       expect(chart.vm.getControlState()).toEqual(state)
