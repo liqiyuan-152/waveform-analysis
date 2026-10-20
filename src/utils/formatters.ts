@@ -30,17 +30,27 @@ const TOOLTIP_NUMBER_FORMATTER = new Intl.NumberFormat('zh-CN', {
   maximumFractionDigits: 4,
 })
 
+/** Increment arbitrarily long decimal integers without BigInt or unsafe number coercion. */
+function incrementDecimal(value: string): string {
+  const digits = value.split('')
+  let index = digits.length - 1
+  while (index >= 0 && digits[index] === '9') digits[index--] = '0'
+  if (index < 0) digits.unshift('1')
+  else digits[index] = String(Number(digits[index]) + 1)
+  return digits.join('')
+}
+
 /** Round outward in decimal space, avoiding binary multiplication at exact boundaries. */
 function formatXEndpoint(value: number, kind: 'start' | 'end'): string {
   if (!Number.isFinite(value)) return String(value)
   const negative = value < 0
   const [integer, fraction = ''] = formatPlainNumber(Math.abs(value)).split('.')
-  let units = BigInt(integer + fraction.slice(0, 4).padEnd(4, '0'))
+  let units = (integer + fraction.slice(0, 4).padEnd(4, '0')).replace(/^0+(?=\d)/, '')
   const hasRemainder = /[1-9]/.test(fraction.slice(4))
-  if (hasRemainder && (kind === 'start' ? negative : !negative)) units += 1n
-  const digits = units.toString().padStart(5, '0')
+  if (hasRemainder && (kind === 'start' ? negative : !negative)) units = incrementDecimal(units)
+  const digits = units.padStart(5, '0')
   const decimals = digits.slice(-4).replace(/0+$/, '')
-  const sign = negative && units !== 0n ? '-' : ''
+  const sign = negative && units !== '0' ? '-' : ''
   return `${sign}${digits.slice(0, -4)}${decimals ? `.${decimals}` : ''}`
 }
 

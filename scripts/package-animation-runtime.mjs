@@ -11,6 +11,22 @@ export function verifyAnimationExports(api) {
     'createAnnotationDisappearAnimation',
   ])
     if (typeof api[name] !== 'function') throw new Error(`Missing root export ${name}`)
+  const bigint = globalThis.BigInt
+  try {
+    globalThis.BigInt = undefined
+    for (const [value, expected] of [
+      [9.99999, '10'],
+      [-9.99999, '-9.9999'],
+      [0.00001, '0.0001'],
+      [-0.00001, '0'],
+      [1e21, '1000000000000000000000'],
+    ]) {
+      if (api.formatEndpointTime(value, [value, value], 's') !== expected)
+        throw new Error('Packed endpoint formatter requires BigInt or rounds incorrectly')
+    }
+  } finally {
+    globalThis.BigInt = bigint
+  }
   let writes = 0
   const binding = { read: () => ({ x: 0, width: 0 }), write: () => writes++ }
   const config = api.createLineDrawingAnimation(binding, 10, { duration: 0 })

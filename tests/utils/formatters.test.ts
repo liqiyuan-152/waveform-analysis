@@ -154,3 +154,20 @@ describe('waveform number formatters', () => {
     expect(formatAnnotationTime(Number.NaN, 's')).toBe('NaN')
   })
 })
+
+describe('decimal endpoint carry without BigInt', () => {
+  it.each([
+    [9.99999, '9.9999', '10'],
+    [-9.99999, '-10', '-9.9999'],
+    [0.00001, '0', '0.0001'],
+    [-0.00001, '-0.0001', '0'],
+    [1.2345, '1.2345', '1.2345'],
+    [0, '0', '0'],
+    [-0, '0', '0'],
+    [1e21, '1000000000000000000000', '1000000000000000000000'],
+    [-1e21, '-1000000000000000000000', '-1000000000000000000000'],
+  ] as const)('rounds %s outward in both directions', (value, start, end) => {
+    expect(formatXAxisLabel(value, [value, value], 's', 'start')).toBe(start)
+    expect(formatXAxisLabel(value, [value, value], 's', 'end')).toBe(end)
+  })
+})
