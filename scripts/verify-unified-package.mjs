@@ -5,6 +5,7 @@ import { mkdtempSync, realpathSync, writeFileSync, readFileSync, readdirSync } f
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { packageManagerInvocation } from './package-manager.mjs'
 import { pathToFileURL } from 'node:url'
 
 // A separate consumer has no Vue dependency or ancestor workspace node_modules.
@@ -23,12 +24,14 @@ export async function verifyUnifiedPackage(tarball) {
       dependencies: { 'waveform-analysis': `file:${tarball}` },
     }),
   )
-  const installed = spawnSync(
-    'pnpm',
-    ['install', '--ignore-scripts', '--config.auto-install-peers=false'],
-    { cwd: root, encoding: 'utf8' },
-  )
-  if (installed.status !== 0) throw new Error(installed.stdout + installed.stderr)
+  const invocation = packageManagerInvocation(process.env.npm_execpath ?? 'pnpm', [
+    'install',
+    '--ignore-scripts',
+    '--config.auto-install-peers=false',
+  ])
+  const installed = spawnSync(invocation.command, invocation.args, { cwd: root, encoding: 'utf8' })
+  if (installed.status !== 0)
+    throw new Error(installed.error?.message ?? installed.stdout + installed.stderr)
   writeFileSync(
     join(root, 'verify.mjs'),
     `

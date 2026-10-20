@@ -11,7 +11,7 @@ it('discovers every suite exactly once, with demo suites only in the manual conf
       `
     import assert from 'node:assert/strict'
     import { readdirSync } from 'node:fs'
-    import { resolve } from 'node:path'
+    import { resolve, sep } from 'node:path'
     import { createVitest } from 'vitest/node'
     const discover = async (configFile) => {
       const ctx = await createVitest('test', { config: configFile, watch: false })
@@ -31,7 +31,7 @@ it('discovers every suite exactly once, with demo suites only in the manual conf
       const path = resolve(root, entry.name)
       return entry.isDirectory() ? walk(path) : entry.name.endsWith('.test.ts') ? [path] : []
     })
-    const expected = ['tests', 'demo-app/tests'].flatMap(walk)
+    const expected = ['tests', 'demo-app/tests'].flatMap(walk).map(path => path.split(sep).join('/'))
     assert.deepEqual(all, expected.sort())
   `,
     ],
