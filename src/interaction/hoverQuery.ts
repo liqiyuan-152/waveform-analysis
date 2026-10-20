@@ -13,15 +13,17 @@ export function nearestHoverPoint(series: DisplaySeries, x: number) {
 }
 
 export function crosshairXForTrack(track: TrackLayout, x: number) {
-  let range: [number, number] | undefined
-  let longest = -Infinity
+  let nearestX: number | undefined
+  let minimumDistance = Infinity
   for (const series of track.seriesList) {
-    const source = series.source ?? pointSourceFromPoints(series.points)
-    const first = source.pointAt(0)
-    const last = source.pointAt(source.length - 1)
-    if (!first || !last || last.x - first.x <= longest) continue
-    longest = last.x - first.x
-    range = [first.x, last.x]
+    const point = nearestHoverPoint(series, x)
+    if (!point) continue
+    const distance = Math.abs(point.x - x)
+    // Match nearestPoint's right-hand tie break, regardless of series order.
+    if (distance < minimumDistance || (distance === minimumDistance && point.x > nearestX!)) {
+      minimumDistance = distance
+      nearestX = point.x
+    }
   }
-  return range ? Math.max(range[0], Math.min(range[1], x)) : undefined
+  return nearestX
 }

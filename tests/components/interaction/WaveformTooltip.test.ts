@@ -43,7 +43,7 @@ describe('WaveformTooltip', () => {
     await nextTick()
     const tooltip = wrapper.get('.waveform-tooltip')
 
-    expect(tooltip.attributes('style')).toContain('left: 112px')
+    expect(tooltip.attributes('style')).toContain('left: 120px')
     expect(tooltip.attributes('style')).not.toContain('right:')
     const style = getComputedStyle(tooltip.element)
     expect(style.fontSize).toBe('11px')
@@ -55,8 +55,8 @@ describe('WaveformTooltip', () => {
     await nextTick()
     const tooltip = wrapper.get('.waveform-tooltip')
 
-    expect(tooltip.attributes('style')).toContain('right: 42px')
-    expect(tooltip.attributes('style')).not.toContain('left:')
+    expect(tooltip.attributes('style')).toContain('left: 112px')
+    expect(tooltip.attributes('style')).not.toContain('right:')
   })
 
   it('keeps the tooltip inside the left boundary when neither side has enough space', async () => {
@@ -74,7 +74,7 @@ describe('WaveformTooltip', () => {
     await nextTick()
     const tooltip = wrapper.get('.waveform-tooltip')
 
-    expect(tooltip.attributes('style')).toContain('left: 112px')
+    expect(tooltip.attributes('style')).toContain('left: 120px')
     expect(tooltip.attributes('style')).toContain('max-width: 384px')
   })
 
@@ -114,17 +114,17 @@ describe('WaveformTooltip', () => {
     const wrapper = mountTooltip(500, 800)
     await nextTick()
     const tooltip = wrapper.get('.waveform-tooltip')
-    expect(tooltip.attributes('style')).toContain('right: 312px')
+    expect(tooltip.attributes('style')).toContain('left: 60px')
     expect(tooltip.attributes('style')).toContain('max-width: 560px')
     await wrapper.setProps({ position: { x: 100, y: 100 } })
-    expect(tooltip.attributes('style')).toContain('left: 112px')
+    expect(tooltip.attributes('style')).toContain('left: 120px')
     expect(tooltip.attributes('style')).toContain('max-width: 560px')
   })
 
   it('remeasures changing series, formatted values, container size and visibility', async () => {
     const wrapper = mountTooltip(500, 800)
     await nextTick()
-    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 512px')
+    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 520px')
     measuredWidth = 450
     measuredHeight = 90
     await wrapper.setProps({
@@ -136,8 +136,8 @@ describe('WaveformTooltip', () => {
       ],
     })
     await nextTick()
-    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('right: 312px')
-    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('top: 202px')
+    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 30px')
+    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('top: 180px')
     await wrapper.setProps({ containerWidth: 200, position: { x: 100, y: 290 } })
     await nextTick()
     expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 8px')
@@ -148,7 +148,7 @@ describe('WaveformTooltip', () => {
     measuredWidth = 100
     await wrapper.setProps({ visible: true, containerWidth: 800 })
     await nextTick()
-    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 112px')
+    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 120px')
     wrapper.unmount()
     expect(resizeObservers.at(-1)!.disconnect).toHaveBeenCalled()
   })
@@ -160,8 +160,8 @@ describe('WaveformTooltip', () => {
     measuredHeight = 250
     resizeObservers.at(-1)?.resize(420, 250)
     await nextTick()
-    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('right: 312px')
-    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('top: 42px')
+    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('left: 60px')
+    expect(wrapper.get('.waveform-tooltip').attributes('style')).toContain('top: 8px')
     wrapper.unmount()
   })
 

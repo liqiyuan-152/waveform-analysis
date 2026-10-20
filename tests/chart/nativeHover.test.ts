@@ -110,8 +110,8 @@ describe('native hover', () => {
       cleanup.push(() => wrapper.unmount())
       const points: Array<WaveformPoint | null> = []
       chart.on('point-hover', (point) => points.push(point))
-      move(target(host))
-      move(target(wrapper.element))
+      move(target(host), 0.5)
+      move(target(wrapper.element), 0.5)
       flushAnimationFrames()
       await flushPromises()
       expect(points.at(-1)).toEqual(wrapper.emitted('point-hover')!.at(-1)![0])
@@ -132,6 +132,89 @@ describe('native hover', () => {
       expect(points.at(-1)).toBeNull()
     },
   )
+
+  it.each(['independent', 'separated', 'compact'] as const)(
+    'snaps the crosshair to either sparse sample in %s',
+    async (displayMode) => {
+      const { host, chart } = await native({
+        displayMode,
+        timeUnit: 'ms',
+        data: {
+          kind: 'points',
+          points: [
+            { x: 0, y: 2 },
+            { x: 10, y: 4 },
+          ],
+        },
+      })
+      const point = vi.fn()
+      chart.on('point-hover', point)
+      const overlay = target(host)
+      const width = Number(overlay.getAttribute('width'))
+      for (const ratio of [0.1, 0.4, 0.5, 0.6, 0.9, 0.2]) {
+        move(overlay, ratio)
+        await flushNativeUpdates()
+        const right = ratio >= 0.5
+        const line = host.querySelector('.waveform-chart__crosshair')!
+        expect(Number(line.getAttribute('x1'))).toBeCloseTo(right ? width : 0)
+        expect(line.getAttribute('x2')).toBe(line.getAttribute('x1'))
+        expect(point).toHaveBeenLastCalledWith(right ? { x: 10, y: 4 } : { x: 0, y: 2 })
+        expect(values(host)).toEqual([right ? '(x:10,000 y:4)' : '(x:0 y:2)'])
+      }
+    },
+  )
+
+  it('snaps to the nearest visible series in a shared track, with stable right-hand ties', async () => {
+    const { host, chart } = await native({
+      initialXDomain: [0, 10],
+      data: {
+        kind: 'series',
+        series: [
+          {
+            id: 'wide',
+            name: 'wide',
+            trackId: 'shared',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 0, y: 0 },
+                { x: 10, y: 1 },
+              ],
+            },
+          },
+          {
+            id: 'short',
+            name: 'short',
+            trackId: 'shared',
+            data: {
+              kind: 'points',
+              points: [
+                { x: 4, y: 2 },
+                { x: 6, y: 3 },
+              ],
+            },
+          },
+          { id: 'empty', name: 'empty', trackId: 'shared', data: { kind: 'points', points: [] } },
+        ],
+      },
+    })
+    async function expectSnap(ratio: number, snappedRatio: number) {
+      const overlay = target(host)
+      move(overlay, ratio)
+      await flushNativeUpdates()
+      const lines = host.querySelectorAll('.waveform-chart__crosshair')
+      expect(lines).toHaveLength(1)
+      expect(Number(lines[0]!.getAttribute('x1'))).toBeCloseTo(
+        Number(overlay.getAttribute('width')) * snappedRatio,
+      )
+    }
+    await expectSnap(0.45, 0.4)
+    await expectSnap(0.5, 0.6)
+    chart.setOption({ hiddenSeriesIds: ['short'] })
+    await flushNativeUpdates()
+    await expectSnap(0.45, 0)
+    await expectSnap(0.5, 1)
+  })
 
   it('coalesces moves, keeps event seconds and creates no finished/rendered cycle', async () => {
     const { host, chart } = await native({ timeUnit: 'ms' })
@@ -166,7 +249,7 @@ describe('native hover', () => {
     })
     const point = vi.fn()
     chart.on('point-hover', point)
-    move(target(host), 0.5432)
+    move(target(host), 0.54321)
     await flushNativeUpdates()
     expect(point).toHaveBeenLastCalledWith({ x: x[5432], y: y[5432] })
     const path = host.querySelector('.waveform-chart__line')!.getAttribute('d')!
@@ -175,6 +258,9 @@ describe('native hover', () => {
     expect(vertices.length).toBeLessThan(50)
     const rawPixel = Number((Number(target(host).getAttribute('width')) * 0.5432).toFixed(3))
     expect(vertices).not.toContain(rawPixel)
+    expect(
+      Number(host.querySelector('.waveform-chart__crosshair')!.getAttribute('x1')),
+    ).toBeCloseTo(Number(target(host).getAttribute('width')) * 0.5432)
     expect(values(host)[0]).toContain('x:5.432')
     // Event snapshots cannot mutate the private normalized source or the consumer's typed arrays.
     point.mock.calls.at(-1)![0].y = 999
@@ -290,7 +376,7 @@ describe('native hover', () => {
     move(target(host), 0.95)
     await flushNativeUpdates()
     const tooltip = host.querySelector<HTMLElement>('.waveform-tooltip')!
-    expect(tooltip.style.right).not.toBe('')
+    expect(Number.parseFloat(tooltip.style.left) + width).toBeLessThan(400 - 20)
     expect(tooltip.style.maxWidth).toBe('384px')
     const observer = resizeObservers.at(-1)!
     width = 500
@@ -298,7 +384,7 @@ describe('native hover', () => {
     observer.resize(width, height)
     expect(tooltip.style.left).toBe('8px')
     expect(tooltip.style.right).toBe('')
-    expect(tooltip.style.top).toBe('12px')
+    expect(tooltip.style.top).toBe('8px')
     chart.dispose()
     expect(observer.disconnect).toHaveBeenCalledOnce()
     observer.resize(100, 20)

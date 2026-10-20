@@ -4,23 +4,20 @@ export function tooltipPlacement(
   size: { width: number; height: number },
   container: { width: number; height: number },
 ) {
-  const gap = 12
+  const gap = 20
   const padding = 8
   const right = position.x + gap
-  const left = position.x - gap - size.width
+  const below = position.y + gap
+  const x =
+    right + size.width + 2 <= container.width - padding ? right : position.x - gap - size.width
+  const y =
+    below + size.height <= container.height - padding ? below : position.y - gap - size.height
   return {
-    left:
-      right + size.width <= container.width - padding
-        ? `${right}px`
-        : left >= padding
-          ? ''
-          : `${padding}px`,
-    right:
-      right + size.width > container.width - padding && left >= padding
-        ? `${container.width - position.x + gap}px`
-        : '',
+    // Keep numeric left/top on both sides so flips can interpolate without auto values.
+    left: `${Math.max(padding, Math.min(x, container.width - size.width - padding))}px`,
+    right: '',
     maxWidth: `${Math.max(1, Math.min(560, container.width - padding * 2))}px`,
     visibility: size.width > 0 ? ('visible' as const) : ('hidden' as const),
-    top: `${Math.max(padding, Math.min(position.y - 18, container.height - size.height - padding))}px`,
+    top: `${Math.max(padding, Math.min(y, container.height - size.height - padding))}px`,
   }
 }

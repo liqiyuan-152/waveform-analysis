@@ -16,6 +16,15 @@
   border: 1px solid #e3e7eb;
   border-radius: 4px;
   box-shadow: 0 3px 10px rgb(16 24 40 / 15%);
+  transition:
+    left 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    top 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waveform-tooltip {
+    transition: none;
+  }
 }
 
 .waveform-tooltip__series {

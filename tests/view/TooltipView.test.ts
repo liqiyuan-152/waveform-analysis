@@ -39,7 +39,7 @@ describe('persistent tooltip', () => {
     view.render({ ...value, position: { x: 150, y: 200 } }, 's', 800, 400)
     expect([...element.children]).toEqual(rows)
     expect(measure).not.toHaveBeenCalled()
-    expect(element.style.top).toBe('182px')
+    expect(element.style.top).toBe('220px')
   })
 
   it('updates text, units, missing values, colors and order without interpreting labels', () => {
