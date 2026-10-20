@@ -27,16 +27,16 @@ export function formatIntegerZoomLabel(value: number): string {
   return formatPlainNumber(Number(stableInteger(value).toPrecision(15)))
 }
 
-function stableInteger(value: number): number {
+function stableInteger(value: number, factor = 1): number {
   const rounded = Math.round(value)
-  return Math.abs(value - rounded) <= Number.EPSILON * Math.max(1, Math.abs(value)) * 16
+  return Math.abs(value - rounded) <= Number.EPSILON * Math.max(factor, Math.abs(value)) * 32
     ? rounded
     : value
 }
 
 function displayDomain(domain: [number, number], options: IntegerZoomOptions): [number, number] {
   const factor = options.timeUnit === 's' ? 1 : 1000
-  return [stableInteger(domain[0] * factor), stableInteger(domain[1] * factor)]
+  return [stableInteger(domain[0] * factor, factor), stableInteger(domain[1] * factor, factor)]
 }
 
 /** Fractional viewports, including those panned across an integer, need decimal ticks. */
@@ -51,8 +51,8 @@ export function alignIntegerZoomDomain(
 ): [number, number] {
   if (!options.integerZoom) return domain
   const factor = options.timeUnit === 's' ? 1 : 1000
-  const start = stableInteger(Math.min(domain[0], domain[1]) * factor)
-  const end = stableInteger(Math.max(domain[0], domain[1]) * factor)
+  const start = stableInteger(Math.min(domain[0], domain[1]) * factor, factor)
+  const end = stableInteger(Math.max(domain[0], domain[1]) * factor, factor)
   if (!Number.isSafeInteger(Math.floor(start)) || !Number.isSafeInteger(Math.ceil(end)))
     return domain
   if (end > start && end - start < 1) return [start / factor, end / factor]
