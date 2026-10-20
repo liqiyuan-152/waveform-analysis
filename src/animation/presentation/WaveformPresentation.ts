@@ -9,7 +9,6 @@ import {
   hasThirdGeometry,
   type TrackPresentation,
 } from './trackPresentation'
-import { chartExportOptions } from '../../components/controls/chartExportOptions'
 import { layoutAnnotations } from '../../annotation/annotationLayout'
 import {
   animationGridShape,
@@ -17,6 +16,7 @@ import {
   type AnimationContext,
   type AnimationValueReader,
 } from './context'
+import { compatibleViewportTracks, presentationOptionsSignature } from './viewportTransition'
 import { PaginationPresentation } from './PaginationPresentation'
 import type { WaveformXAxisLabelFormatter } from '../../types/chart'
 
@@ -36,6 +36,7 @@ export class WaveformPresentation {
   private previousSamplingSignature: string
   private previousSamplingState: AnimationContext['sampling']['state']['value']
   private pendingFrom?: Map<string, TrackPresentation>
+  private viewportTransition = false
   private skipSignature?: string
   private disposed = false
   readonly controller: WaveformAnimationController
@@ -147,6 +148,7 @@ export class WaveformPresentation {
           if ((series.source?.length ?? series.points.length) > 0) this.seen.add(series.id)
       }
     this.entering.clear()
+    this.viewportTransition = false
     this.pendingFrom = undefined
     this.skipSignature = sampling.requestSignature.value
     this.invalidate()
@@ -158,11 +160,16 @@ export class WaveformPresentation {
 
     if (this.disposed) return
     const nextConfig = this.config.value
+    if (this.viewportTransition && !nextConfig.animationUpdate.animateViewport) {
+      this.controller.finishAll()
+      if (this.disposed) return
+    }
     const dataChanged = props.data !== this.previousData
     // The post-flush grid watcher waits for lifecycle page resets before requesting replay.
     if (!dataChanged && this.seen.size && animationGridShape(this.context) !== this.previousGrid)
       return
     if (dataChanged) {
+      this.viewportTransition = false
       this.pendingFrom = new Map(this.states)
       this.previousData = props.data
       for (const id of this.states.keys())
@@ -178,26 +185,39 @@ export class WaveformPresentation {
       })
       this.entering.clear()
     }
-    const optionSignature = JSON.stringify(
-      Object.fromEntries(
-        Object.entries(chartExportOptions(props)).filter(
-          ([key]) => !['annotations', 'annotationsVisible', 'lineColor'].includes(key),
-        ),
-      ),
-    )
+    const optionSignature = presentationOptionsSignature(props)
+    const nextLayout = animationLayoutSignature(this.context)
+    const viewportTransition =
+      !dataChanged &&
+      nextConfig.animationUpdate.animateViewport &&
+      this.previousOptions === optionSignature &&
+      this.previousXAxisFormatter === props.axes?.x?.labelFormatter &&
+      !!this.previousLayout &&
+      this.previousLayout !== nextLayout &&
+      !this.entering.size &&
+      !this.pagination.active() &&
+      compatibleViewportTracks(tracks.value, this.states)
+    if (viewportTransition) {
+      this.pendingFrom ??= new Map(this.states)
+      this.viewportTransition = true
+      for (const id of this.states.keys())
+        this.controller.cancel({ kind: 'custom', id: `track:${id}`, scope: 'update' })
+      if (this.disposed) return
+      this.skipSignature = undefined
+    }
     const layoutChanged =
       this.previousXAxisFormatter !== props.axes?.x?.labelFormatter ||
       (this.previousOptions !== '' && this.previousOptions !== optionSignature) ||
       (this.seen.size > 0 &&
         !dataChanged &&
-        ((this.previousLayout !== '' &&
-          this.previousLayout !== animationLayoutSignature(this.context)) ||
-          (!this.pendingFrom &&
+        ((this.previousLayout !== '' && this.previousLayout !== nextLayout) ||
+          (!this.viewportTransition &&
+            !this.pendingFrom &&
             this.previousSamplingState === 'success' &&
             sampling.requestSignature.value !== this.previousSamplingSignature)))
     this.previousOptions = optionSignature
     this.previousXAxisFormatter = props.axes?.x?.labelFormatter
-    this.previousLayout = animationLayoutSignature(this.context)
+    this.previousLayout = nextLayout
     this.previousSamplingSignature = sampling.requestSignature.value
     this.previousSamplingState = sampling.state.value
     this.controller.setEnabled(this.effective.value)
@@ -205,7 +225,7 @@ export class WaveformPresentation {
     const replay = this.pagination.reconcile(dataChanged)
     if (this.disposed) return
     if (replay === 'static') return
-    if (!this.effective.value || (layoutChanged && !replay)) {
+    if (!this.effective.value || (layoutChanged && !replay && !viewportTransition)) {
       this.controller.finishAll()
       this.commit()
       return
@@ -396,7 +416,15 @@ export class WaveformPresentation {
     )
   }
 
-  stabilize() {
+  stabilize(preserveViewport = false) {
+    if (
+      preserveViewport &&
+      this.viewportTransition &&
+      this.config.value.animationUpdate.animateViewport &&
+      !this.entering.size &&
+      !this.pagination.active()
+    )
+      return
     const sampling = this.context.sampling
     if (sampling.state.value === 'pending') this.skipSignature = sampling.requestSignature.value
     if (

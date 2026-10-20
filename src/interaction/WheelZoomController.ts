@@ -19,7 +19,7 @@ export class WheelZoomController {
     if (!this.viewport.enabled('zoom') || !Number.isFinite(event.deltaY) || !event.deltaY) return
     const { context } = this.viewport
     const generation = this.generation
-    context.stabilize()
+    context.stabilize(true)
     if (!context.alive() || generation !== this.generation) return
     const key = this.identity(track)
     const current = this.pending.get(key) ?? (track.xScale.domain() as Domain)

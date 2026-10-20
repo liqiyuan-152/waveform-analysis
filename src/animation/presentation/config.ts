@@ -77,7 +77,15 @@ export function resolveAnimationProps(
         'direction',
       ),
     },
-    animationUpdate: options(props.animationUpdate, 300, 'cubicInOut'),
+    animationUpdate: {
+      ...options(props.animationUpdate, 300, 'cubicInOut'),
+      animateViewport: field(
+        props.animationUpdate?.animateViewport,
+        false,
+        boolean,
+        'animateViewport',
+      ),
+    },
     animationAnnotation: {
       ...options(props.animationAnnotation, 300, annotationEasing[annotationType]),
       type: annotationType,

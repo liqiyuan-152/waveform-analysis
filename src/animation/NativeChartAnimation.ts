@@ -188,8 +188,8 @@ export class NativeChartAnimation {
     return this.presentation.presentationAnnotations()
   }
 
-  stabilize() {
-    if (!this.disposed) this.presentation.stabilize()
+  stabilize(preserveViewport = false) {
+    if (!this.disposed) this.presentation.stabilize(preserveViewport)
   }
 
   isStable() {

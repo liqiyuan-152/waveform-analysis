@@ -70,3 +70,13 @@ const missing: AnimationFrame = { rawProgress: 1, directedProgress: 1, iteration
 // @ts-expect-error SVG strings are outside the numeric track contract
 animator.animate({ tracks: [{ target: { x: 'M0,0' }, property: 'x', to: 'M1,1' }] })
 void [globalAnimator, frame, missing]
+
+// The optional viewport setting must survive published declarations.
+const viewportOptions: import('waveform-analysis').WaveformUpdateAnimationOptions = {
+  animateViewport: true,
+  duration: 400,
+  easing: 'linear',
+}
+const analysisOptions: import('waveform-analysis/analysis').WaveformUpdateAnimationOptions =
+  viewportOptions
+void analysisOptions

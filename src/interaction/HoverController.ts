@@ -54,7 +54,11 @@ export class HoverController {
       return
     }
     const before = this.generation
-    this.context.stabilize()
+    if (
+      this.context.model.options.value.animationUpdate?.animateViewport !== true ||
+      event.buttons !== 0
+    )
+      this.context.stabilize()
     if (!this.context.alive() || before !== this.generation) return
     const layout = this.context.layout()
     const independent = this.context.model.options.value.displayMode === 'independent'

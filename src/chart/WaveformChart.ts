@@ -184,7 +184,7 @@ export class WaveformChart implements WaveformChartInstance {
         events: this.events,
         window,
         changed: () => this.changed(),
-        stabilize: () => this.animation.stabilize(),
+        stabilize: (preserveViewport) => this.animation.stabilize(preserveViewport),
         alive: () => !this.disposed,
       })
       this.resources.add(() => this.interaction.dispose())
@@ -366,7 +366,7 @@ export class WaveformChart implements WaveformChartInstance {
     validateChartAction(action)
     this.annotations.cancel()
     this.interaction.cancel()
-    this.animation.stabilize()
+    this.animation.stabilize(action.type !== 'set-mode')
     this.assertAlive()
     return this.commands.execute(action, source)
   }
@@ -391,7 +391,7 @@ export class WaveformChart implements WaveformChartInstance {
     if (typeof target === 'object') return this.dispatchAction({ type: 'reset', target })
     this.annotations.cancel()
     this.interaction.cancel()
-    this.animation.stabilize()
+    this.animation.stabilize(true)
     this.assertAlive()
     this.commands.legacyReset(target)
   }
@@ -404,7 +404,7 @@ export class WaveformChart implements WaveformChartInstance {
       return this.dispatchAction({ type: 'set-domain', domain, target })
     this.annotations.cancel()
     this.interaction.cancel()
-    this.animation.stabilize()
+    this.animation.stabilize(true)
     this.assertAlive()
     this.commands.legacySet(domain, target)
   }

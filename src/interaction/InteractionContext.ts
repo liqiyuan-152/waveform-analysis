@@ -12,7 +12,7 @@ export interface InteractionContext {
   events: ChartEventEmitter
   window: Window
   changed: () => void
-  stabilize: () => void
+  stabilize: (preserveViewport?: boolean) => void
   alive: () => boolean
 }
 

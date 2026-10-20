@@ -26,6 +26,8 @@ export interface WaveformEnterAnimationOptions extends StaggeredLineDrawingOptio
   enabled?: boolean
 }
 export interface WaveformUpdateAnimationOptions extends DataUpdateOptions {
+  /** Opt in to compatible viewport transitions and uninterrupted button-free hover. Default false. */
+  animateViewport?: boolean
   enabled?: boolean
 }
 export interface WaveformAnnotationAnimationOptions extends AnnotationAnimationOptions {

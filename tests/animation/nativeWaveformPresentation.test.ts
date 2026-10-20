@@ -16,11 +16,11 @@ function data(multiplier = 1) {
     ],
   }
 }
-function fixture(prefix = 'native') {
+function fixture(prefix = 'native', animateViewport = false) {
   const model = new ChartModel({
     data: data(),
     animation: { duration: 500, easing: 'linear' },
-    animationUpdate: { duration: 1000, easing: 'linear' },
+    animationUpdate: { animateViewport, duration: 1000, easing: 'linear' },
     grid: { rowCount: 1, columnCount: 1 },
   })
   const engine = new ChartLayoutEngine(model)
@@ -115,4 +115,118 @@ describe('framework-free waveform presentation owner', () => {
     b.owner.dispose()
     expect(b.fake.pendingFrames).toBe(0)
   })
+})
+
+function viewportFixture() {
+  const h = fixture('viewport', true)
+  h.state.value = 'success'
+  h.owner.reconcile()
+  h.owner.stabilize()
+  const zoom = (end: number) => {
+    h.tracks.value = h.tracks.value.map((track) => ({
+      ...track,
+      xScale: track.xScale.copy().domain([0, end]),
+    }))
+    h.signature.value = String(end)
+    h.owner.reconcile()
+  }
+  const domain = () => h.owner.presentationTracks()[0].xScale.domain()
+  return { ...h, zoom, domain }
+}
+
+describe('viewport presentation transitions', () => {
+  it('waits for sampling and retargets from the visible domain without mutating target data', () => {
+    const h = viewportFixture()
+    const initial = h.domain()[1]
+    const data = h.model.options.value.data
+    h.state.value = 'pending'
+    h.zoom(0.5)
+    expect(h.domain()[1]).toBe(initial)
+    expect(h.owner.controller.getActiveAnimationCount()).toBe(0)
+    h.state.value = 'success'
+    h.owner.reconcile()
+    h.fake.advance(500)
+    h.fake.flushFrame()
+    const halfway = (initial + 0.5) / 2
+    expect(h.domain()[1]).toBeCloseTo(halfway)
+    h.owner.stabilize(true)
+    expect(h.domain()[1]).toBeCloseTo(halfway)
+    h.zoom(0.2)
+    expect(h.domain()[1]).toBeCloseTo(halfway)
+    h.fake.advance(1000)
+    h.fake.flushFrame()
+    expect(h.domain()).toEqual([0, 0.2])
+    expect(h.model.options.value.data).toBe(data)
+    h.owner.dispose()
+  })
+
+  it('commits direct interactions and does not replay a pending sampling result', () => {
+    const h = viewportFixture()
+    h.state.value = 'pending'
+    h.zoom(0.5)
+    h.owner.stabilize()
+    h.state.value = 'success'
+    h.owner.reconcile()
+    expect(h.domain()).toEqual([0, 0.5])
+    expect(h.owner.controller.getActiveAnimationCount()).toBe(0)
+    h.owner.dispose()
+  })
+
+  it.each(['size', 'membership', 'formatter'] as const)(
+    'commits incompatible %s changes',
+    (kind) => {
+      const h = viewportFixture()
+      h.zoom(0.5)
+      h.fake.advance(250)
+      h.fake.flushFrame()
+      if (kind === 'size') h.tracks.value[0] = { ...h.tracks.value[0], width: 123 }
+      if (kind === 'membership') h.tracks.value[0] = { ...h.tracks.value[0], seriesList: [] }
+      if (kind === 'formatter') h.model.setOption({ axes: { x: { labelFormatter: String } } })
+      h.owner.reconcile()
+      expect(h.domain()).toEqual([0, 0.5])
+      expect(h.owner.controller.getActiveAnimationCount()).toBe(0)
+      h.owner.dispose()
+    },
+  )
+
+  it('keeps data updates separate and stabilizes them even when preserving viewport work', () => {
+    const h = viewportFixture()
+    h.zoom(0.5)
+    h.fake.advance(250)
+    h.fake.flushFrame()
+    h.model.setOption({ data: data(3) })
+    h.tracks.value = h.engine.calculate(800, 400).trackLayouts
+    h.signature.value = 'new-data'
+    h.owner.reconcile()
+    h.owner.stabilize(true)
+    expect(h.owner.presentationTracks()[0].seriesPaths[0].lineRenderPoints?.[1].y).toBe(3)
+    expect(h.owner.controller.getActiveAnimationCount()).toBe(0)
+    h.owner.dispose()
+  })
+
+  it('finishes an active viewport transition when the opt-in is removed', () => {
+    const h = viewportFixture()
+    h.zoom(0.5)
+    h.model.setOption({ animationUpdate: { duration: 1000 } })
+    h.owner.reconcile()
+    expect(h.domain()).toEqual([0, 0.5])
+    expect(h.owner.controller.getActiveAnimationCount()).toBe(0)
+    h.owner.dispose()
+  })
+})
+
+it('resolves viewport opt-in independently and rejects invalid values', () => {
+  expect(resolveAnimationProps({}).animationUpdate.animateViewport).toBe(false)
+  expect(
+    resolveAnimationProps({ animationUpdate: { animateViewport: true } }).animationUpdate
+      .animateViewport,
+  ).toBe(true)
+  const warn = vi.fn()
+  expect(
+    resolveAnimationProps(
+      { animationUpdate: { animateViewport: 'true' as unknown as boolean } },
+      warn,
+    ).animationUpdate.animateViewport,
+  ).toBe(false)
+  expect(warn).toHaveBeenCalledOnce()
 })
