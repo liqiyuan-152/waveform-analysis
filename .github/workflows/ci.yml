@@ -5,6 +5,7 @@ on:
     branches:
       - '**'
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -79,6 +80,21 @@ jobs:
           package_version="$(node -p "require('./package.json').version")"
           pnpm --config.ignore-scripts=true pack --pack-destination release-assets
           pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
+
+      - name: Checksum verified package
+        run: |
+          package_version="$(node -p "require('./package.json').version")"
+          cd release-assets
+          sha256sum "waveform-analysis-${package_version}.tgz" > "waveform-analysis-${package_version}.tgz.sha256"
+
+      - name: Retain verified release assets
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: verified-release-${{ github.sha }}
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Retain browser diagnostics
         if: always()

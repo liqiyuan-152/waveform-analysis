@@ -1729,6 +1729,12 @@ Demo 用例（`demo-app/tests/` 和 `tests/display/demo/`）由独立的 `vitest
 
 GitHub 分支 CI 自动取消同一分支的过期运行，标签由 Release 工作流校验，避免重复触发标签 CI。
 GitHub CI 缓存 pnpm 下载和固定版本的 wasm-pack 工具；完整覆盖率与质量门禁保持不变。
+GitHub Release 按标签对应的完整 commit SHA 等待或复用同仓库分支/手动 CI 的成功结果，
+下载该运行已验证的 npm 包和 Demo 归档，不再重复执行覆盖率、构建和包消费者测试。
+CI 产物保留 14 天；没有可用运行、运行被取消或产物过期时，Release 自动对该标签触发一次
+手动 CI 补验。CI 失败或等待超时会阻止发布。PR 的验证产物不会用于发布。
+发布前仍检查标签版本、下载产物的 SHA-256、包版本及稳定版 Demo 的提交 SHA。
+首次使用此流程前需将支持 `workflow_dispatch` 的 CI 配置合入默认分支。
 覆盖率构建之后，CI/发布流程生成一次正式构建，使用 `pnpm test:browser:built` 复用产物，
 再通过 `pnpm --config.ignore-scripts=true pack --pack-destination release-assets` 打包。
 `pnpm test:package --tarball release-assets/waveform-analysis-<版本>.tgz` 直接验证指定包，

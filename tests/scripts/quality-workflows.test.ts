@@ -5,15 +5,11 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const checks = ['check:native-boundary', 'check:licenses', 'typecheck:examples']
-const workflows = [
-  '.github/workflows/ci.yml',
-  '.github/workflows/release.yml',
-  '.gitea/workflows/package.yml',
-]
+const workflows = ['.github/workflows/ci.yml', '.gitea/workflows/package.yml']
 
 describe('quality gates before packaging or publishing', () => {
   it.each(workflows)('%s stops the job when any quality check fails', (file) => {
-    const source = readFileSync(file, 'utf8')
+    const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
     const header = '      - name: Verify native boundary, licenses and examples\n'
     const index = source.indexOf(header)
     expect(index).toBeGreaterThan(0)
@@ -34,11 +30,16 @@ describe('quality gates before packaging or publishing', () => {
       writeFileSync(shim, '#!/bin/sh\necho "$1"\n[ "$1" != "$FAIL_CHECK" ]\n')
       chmodSync(shim, 0o755)
       for (const [position, check] of checks.entries()) {
-        const result = spawnSync('bash', ['-c', `${run}\necho PUBLISH_SENTINEL`], {
-          cwd: root,
-          env: { ...process.env, PATH: `${root}:${process.env.PATH}`, FAIL_CHECK: check },
-          encoding: 'utf8',
-        })
+        const shimDirectory = root.replace(/\\/g, '/').replace(/^([A-Za-z]):/, '/$1')
+        const result = spawnSync(
+          'bash',
+          ['-c', `export PATH='${shimDirectory}':"$PATH"\n${run}\necho PUBLISH_SENTINEL`],
+          {
+            cwd: root,
+            env: { ...process.env, FAIL_CHECK: check },
+            encoding: 'utf8',
+          },
+        )
         expect(result.status).not.toBe(0)
         expect(result.stdout.trim().split('\n')).toEqual(checks.slice(0, position + 1))
         expect(result.stdout).not.toContain('PUBLISH_SENTINEL')

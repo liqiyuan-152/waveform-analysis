@@ -4,15 +4,11 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const workflows = [
-  '.github/workflows/ci.yml',
-  '.github/workflows/release.yml',
-  '.gitea/workflows/package.yml',
-]
+const workflows = ['.github/workflows/ci.yml', '.gitea/workflows/package.yml']
 
 describe('browser gates', () => {
   it.each(workflows)('%s rejects browser failures before publishing', (file) => {
-    const source = readFileSync(file, 'utf8')
+    const source = readFileSync(file, 'utf8').replace(/\r\n/g, '\n')
     const steps = source.split(/\n {6}- /)
     const step = steps.find((item) => item.includes('pnpm test:browser'))!
     expect(step).toBeDefined()
@@ -43,16 +39,20 @@ describe('browser gates', () => {
         ['assertion', '2'],
         ['timeout', '124'],
       ]) {
-        const result = spawnSync('bash', ['-e', '-c', `${run}\necho PUBLISH_SENTINEL`], {
-          cwd: root,
-          encoding: 'utf8',
-          env: {
-            ...process.env,
-            PATH: `${root}:${process.env.PATH}`,
-            FAILURE_KIND: failure,
-            FAILURE_CODE: code,
+        const shimDirectory = root.replace(/\\/g, '/').replace(/^([A-Za-z]):/, '/$1')
+        const result = spawnSync(
+          'bash',
+          ['-e', '-c', `export PATH='${shimDirectory}':"$PATH"\n${run}\necho PUBLISH_SENTINEL`],
+          {
+            cwd: root,
+            encoding: 'utf8',
+            env: {
+              ...process.env,
+              FAILURE_KIND: failure,
+              FAILURE_CODE: code,
+            },
           },
-        })
+        )
         expect(result.status).toBe(Number(code))
         expect(result.stdout).not.toContain('PUBLISH_SENTINEL')
       }
@@ -62,7 +62,7 @@ describe('browser gates', () => {
   })
 
   it('uploads release browser evidence from the job that produces it', () => {
-    const source = readFileSync('.github/workflows/release.yml', 'utf8')
+    const source = readFileSync('.github/workflows/ci.yml', 'utf8')
     const releaseJob = source.split('  deploy-demo:')[0]!
     expect(releaseJob).toContain('pnpm test:browser')
     expect(releaseJob).toContain('name: Retain browser diagnostics')

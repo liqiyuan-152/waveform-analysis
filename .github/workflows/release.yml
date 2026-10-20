@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: waveform-analysis-release
@@ -15,32 +16,14 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.32.1
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
           registry-url: https://registry.npmjs.org
-
-      - uses: dtolnay/rust-toolchain@1.95.0
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Cache wasm-pack executable
-        id: wasm-pack
-        uses: actions/cache@v4
-        with:
-          path: ~/.cargo/bin/wasm-pack
-          key: ${{ runner.os }}-${{ runner.arch }}-ubuntu-24.04-wasm-pack-0.14.0-rust-1.95.0
-      - if: steps.wasm-pack.outputs.cache-hit != 'true'
-        run: cargo install wasm-pack --version 0.14.0 --locked
 
       - name: Validate release version
         shell: bash
@@ -69,45 +52,36 @@ jobs:
           fi
           echo "package_version=$package_version" >> "$GITHUB_ENV"
 
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm prepare:wasm
-      - run: pnpm typecheck
-      - name: Verify native boundary, licenses and examples
-        run: |
-          set -eu
-          pnpm check:native-boundary
-          pnpm check:licenses
-          pnpm typecheck:examples
-      - run: pnpm check:file-length
-      - run: pnpm lint:oxlint
-      - run: pnpm lint
-      - name: Verify Demo artifact deployment and rollback
-        run: python3 -m unittest discover -s deploy -p 'test_*.py'
-      - run: pnpm test:coverage --maxWorkers=5
-      - run: pnpm build
-        env:
-          DEMO_BASE_PATH: /waveform-analysis/
-      - name: Install browser for package consumer checks
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Verify browser interactions
-        run: pnpm test:browser:built
-        env:
-          WAVEFORM_BROWSER: chromium
-          WAVEFORM_BROWSER_EVIDENCE_DIR: artifacts/browser
-      - name: Pack release assets
+      - name: Wait for verified CI assets
+        id: ci
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { waitForReleaseAssets } = await import(process.env.GITHUB_WORKSPACE + '/scripts/release-ci.mjs')
+            const result = await waitForReleaseAssets({ github, context, log: core.info })
+            core.setOutput('run-id', result.runId)
+            core.setOutput('artifact-id', result.artifactId)
+
+      - name: Download verified CI assets
+        uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.ci.outputs.run-id }}
+          artifact-ids: ${{ steps.ci.outputs.artifact-id }}
+          merge-multiple: true
+          path: release-assets
+
+      - name: Verify downloaded release assets
         shell: bash
         run: |
           set -euo pipefail
-          pnpm --config.ignore-scripts=true pack --pack-destination release-assets
-          published_name="waveform-analysis-${package_version}.tgz"
-          sha256sum "release-assets/$published_name" > "release-assets/$published_name.sha256"
-
-      - name: Pack the built Demo for artifact deployment
-        if: env.prerelease == 'false'
-        run: python3 deploy/demo_release.py pack --tag "$GITHUB_REF_NAME" --sha "$GITHUB_SHA"
-
-      - name: Verify the release tarball
-        run: pnpm test:package --tarball "release-assets/waveform-analysis-${package_version}.tgz"
+          cd release-assets
+          sha256sum --check "waveform-analysis-${package_version}.tgz.sha256"
+          test "$(tar -xOf "waveform-analysis-${package_version}.tgz" package/package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")" = "$package_version"
+          if [[ "$prerelease" == 'false' ]]; then
+            sha256sum --check "waveform-demo-${package_version}.tar.gz.sha256"
+            test "$(tar -xOf "waveform-demo-${package_version}.tar.gz" version.txt)" = "$GITHUB_SHA"
+          fi
 
       - name: Publish npm package
         env:
@@ -118,7 +92,7 @@ jobs:
             echo "NPMJS_PUBLISH_TOKEN is required for npm publish." >&2
             exit 1
           fi
-          sha256sum --check "release-assets/waveform-analysis-${package_version}.tgz.sha256"
+          (cd release-assets && sha256sum --check "waveform-analysis-${package_version}.tgz.sha256")
           npm publish "./release-assets/waveform-analysis-${package_version}.tgz" --tag "$npm_dist_tag" --access public
 
       - name: Create GitHub release
@@ -129,14 +103,6 @@ jobs:
           body_path: RELEASE_NOTES.md
           generate_release_notes: true
           files: release-assets/*
-
-      - name: Retain browser diagnostics
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: browser-chromium
-          path: artifacts/browser
-          retention-days: 14
 
   deploy-demo:
     needs: release
